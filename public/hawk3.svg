@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+    <circle cx="150" cy="150" r="135" fill="#145a32"/>
+    <circle cx="150" cy="150" r="90" fill="#25a045"/>
+    <ellipse cx="150" cy="130" rx="24" ry="45" fill="#000"/>
+    <circle cx="135" cy="106" r="9" fill="#fff" opacity="0.6"/>
+    <text x="150" y="215" text-anchor="middle" font-family="Arial" font-size="66" fill="#3f2">HAWK3</text>
+</svg>
