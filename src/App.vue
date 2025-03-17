@@ -2,11 +2,17 @@
 import {onMounted, ref, watch} from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 import ThemeSwitch from './components/ThemeSwitch.vue'
+import MemoryGame from './components/MemoryGame/MemoryGame.vue'
 
 const theme = ref('light')
+const showMemoryGame = ref(false)
 
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light'
+}
+
+const toggleMemoryGame = () => {
+  showMemoryGame.value = !showMemoryGame.value
 }
 
 watch(theme, (newTheme) => {
@@ -31,15 +37,29 @@ onMounted(() => {
       <section class="content" aria-labelledby="projects-heading">
         <h2 id="projects-heading">Meine Projekte</h2>
         <div class="projects" role="list">
-          <div class="project-card" role="listitem" tabindex="0">
-            <h3>Projekt 1</h3>
-            <p>Beschreibung des Projekts</p>
-            <a href="#" class="project-link" aria-label="Mehr über Projekt 1 erfahren">Mehr erfahren</a>
+          <div class="project-card game-card" role="listitem" tabindex="0">
+            <div v-if="showMemoryGame" class="memory-game-container">
+              <MemoryGame />
+            </div>
+            <div v-else>
+              <h3>Memory-Spiel</h3>
+              <p>Ein einfaches Memory-Spiel mit Tastatur- und Maussteuerung</p>
+            </div>
+            <button
+              @click="toggleMemoryGame"
+              class="btn"
+              :class="{
+                'btn--ghost': showMemoryGame
+              }"
+              :aria-label="showMemoryGame ? 'Memory-Spiel ausblenden' : 'Memory-Spiel spielen'"
+            >
+              {{ showMemoryGame ? 'Spiel ausblenden' : 'Spiel starten' }}
+            </button>
           </div>
           <div class="project-card" role="listitem" tabindex="0">
             <h3>Projekt 2</h3>
             <p>Beschreibung des Projekts</p>
-            <a href="#" class="project-link" aria-label="Mehr über Projekt 2 erfahren">Mehr erfahren</a>
+            <button class="btn" aria-label="Mehr über Projekt 2 erfahren">Mehr erfahren</button>
           </div>
         </div>
       </section>
@@ -47,7 +67,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 .app-container {
   min-height: 100vh;
   font-family: 'Arial', sans-serif;
@@ -78,6 +98,15 @@ h1 {
   margin: 0;
   font-size: var(--font-size-2xl);
   font-weight: bold;
+}
+
+h3 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+p {
+  margin: 0;
 }
 
 .theme-switch-container {
@@ -115,14 +144,16 @@ main:focus {
   border-radius: 0.5rem;
   padding: var(--space-6);
   box-shadow: var(--card-shadow);
-  transition: transform 0.3s, box-shadow 0.3s;
-position: relative;
+  transition: box-shadow 0.3s;
+  position: relative;
   outline: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .project-card:hover {
-  transform: translateY(-0.3125rem);
-  box-shadow: 0 0.375rem 0.75rem rgba(0, 0, 0, 0.15);
+  box-shadow: var(--focus-shadow);
 }
 
 .project-card:focus-visible {
@@ -131,24 +162,8 @@ position: relative;
   box-shadow: var(--focus-shadow);
 }
 
-.project-link {
-  display: inline-block;
-  margin-top: var(--space-4);
-  color: var(--accent-color);
-  text-decoration: none;
-  font-weight: bold;
-  padding: var(--space-2) 0;
-  border-bottom: 0.125rem solid transparent;
-  transition: border-color 0.3s;
-}
-
-.project-link:hover,
-.project-link:focus {
-  border-color: var(--accent-color);
-}
-
-.project-link:focus-visible {
-  outline: 0.125rem solid var(--accent-color);
-  outline-offset: 0.25rem;
+.memory-game-container {
+  width: 100%;
+  flex-grow: 1;
 }
 </style>

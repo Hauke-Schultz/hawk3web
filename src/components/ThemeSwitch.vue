@@ -19,7 +19,7 @@ const isDark = computed(() => props.theme === 'dark')
 
 <template>
   <div class="theme-switch">
-    <button @click="toggleTheme" class="switch" :class="{ 'dark': isDark }" aria-label="theme-switch">
+    <button @click="toggleTheme" class="btn switch" :class="{ 'dark': isDark }" aria-label="theme-switch">
       <span class="switch-icon">
         <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -47,7 +47,6 @@ const isDark = computed(() => props.theme === 'dark')
 }
 
 .switch {
-  background-color: #f0f0f0;
   border: none;
   border-radius: 30px;
   cursor: pointer;
@@ -55,19 +54,8 @@ const isDark = computed(() => props.theme === 'dark')
   align-items: center;
   justify-content: center;
   padding: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   width: 40px;
   height: 40px;
-}
-
-.switch.dark {
-  background-color: #333;
-  color: #fff;
-}
-
-.switch:hover {
-  transform: scale(1.05);
 }
 
 .switch-icon {
