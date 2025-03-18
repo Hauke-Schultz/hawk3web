@@ -54,9 +54,9 @@ const checkGameComplete = () => {
 const flipCard = (index) => {
   // Prevent flipping if already flipped or matched
   if (
-      flippedCards.value.length >= 2 ||
-      cards.value[index].flipped ||
-      cards.value[index].matched
+    flippedCards.value.length >= 2 ||
+    cards.value[index].flipped ||
+    cards.value[index].matched
   ) {
     return
   }
@@ -163,7 +163,6 @@ onMounted(() => {
     <!-- Game board -->
     <div
       class="game-board"
-      role="grid"
       :style="{
         'grid-template-columns': `repeat(${gridSize}, 1fr)`
       }"
@@ -221,46 +220,88 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '../../assets/variables.scss' as vars;
 .memory-game {
   width: 100%;
-  max-width: 32rem;
+  max-width: 100%;
   margin: 0 auto;
   font-family: 'Arial', sans-serif;
+
+  @media (min-width: vars.$breakpoint-sm) {
+    max-width: 28rem;
+  }
+
+  @media (min-width: vars.$breakpoint-md) {
+    max-width: 32rem;
+  }
+}
+
+.game-header {
+  margin-bottom: var(--space-2);
+
+  @media (min-width: vars.$breakpoint-md) {
+    margin-bottom: var(--space-4);
+  }
 }
 
 .game-info {
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
+  font-size: var(--font-size-sm);
+
+  @media (min-width: vars.$breakpoint-md) {
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-base);
+  }
 }
 
 .game-stats {
   display: flex;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-2);
   font-weight: bold;
+  font-size: var(--font-size-sm);
+
+  @media (min-width: vars.$breakpoint-md) {
+    margin-bottom: var(--space-4);
+    font-size: var(--font-size-base);
+  }
 }
 
 .game-board {
   display: grid;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+
+  @media (min-width: var(--breakpoint-sm)) {
+    gap: var(--space-2);
+  }
+
+  @media (min-width: vars.$breakpoint-md) {
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
 }
 
 .card {
   aspect-ratio: 1;
   perspective: 1000px;
   cursor: pointer;
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-sm);
   transition: transform 0.2s;
-}
 
-.card:hover {
-  box-shadow: var(--focus-shadow);
-}
+  @media (min-width: vars.$breakpoint-md) {
+    border-radius: var(--border-radius-md);
+  }
 
-.card:focus-visible {
-  outline: var(--focus-outline);
-  outline-offset: var(--space-1);
+  &:hover {
+    box-shadow: var(--focus-shadow);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--space-1);
+  }
 }
 
 .card-inner {
@@ -270,8 +311,13 @@ onMounted(() => {
   text-align: center;
   transition: transform 0.6s;
   transform-style: preserve-3d;
-  border-radius: 0.5rem;
-  border: 0.0625rem solid var(--button-bg);
+  border-radius: var(--border-radius-sm);
+  border: 0.125rem solid var(--grey-color);
+
+  @media (min-width: vars.$breakpoint-md) {
+    border-radius: var(--border-radius-md);
+    border-width: 0.25rem;
+  }
 }
 
 .card.flipped .card-inner {
@@ -286,8 +332,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-sm);
   background-color: var(--card-bg);
+
+  @media (min-width: vars.$breakpoint-md) {
+    border-radius: var(--border-radius-md);
+  }
 }
 
 .card-back {
@@ -299,18 +349,50 @@ onMounted(() => {
 }
 
 .card.flipped .card-inner {
-  border: 0.25rem solid var(--notion-color);
+  border: 0.125rem solid var(--notion-color);
+
+  @media (min-width: vars.$breakpoint-md) {
+    border-width: 0.25rem;
+  }
 }
 
 .card.matched .card-inner {
-  border: 0.25rem solid var(--success-color);
+  border: 0.125rem solid var(--success-color);
   box-shadow: none;
+
+  @media (min-width: vars.$breakpoint-md) {
+    border-width: 0.25rem;
+  }
 }
 
 .game-controls {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-top: var(--space-4);
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+
+  @media (min-width: vars.$breakpoint-md) {
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  h3 {
+    margin-bottom: var(--space-1);
+
+    @media (min-width: vars.$breakpoint-md) {
+      margin-bottom: var(--space-2);
+    }
+  }
+
+  p {
+    margin-bottom: var(--space-2);
+    text-align: center;
+
+    @media (min-width: vars.$breakpoint-md) {
+      margin-bottom: var(--space-4);
+    }
+  }
 }
 </style>

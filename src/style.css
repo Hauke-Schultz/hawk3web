@@ -1,5 +1,4 @@
 :root {
-  /* Schriftgrößen */
   --font-size-xs: 0.75rem;     /* 12px */
   --font-size-sm: 0.875rem;    /* 14px */
   --font-size-base: 1rem;      /* 16px */
@@ -9,7 +8,6 @@
   --font-size-3xl: 1.875rem;   /* 30px */
   --font-size-4xl: 2.25rem;    /* 36px */
 
-  /* Abstände */
   --space-1: 0.25rem;          /* 4px */
   --space-2: 0.5rem;           /* 8px */
   --space-3: 0.75rem;          /* 12px */
@@ -18,6 +16,11 @@
   --space-8: 2rem;             /* 32px */
   --space-12: 3rem;            /* 48px */
   --space-16: 4rem;            /* 64px */
+
+  --breakpoint-sm: 480px;      /* Small devices, phones */
+  --breakpoint-md: 768px;      /* Medium devices, tablets */
+  --breakpoint-lg: 992px;      /* Large devices, small laptops */
+  --breakpoint-xl: 1200px;     /* Extra large devices, laptops and desktops */
 
   --bg-color: #eee;
   --text-color: #222;
@@ -31,6 +34,7 @@
   --button-bg: #518;
   --button-text: #fff;
   --button-ghost-text: #518;
+  --grey-color: #888;
   --success-color: #080;
   --error-color: #a00;
   --warning-color: #d50;
@@ -54,6 +58,7 @@
   --button-bg: #86a;
   --button-text: #fff;
   --button-ghost-text: #fff;
+  --grey-color: #888;
   --success-color: #4c4;
   --error-color: #f66;
   --warning-color: #fa4;

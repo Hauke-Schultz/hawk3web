@@ -5,7 +5,7 @@ import ThemeSwitch from './components/ThemeSwitch.vue'
 import MemoryGame from './components/MemoryGame/MemoryGame.vue'
 
 const theme = ref('light')
-const showMemoryGame = ref(false)
+const showMemoryGame = ref(true)
 
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light'
@@ -67,42 +67,59 @@ onMounted(() => {
   </div>
 </template>
 
-<style>
+<style lang="scss">
+@use './assets/variables.scss' as vars;
+
 .app-container {
   min-height: 100vh;
   font-family: 'Arial', sans-serif;
   transition: background-color 0.3s, color 0.3s;
   display: flex;
   flex-direction: column;
+
+  &.light {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+
+  &.dark {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
 }
 
-.light {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
-
-.dark {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
 
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-4) var(--space-8);
+  padding: var(--space-2) var(--space-4);
   box-shadow: var(--header-shadow, 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1));
+  flex-wrap: wrap;
+
+  @media (min-width: vars.$breakpoint-md) {
+    padding: var(--space-4) var(--space-8);
+    flex-wrap: nowrap;
+  }
 }
 
 h1 {
   margin: 0;
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: bold;
+
+  @media (min-width: vars.$breakpoint-md) {
+    font-size: var(--font-size-2xl);
+  }
 }
 
 h3 {
   margin: 0;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
+
+  @media (min-width: vars.$breakpoint-md) {
+    font-size: var(--font-size-xl);
+  }
 }
 
 p {
@@ -113,53 +130,80 @@ p {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-2);
+
+  @media (min-width: vars.$breakpoint-md) {
+    gap: var(--space-4);
+  }
 }
 
 main {
-  max-width: 75rem;
-  margin: 0 auto;
-  padding: var(--space-8);
   width: 100%;
   flex-grow: 1;
-}
+  padding: var(--space-4);
 
-main:focus {
-  outline: none;
+  @media (min-width: vars.$breakpoint-md) {
+    max-width: 75rem;
+    margin: 0 auto;
+    padding: var(--space-8);
+  }
+
+  &:focus {
+    outline: none;
+  }
 }
 
 .content {
-  margin-top: var(--space-8);
+  margin-top: var(--space-4);
+
+  @media (min-width: vars.$breakpoint-md) {
+    margin-top: var(--space-8);
+  }
 }
 
 .projects {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18.75rem, 1fr));
-  gap: var(--space-8);
-  margin-top: var(--space-8);
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+
+  @media (min-width: vars.$breakpoint-sm) {
+    grid-template-columns: repeat(auto-fill, minmax(18.75rem, 1fr));
+    gap: var(--space-6);
+  }
+
+  @media (min-width: vars.$breakpoint-md) {
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+  }
 }
 
 .project-card {
   background-color: var(--card-bg);
   border-radius: 0.5rem;
-  padding: var(--space-6);
+  padding: var(--space-4);
   box-shadow: var(--card-shadow);
   transition: box-shadow 0.3s;
   position: relative;
   outline: none;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-}
+  gap: var(--space-3);
 
-.project-card:hover {
-  box-shadow: var(--focus-shadow);
-}
+  @media (min-width: vars.$breakpoint-md) {
+    padding: var(--space-6);
+    gap: var(--space-4);
+  }
 
-.project-card:focus-visible {
-  outline: 0.125rem solid var(--accent-color);
-  outline-offset: 0.25rem;
-  box-shadow: var(--focus-shadow);
+  &:hover {
+    box-shadow: var(--focus-shadow);
+  }
+
+  &:focus-visible {
+    outline: 0.125rem solid var(--accent-color);
+    outline-offset: 0.25rem;
+    box-shadow: var(--focus-shadow);
+  }
 }
 
 .memory-game-container {
