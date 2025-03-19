@@ -1,9 +1,16 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
 // Game configuration
-const symbols = ['🍎', '🍐', '🍋', '🍊', '🍇', '🍓', '🍒', '🥝']
-const gridSize = ref(4) // 4x4 grid
+// Erweiterte Symbol-Liste für größere Grids
+const symbols = [
+  '🍎', '🍐', '🍋', '🍊', '🍇', '🍓', '🍒', '🥝', // Originale Symbole
+  '🍍', '🥭', '🍑', '🍈', '🍌', '🍉', '🥥', '🥑', // Zusätzliche Symbole für größere Grids
+  '🍆', '🥔', '🥕', '🌽', '🥦', '🥬', '🍅', '🫐'  // Noch mehr Symbole für 6x6
+]
+const gridSize = ref(4) // 4x4 grid als Standard
+const minGridSize = 2 // Minimum Gridgröße (2x2)
+const maxGridSize = 6 // Maximum Gridgröße (6x6)
 const cards = ref([])
 const flippedCards = ref([])
 const matchedPairs = ref([])
@@ -11,6 +18,17 @@ const gameStarted = ref(false)
 const moves = ref(0)
 const currentFocus = ref(0)
 const gameComplete = ref(false)
+
+// Computed property für die Anzahl der erforderlichen Symbole basierend auf der Gridgröße
+const requiredSymbols = computed(() => {
+  return (gridSize.value * gridSize.value) / 2
+})
+
+// Watch für Änderungen der Gridgröße
+watch(gridSize, () => {
+  // Spiel bei Änderung der Gridgröße neu initialisieren
+  initializeGame()
+})
 
 // Initialize the game board
 const initializeGame = () => {
@@ -20,8 +38,14 @@ const initializeGame = () => {
   moves.value = 0
   gameComplete.value = false
 
+  // Überprüfen, ob genügend Symbole vorhanden sind
+  if (requiredSymbols.value > symbols.length) {
+    console.error(`Nicht genügend Symbole für Grid-Größe ${gridSize.value}x${gridSize.value}`)
+    return
+  }
+
   // Create pairs of cards
-  const pairs = [...symbols, ...symbols].slice(0, (gridSize.value * gridSize.value) / 2)
+  const pairs = [...symbols].slice(0, requiredSymbols.value)
   const duplicatedPairs = [...pairs, ...pairs]
 
   // Shuffle cards
@@ -138,6 +162,11 @@ const navigateWithArrowKeys = (key, currentIndex) => {
   }
 }
 
+// Handler für Slider-Änderungen
+const handleGridSizeChange = (event) => {
+  gridSize.value = parseInt(event.target.value)
+}
+
 // Reset game
 const resetGame = () => {
   initializeGame()
@@ -157,6 +186,32 @@ onMounted(() => {
       <div class="game-stats">
         <span>Züge: {{ moves }}</span>
         <span>Paare gefunden: {{ matchedPairs.length }} / {{ cards.length / 2 }}</span>
+      </div>
+    </div>
+
+    <!-- Grid Size Slider -->
+    <div class="grid-size-control">
+      <label for="grid-size" class="grid-size-label">Spielfeldgröße: {{ gridSize }}x{{ gridSize }}</label>
+      <div class="slider-container">
+        <input
+          type="range"
+          id="grid-size"
+          name="grid-size"
+          :min="minGridSize"
+          :max="maxGridSize"
+          :value="gridSize"
+          @input="handleGridSizeChange"
+          class="grid-size-slider"
+          aria-label="Spielfeldgröße anpassen"
+          aria-valuemin="2"
+          aria-valuemax="6"
+          :aria-valuenow="gridSize"
+          :aria-valuetext="`${gridSize} mal ${gridSize} Spielfeld`"
+        >
+        <div class="slider-labels">
+          <span>{{ minGridSize }}x{{ minGridSize }}</span>
+          <span>{{ maxGridSize }}x{{ maxGridSize }}</span>
+        </div>
       </div>
     </div>
 
@@ -185,7 +240,12 @@ onMounted(() => {
         tabindex="0"
         :ref="el => { if (index === currentFocus) el?.focus() }"
       >
-        <div class="card-inner">
+        <div
+          class="card-inner"
+          :style="{
+            'font-size': `calc(20rem / ${gridSize})`
+          }"
+        >
           <div class="card-front">
             <span class="card-symbol">?</span>
           </div>
@@ -235,6 +295,11 @@ onMounted(() => {
   @media (min-width: vars.$breakpoint-md) {
     max-width: 32rem;
   }
+
+  // Für größere Spielfelder bei größeren Bildschirmen
+  @media (min-width: vars.$breakpoint-lg) {
+    max-width: 40rem;
+  }
 }
 
 .game-header {
@@ -266,6 +331,64 @@ onMounted(() => {
     margin-bottom: var(--space-4);
     font-size: var(--font-size-base);
   }
+}
+
+/* Grid Size Slider Styles */
+.grid-size-control {
+  margin-bottom: var(--space-4);
+}
+
+.grid-size-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-weight: bold;
+}
+
+.slider-container {
+  width: 100%;
+}
+
+.grid-size-slider {
+  width: 100%;
+  height: 8px;
+  background-color: var(--grey-color);
+  border-radius: 4px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.grid-size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  cursor: pointer;
+}
+
+.grid-size-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  cursor: pointer;
+  border: none;
+}
+
+.grid-size-slider:focus-visible {
+  outline: var(--focus-outline);
+  box-shadow: var(--focus-shadow);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--grey-color);
 }
 
 .game-board {
@@ -342,10 +465,6 @@ onMounted(() => {
 
 .card-back {
   transform: rotateY(180deg);
-}
-
-.card-symbol {
-  font-size: var(--font-size-3xl);
 }
 
 .card.flipped .card-inner {

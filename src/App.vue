@@ -5,21 +5,34 @@ import ThemeSwitch from './components/ThemeSwitch.vue'
 import MemoryGame from './components/MemoryGame/MemoryGame.vue'
 
 const theme = ref('light')
-const showMemoryGame = ref(true)
+const showMemoryGame = ref(false) // standardmäßig ausgeblendet
+const fullWidthGame = ref(false) // neue Variable für Vollbreitenmodus
 
+// Theme umschalten
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light'
 }
 
+// Memory-Spiel umschalten
 const toggleMemoryGame = () => {
   showMemoryGame.value = !showMemoryGame.value
+
+  // Wenn das Spiel aktiviert wird, dann Vollbreitenmodus aktivieren
+  if (showMemoryGame.value) {
+    fullWidthGame.value = true
+  } else {
+    // Wenn das Spiel ausgeblendet wird, Vollbreitenmodus deaktivieren
+    fullWidthGame.value = false
+  }
 }
 
+// Watch für Theme-Änderungen
 watch(theme, (newTheme) => {
   document.documentElement.setAttribute('data-theme', newTheme)
   localStorage.setItem('theme', newTheme)
 })
 
+// Bei der Initialisierung gespeichertes Theme laden
 onMounted(() => {
   theme.value = localStorage.getItem('theme') || 'light'
 })
@@ -34,10 +47,13 @@ onMounted(() => {
       </div>
     </header>
     <main id="main-content">
-      <section class="content" aria-labelledby="projects-heading">
+      <section class="content" aria-labelledby="projects-heading" :class="{ 'full-width': fullWidthGame }">
         <h2 id="projects-heading">Meine Projekte</h2>
+
+        <!-- Projektkacheln-Container -->
         <div class="projects" role="list">
-          <div class="project-card game-card" role="listitem" tabindex="0">
+          <!-- Memory-Spiel Kachel -->
+          <div class="project-card game-card" role="listitem" tabindex="0" :class="{ 'full-width-card': fullWidthGame }">
             <div v-if="showMemoryGame" class="memory-game-container">
               <MemoryGame />
             </div>
@@ -56,7 +72,9 @@ onMounted(() => {
               {{ showMemoryGame ? 'Spiel ausblenden' : 'Spiel starten' }}
             </button>
           </div>
-          <div class="project-card" role="listitem" tabindex="0">
+
+          <!-- Andere Projektkacheln (werden ausgeblendet im Vollbreitenmodus) -->
+          <div v-if="!fullWidthGame" class="project-card" role="listitem" tabindex="0">
             <h3>Projekt 2</h3>
             <p>Beschreibung des Projekts</p>
             <button class="btn" aria-label="Mehr über Projekt 2 erfahren">Mehr erfahren</button>
@@ -159,6 +177,12 @@ main {
   @media (min-width: vars.$breakpoint-md) {
     margin-top: var(--space-8);
   }
+
+  // Volle Breite für den Inhalt im Vollbreitenmodus
+  &.full-width {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 .projects {
@@ -203,6 +227,19 @@ main {
     outline: 0.125rem solid var(--accent-color);
     outline-offset: 0.25rem;
     box-shadow: var(--focus-shadow);
+  }
+
+  // Volle Breite für die Karte im Vollbreitenmodus
+  &.full-width-card {
+    grid-column: 1 / -1; // Spannt sich über alle Spalten
+    max-width: 100%;
+
+    // Anpassungen für größere Bildschirme
+    @media (min-width: vars.$breakpoint-md) {
+      max-width: 80rem;
+      margin: 0 auto;
+      width: 100%;
+    }
   }
 }
 
