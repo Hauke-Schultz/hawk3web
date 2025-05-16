@@ -398,11 +398,11 @@ onMounted(() => {
   display: grid;
   gap: var(--space-1);
   margin-bottom: var(--space-4);
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
 
   @media (min-width: vars.$breakpoint-sm) {
     gap: var(--space-2);
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(6, 1fr);
   }
 
   @media (min-width: vars.$breakpoint-md) {

@@ -3,36 +3,42 @@ import {onMounted, ref, watch} from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 import ThemeSwitch from './components/ThemeSwitch.vue'
 import MemoryGame from './components/MemoryGame/MemoryGame.vue'
+import FruitMerge from './components/FruitMerge/FruitMerge.vue'
 
 const theme = ref('light')
-const showMemoryGame = ref(false) // standardmäßig ausgeblendet
-const fullWidthGame = ref(false) // neue Variable für Vollbreitenmodus
+const showMemoryGame = ref(false)
+const showFruitMerge = ref(false)
+const fullWidthGame = ref(false)
 
-// Theme umschalten
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light'
 }
 
-// Memory-Spiel umschalten
 const toggleMemoryGame = () => {
   showMemoryGame.value = !showMemoryGame.value
-
-  // Wenn das Spiel aktiviert wird, dann Vollbreitenmodus aktivieren
   if (showMemoryGame.value) {
+    showFruitMerge.value = false
     fullWidthGame.value = true
   } else {
-    // Wenn das Spiel ausgeblendet wird, Vollbreitenmodus deaktivieren
     fullWidthGame.value = false
   }
 }
 
-// Watch für Theme-Änderungen
+const toggleFruitMerge = () => {
+  showFruitMerge.value = !showFruitMerge.value
+  if (showFruitMerge.value) {
+    showMemoryGame.value = false
+    fullWidthGame.value = true
+  } else {
+    fullWidthGame.value = false
+  }
+}
+
 watch(theme, (newTheme) => {
   document.documentElement.setAttribute('data-theme', newTheme)
   localStorage.setItem('theme', newTheme)
 })
 
-// Bei der Initialisierung gespeichertes Theme laden
 onMounted(() => {
   theme.value = localStorage.getItem('theme') || 'light'
 })
@@ -50,10 +56,9 @@ onMounted(() => {
       <section class="content" aria-labelledby="projects-heading" :class="{ 'full-width': fullWidthGame }">
         <h2 id="projects-heading">Meine Projekte</h2>
 
-        <!-- Projektkacheln-Container -->
         <div class="projects" role="list">
           <!-- Memory-Spiel Kachel -->
-          <div class="project-card game-card" role="listitem" tabindex="0" :class="{ 'full-width-card': fullWidthGame }">
+          <div class="project-card game-card" role="listitem" tabindex="0" :class="{ 'full-width-card': fullWidthGame && showMemoryGame }">
             <div v-if="showMemoryGame" class="memory-game-container">
               <MemoryGame />
             </div>
@@ -73,11 +78,32 @@ onMounted(() => {
             </button>
           </div>
 
+          <!-- Fruit Merge Kachel -->
+          <div class="project-card game-card" role="listitem" tabindex="0" :class="{ 'full-width-card': fullWidthGame && showFruitMerge }">
+            <div v-if="showFruitMerge" class="fruit-merge-container">
+              <FruitMerge />
+            </div>
+            <div v-else>
+              <h3>Fruit Merge</h3>
+              <p>Kombiniere gleiche Früchte und erreiche hohe Punktzahlen!</p>
+            </div>
+            <button
+              @click="toggleFruitMerge"
+              class="btn"
+              :class="{
+                'btn--ghost': showFruitMerge
+              }"
+              :aria-label="showFruitMerge ? 'Fruit Merge ausblenden' : 'Fruit Merge spielen'"
+            >
+              {{ showFruitMerge ? 'Spiel ausblenden' : 'Spiel starten' }}
+            </button>
+          </div>
+
           <!-- Andere Projektkacheln (werden ausgeblendet im Vollbreitenmodus) -->
           <div v-if="!fullWidthGame" class="project-card" role="listitem" tabindex="0">
-            <h3>Projekt 2</h3>
+            <h3>Projekt 3</h3>
             <p>Beschreibung des Projekts</p>
-            <button class="btn" aria-label="Mehr über Projekt 2 erfahren">Mehr erfahren</button>
+            <button class="btn" aria-label="Mehr über Projekt 3 erfahren">Mehr erfahren</button>
           </div>
         </div>
       </section>
@@ -246,5 +272,12 @@ main {
 .memory-game-container {
   width: 100%;
   flex-grow: 1;
+}
+
+.fruit-merge-container {
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 </style>
