@@ -27,7 +27,6 @@ const stopGame = () => {
         <button @click="stopGame" class="btn btn--ghost">Beenden</button>
       </div>
       <div class="game-board">
-        <!-- Hier kommt später das Spielfeld -->
         <p>Spielfeld wird geladen...</p>
       </div>
     </div>
