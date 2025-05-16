@@ -24,6 +24,23 @@ const requiredSymbols = computed(() => {
   return (gridSize.value * gridSize.value) / 2
 })
 
+// Computed property für die Anzahl der Karten
+const totalCards = computed(() => {
+  return gridSize.value * gridSize.value
+})
+
+// Computed property für optimales Grid-Layout
+const gridColumns = computed(() => {
+  if (gridSize.value <= 3) return 4;
+  if (gridSize.value <= 5) return 6;
+  return 8;
+})
+
+// Computed property für die Anzahl der Zeilen
+const gridRows = computed(() => {
+  return Math.ceil(totalCards.value / gridColumns.value);
+})
+
 // Watch für Änderungen der Gridgröße
 watch(gridSize, () => {
   // Spiel bei Änderung der Gridgröße neu initialisieren
@@ -131,34 +148,37 @@ const handleKeydown = (event, index) => {
 
 // Navigate with arrow keys
 const navigateWithArrowKeys = (key, currentIndex) => {
-  const row = Math.floor(currentIndex / gridSize.value)
-  const col = currentIndex % gridSize.value
+  const row = Math.floor(currentIndex / gridColumns.value)
+  const col = currentIndex % gridColumns.value
 
   let newRow = row
   let newCol = col
 
   switch (key) {
     case 'ArrowUp':
-      newRow = (row - 1 + gridSize.value) % gridSize.value
+      newRow = (row - 1 + gridRows.value) % gridRows.value
       break
     case 'ArrowDown':
-      newRow = (row + 1) % gridSize.value
+      newRow = (row + 1) % gridRows.value
       break
     case 'ArrowLeft':
-      newCol = (col - 1 + gridSize.value) % gridSize.value
+      newCol = (col - 1 + gridColumns.value) % gridColumns.value
       break
     case 'ArrowRight':
-      newCol = (col + 1) % gridSize.value
+      newCol = (col + 1) % gridColumns.value
       break
   }
 
-  const newIndex = newRow * gridSize.value + newCol
-  currentFocus.value = newIndex
+  const newIndex = newRow * gridColumns.value + newCol
+  // Stellen Sie sicher, dass der neue Index innerhalb der gültigen Karten liegt
+  if (newIndex < cards.value.length) {
+    currentFocus.value = newIndex
 
-  // Focus the new card
-  const cardElement = document.getElementById(`card-${newIndex}`)
-  if (cardElement) {
-    cardElement.focus()
+    // Focus the new card
+    const cardElement = document.getElementById(`card-${newIndex}`)
+    if (cardElement) {
+      cardElement.focus()
+    }
   }
 }
 
@@ -191,7 +211,7 @@ onMounted(() => {
 
     <!-- Grid Size Slider -->
     <div class="grid-size-control">
-      <label for="grid-size" class="grid-size-label">Spielfeldgröße: {{ gridSize }}x{{ gridSize }}</label>
+      <label for="grid-size" class="grid-size-label">Anzahl der Karten: {{ totalCards }}</label>
       <div class="slider-container">
         <input
           type="range"
@@ -202,15 +222,15 @@ onMounted(() => {
           :value="gridSize"
           @input="handleGridSizeChange"
           class="grid-size-slider"
-          aria-label="Spielfeldgröße anpassen"
-          aria-valuemin="2"
-          aria-valuemax="6"
-          :aria-valuenow="gridSize"
-          :aria-valuetext="`${gridSize} mal ${gridSize} Spielfeld`"
+          aria-label="Anzahl der Karten anpassen"
+          aria-valuemin="4"
+          aria-valuemax="36"
+          :aria-valuenow="totalCards"
+          :aria-valuetext="`${totalCards} Karten`"
         >
         <div class="slider-labels">
-          <span>{{ minGridSize }}x{{ minGridSize }}</span>
-          <span>{{ maxGridSize }}x{{ maxGridSize }}</span>
+          <span>{{ minGridSize * minGridSize }}</span>
+          <span>{{ maxGridSize * maxGridSize }}</span>
         </div>
       </div>
     </div>
@@ -218,8 +238,8 @@ onMounted(() => {
     <!-- Game board -->
     <div
       class="game-board"
-      :style="{
-        'grid-template-columns': `repeat(${gridSize}, 1fr)`
+      :class="{
+        [`game-board--size-${gridSize}`]: true
       }"
       aria-label="Memory-Spielfeld"
     >
@@ -242,9 +262,6 @@ onMounted(() => {
       >
         <div
           class="card-inner"
-          :style="{
-            'font-size': `calc(20rem / ${gridSize})`
-          }"
         >
           <div class="card-front">
             <span class="card-symbol">?</span>
@@ -287,19 +304,6 @@ onMounted(() => {
   max-width: 100%;
   margin: 0 auto;
   font-family: 'Arial', sans-serif;
-
-  @media (min-width: vars.$breakpoint-sm) {
-    max-width: 28rem;
-  }
-
-  @media (min-width: vars.$breakpoint-md) {
-    max-width: 32rem;
-  }
-
-  // Für größere Spielfelder bei größeren Bildschirmen
-  @media (min-width: vars.$breakpoint-lg) {
-    max-width: 40rem;
-  }
 }
 
 .game-header {
@@ -333,7 +337,6 @@ onMounted(() => {
   }
 }
 
-/* Grid Size Slider Styles */
 .grid-size-control {
   margin-bottom: var(--space-4);
 }
@@ -395,9 +398,11 @@ onMounted(() => {
   display: grid;
   gap: var(--space-1);
   margin-bottom: var(--space-4);
+  grid-template-columns: repeat(4, 1fr);
 
-  @media (min-width: var(--breakpoint-sm)) {
+  @media (min-width: vars.$breakpoint-sm) {
     gap: var(--space-2);
+    grid-template-columns: repeat(8, 1fr);
   }
 
   @media (min-width: vars.$breakpoint-md) {
@@ -436,6 +441,7 @@ onMounted(() => {
   transform-style: preserve-3d;
   border-radius: var(--border-radius-sm);
   border: 0.125rem solid var(--grey-color);
+  font-size: 3rem;
 
   @media (min-width: vars.$breakpoint-md) {
     border-radius: var(--border-radius-md);
