@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import * as Matter from 'matter-js'
 
 const score = ref(0)
@@ -11,10 +11,12 @@ const isDragging = ref(false);
 const boardWidth = ref(280);
 const boardHeight = ref(350);
 const wallThickness = 20;
-const targetFruitLevel = ref(7);
+const targetFruitLevel = computed(() => Math.min(4 + level.value, fruitTypes.length - 1));
+const level = ref(1);
+const levelCompleted = ref(false);
+const nextLevel = ref(2);
 
 let engine = null;
-let render = null;
 let runner = null;
 
 // Fruit types with increasing sizes for each level
@@ -37,10 +39,12 @@ const fruitTypes = [
 ];
 
 const nextFruit = ref(generateFruit());
-let targetFruit = ref({
+const targetFruit = computed(() => ({
   name: fruitTypes[targetFruitLevel.value].name,
   color: fruitTypes[targetFruitLevel.value].color,
-});
+  fruitLevel: fruitTypes[targetFruitLevel.value].value,
+  level: targetFruitLevel.value + 1
+}));
 
 function generateFruit() {
   // Generate fruits from level 1-5 to increase difficulty
@@ -101,6 +105,59 @@ function initPhysics() {
 
   Matter.Composite.add(engine.world, walls);
   Matter.Events.on(engine, 'collisionStart', handleCollision);
+}
+
+function levelUp() {
+  levelCompleted.value = true;
+  nextLevel.value = level.value + 1;
+}
+
+function startNextLevel() {
+  // Clear the physics world completely
+  Matter.World.clear(engine.world, false);
+
+  // Recreate the walls
+  const walls = [
+    // Bottom wall
+    Matter.Bodies.rectangle(
+        boardWidth.value / 2,
+        boardHeight.value + wallThickness / 2,
+        boardWidth.value,
+        wallThickness,
+        { isStatic: true, label: 'wall-bottom', restitution: 0.1 }
+    ),
+    // Left wall
+    Matter.Bodies.rectangle(
+        -wallThickness / 2,
+        boardHeight.value / 2,
+        wallThickness,
+        boardHeight.value,
+        { isStatic: true, label: 'wall-left', restitution: 0.1 }
+    ),
+    // Right wall
+    Matter.Bodies.rectangle(
+        boardWidth.value + wallThickness / 2,
+        boardHeight.value / 2,
+        wallThickness,
+        boardHeight.value,
+        { isStatic: true, label: 'wall-right', restitution: 0.1 }
+    )
+  ];
+
+  // Add walls back to the world
+  Matter.Composite.add(engine.world, walls);
+
+  // Reset the fruits array
+  fruits.value = [];
+
+  // Increment the level
+  level.value = nextLevel.value;
+
+  // Reset level completion status
+  levelCompleted.value = false;
+
+  // Reset next fruit position
+  nextFruitPosition.value = boardWidth.value / 2;
 }
 
 // Process collisions to merge fruits
@@ -170,6 +227,12 @@ function handleCollision(event) {
 
               // Add the new fruit to the world
               addMergedFruit(newFruit, centerX, centerY);
+
+              // Check if this fruit matches the target fruit level
+              if (levelA + 1 === targetFruit.value.level) {
+                // If yes, trigger level completion
+                levelUp();
+              }
             }
           }, 100); // Small delay for better visual effect
         }
@@ -295,8 +358,14 @@ onBeforeUnmount(() => {
   <div class="fruit-merge">
     <div class="game-container">
       <div class="game-header">
-        <div class="score">Score: {{ score }}</div>
-        <div class="level">Target: <span :style="{ color: targetFruit.color }">{{ targetFruit.name }}</span></div>
+        <div v-if="!levelCompleted" class="level-row">
+          <div class="score">Score {{ score }}</div>
+          <div class="level-display">Level {{ level }}</div>
+          <div class="level">Goal <span :style="{ color: targetFruit.color }">{{ targetFruit.fruitLevel }} {{ targetFruit.name }}</span></div>
+        </div>
+        <div v-else class="level-complete-message">
+          <button class="btn next-level-btn" @click="startNextLevel">Start Next Level</button>
+        </div>
       </div>
 
       <div class="game-frame">
@@ -377,6 +446,14 @@ onBeforeUnmount(() => {
   font-size: 1rem;
   font-weight: bold;
   gap: 1rem;
+  text-shadow: 0 1px 3px #000, 0 -1px 3px #000;
+}
+
+.level-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
 }
 
 .game-frame {
@@ -444,5 +521,29 @@ onBeforeUnmount(() => {
 
 .score {
   font-size: 1rem;
+}
+
+.level-display {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.level-complete-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  color: #4CAF50;
+  animation: fadeIn 0.5s ease;
+}
+
+.next-level-btn {
+  font-size: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 </style>
