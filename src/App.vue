@@ -7,7 +7,7 @@ import FruitMerge from './components/FruitMerge/FruitMerge.vue'
 
 const theme = ref('light')
 const showMemoryGame = ref(false)
-const showFruitMerge = ref(false)
+const showFruitMerge = ref(true)
 const fullWidthGame = ref(false)
 
 const toggleTheme = () => {
