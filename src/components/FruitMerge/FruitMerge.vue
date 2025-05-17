@@ -19,25 +19,28 @@ let runner = null;
 
 // Fruit types with increasing sizes for each level
 const fruitTypes = [
-  { size: 26, color: '#9C27B0', level: 1, name: 'Cherry' },
-  { size: 32, color: '#E91E63', level: 2, name: 'Strawberry' },
-  { size: 38, color: '#FF9800', level: 3, name: 'Orange' },
-  { size: 44, color: '#FFEB3B', level: 4, name: 'Lemon' },
-  { size: 50, color: '#8BC34A', level: 5, name: 'Apple' },
-  { size: 56, color: '#795548', level: 6, name: 'Avocado' },
-  { size: 62, color: '#CDDC39', level: 7, name: 'Melon' },
-  { size: 68, color: '#F44336', level: 8, name: 'Watermelon' },
-  { size: 74, color: '#2196F3', level: 9, name: 'Jackfruit' },
-  { size: 80, color: '#9575CD', level: 10, name: 'Dragon Fruit' },
-  { size: 86, color: '#4CAF50', level: 11, name: 'Durian' },
-  { size: 92, color: '#FF5722', level: 12, name: 'Pomegranate' },
-  { size: 98, color: '#009688', level: 13, name: 'Coconut' },
-  { size: 104, color: '#3F51B5', level: 14, name: 'Giant Grape' },
-  { size: 110, color: '#FFC107', level: 15, name: 'Super Fruit' },
+  { size: 32, color: '#9C27B0', level: 1, name: 'Cherry' },
+  { size: 38, color: '#E91E63', level: 2, name: 'Strawberry' },
+  { size: 44, color: '#FF9800', level: 3, name: 'Orange' },
+  { size: 50, color: '#FFEB3B', level: 4, name: 'Lemon' },
+  { size: 56, color: '#8BC34A', level: 5, name: 'Apple' },
+  { size: 64, color: '#795548', level: 6, name: 'Avocado' },
+  { size: 72, color: '#CDDC39', level: 7, name: 'Melon' },
+  { size: 80, color: '#F44336', level: 8, name: 'Watermelon' },
+  { size: 88, color: '#2196F3', level: 9, name: 'Jackfruit' },
+  { size: 100, color: '#9575CD', level: 10, name: 'Dragon Fruit' },
+  { size: 112, color: '#4CAF50', level: 11, name: 'Durian' },
+  { size: 126, color: '#FF5722', level: 12, name: 'Pomegranate' },
+  { size: 142, color: '#009688', level: 13, name: 'Coconut' },
+  { size: 166, color: '#3F51B5', level: 14, name: 'Giant Grape' },
+  { size: 192, color: '#FFC107', level: 15, name: 'Super Fruit' },
 ];
 
 const nextFruit = ref(generateFruit());
-let targetFruit = ref({name: fruitTypes[targetFruitLevel.value].name});
+let targetFruit = ref({
+  name: fruitTypes[targetFruitLevel.value].name,
+  color: fruitTypes[targetFruitLevel.value].color,
+});
 
 function generateFruit() {
   // Generate fruits from level 1-5 to increase difficulty
@@ -201,11 +204,11 @@ function addFruitToWorld(fruit, x, y) {
       y,
       fruit.size / 2,
       {
-        restitution: 0.5, // Increased bounciness
-        friction: 0.02,   // Less friction
-        frictionAir: 0.003, // Less air resistance
-        density: 0.001,    // Density for weight
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}` // Label for identification
+        restitution: 0.6,
+        friction: 0.05,
+        frictionAir: 0.008,
+        density: 0.001,
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`
       }
   );
 
@@ -256,7 +259,7 @@ function endDrag(event) {
   isDragging.value = false;
 
   const newFruit = { ...nextFruit.value };
-  addFruitToWorld(newFruit, nextFruitPosition.value, 50);
+  addFruitToWorld(newFruit, nextFruitPosition.value, -10);
 
   const moveEvent = 'ontouchstart' in window ? 'touchmove' : 'mousemove';
   const endEvent = 'ontouchstart' in window ? 'touchend' : 'mouseup';
@@ -293,7 +296,7 @@ onBeforeUnmount(() => {
     <div class="game-container">
       <div class="game-header">
         <div class="score">Score: {{ score }}</div>
-        <div class="level">Target: {{ targetFruit.name }}</div>
+        <div class="level">Target: <span :style="{ color: targetFruit.color }">{{ targetFruit.name }}</span></div>
       </div>
 
       <div class="game-frame">
@@ -418,6 +421,7 @@ onBeforeUnmount(() => {
 
 .fruit-level {
   font-size: 1rem;
+  line-height: 1;
 }
 
 .fruit-name {
