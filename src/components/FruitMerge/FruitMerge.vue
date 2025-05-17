@@ -8,81 +8,189 @@ const nextFruitId = ref(0);
 const gameBoard = ref(null);
 const nextFruitPosition = ref(0);
 const isDragging = ref(false);
-const boardWidth = ref(300);
-const boardHeight = ref(400);
+const boardWidth = ref(280);
+const boardHeight = ref(350);
 const wallThickness = 20;
 
 let engine = null;
 let render = null;
+let runner = null; // Hinzugefügt: Runner für die Physics-Engine
 
+// Fruit types with increasing sizes for each level
 const fruitTypes = [
-  { size: 40, color: '#9C27B0', level: 1 },
-  { size: 40, color: '#E91E63', level: 2 },
-  { size: 40, color: '#FF9800', level: 3 },
-  { size: 40, color: '#FFEB3B', level: 4 },
-  { size: 40, color: '#8BC34A', level: 5 },
-  { size: 40, color: '#795548', level: 6 },
-  { size: 40, color: '#CDDC39', level: 7 },
-  { size: 40, color: '#F44336', level: 8 },
-  { size: 40, color: '#2196F3', level: 9 },
+  { size: 26, color: '#9C27B0', level: 1, name: 'Cherry' },
+  { size: 32, color: '#E91E63', level: 2, name: 'Strawberry' },
+  { size: 38, color: '#FF9800', level: 3, name: 'Orange' },
+  { size: 44, color: '#FFEB3B', level: 4, name: 'Lemon' },
+  { size: 50, color: '#8BC34A', level: 5, name: 'Apple' },
+  { size: 56, color: '#795548', level: 6, name: 'Avocado' },
+  { size: 62, color: '#CDDC39', level: 7, name: 'Melon' },
+  { size: 68, color: '#F44336', level: 8, name: 'Watermelon' },
+  { size: 74, color: '#2196F3', level: 9, name: 'Jackfruit' },
+  { size: 80, color: '#9575CD', level: 10, name: 'Dragon Fruit' },
+  { size: 86, color: '#4CAF50', level: 11, name: 'Durian' },
+  { size: 92, color: '#FF5722', level: 12, name: 'Pomegranate' },
+  { size: 98, color: '#009688', level: 13, name: 'Coconut' },
+  { size: 104, color: '#3F51B5', level: 14, name: 'Giant Grape' },
+  { size: 110, color: '#FFC107', level: 15, name: 'Super Fruit' },
 ];
 
 const nextFruit = ref(generateFruit());
 
 function generateFruit() {
-  const randomFruitType = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+  // Generate fruits from level 1-5 to increase difficulty
+  const maxStartingLevel = 5;
+  const randomIndex = Math.floor(Math.random() * maxStartingLevel);
+  const randomFruitType = fruitTypes[randomIndex];
 
   return {
     id: nextFruitId.value++,
     color: randomFruitType.color,
     size: randomFruitType.size,
     level: randomFruitType.level,
+    name: randomFruitType.name,
     x: 0,
     y: 0,
     rotation: 0,
-    body: null
+    body: null,
+    merging: false
   };
 }
 
 function initPhysics() {
+  // Create engine with appropriate gravity
   engine = Matter.Engine.create({
-    gravity: { x: 0, y: 1, scale: 0.001 }
+    gravity: { x: 0, y: 0.5, scale: 0.001 } // Adjusted gravity for better gameplay
   });
 
+  // Create and start Matter Runner - this was the missing piece!
+  runner = Matter.Runner.create();
+  Matter.Runner.run(runner, engine);
+
   const walls = [
-    // Boden
+    // Bottom wall
     Matter.Bodies.rectangle(
         boardWidth.value / 2,
         boardHeight.value + wallThickness / 2,
         boardWidth.value,
         wallThickness,
-        { isStatic: true, label: 'wall-bottom' }
+        { isStatic: true, label: 'wall-bottom', restitution: 0.1 }
     ),
-    // Linke Wand
+    // Left wall
     Matter.Bodies.rectangle(
         -wallThickness / 2,
         boardHeight.value / 2,
         wallThickness,
         boardHeight.value,
-        { isStatic: true, label: 'wall-left' }
+        { isStatic: true, label: 'wall-left', restitution: 0.1 }
     ),
-    // Rechte Wand
+    // Right wall
     Matter.Bodies.rectangle(
         boardWidth.value + wallThickness / 2,
         boardHeight.value / 2,
         wallThickness,
         boardHeight.value,
-        { isStatic: true, label: 'wall-right' }
+        { isStatic: true, label: 'wall-right', restitution: 0.1 }
     )
   ];
 
-  Matter.World.add(engine.world, walls);
+  Matter.Composite.add(engine.world, walls);
   Matter.Events.on(engine, 'collisionStart', handleCollision);
 }
 
-// Kollisionen verarbeiten
+// Process collisions to merge fruits
 function handleCollision(event) {
-  // TODO
+  const pairs = event.pairs;
+
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    const bodyA = pair.bodyA;
+    const bodyB = pair.bodyB;
+
+    // Check if both bodies are fruits
+    if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
+      // Extract information from labels
+      const labelPartsA = bodyA.label.split('-');
+      const labelPartsB = bodyB.label.split('-');
+
+      const idA = parseInt(labelPartsA[1]);
+      const idB = parseInt(labelPartsB[1]);
+      const levelA = parseInt(labelPartsA[3]);
+      const levelB = parseInt(labelPartsB[3]);
+
+      // If fruits have the same level, merge them
+      if (levelA === levelB && levelA < fruitTypes.length) {
+        // Find the fruit objects
+        const fruitA = fruits.value.find(f => f.id === idA);
+        const fruitB = fruits.value.find(f => f.id === idB);
+
+        // Only merge if both fruits exist and aren't already merging
+        if (fruitA && fruitB && !fruitA.merging && !fruitB.merging) {
+          // Mark fruits as merging to prevent multiple merges
+          fruitA.merging = true;
+          fruitB.merging = true;
+
+          // Calculate center position for the new fruit
+          const centerX = (bodyA.position.x + bodyB.position.x) / 2;
+          const centerY = (bodyA.position.y + bodyB.position.y) / 2;
+
+          // Remove the old fruits
+          setTimeout(() => {
+            // Remove bodies from the physics world
+            Matter.Composite.remove(engine.world, bodyA);
+            Matter.Composite.remove(engine.world, bodyB);
+
+            // Remove fruits from the array
+            fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB);
+
+            // Add score based on the level
+            score.value += levelA * 10;
+
+            // Create new fruit of the next level if not already at max level
+            if (levelA < fruitTypes.length) {
+              const nextLevelIndex = levelA; // Current level is 1-based, array is 0-based
+
+              const newFruit = {
+                id: nextFruitId.value++,
+                color: fruitTypes[nextLevelIndex].color,
+                size: fruitTypes[nextLevelIndex].size,
+                level: levelA + 1, // Next level number
+                name: fruitTypes[nextLevelIndex].name,
+                x: centerX,
+                y: centerY,
+                rotation: 0,
+                body: null,
+                merging: false
+              };
+
+              // Add the new fruit to the world
+              addMergedFruit(newFruit, centerX, centerY);
+            }
+          }, 100); // Small delay for better visual effect
+        }
+      }
+    }
+  }
+}
+
+// Add a merged fruit to the world at a specific position
+function addMergedFruit(fruit, x, y) {
+  const fruitBody = Matter.Bodies.circle(
+      x,
+      y,
+      fruit.size / 2,
+      {
+        restitution: 0.3, // Bounciness
+        friction: 0.05,   // Reduced friction
+        frictionAir: 0.005, // Reduced air friction
+        density: 0.001,    // Density for weight
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}` // Label for identification
+      }
+  );
+
+  fruit.body = fruitBody;
+  Matter.Composite.add(engine.world, fruitBody);
+  fruits.value.push(fruit);
 }
 
 function addFruitToWorld(fruit, x, y) {
@@ -91,16 +199,16 @@ function addFruitToWorld(fruit, x, y) {
       y,
       fruit.size / 2,
       {
-        restitution: 0.3,
-        friction: 0.1,
-        frictionAir: 0.01,
-        density: 0.001,
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}` // Label zum Identifizieren
+        restitution: 0.5, // Increased bounciness
+        friction: 0.02,   // Less friction
+        frictionAir: 0.003, // Less air resistance
+        density: 0.001,    // Density for weight
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}` // Label for identification
       }
   );
 
   fruit.body = fruitBody;
-  Matter.World.add(engine.world, fruitBody);
+  Matter.Composite.add(engine.world, fruitBody);
   fruits.value.push(fruit);
   nextFruit.value = generateFruit();
 }
@@ -165,7 +273,11 @@ onMounted(() => {
   updateFruitPositions();
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
+  if (runner) {
+    Matter.Runner.stop(runner);
+  }
+
   if (engine) {
     Matter.Events.off(engine);
     Matter.World.clear(engine.world);
@@ -178,7 +290,7 @@ onUnmounted(() => {
   <div class="fruit-merge">
     <div class="game-container">
       <div class="game-header">
-        <div class="score">Punkte: {{ score }}</div>
+        <div class="score">Score: {{ score }}</div>
       </div>
 
       <div class="game-frame">
@@ -193,7 +305,10 @@ onUnmounted(() => {
           }"
               @mousedown="startDrag"
               @touchstart="startDrag"
-          ></div>
+          >
+            <span class="fruit-level">{{ nextFruit.level }}</span>
+            <span class="fruit-name">{{ nextFruit.name }}</span>
+          </div>
         </div>
 
         <div class="game-board" ref="gameBoard">
@@ -201,6 +316,7 @@ onUnmounted(() => {
               v-for="fruit in fruits"
               :key="fruit.id"
               class="fruit"
+              :class="{ 'merging': fruit.merging }"
               :style="{
             left: `${fruit.x}px`,
             top: `${fruit.y}px`,
@@ -209,7 +325,9 @@ onUnmounted(() => {
             height: `${fruit.size}px`,
             transform: `rotate(${fruit.rotation}deg)`
           }"
-          ></div>
+          >
+            <span class="fruit-level">{{ fruit.level }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -220,7 +338,7 @@ onUnmounted(() => {
 .fruit-merge {
   width: 100%;
   height: 100%;
-  min-height: 400px;
+  min-height: 350px;
   display: flex;
   flex-direction: column;
 }
@@ -243,10 +361,18 @@ onUnmounted(() => {
   color: white;
 }
 
+.game-header {
+  width: 100%;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
 .game-frame {
   position: relative;
-  width: 300px;
-  height: 450px;
+  width: 280px;
+  height: 350px;
   display: flex;
   flex-direction: column;
 }
@@ -261,7 +387,7 @@ onUnmounted(() => {
 .game-board {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 350px;
   background-color: rgba(234, 231, 214, 0.8);
   border: 4px solid #c9b991;
   overflow: hidden;
@@ -272,15 +398,31 @@ onUnmounted(() => {
   border-radius: 50%;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 1;
   box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
   transition: transform 0.1s ease;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+.fruit-level {
+  font-size: 14px;
+}
+
+.fruit-name {
+  font-size: 8px;
+  margin-top: 2px;
+  opacity: 0.8;
 }
 
 .fruit.merging {
   transform: scale(1.2);
+  opacity: 0.8;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .next-fruit {
@@ -288,5 +430,10 @@ onUnmounted(() => {
   transform: translateX(-50%);
   z-index: 2;
   cursor: grab;
+}
+
+.score {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
 }
 </style>
