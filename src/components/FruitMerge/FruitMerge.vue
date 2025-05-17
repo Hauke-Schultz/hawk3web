@@ -11,10 +11,11 @@ const isDragging = ref(false);
 const boardWidth = ref(280);
 const boardHeight = ref(350);
 const wallThickness = 20;
+const targetFruitLevel = ref(7);
 
 let engine = null;
 let render = null;
-let runner = null; // Hinzugefügt: Runner für die Physics-Engine
+let runner = null;
 
 // Fruit types with increasing sizes for each level
 const fruitTypes = [
@@ -36,6 +37,7 @@ const fruitTypes = [
 ];
 
 const nextFruit = ref(generateFruit());
+let targetFruit = ref({name: fruitTypes[targetFruitLevel.value].name});
 
 function generateFruit() {
   // Generate fruits from level 1-5 to increase difficulty
@@ -291,6 +293,7 @@ onBeforeUnmount(() => {
     <div class="game-container">
       <div class="game-header">
         <div class="score">Score: {{ score }}</div>
+        <div class="level">Target: {{ targetFruit.name }}</div>
       </div>
 
       <div class="game-frame">
@@ -364,9 +367,13 @@ onBeforeUnmount(() => {
 .game-header {
   width: 100%;
   padding: 8px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: bold;
+  gap: 1rem;
 }
 
 .game-frame {
@@ -410,12 +417,11 @@ onBeforeUnmount(() => {
 }
 
 .fruit-level {
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .fruit-name {
-  font-size: 8px;
-  margin-top: 2px;
+  font-size: 0.5rem;
   opacity: 0.8;
 }
 
@@ -433,7 +439,6 @@ onBeforeUnmount(() => {
 }
 
 .score {
-  font-size: 1.5rem;
-  margin-bottom: 5px;
+  font-size: 1rem;
 }
 </style>
