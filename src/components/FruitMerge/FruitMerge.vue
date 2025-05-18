@@ -42,7 +42,7 @@ const nextFruit = ref(generateFruit());
 const targetFruit = computed(() => ({
   name: fruitTypes[targetFruitLevel.value].name,
   color: fruitTypes[targetFruitLevel.value].color,
-  fruitLevel: fruitTypes[targetFruitLevel.value].value,
+  fruitLevel: fruitTypes[targetFruitLevel.value].level,
   level: targetFruitLevel.value + 1
 }));
 
@@ -312,8 +312,8 @@ function handleDrag(event) {
   const boardRect = gameBoard.value.getBoundingClientRect();
   const relativeX = clientX - boardRect.left;
 
-  const minX = nextFruit.value.size / 2;
-  const maxX = boardWidth.value - nextFruit.value.size / 2;
+  const minX = nextFruit.value.size / 2 + wallThickness / 4;
+  const maxX = boardWidth.value - nextFruit.value.size / 2 - wallThickness / 4;
   nextFruitPosition.value = Math.max(minX, Math.min(maxX, relativeX));
 }
 
@@ -322,7 +322,7 @@ function endDrag(event) {
   isDragging.value = false;
 
   const newFruit = { ...nextFruit.value };
-  addFruitToWorld(newFruit, nextFruitPosition.value, -10);
+  addFruitToWorld(newFruit, nextFruitPosition.value - wallThickness / 4, -10);
 
   const moveEvent = 'ontouchstart' in window ? 'touchmove' : 'mousemove';
   const endEvent = 'ontouchstart' in window ? 'touchend' : 'mouseup';
@@ -359,9 +359,18 @@ onBeforeUnmount(() => {
     <div class="game-container">
       <div class="game-header">
         <div v-if="!levelCompleted" class="level-row">
-          <div class="score">Score {{ score }}</div>
-          <div class="level-display">Level {{ level }}</div>
-          <div class="level">Goal <span :style="{ color: targetFruit.color }">{{ targetFruit.fruitLevel }} {{ targetFruit.name }}</span></div>
+          <div class="score">
+            <span>Score</span>
+            <span>{{ score }}</span>
+          </div>
+          <div class="level-display">
+            <span>Level</span>
+            <span>{{ level }}</span>
+          </div>
+          <div class="level" :style="{ background: targetFruit.color }">
+            <span>Goal</span>
+            <span>{{ targetFruit.fruitLevel }} {{ targetFruit.name }}</span>
+          </div>
         </div>
         <div v-else class="level-complete-message">
           <button class="btn next-level-btn" @click="startNextLevel">Start Next Level</button>
@@ -447,12 +456,15 @@ onBeforeUnmount(() => {
   font-weight: bold;
   gap: 1rem;
   text-shadow: 0 1px 3px #000, 0 -1px 3px #000;
+  height: 60px;
 }
 
 .level-row {
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 1rem;
 }
 
@@ -465,10 +477,9 @@ onBeforeUnmount(() => {
 }
 
 .next-fruit-area {
-  height: 50px;
+  height: 70px;
   width: 100%;
   position: relative;
-  margin-bottom: 10px;
 }
 
 .game-board {
@@ -513,10 +524,22 @@ onBeforeUnmount(() => {
 }
 
 .next-fruit {
-  top: 5px;
+  bottom: 0;
   transform: translateX(-50%);
   z-index: 2;
   cursor: grab;
+
+  &::after {
+    content: '';
+    position: absolute;
+    margin: auto;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 288px;
+    width: 2px;
+    background: #0006;
+  }
 }
 
 .score {
@@ -526,6 +549,25 @@ onBeforeUnmount(() => {
 .level-display {
   font-size: 1rem;
   font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score,
+.level,
+.level-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  width: 33.33%;
+
+  > span:last-child {
+    font-size: 0.75rem;
+    font-weight: normal;
+    white-space: nowrap;
+  }
 }
 
 .level-complete-message {
