@@ -15,6 +15,10 @@ const targetFruitLevel = computed(() => Math.min(4 + level.value, fruitTypes.len
 const level = ref(1);
 const levelCompleted = ref(false);
 const nextLevel = ref(2);
+// Added flag to control next fruit visibility
+const showNextFruit = ref(true);
+// Added flag to control if dropping is allowed
+const canDropFruit = ref(true);
 
 let engine = null;
 let runner = null;
@@ -110,6 +114,9 @@ function initPhysics() {
 function levelUp() {
   levelCompleted.value = true;
   nextLevel.value = level.value + 1;
+  // Hide next fruit and disable dropping when level is completed
+  showNextFruit.value = false;
+  canDropFruit.value = false;
 }
 
 function startNextLevel() {
@@ -158,6 +165,13 @@ function startNextLevel() {
 
   // Reset next fruit position
   nextFruitPosition.value = boardWidth.value / 2;
+
+  // Re-enable fruit dropping and show next fruit
+  canDropFruit.value = true;
+  showNextFruit.value = true;
+
+  // Generate new next fruit
+  nextFruit.value = generateFruit();
 }
 
 // Process collisions to merge fruits
@@ -278,7 +292,18 @@ function addFruitToWorld(fruit, x, y) {
   fruit.body = fruitBody;
   Matter.Composite.add(engine.world, fruitBody);
   fruits.value.push(fruit);
-  nextFruit.value = generateFruit();
+
+  // Hide next fruit temporarily
+  showNextFruit.value = false;
+
+  // Show next fruit after delay
+  setTimeout(() => {
+    // Only show next fruit if level is not completed
+    if (!levelCompleted.value) {
+      nextFruit.value = generateFruit();
+      showNextFruit.value = true;
+    }
+  }, 500); // 500ms delay
 }
 
 function updateFruitPositions() {
@@ -295,6 +320,9 @@ function updateFruitPositions() {
 }
 
 function startDrag(event) {
+  // Only allow drag if the player can drop fruit (level not completed)
+  if (!canDropFruit.value) return;
+
   event.preventDefault();
   isDragging.value = true;
 
@@ -380,6 +408,7 @@ onBeforeUnmount(() => {
       <div class="game-frame">
         <div class="next-fruit-area">
           <div
+              v-if="showNextFruit"
               class="next-fruit fruit"
               :style="{
             backgroundColor: nextFruit.color,
