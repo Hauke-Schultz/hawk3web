@@ -8,17 +8,19 @@ const nextFruitId = ref(0);
 const gameBoard = ref(null);
 const nextFruitPosition = ref(0);
 const isDragging = ref(false);
-const boardWidth = ref(280);
+const boardWidth = ref(200);
 const boardHeight = ref(350);
 const wallThickness = 20;
-const targetFruitLevel = computed(() => Math.min(4 + level.value, fruitTypes.length - 1));
+const targetFruitLevel = computed(() => Math.min(5 + level.value, fruitTypes.length - 1));
 const level = ref(1);
 const levelCompleted = ref(false);
 const nextLevel = ref(2);
-// Added flag to control next fruit visibility
 const showNextFruit = ref(true);
-// Added flag to control if dropping is allowed
 const canDropFruit = ref(true);
+const gameOver = ref(false);
+const topBoundary = 30;
+const topViolations = ref({});
+const gameOverDelay = 4000;
 
 let engine = null;
 let runner = null;
@@ -316,6 +318,11 @@ function updateFruitPositions() {
     }
   });
 
+  // Check for game over condition
+  if (!gameOver.value && !levelCompleted.value) {
+    checkGameOver();
+  }
+
   requestAnimationFrame(updateFruitPositions);
 }
 
@@ -358,6 +365,95 @@ function endDrag(event) {
   document.removeEventListener(endEvent, endDrag);
 }
 
+function checkGameOver() {
+  const currentTime = Date.now();
+
+  // Check for fruits that are above the top boundary
+  for (const fruit of fruits.value) {
+    if (fruit.body && fruit.body.position.y < topBoundary) {
+      // If this fruit wasn't already violating the boundary, record the time
+      if (!topViolations.value[fruit.id]) {
+        topViolations.value[fruit.id] = currentTime;
+      }
+      // If the fruit has been violating for longer than the delay, trigger game over
+      else if (currentTime - topViolations.value[fruit.id] >= gameOverDelay) {
+        gameOver.value = true;
+        // Disable fruit dropping when game is over
+        canDropFruit.value = false;
+        // Hide next fruit
+        showNextFruit.value = false;
+        return true;
+      }
+    } else {
+      // If the fruit is no longer violating, remove it from tracking
+      if (topViolations.value[fruit.id]) {
+        delete topViolations.value[fruit.id];
+      }
+    }
+  }
+
+  // Clean up tracking for fruits that no longer exist
+  for (const id in topViolations.value) {
+    if (!fruits.value.some(fruit => fruit.id.toString() === id)) {
+      delete topViolations.value[id];
+    }
+  }
+
+  return false;
+}
+
+function restartGame() {
+  // Clear the physics world
+  Matter.World.clear(engine.world, false);
+
+  // Recreate the walls
+  const walls = [
+    // Bottom wall
+    Matter.Bodies.rectangle(
+        boardWidth.value / 2,
+        boardHeight.value + wallThickness / 2,
+        boardWidth.value,
+        wallThickness,
+        { isStatic: true, label: 'wall-bottom', restitution: 0.1 }
+    ),
+    // Left wall
+    Matter.Bodies.rectangle(
+        -wallThickness / 2,
+        boardHeight.value / 2,
+        wallThickness,
+        boardHeight.value,
+        { isStatic: true, label: 'wall-left', restitution: 0.1 }
+    ),
+    // Right wall
+    Matter.Bodies.rectangle(
+        boardWidth.value + wallThickness / 2,
+        boardHeight.value / 2,
+        wallThickness,
+        boardHeight.value,
+        { isStatic: true, label: 'wall-right', restitution: 0.1 }
+    )
+  ];
+
+  // Add walls back to the world
+  Matter.Composite.add(engine.world, walls);
+
+  // Reset game state
+  fruits.value = [];
+  gameOver.value = false;
+  score.value = 0;
+  level.value = 1;
+  levelCompleted.value = false;
+  nextFruitPosition.value = boardWidth.value / 2;
+  topViolations.value = {}; // Reset the top violations tracking
+
+  // Re-enable fruit dropping and show next fruit
+  canDropFruit.value = true;
+  showNextFruit.value = true;
+
+  // Generate new next fruit
+  nextFruit.value = generateFruit();
+}
+
 onMounted(() => {
   if (gameBoard.value) {
     const rect = gameBoard.value.getBoundingClientRect();
@@ -386,7 +482,11 @@ onBeforeUnmount(() => {
   <div class="fruit-merge">
     <div class="game-container">
       <div class="game-header">
-        <div v-if="!levelCompleted" class="level-row">
+        <div v-if="gameOver" class="game-over-message">
+          <span>Game Over</span>
+          <button class="btn restart-btn" @click="restartGame">Play Again</button>
+        </div>
+        <div v-else-if="!levelCompleted" class="level-row">
           <div class="score">
             <span>Score</span>
             <span>{{ score }}</span>
@@ -425,6 +525,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="game-board" ref="gameBoard">
+          <div class="top-boundary-line" :style="{ top: topBoundary + 'px' }"></div>
           <div
               v-for="fruit in fruits"
               :key="fruit.id"
@@ -499,7 +600,7 @@ onBeforeUnmount(() => {
 
 .game-frame {
   position: relative;
-  width: 280px;
+  width: 200px;
   height: 350px;
   display: flex;
   flex-direction: column;
@@ -613,8 +714,40 @@ onBeforeUnmount(() => {
   font-size: 1rem;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.game-over-message {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  color: #f44336;
+  animation: shake 0.5s ease;
+  width: 100%;
+
+  span {
+    font-size: 1.2rem;
+    text-shadow: 0 1px 3px #000, 0 -1px 3px #000;
+  }
+}
+
+.restart-btn {
+  font-size: 1rem;
+  background-color: #f44336;
+}
+
+.top-boundary-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: rgba(255, 0, 0, 0.7);
+  z-index: 5;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 </style>
