@@ -42,23 +42,172 @@ const availableLevels = ref([
 let engine = null;
 let runner = null;
 
-// Fruit types with increasing sizes for each level
 const fruitTypes = [
-  { size: 32, color: '#9C27B0', level: 1, name: 'Cherry' },
-  { size: 38, color: '#E91E63', level: 2, name: 'Strawberry' },
-  { size: 44, color: '#FF9800', level: 3, name: 'Orange' },
-  { size: 50, color: '#FFEB3B', level: 4, name: 'Lemon' },
-  { size: 56, color: '#8BC34A', level: 5, name: 'Apple' },
-  { size: 64, color: '#795548', level: 6, name: 'Avocado' },
-  { size: 72, color: '#CDDC39', level: 7, name: 'Melon' },
-  { size: 80, color: '#F44336', level: 8, name: 'Watermelon' },
-  { size: 88, color: '#2196F3', level: 9, name: 'Jackfruit' },
-  { size: 100, color: '#9575CD', level: 10, name: 'Dragon Fruit' },
-  { size: 112, color: '#4CAF50', level: 11, name: 'Durian' },
-  { size: 126, color: '#FF5722', level: 12, name: 'Pomegranate' },
-  { size: 142, color: '#009688', level: 13, name: 'Coconut' },
-  { size: 166, color: '#3F51B5', level: 14, name: 'Giant Grape' },
-  { size: 192, color: '#FFC107', level: 15, name: 'Super Fruit' },
+  {
+    size: 32, color: '#9C27B0', level: 1, name: 'Blueberry',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#9C27B0" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 38, color: '#E91E63', level: 2, name: 'Strawberry',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#E91E63" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 44, color: '#FF9800', level: 3, name: 'Orange',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#FF9800" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 50, color: '#FFEB3B', level: 4, name: 'Lemon',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#FFEB3B" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 56, color: '#8BC34A', level: 5, name: 'Apple',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#8BC34A" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 64, color: '#795548', level: 6, name: 'Avocado',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#795548" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 72, color: '#CDDC39', level: 7, name: 'Melon',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#CDDC39" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 80, color: '#F44336', level: 8, name: 'Watermelon',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#F44336" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 88, color: '#2196F3', level: 9, name: 'Jackfruit',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#2196F3" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 100, color: '#9575CD', level: 10, name: 'Dragon Fruit',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#9575CD" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 112, color: '#4CAF50', level: 11, name: 'Durian',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#4CAF50" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 126, color: '#FF5722', level: 12, name: 'Pomegranate',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#FF5722" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 142, color: '#009688', level: 13, name: 'Coconut',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#009688" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 166, color: '#3F51B5', level: 14, name: 'Giant Grape',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#3F51B5" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
+  {
+    size: 192, color: '#FFC107', level: 15, name: 'Super Fruit',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="32" fill="#FFC107" />
+        <circle cx="22" cy="27" r="6" fill="white" />
+        <circle cx="42" cy="27" r="6" fill="white" />
+        <circle cx="22" cy="27" r="3" fill="black" />
+        <circle cx="42" cy="27" r="3" fill="black" />
+        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      </svg>`
+  },
 ];
 
 const nextFruit = ref(generateFruit());
@@ -68,6 +217,7 @@ const targetFruit = computed(() => ({
   fruitLevel: fruitTypes[targetFruitLevel.value].level,
   level: targetFruitLevel.value + 1
 }));
+
 const currentLevelHighscore = computed(() => {
   const levelHighscores = highscores.value.filter(hs => hs.level === level.value)
   if (levelHighscores.length === 0) return 0
