@@ -8,7 +8,7 @@ const nextFruitId = ref(0);
 const gameBoard = ref(null);
 const nextFruitPosition = ref(0);
 const isDragging = ref(false);
-const boardWidth = ref(200);
+const boardWidth = ref(270);
 const boardHeight = ref(350);
 const wallThickness = 20;
 const targetFruitLevel = computed(() => Math.min(5 + level.value, fruitTypes.length - 1));
@@ -21,6 +21,21 @@ const gameOver = ref(false);
 const topBoundary = 30;
 const topViolations = ref({});
 const gameOverDelay = 4000;
+const showStartScreen = ref(true)
+const gameActive = ref(false)
+const maxUnlockedLevel = ref(1)
+const maxLevels = 9
+const availableLevels = ref([
+  { number: 1, name: "Level 1", unlocked: true },
+  { number: 2, name: "Level 2", unlocked: false },
+  { number: 3, name: "Level 3", unlocked: false },
+  { number: 4, name: "Level 4", unlocked: false },
+  { number: 5, name: "Level 5", unlocked: false },
+  { number: 6, name: "Level 6", unlocked: false },
+  { number: 7, name: "Level 7", unlocked: false },
+  { number: 8, name: "Level 8", unlocked: false },
+  { number: 9, name: "Level 9", unlocked: false },
+])
 
 let engine = null;
 let runner = null;
@@ -116,16 +131,45 @@ function initPhysics() {
 function levelUp() {
   levelCompleted.value = true;
   nextLevel.value = level.value + 1;
-  // Hide next fruit and disable dropping when level is completed
+
+  // Freischalten des nächsten Levels, wenn es noch nicht freigeschaltet ist
+  if (nextLevel.value <= maxLevels && nextLevel.value > maxUnlockedLevel.value) {
+    maxUnlockedLevel.value = nextLevel.value;
+    // Aktualisiere die verfügbaren Levels
+    updateAvailableLevels();
+  }
+
+  // Verstecke next fruit und deaktiviere dropping wenn Level abgeschlossen
   showNextFruit.value = false;
   canDropFruit.value = false;
 }
 
+function updateAvailableLevels() {
+  availableLevels.value = availableLevels.value.map(levelInfo => {
+    return {
+      ...levelInfo,
+      unlocked: levelInfo.number <= maxUnlockedLevel.value
+    };
+  });
+
+  // Level-Fortschritt im localStorage speichern
+  localStorage.setItem('fruitMergeMaxLevel', maxUnlockedLevel.value.toString());
+}
+
 function startNextLevel() {
-  // Clear the physics world completely
+  // Zeige den Startbildschirm anstatt direkt das nächste Level zu starten
+  showStartScreen.value = true;
+  gameActive.value = false;
+  levelCompleted.value = false;
+}
+
+function startLevel(levelNumber) {
+  // Stelle sicher, dass das Level freigeschaltet ist
+  if (levelNumber > maxUnlockedLevel.value) return;
+
+  // Physik-Engine zurücksetzen und Wände neu erstellen wie in startNextLevel
   Matter.World.clear(engine.world, false);
 
-  // Recreate the walls
   const walls = [
     // Bottom wall
     Matter.Bodies.rectangle(
@@ -159,11 +203,12 @@ function startNextLevel() {
   // Reset the fruits array
   fruits.value = [];
 
-  // Increment the level
-  level.value = nextLevel.value;
+  // Set current level
+  level.value = levelNumber;
 
   // Reset level completion status
   levelCompleted.value = false;
+  gameOver.value = false;
 
   // Reset next fruit position
   nextFruitPosition.value = boardWidth.value / 2;
@@ -174,6 +219,10 @@ function startNextLevel() {
 
   // Generate new next fruit
   nextFruit.value = generateFruit();
+
+  // Verstecke den Startbildschirm und starte das Spiel
+  showStartScreen.value = false;
+  gameActive.value = true;
 }
 
 // Process collisions to merge fruits
@@ -403,55 +452,10 @@ function checkGameOver() {
 }
 
 function restartGame() {
-  // Clear the physics world
-  Matter.World.clear(engine.world, false);
-
-  // Recreate the walls
-  const walls = [
-    // Bottom wall
-    Matter.Bodies.rectangle(
-        boardWidth.value / 2,
-        boardHeight.value + wallThickness / 2,
-        boardWidth.value,
-        wallThickness,
-        { isStatic: true, label: 'wall-bottom', restitution: 0.1 }
-    ),
-    // Left wall
-    Matter.Bodies.rectangle(
-        -wallThickness / 2,
-        boardHeight.value / 2,
-        wallThickness,
-        boardHeight.value,
-        { isStatic: true, label: 'wall-left', restitution: 0.1 }
-    ),
-    // Right wall
-    Matter.Bodies.rectangle(
-        boardWidth.value + wallThickness / 2,
-        boardHeight.value / 2,
-        wallThickness,
-        boardHeight.value,
-        { isStatic: true, label: 'wall-right', restitution: 0.1 }
-    )
-  ];
-
-  // Add walls back to the world
-  Matter.Composite.add(engine.world, walls);
-
-  // Reset game state
-  fruits.value = [];
+  // Zeige den Startbildschirm anstatt direkt das Spiel neu zu starten
+  showStartScreen.value = true;
+  gameActive.value = false;
   gameOver.value = false;
-  score.value = 0;
-  level.value = 1;
-  levelCompleted.value = false;
-  nextFruitPosition.value = boardWidth.value / 2;
-  topViolations.value = {}; // Reset the top violations tracking
-
-  // Re-enable fruit dropping and show next fruit
-  canDropFruit.value = true;
-  showNextFruit.value = true;
-
-  // Generate new next fruit
-  nextFruit.value = generateFruit();
 }
 
 onMounted(() => {
@@ -463,6 +467,13 @@ onMounted(() => {
   initPhysics();
   nextFruitPosition.value = boardWidth.value / 2;
   updateFruitPositions();
+
+  // Lade den gespeicherten Level-Fortschritt
+  const savedMaxLevel = localStorage.getItem('fruitMergeMaxLevel');
+  if (savedMaxLevel) {
+    maxUnlockedLevel.value = parseInt(savedMaxLevel);
+    updateAvailableLevels();
+  }
 });
 
 onBeforeUnmount(() => {
@@ -481,66 +492,90 @@ onBeforeUnmount(() => {
 <template>
   <div class="fruit-merge">
     <div class="game-container">
-      <div class="game-header">
-        <div v-if="gameOver" class="game-over-message">
-          <span>Game Over</span>
-          <button class="btn restart-btn" @click="restartGame">Play Again</button>
-        </div>
-        <div v-else-if="!levelCompleted" class="level-row">
-          <div class="score">
-            <span>Score</span>
-            <span>{{ score }}</span>
-          </div>
-          <div class="level-display">
-            <span>Level</span>
-            <span>{{ level }}</span>
-          </div>
-          <div class="level" :style="{ background: targetFruit.color }">
-            <span>Goal</span>
-            <span>{{ targetFruit.fruitLevel }} {{ targetFruit.name }}</span>
-          </div>
-        </div>
-        <div v-else class="level-complete-message">
-          <button class="btn next-level-btn" @click="startNextLevel">Start Next Level</button>
+      <div v-if="showStartScreen" class="start-screen">
+        <h3>Fruit Merge</h3>
+        <p>Kombiniere gleiche Früchte und erreiche hohe Punktzahlen!</p>
+        <div class="level-grid">
+          <button
+              v-for="levelInfo in availableLevels"
+              :key="levelInfo.number"
+              class="level-button"
+              :class="{ 'unlocked': levelInfo.unlocked, 'current': levelInfo.number === maxUnlockedLevel }"
+              :disabled="!levelInfo.unlocked"
+              @click="startLevel(levelInfo.number)"
+          >
+            {{ levelInfo.name }}
+            <span v-if="!levelInfo.unlocked" class="lock-icon">🔒</span>
+          </button>
         </div>
       </div>
-
-      <div class="game-frame">
-        <div class="next-fruit-area">
-          <div
-              v-if="showNextFruit"
-              class="next-fruit fruit"
-              :style="{
-            backgroundColor: nextFruit.color,
-            width: `${nextFruit.size}px`,
-            height: `${nextFruit.size}px`,
-            left: `${nextFruitPosition}px`
-          }"
-              @mousedown="startDrag"
-              @touchstart="startDrag"
-          >
-            <span class="fruit-level">{{ nextFruit.level }}</span>
-            <span class="fruit-name">{{ nextFruit.name }}</span>
+      <div
+        class="play-screen"
+        :class="{
+          'play-screen--hidden': showStartScreen,
+        }"
+      >
+        <div class="game-header">
+          <div v-if="gameOver" class="game-over-message">
+            <span>Game Over</span>
+            <button class="btn restart-btn" @click="restartGame">Play Again</button>
+          </div>
+          <div v-else-if="!levelCompleted" class="level-row">
+            <div class="score">
+              <span>Score</span>
+              <span>{{ score }}</span>
+            </div>
+            <div class="level-display">
+              <span>Level</span>
+              <span>{{ level }}</span>
+            </div>
+            <div class="level" :style="{ background: targetFruit.color }">
+              <span>Goal</span>
+              <span>{{ targetFruit.fruitLevel }} {{ targetFruit.name }}</span>
+            </div>
+          </div>
+          <div v-else class="level-complete-message">
+            <button class="btn next-level-btn" @click="startNextLevel">Start Next Level</button>
           </div>
         </div>
 
-        <div class="game-board" ref="gameBoard">
-          <div class="top-boundary-line" :style="{ top: topBoundary + 'px' }"></div>
-          <div
-              v-for="fruit in fruits"
-              :key="fruit.id"
-              class="fruit"
-              :class="{ 'merging': fruit.merging }"
-              :style="{
-            left: `${fruit.x}px`,
-            top: `${fruit.y}px`,
-            backgroundColor: fruit.color,
-            width: `${fruit.size}px`,
-            height: `${fruit.size}px`,
-            transform: `rotate(${fruit.rotation}deg)`
-          }"
-          >
-            <span class="fruit-level">{{ fruit.level }}</span>
+        <div class="game-frame">
+          <div class="next-fruit-area">
+            <div
+                v-if="showNextFruit"
+                class="next-fruit fruit"
+                :style="{
+              backgroundColor: nextFruit.color,
+              width: `${nextFruit.size}px`,
+              height: `${nextFruit.size}px`,
+              left: `${nextFruitPosition}px`
+            }"
+                @mousedown="startDrag"
+                @touchstart="startDrag"
+            >
+              <span class="fruit-level">{{ nextFruit.level }}</span>
+              <span class="fruit-name">{{ nextFruit.name }}</span>
+            </div>
+          </div>
+
+          <div class="game-board" ref="gameBoard">
+            <div class="top-boundary-line" :style="{ top: topBoundary + 'px' }"></div>
+            <div
+                v-for="fruit in fruits"
+                :key="fruit.id"
+                class="fruit"
+                :class="{ 'merging': fruit.merging }"
+                :style="{
+              left: `${fruit.x}px`,
+              top: `${fruit.y}px`,
+              backgroundColor: fruit.color,
+              width: `${fruit.size}px`,
+              height: `${fruit.size}px`,
+              transform: `rotate(${fruit.rotation}deg)`
+            }"
+            >
+              <span class="fruit-level">{{ fruit.level }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -600,7 +635,7 @@ onBeforeUnmount(() => {
 
 .game-frame {
   position: relative;
-  width: 200px;
+  width: 270px;
   height: 350px;
   display: flex;
   flex-direction: column;
@@ -619,6 +654,20 @@ onBeforeUnmount(() => {
   background-color: rgba(234, 231, 214, 0.8);
   border: 4px solid #c9b991;
   overflow: hidden;
+}
+
+.play-screen {
+  display: flex;
+  margin: auto;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+
+  &--hidden {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+  }
 }
 
 .fruit {
@@ -743,6 +792,84 @@ onBeforeUnmount(() => {
   height: 2px;
   background-color: rgba(255, 0, 0, 0.7);
   z-index: 5;
+}
+
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  background-color: rgba(234, 231, 214, 0.9);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  margin: 0 auto;
+  height: 410px;
+
+  h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #6b89c9;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.level-button {
+  position: relative;
+  background-color: #6b89c9;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  &.unlocked {
+    background-color: #4CAF50;
+  }
+
+  &.current {
+    background-color: #FF9800;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.lock-icon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 1.2rem;
 }
 
 @keyframes shake {
