@@ -25,6 +25,8 @@ const showStartScreen = ref(true)
 const gameActive = ref(false)
 const maxUnlockedLevel = ref(1)
 const maxLevels = 9
+const highscores = ref([])
+const showHighscores = ref(false)
 const availableLevels = ref([
   { number: 1, name: "Level 1", unlocked: true },
   { number: 2, name: "Level 2", unlocked: false },
@@ -129,19 +131,22 @@ function initPhysics() {
 }
 
 function levelUp() {
-  levelCompleted.value = true;
-  nextLevel.value = level.value + 1;
+  levelCompleted.value = true
+  nextLevel.value = level.value + 1
+
+  // Speichere den Highscore für das aktuelle Level
+  const isNewHighscore = saveHighscore(level.value, score.value)
 
   // Freischalten des nächsten Levels, wenn es noch nicht freigeschaltet ist
   if (nextLevel.value <= maxLevels && nextLevel.value > maxUnlockedLevel.value) {
-    maxUnlockedLevel.value = nextLevel.value;
+    maxUnlockedLevel.value = nextLevel.value
     // Aktualisiere die verfügbaren Levels
-    updateAvailableLevels();
+    updateAvailableLevels()
   }
 
   // Verstecke next fruit und deaktiviere dropping wenn Level abgeschlossen
-  showNextFruit.value = false;
-  canDropFruit.value = false;
+  showNextFruit.value = false
+  canDropFruit.value = false
 }
 
 function updateAvailableLevels() {
@@ -165,10 +170,13 @@ function startNextLevel() {
 
 function startLevel(levelNumber) {
   // Stelle sicher, dass das Level freigeschaltet ist
-  if (levelNumber > maxUnlockedLevel.value) return;
+  if (levelNumber > maxUnlockedLevel.value) return
+
+  // Score zurücksetzen
+  score.value = 0
 
   // Physik-Engine zurücksetzen und Wände neu erstellen wie in startNextLevel
-  Matter.World.clear(engine.world, false);
+  Matter.World.clear(engine.world, false)
 
   const walls = [
     // Bottom wall
@@ -195,34 +203,35 @@ function startLevel(levelNumber) {
         boardHeight.value,
         { isStatic: true, label: 'wall-right', restitution: 0.1 }
     )
-  ];
+  ]
 
   // Add walls back to the world
-  Matter.Composite.add(engine.world, walls);
+  Matter.Composite.add(engine.world, walls)
 
   // Reset the fruits array
-  fruits.value = [];
+  fruits.value = []
 
   // Set current level
-  level.value = levelNumber;
+  level.value = levelNumber
 
   // Reset level completion status
-  levelCompleted.value = false;
-  gameOver.value = false;
+  levelCompleted.value = false
+  gameOver.value = false
 
   // Reset next fruit position
-  nextFruitPosition.value = boardWidth.value / 2;
+  nextFruitPosition.value = boardWidth.value / 2
 
   // Re-enable fruit dropping and show next fruit
-  canDropFruit.value = true;
-  showNextFruit.value = true;
+  canDropFruit.value = true
+  showNextFruit.value = true
 
   // Generate new next fruit
-  nextFruit.value = generateFruit();
+  nextFruit.value = generateFruit()
 
   // Verstecke den Startbildschirm und starte das Spiel
-  showStartScreen.value = false;
-  gameActive.value = true;
+  showStartScreen.value = false
+  gameActive.value = true
+  showHighscores.value = false
 }
 
 // Process collisions to merge fruits
@@ -458,23 +467,72 @@ function restartGame() {
   gameOver.value = false;
 }
 
+function loadHighscores() {
+  const savedHighscores = localStorage.getItem('fruitMergeHighscores')
+  if (savedHighscores) {
+    highscores.value = JSON.parse(savedHighscores)
+  }
+}
+
+function toggleHighscores() {
+  showHighscores.value = !showHighscores.value
+}
+
+function saveHighscore(level, score) {
+  const now = new Date()
+  const dateString = now.toLocaleDateString('de-DE')
+
+  // Neuen Highscore erstellen
+  const newHighscore = {
+    level,
+    score,
+    date: dateString
+  }
+
+  // Highscores nach Level gruppieren
+  const levelHighscores = highscores.value.filter(hs => hs.level === level)
+
+  // Prüfen, ob es ein neuer Highscore für das Level ist
+  if (levelHighscores.length === 0 || Math.max(...levelHighscores.map(hs => hs.score)) < score) {
+    // Alte Highscores für dieses Level entfernen
+    highscores.value = highscores.value.filter(hs => hs.level !== level)
+    // Neuen Highscore hinzufügen
+    highscores.value.push(newHighscore)
+    // Sortieren nach Level und Score
+    highscores.value.sort((a, b) => {
+      if (a.level !== b.level) return a.level - b.level
+      return b.score - a.score
+    })
+
+    // Im LocalStorage speichern
+    localStorage.setItem('fruitMergeHighscores', JSON.stringify(highscores.value))
+
+    return true // Neuer Highscore wurde gesetzt
+  }
+
+  return false // Kein neuer Highscore
+}
+
 onMounted(() => {
   if (gameBoard.value) {
-    const rect = gameBoard.value.getBoundingClientRect();
-    boardWidth.value = rect.width;
-    boardHeight.value = rect.height;
+    const rect = gameBoard.value.getBoundingClientRect()
+    boardWidth.value = rect.width
+    boardHeight.value = rect.height
   }
-  initPhysics();
-  nextFruitPosition.value = boardWidth.value / 2;
-  updateFruitPositions();
+  initPhysics()
+  nextFruitPosition.value = boardWidth.value / 2
+  updateFruitPositions()
 
   // Lade den gespeicherten Level-Fortschritt
-  const savedMaxLevel = localStorage.getItem('fruitMergeMaxLevel');
+  const savedMaxLevel = localStorage.getItem('fruitMergeMaxLevel')
   if (savedMaxLevel) {
-    maxUnlockedLevel.value = parseInt(savedMaxLevel);
-    updateAvailableLevels();
+    maxUnlockedLevel.value = parseInt(savedMaxLevel)
+    updateAvailableLevels()
   }
-});
+
+  // Lade gespeicherte Highscores
+  loadHighscores()
+})
 
 onBeforeUnmount(() => {
   if (runner) {
@@ -495,7 +553,16 @@ onBeforeUnmount(() => {
       <div v-if="showStartScreen" class="start-screen">
         <h3>Fruit Merge</h3>
         <p>Kombiniere gleiche Früchte und erreiche hohe Punktzahlen!</p>
-        <div class="level-grid">
+
+        <!-- Highscore Toggle Button -->
+        <div class="start-screen-buttons">
+          <button @click="toggleHighscores" class="btn highscore-btn">
+            {{ showHighscores ? 'Zurück zu Levels' : 'Highscores anzeigen' }}
+          </button>
+        </div>
+
+        <!-- Level Grid (nur anzeigen, wenn Highscores nicht angezeigt werden) -->
+        <div v-if="!showHighscores" class="level-grid">
           <button
               v-for="levelInfo in availableLevels"
               :key="levelInfo.number"
@@ -507,6 +574,30 @@ onBeforeUnmount(() => {
             {{ levelInfo.name }}
             <span v-if="!levelInfo.unlocked" class="lock-icon">🔒</span>
           </button>
+        </div>
+
+        <!-- Highscore Anzeige -->
+        <div v-if="showHighscores" class="highscore-container">
+          <h4>Highscores</h4>
+          <div v-if="highscores.length === 0" class="no-highscores">
+            Noch keine Highscores vorhanden.
+          </div>
+          <table v-else class="highscore-table">
+            <thead>
+            <tr>
+              <th>Level</th>
+              <th>Score</th>
+              <th>Datum</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(score, index) in highscores" :key="index">
+              <td>{{ score.level }}</td>
+              <td>{{ score.score }}</td>
+              <td>{{ score.date }}</td>
+            </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <div
@@ -870,6 +961,63 @@ onBeforeUnmount(() => {
   top: -8px;
   right: -8px;
   font-size: 1.2rem;
+}
+.start-screen-buttons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.highscore-btn {
+  background-color: #6b89c9;
+  margin-bottom: 0.5rem;
+}
+
+.highscore-container {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 250px;
+}
+
+.highscore-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  color: #333;
+}
+
+.highscore-table th,
+.highscore-table td {
+  padding: 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.highscore-table th {
+  background-color: #6b89c9;
+  color: white;
+  font-weight: bold;
+}
+
+.highscore-table tr:nth-child(even) {
+  background-color: rgba(107, 137, 201, 0.1);
+}
+
+.highscore-table tr:hover {
+  background-color: rgba(107, 137, 201, 0.2);
+}
+
+.no-highscores {
+  text-align: center;
+  color: #666;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+.start-screen h4 {
+  color: #6b89c9;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 @keyframes shake {
