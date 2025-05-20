@@ -68,6 +68,11 @@ const targetFruit = computed(() => ({
   fruitLevel: fruitTypes[targetFruitLevel.value].level,
   level: targetFruitLevel.value + 1
 }));
+const currentLevelHighscore = computed(() => {
+  const levelHighscores = highscores.value.filter(hs => hs.level === level.value)
+  if (levelHighscores.length === 0) return 0
+  return Math.max(...levelHighscores.map(hs => hs.score))
+})
 
 function generateFruit() {
   // Generate fruits from level 1-5 to increase difficulty
@@ -616,6 +621,10 @@ onBeforeUnmount(() => {
               <span>Score</span>
               <span>{{ score }}</span>
             </div>
+            <div class="highscore" :class="{ 'new-record': score > currentLevelHighscore }">
+              <span>Best</span>
+              <span>{{ score > currentLevelHighscore ? score : currentLevelHighscore }}</span>
+            </div>
             <div class="level-display">
               <span>Level</span>
               <span>{{ level }}</span>
@@ -826,12 +835,13 @@ onBeforeUnmount(() => {
 
 .score,
 .level,
+.highscore,
 .level-display {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0.5rem;
-  width: 33.33%;
+  width: 25%;
 
   > span:last-child {
     font-size: 0.75rem;
@@ -1018,6 +1028,17 @@ onBeforeUnmount(() => {
   color: #6b89c9;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
+}
+
+.highscore.new-record {
+  color: #FFEB3B;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 @keyframes shake {
