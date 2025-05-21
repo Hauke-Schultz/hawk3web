@@ -236,6 +236,7 @@ function generateFruit() {
     size: randomFruitType.size,
     level: randomFruitType.level,
     name: randomFruitType.name,
+    svg: randomFruitType.svg,
     x: 0,
     y: 0,
     rotation: 0,
@@ -447,6 +448,7 @@ function handleCollision(event) {
                 size: fruitTypes[nextLevelIndex].size,
                 level: levelA + 1, // Next level number
                 name: fruitTypes[nextLevelIndex].name,
+                svg: fruitTypes[nextLevelIndex].svg, // SVG hinzufügen
                 x: centerX,
                 y: centerY,
                 rotation: 0,
@@ -481,7 +483,13 @@ function addMergedFruit(fruit, x, y) {
         friction: 0.05,   // Reduced friction
         frictionAir: 0.005, // Reduced air friction
         density: 0.001,    // Density for weight
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}` // Label for identification
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`, // Label for identification
+        render: {
+          sprite: {
+            xScale: 1,
+            yScale: 1
+          }
+        }
       }
   );
 
@@ -500,7 +508,13 @@ function addFruitToWorld(fruit, x, y) {
         friction: 0.05,
         frictionAir: 0.008,
         density: 0.001,
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`,
+        render: {
+          sprite: {
+            xScale: 1,
+            yScale: 1
+          }
+        }
       }
   );
 
@@ -779,9 +793,8 @@ onBeforeUnmount(() => {
               <span>Level</span>
               <span>{{ level }}</span>
             </div>
-            <div class="level" :style="{ background: targetFruit.color }">
-              <span>Goal</span>
-              <span>{{ targetFruit.fruitLevel }} {{ targetFruit.name }}</span>
+            <div class="level">
+              <div class="goal-fruit-svg" v-html="fruitTypes[targetFruit.fruitLevel].svg" />
             </div>
           </div>
           <div v-else class="level-complete-message">
@@ -795,14 +808,14 @@ onBeforeUnmount(() => {
                 v-if="showNextFruit"
                 class="next-fruit fruit"
                 :style="{
-              backgroundColor: nextFruit.color,
-              width: `${nextFruit.size}px`,
-              height: `${nextFruit.size}px`,
-              left: `${nextFruitPosition}px`
-            }"
+                  width: `${nextFruit.size}px`,
+                  height: `${nextFruit.size}px`,
+                  left: `${nextFruitPosition}px`
+                }"
                 @mousedown="startDrag"
                 @touchstart="startDrag"
             >
+              <div class="fruit-svg" v-html="nextFruit.svg"></div>
               <span class="fruit-level">{{ nextFruit.level }}</span>
               <span class="fruit-name">{{ nextFruit.name }}</span>
             </div>
@@ -816,14 +829,14 @@ onBeforeUnmount(() => {
                 class="fruit"
                 :class="{ 'merging': fruit.merging }"
                 :style="{
-              left: `${fruit.x}px`,
-              top: `${fruit.y}px`,
-              backgroundColor: fruit.color,
-              width: `${fruit.size}px`,
-              height: `${fruit.size}px`,
-              transform: `rotate(${fruit.rotation}deg)`
-            }"
+                  left: `${fruit.x}px`,
+                  top: `${fruit.y}px`,
+                  width: `${fruit.size}px`,
+                  height: `${fruit.size}px`,
+                  transform: `rotate(${fruit.rotation}deg)`
+                }"
             >
+              <div class="fruit-svg" v-html="fruit.svg"></div>
               <span class="fruit-level">{{ fruit.level }}</span>
             </div>
           </div>
@@ -920,6 +933,21 @@ onBeforeUnmount(() => {
   }
 }
 
+.fruit-svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+.fruit-level, .fruit-name {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+}
+
 .fruit {
   position: absolute;
   border-radius: 50%;
@@ -929,11 +957,11 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   z-index: 1;
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
   transition: transform 0.1s ease;
   color: white;
   font-weight: bold;
   text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+  overflow: visible;
 }
 
 .fruit-level {
@@ -943,7 +971,6 @@ onBeforeUnmount(() => {
 
 .fruit-name {
   font-size: 0.5rem;
-  opacity: 0.8;
 }
 
 .fruit.merging {
@@ -1114,6 +1141,13 @@ onBeforeUnmount(() => {
     transform: scale(1.05);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
+}
+
+.goal-fruit-svg {
+  width: 3em;
+  height: 3em;
+  margin: 0;
+  position: relative;
 }
 
 .lock-icon {
