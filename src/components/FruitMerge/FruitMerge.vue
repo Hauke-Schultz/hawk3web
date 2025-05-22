@@ -9,7 +9,7 @@ const gameBoard = ref(null);
 const nextFruitPosition = ref(0);
 const isDragging = ref(false);
 const boardWidth = ref(270);
-const boardHeight = ref(350);
+const boardHeight = ref(410);
 const wallThickness = 20;
 const targetFruitLevel = computed(() => Math.min(5 + level.value, fruitTypes.length - 1));
 const level = ref(1);
@@ -27,6 +27,7 @@ const maxUnlockedLevel = ref(1)
 const maxLevels = 9
 const highscores = ref([])
 const showHighscores = ref(false)
+const showFruitList = ref(false)
 const availableLevels = ref([
   { number: 1, name: "Level 1", unlocked: true },
   { number: 2, name: "Level 2", unlocked: false },
@@ -46,168 +47,383 @@ const fruitTypes = [
   {
     size: 32, color: '#9C27B0', level: 1, name: 'Blueberry',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#9C27B0" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="blueberryGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#BA68C8"/>
+            <stop offset="100%" style="stop-color:#9C27B0"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#blueberryGrad)" stroke="#6A1B9A" stroke-width="2"/>
+        <circle cx="20" cy="20" r="1.5" fill="#7B1FA2" opacity="0.6"/>
+        <circle cx="44" cy="18" r="1.5" fill="#7B1FA2" opacity="0.6"/>
+        <circle cx="18" cy="40" r="1.5" fill="#7B1FA2" opacity="0.6"/>
+        <circle cx="46" cy="42" r="1.5" fill="#7B1FA2" opacity="0.6"/>
+        <circle cx="32" cy="48" r="1.5" fill="#7B1FA2" opacity="0.6"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#8E24AA" opacity="0.4"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#8E24AA" opacity="0.4"/>
       </svg>`
   },
   {
     size: 38, color: '#E91E63', level: 2, name: 'Strawberry',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#E91E63" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="strawberryGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#F06292"/>
+            <stop offset="100%" style="stop-color:#E91E63"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#strawberryGrad)" stroke="#C2185B" stroke-width="2"/>
+        <circle cx="22" cy="22" r="1" fill="#FFEB3B" opacity="0.8"/>
+        <circle cx="40" cy="20" r="1" fill="#FFEB3B" opacity="0.8"/>
+        <circle cx="20" cy="38" r="1" fill="#FFEB3B" opacity="0.8"/>
+        <circle cx="44" cy="40" r="1" fill="#FFEB3B" opacity="0.8"/>
+        <circle cx="32" cy="46" r="1" fill="#FFEB3B" opacity="0.8"/>
+        <circle cx="28" cy="16" r="1" fill="#FFEB3B" opacity="0.8"/>
+        <circle cx="36" cy="48" r="1" fill="#FFEB3B" opacity="0.8"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD9" opacity="0.6"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD9" opacity="0.6"/>
+        <path d="M30,8 L34,8 L36,12 L28,12 Z" fill="#4CAF50"/>
       </svg>`
   },
   {
     size: 44, color: '#FF9800', level: 3, name: 'Orange',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#FF9800" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="orangeGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFB74D"/>
+            <stop offset="100%" style="stop-color:#FF9800"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#orangeGrad)" stroke="#E65100" stroke-width="2"/>
+        <circle cx="20" cy="20" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="44" cy="18" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="18" cy="40" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="46" cy="42" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="32" cy="48" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
       </svg>`
   },
   {
     size: 50, color: '#FFEB3B', level: 4, name: 'Lemon',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#FFEB3B" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="lemonGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFF176"/>
+            <stop offset="100%" style="stop-color:#FFEB3B"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#lemonGrad)" stroke="#F57F17" stroke-width="2"/>
+        <ellipse cx="22" cy="20" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+        <ellipse cx="42" cy="18" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+        <ellipse cx="18" cy="40" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+        <ellipse cx="46" cy="42" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+        <ellipse cx="32" cy="48" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFC107" opacity="0.4"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFC107" opacity="0.4"/>
       </svg>`
   },
   {
     size: 56, color: '#8BC34A', level: 5, name: 'Apple',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#8BC34A" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="appleGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#AED581"/>
+            <stop offset="100%" style="stop-color:#8BC34A"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#appleGrad)" stroke="#558B2F" stroke-width="2"/>
+        <circle cx="20" cy="20" r="1.5" fill="#689F38" opacity="0.6"/>
+        <circle cx="44" cy="18" r="1.5" fill="#689F38" opacity="0.6"/>
+        <circle cx="18" cy="40" r="1.5" fill="#689F38" opacity="0.6"/>
+        <circle cx="46" cy="42" r="1.5" fill="#689F38" opacity="0.6"/>
+        <circle cx="32" cy="48" r="1.5" fill="#689F38" opacity="0.6"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
+        <ellipse cx="30" cy="8" rx="4" ry="2" fill="#795548"/>
+        <ellipse cx="34" cy="6" rx="2" ry="3" fill="#4CAF50"/>
       </svg>`
   },
   {
-    size: 64, color: '#795548', level: 6, name: 'Avocado',
+    size: 72, color: '#FFAB91', level: 6, name: 'Peach',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#795548" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      <defs>
+        <radialGradient id="peachGrad" cx="0.3" cy="0.3">
+          <stop offset="0%" style="stop-color:#FFCC80"/>
+          <stop offset="100%" style="stop-color:#FFAB91"/>
+        </radialGradient>
+      </defs>
+      <circle cx="32" cy="32" r="30" fill="url(#peachGrad)" stroke="#FF8A65" stroke-width="2"/>
+      <path d="M28,8 Q32,12 36,8" stroke="#FF7043" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M24,16 Q32,20 40,16" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <path d="M20,28 Q32,32 44,28" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.4"/>
+      <path d="M22,44 Q32,40 42,44" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.4"/>
+      <circle cx="20" cy="20" r="1.5" fill="#FF8A65" opacity="0.6"/>
+      <circle cx="44" cy="18" r="1.5" fill="#FF8A65" opacity="0.6"/>
+      <circle cx="18" cy="40" r="1.5" fill="#FF8A65" opacity="0.6"/>
+      <circle cx="46" cy="42" r="1.5" fill="#FF8A65" opacity="0.6"/>
+      <circle cx="32" cy="48" r="1.5" fill="#FF8A65" opacity="0.6"/>
+      <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+      <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+      <circle cx="24" cy="26" r="2.5" fill="black"/>
+      <circle cx="40" cy="26" r="2.5" fill="black"/>
+      <circle cx="25" cy="25" r="1" fill="white"/>
+      <circle cx="41" cy="25" r="1" fill="white"/>
+      <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFCDD2" opacity="0.6"/>
+      <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCDD2" opacity="0.6"/>
+      <ellipse cx="26" cy="16" rx="6" ry="3" fill="#FFE0B2" opacity="0.5"/>
+      <ellipse cx="14" cy="26" rx="4" ry="6" fill="#F8BBD0" opacity="0.3"/>
+    </svg>`
+  },
+  {
+    size: 80, color: '#F48FB1', level: 7, name: 'Watermelon',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+      <defs>
+        <radialGradient id="watermelonGrad" cx="0.3" cy="0.3">
+          <stop offset="0%" style="stop-color:#F8BBD0"/>
+          <stop offset="100%" style="stop-color:#F48FB1"/>
+        </radialGradient>
+      </defs>
+      <circle cx="32" cy="32" r="30" fill="url(#watermelonGrad)" stroke="#E91E63" stroke-width="2"/>
+      <circle cx="32" cy="32" r="26" fill="#F06292" opacity="0.8"/>
+      <circle cx="32" cy="32" r="22" fill="#EC407A" opacity="0.6"/>
+      <circle cx="22" cy="22" r="2" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="42" cy="20" r="2" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="20" cy="42" r="2" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="44" cy="44" r="2" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="32" cy="18" r="1.5" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="18" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="46" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="32" cy="46" r="1.5" fill="#1B5E20" opacity="0.9"/>
+      <circle cx="28" cy="36" r="1" fill="#1B5E20" opacity="0.8"/>
+      <circle cx="36" cy="28" r="1" fill="#1B5E20" opacity="0.8"/>
+      <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+      <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+      <circle cx="24" cy="26" r="2.5" fill="black"/>
+      <circle cx="40" cy="26" r="2.5" fill="black"/>
+      <circle cx="25" cy="25" r="1" fill="white"/>
+      <circle cx="41" cy="25" r="1" fill="white"/>
+      <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+      <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+      <circle cx="32" cy="32" r="18" fill="none" stroke="#4CAF50" stroke-width="2" opacity="0.4"/>
+    </svg>`
+  },
+  {
+    size: 88, color: '#2196F3', level: 8, name: 'Jackfruit',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <defs>
+          <radialGradient id="jackfruitGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#42A5F5"/>
+            <stop offset="100%" style="stop-color:#2196F3"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#jackfruitGrad)" stroke="#0D47A1" stroke-width="2"/>
+        <circle cx="18" cy="18" r="2" fill="#1976D2" opacity="0.6"/>
+        <circle cx="46" cy="16" r="2" fill="#1976D2" opacity="0.6"/>
+        <circle cx="14" cy="38" r="2" fill="#1976D2" opacity="0.6"/>
+        <circle cx="50" cy="40" r="2" fill="#1976D2" opacity="0.6"/>
+        <circle cx="28" cy="50" r="2" fill="#1976D2" opacity="0.6"/>
+        <circle cx="36" cy="52" r="2" fill="#1976D2" opacity="0.6"/>
+        <circle cx="22" cy="32" r="1.5" fill="#1976D2" opacity="0.6"/>
+        <circle cx="42" cy="34" r="1.5" fill="#1976D2" opacity="0.6"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#BBDEFB" opacity="0.6"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#BBDEFB" opacity="0.6"/>
       </svg>`
   },
   {
-    size: 72, color: '#CDDC39', level: 7, name: 'Melon',
+    size: 100, color: '#9575CD', level: 9, name: 'Dragon Fruit',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#CDDC39" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="dragonfruitGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#B39DDB"/>
+            <stop offset="100%" style="stop-color:#9575CD"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#dragonfruitGrad)" stroke="#512DA8" stroke-width="2"/>
+        <circle cx="20" cy="20" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="44" cy="18" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="18" cy="40" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="46" cy="42" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="32" cy="48" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="26" cy="16" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="38" cy="14" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="14" cy="32" r="1" fill="#1B5E20" opacity="0.8"/>
+        <circle cx="50" cy="30" r="1" fill="#1B5E20" opacity="0.8"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#E1BEE7" opacity="0.6"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#E1BEE7" opacity="0.6"/>
+        <path d="M28,8 L30,4 L32,8 L34,4 L36,8" stroke="#4CAF50" stroke-width="2" fill="none"/>
       </svg>`
   },
   {
-    size: 80, color: '#F44336', level: 8, name: 'Watermelon',
+    size: 112, color: '#4CAF50', level: 10, name: 'Durian',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#F44336" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="durianGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#66BB6A"/>
+            <stop offset="100%" style="stop-color:#4CAF50"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#durianGrad)" stroke="#2E7D32" stroke-width="2"/>
+        <path d="M16,16 L20,12 L18,18" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <path d="M48,16 L52,12 L50,18" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <path d="M16,48 L20,52 L18,46" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <path d="M48,48 L52,52 L50,46" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <path d="M32,8 L34,4 L30,4" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <path d="M32,56 L34,60 L30,60" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <path d="M8,32 L4,30 L4,34" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <path d="M56,32 L60,30 L60,34" stroke="#388E3C" stroke-width="2" fill="none"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
       </svg>`
   },
   {
-    size: 88, color: '#2196F3', level: 9, name: 'Jackfruit',
+    size: 142, color: '#8D6E63', level: 11, name: 'Coconut',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#2196F3" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+      <defs>
+        <radialGradient id="coconutGrad" cx="0.3" cy="0.3">
+          <stop offset="0%" style="stop-color:#A1887F"/>
+          <stop offset="100%" style="stop-color:#8D6E63"/>
+        </radialGradient>
+      </defs>
+      <circle cx="32" cy="32" r="30" fill="url(#coconutGrad)" stroke="#5D4037" stroke-width="2"/>
+      <path d="M20,16 Q32,20 44,16" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M18,28 Q32,32 46,28" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M18,36 Q32,40 46,36" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M20,48 Q32,44 44,48" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
+      <circle cx="22" cy="22" r="1.5" fill="#5D4037" opacity="0.8"/>
+      <circle cx="42" cy="20" r="1.5" fill="#5D4037" opacity="0.8"/>
+      <circle cx="20" cy="42" r="1.5" fill="#5D4037" opacity="0.8"/>
+      <circle cx="44" cy="44" r="1.5" fill="#5D4037" opacity="0.8"/>
+      <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+      <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+      <circle cx="24" cy="26" r="2.5" fill="black"/>
+      <circle cx="40" cy="26" r="2.5" fill="black"/>
+      <circle cx="25" cy="25" r="1" fill="white"/>
+      <circle cx="41" cy="25" r="1" fill="white"/>
+      <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="16" cy="32" rx="3" ry="2" fill="#D7CCC8" opacity="0.6"/>
+      <ellipse cx="48" cy="32" rx="3" ry="2" fill="#D7CCC8" opacity="0.6"/>
+      <circle cx="30" cy="18" r="1" fill="#3E2723" opacity="0.9"/>
+      <circle cx="34" cy="18" r="1" fill="#3E2723" opacity="0.9"/>
+      <circle cx="32" cy="16" r="1" fill="#3E2723" opacity="0.9"/>
+    </svg>`
+  },
+  {
+    size: 166, color: '#3F51B5', level: 12, name: 'Giant Grape',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <defs>
+          <radialGradient id="grapeGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#5C6BC0"/>
+            <stop offset="100%" style="stop-color:#3F51B5"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#grapeGrad)" stroke="#1A237E" stroke-width="2"/>
+        <circle cx="24" cy="18" r="3" fill="#303F9F" opacity="0.7"/>
+        <circle cx="40" cy="16" r="3" fill="#303F9F" opacity="0.7"/>
+        <circle cx="18" cy="32" r="3" fill="#303F9F" opacity="0.7"/>
+        <circle cx="46" cy="30" r="3" fill="#303F9F" opacity="0.7"/>
+        <circle cx="26" cy="46" r="3" fill="#303F9F" opacity="0.7"/>
+        <circle cx="38" cy="48" r="3" fill="#303F9F" opacity="0.7"/>
+        <circle cx="32" cy="20" r="2" fill="#303F9F" opacity="0.7"/>
+        <circle cx="32" cy="44" r="2" fill="#303F9F" opacity="0.7"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#C5CAE9" opacity="0.6"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#C5CAE9" opacity="0.6"/>
       </svg>`
   },
   {
-    size: 100, color: '#9575CD', level: 10, name: 'Dragon Fruit',
+    size: 192, color: '#FFC107', level: 13, name: 'Super Fruit',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#9575CD" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
+        <defs>
+          <radialGradient id="superfruitGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFD54F"/>
+            <stop offset="100%" style="stop-color:#FFC107"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#superfruitGrad)" stroke="#FF8F00" stroke-width="3"/>
+        <path d="M32,8 L36,18 L46,16 L40,26 L50,32 L40,38 L46,48 L36,46 L32,56 L28,46 L18,48 L24,38 L14,32 L24,26 L18,16 L28,18 Z" fill="#FFB300" opacity="0.6"/>
+        <circle cx="20" cy="20" r="2" fill="#FF8F00" opacity="0.8"/>
+        <circle cx="44" cy="18" r="2" fill="#FF8F00" opacity="0.8"/>
+        <circle cx="18" cy="40" r="2" fill="#FF8F00" opacity="0.8"/>
+        <circle cx="46" cy="42" r="2" fill="#FF8F00" opacity="0.8"/>
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFECB3" opacity="0.8"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFECB3" opacity="0.8"/>
+        <circle cx="25" cy="22" r="1" fill="white" opacity="0.8"/>
+        <circle cx="39" cy="20" r="1" fill="white" opacity="0.8"/>
+        <circle cx="45" cy="26" r="1" fill="white" opacity="0.8"/>
       </svg>`
-  },
-  {
-    size: 112, color: '#4CAF50', level: 11, name: 'Durian',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#4CAF50" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
-      </svg>`
-  },
-  {
-    size: 126, color: '#FF5722', level: 12, name: 'Pomegranate',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#FF5722" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
-      </svg>`
-  },
-  {
-    size: 142, color: '#009688', level: 13, name: 'Coconut',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#009688" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
-      </svg>`
-  },
-  {
-    size: 166, color: '#3F51B5', level: 14, name: 'Giant Grape',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#3F51B5" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
-      </svg>`
-  },
-  {
-    size: 192, color: '#FFC107', level: 15, name: 'Super Fruit',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="32" fill="#FFC107" />
-        <circle cx="22" cy="27" r="6" fill="white" />
-        <circle cx="42" cy="27" r="6" fill="white" />
-        <circle cx="22" cy="27" r="3" fill="black" />
-        <circle cx="42" cy="27" r="3" fill="black" />
-        <path d="M24,42 Q32,48 40,42" stroke="black" stroke-width="2" fill="none" />
-      </svg>`
-  },
+  }
 ];
 
 const nextFruit = ref(generateFruit());
@@ -682,6 +898,21 @@ function saveHighscore(level, score) {
   return false // Kein neuer Highscore
 }
 
+const fruitListForLevel = computed(() => {
+  // Show fruits from level 1 up to the target level, descending
+  return fruitTypes
+      .slice(0, targetFruit.value.level)
+      .reverse()
+      .map((fruit, index) => ({
+        ...fruit,
+        isTarget: fruit.level === targetFruit.value.level
+      }))
+})
+
+const toggleFruitList = () => {
+  showFruitList.value = !showFruitList.value
+}
+
 onMounted(() => {
   if (gameBoard.value) {
     const rect = gameBoard.value.getBoundingClientRect()
@@ -794,7 +1025,43 @@ onBeforeUnmount(() => {
               <span>{{ level }}</span>
             </div>
             <div class="level">
-              <div class="goal-fruit-svg" v-html="fruitTypes[targetFruit.fruitLevel].svg" />
+              <div
+                  class="goal-fruit-svg"
+                  v-html="fruitTypes[targetFruit.fruitLevel - 1].svg"
+                  @click="toggleFruitList"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="`Ziel-Frucht: ${targetFruit.name}. Klicken um Frucht-Liste anzuzeigen`"
+                  @keydown="(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFruitList() } }"
+              />
+
+              <!-- Fruit list dropdown -->
+              <div v-if="showFruitList" class="fruit-list-dropdown">
+                <div class="fruit-list-header">
+                  <span>Kombiniere zu:</span>
+                  <button
+                      @click="toggleFruitList"
+                      class="close-fruit-list"
+                      aria-label="Frucht-Liste schließen"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div class="fruit-list-items">
+                  <div
+                      v-for="fruit in fruitListForLevel"
+                      :key="fruit.level"
+                      class="fruit-list-item"
+                      :class="{ 'target-fruit': fruit.isTarget }"
+                  >
+                    <div class="fruit-list-svg" :style="`width: ${fruit.size}px; height: ${fruit.size}px;`" v-html="fruit.svg"></div>
+                    <div class="fruit-list-info">
+                      <span class="fruit-list-level">Level {{ fruit.level }}</span>
+                      <span class="fruit-list-name">{{ fruit.name }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div v-else class="level-complete-message">
@@ -850,7 +1117,7 @@ onBeforeUnmount(() => {
 .fruit-merge {
   width: 100%;
   height: 100%;
-  min-height: 350px;
+  min-height: 410px;
   display: flex;
   flex-direction: column;
 }
@@ -899,7 +1166,7 @@ onBeforeUnmount(() => {
 .game-frame {
   position: relative;
   width: 270px;
-  height: 350px;
+  height: 410px;
   display: flex;
   flex-direction: column;
 }
@@ -913,7 +1180,7 @@ onBeforeUnmount(() => {
 .game-board {
   position: relative;
   width: 100%;
-  height: 350px;
+  height: 410px;
   background-color: rgba(234, 231, 214, 0.8);
   border: 4px solid #c9b991;
   overflow: hidden;
@@ -992,7 +1259,7 @@ onBeforeUnmount(() => {
     top: 100%;
     left: 0;
     right: 0;
-    height: 288px;
+    height: 348px;
     width: 2px;
     background: #0006;
   }
@@ -1035,6 +1302,21 @@ onBeforeUnmount(() => {
   font-weight: bold;
   color: #4CAF50;
   animation: fadeIn 0.5s ease;
+}
+
+.level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  width: 25%;
+  position: relative; // Add this line
+
+  > span:last-child {
+    font-size: 0.75rem;
+    font-weight: normal;
+    white-space: nowrap;
+  }
 }
 
 .next-level-btn {
@@ -1148,6 +1430,114 @@ onBeforeUnmount(() => {
   height: 3em;
   margin: 0;
   position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.goal-fruit-svg:hover {
+  transform: scale(1.1);
+}
+
+.goal-fruit-svg:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.fruit-list-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: rgba(234, 231, 214, 0.95);
+  border: 2px solid #c9b991;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  min-width: 200px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  color: #333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: none;
+}
+
+.fruit-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  border-bottom: 1px solid #c9b991;
+  padding-bottom: 0.25rem;
+}
+
+.close-fruit-list {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-fruit-list:hover {
+  color: #333;
+}
+
+.fruit-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fruit-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.fruit-list-item:hover {
+  background-color: rgba(107, 137, 201, 0.1);
+}
+
+.fruit-list-item.target-fruit {
+  background-color: rgba(255, 235, 59, 0.3);
+  border: 1px solid #FFEB3B;
+}
+
+.fruit-list-svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.fruit-list-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.fruit-list-level {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #666;
+}
+
+.fruit-list-name {
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.target-indicator {
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .lock-icon {
