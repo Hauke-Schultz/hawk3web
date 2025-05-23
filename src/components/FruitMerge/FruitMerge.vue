@@ -946,15 +946,12 @@ function deactivateHammer() {
   hammerActive.value = false
 }
 
-function destroyFruitWithHammer(fruit) {
+function hammerFruit(fruit) {
   if (hammerActive.value && hammerCount.value > 0) {
-    // Remove fruit from physics world
-    Matter.Composite.remove(engine.world, fruit.body)
-
-    // Remove fruit from array
-    fruits.value = fruits.value.filter(f => f.id !== fruit.id)
-
-    // Consume hammer
+    if (fruit.body) {
+      Matter.Body.applyForce(fruit.body, fruit.body.position, { x: 0, y: -0.02 })
+      Matter.Body.setVelocity(fruit.body, { x: 0, y: -8 })
+    }
     hammerCount.value -= 1
     hammerActive.value = false
   }
@@ -1161,7 +1158,7 @@ onBeforeUnmount(() => {
                   height: `${fruit.size}px`,
                   transform: `rotate(${fruit.rotation}deg)`
                 }"
-                @click="hammerActive ? destroyFruitWithHammer(fruit) : null"
+                @click="hammerActive ? hammerFruit(fruit) : null"
             >
               <div class="fruit-svg" v-html="fruit.svg"></div>
               <span class="fruit-level">{{ fruit.level }}</span>
