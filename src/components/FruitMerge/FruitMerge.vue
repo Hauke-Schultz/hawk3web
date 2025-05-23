@@ -399,7 +399,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 192, color: '#FFC107', level: 13, name: 'Super Fruit',
+    size: 128, color: '#FFC107', level: 13, name: 'Super Fruit',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="superfruitGrad" cx="0.3" cy="0.3">
@@ -426,7 +426,7 @@ const fruitTypes = [
         <circle cx="39" cy="20" r="1" fill="white" opacity="0.8"/>
         <circle cx="45" cy="26" r="1" fill="white" opacity="0.8"/>
       </svg>`
-  }
+  },
 ];
 
 const nextFruit = ref(generateFruit());
@@ -1112,7 +1112,6 @@ onBeforeUnmount(() => {
                   >
                     <div class="fruit-list-svg" :style="`width: ${fruit.size}px; height: ${fruit.size}px;`" v-html="fruit.svg"></div>
                     <div class="fruit-list-info">
-                      <span class="fruit-list-level">Level {{ fruit.level }}</span>
                       <span class="fruit-list-name">{{ fruit.name }}</span>
                     </div>
                   </div>
@@ -1508,8 +1507,8 @@ onBeforeUnmount(() => {
   border: 2px solid #c9b991;
   border-radius: 0.5rem;
   padding: 0.5rem;
-  min-width: 200px;
-  max-height: 250px;
+  min-width: 290px;
+  max-height: 350px;
   overflow-y: auto;
   z-index: 10;
   color: #333;
@@ -1578,6 +1577,7 @@ onBeforeUnmount(() => {
 .fruit-list-info {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   flex-grow: 1;
 }
 
