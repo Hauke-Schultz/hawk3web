@@ -1443,6 +1443,9 @@ onBeforeUnmount(() => {
   margin-top: 1rem;
 }
 
+.next-level-btn,
+.restart-btn,
+.highscore-btn,
 .level-button {
   position: relative;
   background-color: #6b89c9;
