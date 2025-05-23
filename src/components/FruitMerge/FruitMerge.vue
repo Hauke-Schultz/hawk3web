@@ -39,6 +39,9 @@ const availableLevels = ref([
   { number: 8, name: "Level 8", unlocked: false },
   { number: 9, name: "Level 9", unlocked: false },
 ])
+const hammerCount = ref(0)
+const hammerActive = ref(false)
+const showHammerEffect = ref(false)
 
 let engine = null;
 let runner = null;
@@ -275,7 +278,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 100, color: '#9575CD', level: 9, name: 'Dragon Fruit',
+    size: 96, color: '#9575CD', level: 9, name: 'Dragon Fruit',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="dragonfruitGrad" cx="0.3" cy="0.3">
@@ -306,7 +309,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 112, color: '#4CAF50', level: 10, name: 'Durian',
+    size: 104, color: '#4CAF50', level: 10, name: 'Durian',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="durianGrad" cx="0.3" cy="0.3">
@@ -335,7 +338,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 142, color: '#8D6E63', level: 11, name: 'Coconut',
+    size: 112, color: '#8D6E63', level: 11, name: 'Coconut',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
       <defs>
         <radialGradient id="coconutGrad" cx="0.3" cy="0.3">
@@ -367,7 +370,7 @@ const fruitTypes = [
     </svg>`
   },
   {
-    size: 166, color: '#3F51B5', level: 12, name: 'Giant Grape',
+    size: 120, color: '#3F51B5', level: 12, name: 'Giant Grape',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="grapeGrad" cx="0.3" cy="0.3">
@@ -600,6 +603,10 @@ function startLevel(levelNumber) {
   // Generate new next fruit
   nextFruit.value = generateFruit()
 
+  hammerCount.value = 0
+  hammerActive.value = false
+  showHammerEffect.value = false
+
   // Verstecke den Startbildschirm und starte das Spiel
   showStartScreen.value = false
   gameActive.value = true
@@ -653,6 +660,7 @@ function handleCollision(event) {
 
             // Add score based on the level
             score.value += levelA * 10;
+            checkForItemReward();
 
             // Create new fruit of the next level if not already at max level
             if (levelA < fruitTypes.length) {
@@ -913,6 +921,45 @@ const toggleFruitList = () => {
   showFruitList.value = !showFruitList.value
 }
 
+function checkForItemReward() {
+  // Check if player reached 100 points milestone for hammer
+  const currentMilestone = Math.floor(score.value / 100)
+  const previousMilestone = Math.floor((score.value - 5) / 100) // Use 5 instead of 10 since we just added 5
+
+  if (currentMilestone > previousMilestone) {
+    hammerCount.value += 1
+    // Show visual feedback
+    showHammerEffect.value = true
+    setTimeout(() => {
+      showHammerEffect.value = false
+    }, 2000)
+  }
+}
+
+function activateHammer() {
+  if (hammerCount.value > 0 && !hammerActive.value) {
+    hammerActive.value = true
+  }
+}
+
+function deactivateHammer() {
+  hammerActive.value = false
+}
+
+function destroyFruitWithHammer(fruit) {
+  if (hammerActive.value && hammerCount.value > 0) {
+    // Remove fruit from physics world
+    Matter.Composite.remove(engine.world, fruit.body)
+
+    // Remove fruit from array
+    fruits.value = fruits.value.filter(f => f.id !== fruit.id)
+
+    // Consume hammer
+    hammerCount.value -= 1
+    hammerActive.value = false
+  }
+}
+
 onMounted(() => {
   if (gameBoard.value) {
     const rect = gameBoard.value.getBoundingClientRect()
@@ -1024,6 +1071,18 @@ onBeforeUnmount(() => {
               <span>Level</span>
               <span>{{ level }}</span>
             </div>
+            <div class="hammer-item">
+              <button
+                  class="hammer-btn"
+                  :class="{ 'active': hammerActive, 'has-items': hammerCount > 0, 'effect': showHammerEffect }"
+                  :disabled="hammerCount === 0"
+                  @click="hammerActive ? deactivateHammer() : activateHammer()"
+                  :title="hammerActive ? 'Hammer aktiv - Klicke auf eine Frucht' : `Hammer (${hammerCount}x)`"
+              >
+                🔨
+                <span class="hammer-count" v-if="hammerCount > 0">{{ hammerCount }}</span>
+              </button>
+            </div>
             <div class="level">
               <div
                   class="goal-fruit-svg"
@@ -1094,7 +1153,7 @@ onBeforeUnmount(() => {
                 v-for="fruit in fruits"
                 :key="fruit.id"
                 class="fruit"
-                :class="{ 'merging': fruit.merging }"
+                :class="{ 'merging': fruit.merging, 'hammer-target': hammerActive }"
                 :style="{
                   left: `${fruit.x}px`,
                   top: `${fruit.y}px`,
@@ -1102,6 +1161,7 @@ onBeforeUnmount(() => {
                   height: `${fruit.size}px`,
                   transform: `rotate(${fruit.rotation}deg)`
                 }"
+                @click="hammerActive ? destroyFruitWithHammer(fruit) : null"
             >
               <div class="fruit-svg" v-html="fruit.svg"></div>
               <span class="fruit-level">{{ fruit.level }}</span>
@@ -1160,7 +1220,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: 1rem;
+  gap: 0.1rem;
 }
 
 .game-frame {
@@ -1607,6 +1667,94 @@ onBeforeUnmount(() => {
 .highscore.new-record {
   color: #FFEB3B;
   animation: pulse 1s infinite;
+}
+.hammer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  width: 25%;
+}
+
+.hammer-btn {
+  position: relative;
+  background-color: #795548;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &.has-items:not(:disabled) {
+    background-color: #8D6E63;
+
+    &:hover {
+      background-color: #6D4C41;
+      transform: scale(1.1);
+    }
+  }
+
+  &.active {
+    background-color: #FF5722;
+    animation: pulse 0.5s infinite;
+    box-shadow: 0 0 10px rgba(255, 87, 34, 0.6);
+  }
+
+  &.effect {
+    animation: hammerGlow 2s ease;
+  }
+}
+
+.hammer-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.fruit.hammer-target {
+  cursor: crosshair;
+
+  &:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05) rotate(var(--rotation, 0deg));
+  }
+}
+
+@keyframes hammerGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    transform: scale(1.2);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
+  }
 }
 
 @keyframes pulse {
