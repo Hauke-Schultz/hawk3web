@@ -164,8 +164,8 @@ const fruitTypes = [
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="appleGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color: #d5cc81"/>
-            <stop offset="100%" style="stop-color: #11cb03"/>
+            <stop offset="0%" style="stop-color: #5fe865"/>
+            <stop offset="100%" style="stop-color: #36c904"/>
         </radialGradient>
     </defs>
     <circle cx="32" cy="32" r="30" fill="url(#appleGrad)" stroke="#4b9916" stroke-width="2"/>
@@ -235,7 +235,7 @@ const fruitTypes = [
             <stop offset="100%" style="stop-color:#FFC107"/>
         </radialGradient>
     </defs>
-    <circle cx="32" cy="32" r="30" fill="url(#mangoOuterGrad)" stroke="#E65100" stroke-width="2"/>
+    <circle cx="32" cy="32" r="30" fill="url(#mangoOuterGrad)" stroke="#E65100" stroke-width="1"/>
     <circle cx="32" cy="32" r="28" fill="url(#mangoInnerGrad)" opacity="0.9"/>
     <g fill="#FF5722" opacity="0.4">
         <ellipse cx="20" cy="20" rx="4" ry="6"/>
@@ -283,7 +283,7 @@ const fruitTypes = [
         </radialGradient>
     </defs>
     <circle cx="32" cy="32" r="30" fill="#FFEE58" stroke="#5D4037" stroke-width="2"/>
-    <g stroke="#4CAF50" stroke-width="3.5" fill="#F9A825" opacity="0.8">
+    <g stroke="#4CAF50" stroke-width="5.5" fill="#F9A825" opacity="0.8">
         <path d="M20,12 L22,6 L24,12 L26,8 L28,14 Z"/>
         <path d="M28,8 L30,4 L32,10 L34,6 L36,12 Z"/>
         <path d="M36,8 L38,4 L40,10 L42,6 L44,12 Z"/>
