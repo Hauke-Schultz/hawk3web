@@ -9,12 +9,11 @@ const gameBoard = ref(null);
 const nextFruitPosition = ref(0);
 const isDragging = ref(false);
 const boardWidth = ref(270);
-const boardHeight = ref(410);
+const boardHeight = ref(490);
 const wallThickness = 20;
 const targetFruitLevel = computed(() => Math.min(5 + level.value, fruitTypes.length - 1));
 const level = ref(1);
 const levelCompleted = ref(false);
-const nextLevel = ref(2);
 const showNextFruit = ref(true);
 const canDropFruit = ref(true);
 const gameOver = ref(false);
@@ -24,7 +23,6 @@ const gameOverDelay = 4000;
 const showStartScreen = ref(true)
 const gameActive = ref(false)
 const maxUnlockedLevel = ref(1)
-const maxLevels = 9
 const highscores = ref([])
 const showHighscores = ref(false)
 const showFruitList = ref(false)
@@ -42,6 +40,9 @@ const availableLevels = ref([
 const hammerCount = ref(0)
 const hammerActive = ref(false)
 const showHammerEffect = ref(false)
+const rocketCount = ref(0)
+const rocketActive = ref(false)
+const showRocketEffect = ref(false)
 
 let engine = null;
 let runner = null;
@@ -505,52 +506,14 @@ function initPhysics() {
   Matter.Events.on(engine, 'collisionStart', handleCollision);
 }
 
-function levelUp() {
-  levelCompleted.value = true
-  nextLevel.value = level.value + 1
-
-  // Speichere den Highscore für das aktuelle Level
-  const isNewHighscore = saveHighscore(level.value, score.value)
-
-  // Freischalten des nächsten Levels, wenn es noch nicht freigeschaltet ist
-  if (nextLevel.value <= maxLevels && nextLevel.value > maxUnlockedLevel.value) {
-    maxUnlockedLevel.value = nextLevel.value
-    // Aktualisiere die verfügbaren Levels
-    updateAvailableLevels()
-  }
-
-  // Verstecke next fruit und deaktiviere dropping wenn Level abgeschlossen
-  showNextFruit.value = false
-  canDropFruit.value = false
-}
-
-function updateAvailableLevels() {
-  availableLevels.value = availableLevels.value.map(levelInfo => {
-    return {
-      ...levelInfo,
-      unlocked: levelInfo.number <= maxUnlockedLevel.value
-    };
-  });
-
-  // Level-Fortschritt im localStorage speichern
-  localStorage.setItem('fruitMergeMaxLevel', maxUnlockedLevel.value.toString());
-}
-
-function startNextLevel() {
-  // Zeige den Startbildschirm anstatt direkt das nächste Level zu starten
-  showStartScreen.value = true;
-  gameActive.value = false;
-  levelCompleted.value = false;
-}
-
 function startLevel(levelNumber) {
-  // Stelle sicher, dass das Level freigeschaltet ist
+  // Ensure level is unlocked
   if (levelNumber > maxUnlockedLevel.value) return
 
-  // Score zurücksetzen
+  // Reset score
   score.value = 0
 
-  // Physik-Engine zurücksetzen und Wände neu erstellen wie in startNextLevel
+  // Reset physics engine and recreate walls like in startNextLevel
   Matter.World.clear(engine.world, false)
 
   const walls = [
@@ -603,14 +566,37 @@ function startLevel(levelNumber) {
   // Generate new next fruit
   nextFruit.value = generateFruit()
 
+  // Reset all items
   hammerCount.value = 0
   hammerActive.value = false
   showHammerEffect.value = false
+  rocketCount.value = 0
+  rocketActive.value = false
+  showRocketEffect.value = false
 
-  // Verstecke den Startbildschirm und starte das Spiel
+  // Hide start screen and start game
   showStartScreen.value = false
   gameActive.value = true
   showHighscores.value = false
+}
+
+function updateAvailableLevels() {
+  availableLevels.value = availableLevels.value.map(levelInfo => {
+    return {
+      ...levelInfo,
+      unlocked: levelInfo.number <= maxUnlockedLevel.value
+    };
+  });
+
+  // Level-Fortschritt im localStorage speichern
+  localStorage.setItem('fruitMergeMaxLevel', maxUnlockedLevel.value.toString());
+}
+
+function startNextLevel() {
+  // Zeige den Startbildschirm anstatt direkt das nächste Level zu starten
+  showStartScreen.value = true;
+  gameActive.value = false;
+  levelCompleted.value = false;
 }
 
 // Process collisions to merge fruits
@@ -923,15 +909,28 @@ const toggleFruitList = () => {
 
 function checkForItemReward() {
   // Check if player reached 100 points milestone for hammer
-  const currentMilestone = Math.floor(score.value / 100)
-  const previousMilestone = Math.floor((score.value - 5) / 100) // Use 5 instead of 10 since we just added 5
+  const currentHammerMilestone = Math.floor(score.value / 100)
+  const previousHammerMilestone = Math.floor((score.value - 10) / 100) // Use actual score increment
 
-  if (currentMilestone > previousMilestone) {
+  if (currentHammerMilestone > previousHammerMilestone) {
     hammerCount.value += 1
     // Show visual feedback
     showHammerEffect.value = true
     setTimeout(() => {
       showHammerEffect.value = false
+    }, 2000)
+  }
+
+  // Check if player reached 150 points milestone for rocket
+  const currentRocketMilestone = Math.floor(score.value / 150)
+  const previousRocketMilestone = Math.floor((score.value - 10) / 150) // Use actual score increment
+
+  if (currentRocketMilestone > previousRocketMilestone) {
+    rocketCount.value += 1
+    // Show visual feedback
+    showRocketEffect.value = true
+    setTimeout(() => {
+      showRocketEffect.value = false
     }, 2000)
   }
 }
@@ -954,6 +953,65 @@ function hammerFruit(fruit) {
     }
     hammerCount.value -= 1
     hammerActive.value = false
+  }
+}
+function activateRocket() {
+  if (rocketCount.value > 0 && !rocketActive.value) {
+    rocketActive.value = true
+  }
+}
+
+
+function deactivateRocket() {
+  rocketActive.value = false
+}
+
+function rocketFruit(fruit) {
+  if (rocketActive.value && rocketCount.value > 0) {
+    if (fruit.body) {
+      // Mark fruit as being rocketed to prevent physics interactions
+      fruit.rocketing = true
+      fruit.merging = true;
+
+      // Make the fruit kinematic (not affected by gravity/collisions)
+      Matter.Body.setStatic(fruit.body, true)
+
+      const startY = fruit.body.position.y
+      const targetY = -100 // Target position above the game area
+      const animationDuration = 1500 // 1.5 seconds
+      const startTime = Date.now()
+
+      const animateRocket = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / animationDuration, 1)
+
+        // Ease-out animation curve for smooth deceleration
+        const easeOut = 1 - Math.pow(1 - progress, 3)
+        const currentY = startY + (targetY - startY) * easeOut
+
+        if (fruit.body) {
+          // Move fruit smoothly upward
+          Matter.Body.setPosition(fruit.body, {
+            x: fruit.body.position.x,
+            y: currentY
+          })
+
+          if (progress < 1) {
+            // Continue animation
+            requestAnimationFrame(animateRocket)
+          } else {
+            // Animation complete - remove fruit
+            Matter.Composite.remove(engine.world, fruit.body)
+            fruits.value = fruits.value.filter(f => f.id !== fruit.id)
+          }
+        }
+      }
+
+      // Start the rocket animation
+      requestAnimationFrame(animateRocket)
+    }
+    rocketCount.value -= 1
+    rocketActive.value = false
   }
 }
 
@@ -1064,21 +1122,31 @@ onBeforeUnmount(() => {
               <span>Best</span>
               <span>{{ score > currentLevelHighscore ? score : currentLevelHighscore }}</span>
             </div>
-            <div class="level-display">
-              <span>Level</span>
-              <span>{{ level }}</span>
-            </div>
-            <div class="hammer-item">
-              <button
-                  class="hammer-btn"
-                  :class="{ 'active': hammerActive, 'has-items': hammerCount > 0, 'effect': showHammerEffect }"
-                  :disabled="hammerCount === 0"
-                  @click="hammerActive ? deactivateHammer() : activateHammer()"
-                  :title="hammerActive ? 'Hammer aktiv - Klicke auf eine Frucht' : `Hammer (${hammerCount}x)`"
-              >
-                🔨
-                <span class="hammer-count" v-if="hammerCount > 0">{{ hammerCount }}</span>
-              </button>
+            <div class="item-container">
+              <div class="hammer-item">
+                <button
+                    class="hammer-btn item-btn"
+                    :class="{ 'active': hammerActive, 'has-items': hammerCount > 0, 'effect': showHammerEffect }"
+                    :disabled="hammerCount === 0"
+                    @click="hammerActive ? deactivateHammer() : activateHammer()"
+                    :title="hammerActive ? 'Hammer aktiv - Klicke auf eine Frucht' : `Hammer (${hammerCount}x)`"
+                >
+                  🔨
+                  <span class="item-count" v-if="hammerCount > 0">{{ hammerCount }}</span>
+                </button>
+              </div>
+              <div class="rocket-item">
+                <button
+                    class="rocket-btn item-btn"
+                    :class="{ 'active': rocketActive, 'has-items': rocketCount > 0, 'effect': showRocketEffect }"
+                    :disabled="rocketCount === 0"
+                    @click="rocketActive ? deactivateRocket() : activateRocket()"
+                    :title="rocketActive ? 'Rocket aktiv - Klicke auf eine Frucht' : `Rocket (${rocketCount}x)`"
+                >
+                  🚀
+                  <span class="item-count" v-if="rocketCount > 0">{{ rocketCount }}</span>
+                </button>
+              </div>
             </div>
             <div class="level">
               <div
@@ -1149,7 +1217,11 @@ onBeforeUnmount(() => {
                 v-for="fruit in fruits"
                 :key="fruit.id"
                 class="fruit"
-                :class="{ 'merging': fruit.merging, 'hammer-target': hammerActive }"
+                :class="{
+                  'merging': fruit.merging,
+                  'hammer-target': hammerActive,
+                  'rocket-target': rocketActive
+                }"
                 :style="{
                   left: `${fruit.x}px`,
                   top: `${fruit.y}px`,
@@ -1157,7 +1229,7 @@ onBeforeUnmount(() => {
                   height: `${fruit.size}px`,
                   transform: `rotate(${fruit.rotation}deg)`
                 }"
-                @click="hammerActive ? hammerFruit(fruit) : null"
+                @click="hammerActive ? hammerFruit(fruit) : rocketActive ? rocketFruit(fruit) : null"
             >
               <div class="fruit-svg" v-html="fruit.svg"></div>
               <span class="fruit-level">{{ fruit.level }}</span>
@@ -1173,7 +1245,7 @@ onBeforeUnmount(() => {
 .fruit-merge {
   width: 100%;
   height: 100%;
-  min-height: 410px;
+  min-height: 490px;
   display: flex;
   flex-direction: column;
 }
@@ -1222,7 +1294,7 @@ onBeforeUnmount(() => {
 .game-frame {
   position: relative;
   width: 270px;
-  height: 410px;
+  height: 490px;
   display: flex;
   flex-direction: column;
 }
@@ -1236,7 +1308,7 @@ onBeforeUnmount(() => {
 .game-board {
   position: relative;
   width: 100%;
-  height: 410px;
+  height: 490px;
   background-color: rgba(234, 231, 214, 0.8);
   border: 4px solid #c9b991;
   overflow: hidden;
@@ -1315,7 +1387,7 @@ onBeforeUnmount(() => {
     top: 100%;
     left: 0;
     right: 0;
-    height: 348px;
+    height: 428px;
     width: 2px;
     background: #0006;
   }
@@ -1421,7 +1493,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   margin: 0 auto;
-  height: 410px;
+  height: 490px;
 
   h3 {
     font-size: 1.5rem;
@@ -1739,6 +1811,128 @@ onBeforeUnmount(() => {
   &:hover {
     filter: brightness(1.2);
     transform: scale(1.05) rotate(var(--rotation, 0deg));
+  }
+}
+.item-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 25%;
+}
+
+.hammer-item,
+.rocket-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2rem;
+}
+
+.item-btn {
+  position: relative;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &.has-items:not(:disabled):hover {
+    transform: scale(1.1);
+  }
+
+  &.active {
+    animation: pulse 0.5s infinite;
+    box-shadow: 0 0 10px rgba(255, 87, 34, 0.6);
+  }
+
+  &.effect {
+    animation: itemGlow 2s ease;
+  }
+}
+
+.hammer-btn {
+  background-color: #795548;
+
+  &.has-items:not(:disabled) {
+    background-color: #8D6E63;
+
+    &:hover {
+      background-color: #6D4C41;
+    }
+  }
+
+  &.active {
+    background-color: #FF5722;
+  }
+}
+
+.rocket-btn {
+  background-color: #607D8B;
+
+  &.has-items:not(:disabled) {
+    background-color: #78909C;
+
+    &:hover {
+      background-color: #546E7A;
+    }
+  }
+
+  &.active {
+    background-color: #FF5722;
+  }
+}
+
+.item-count {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 50%;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fruit.rocket-target {
+  cursor: crosshair;
+
+  &:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05) rotate(var(--rotation, 0deg));
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
+  }
+}
+
+@keyframes itemGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    transform: scale(1.2);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
   }
 }
 
