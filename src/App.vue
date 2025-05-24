@@ -279,6 +279,6 @@ main {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  height: 480px;
+  height: 560px;
 }
 </style>
