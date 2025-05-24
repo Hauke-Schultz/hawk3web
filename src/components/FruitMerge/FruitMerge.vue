@@ -16,6 +16,7 @@ const level = ref(1);
 const levelCompleted = ref(false);
 const showNextFruit = ref(true);
 const canDropFruit = ref(true);
+const dropCooldown = ref(false);
 const gameOver = ref(false);
 const topViolations = ref({});
 const gameOverDelay = 4000;
@@ -467,16 +468,7 @@ function generateFruit() {
   };
 }
 
-function initPhysics() {
-  // Create engine with appropriate gravity
-  engine = Matter.Engine.create({
-    gravity: { x: 0, y: 0.5, scale: 0.001 } // Adjusted gravity for better gameplay
-  });
-
-  // Create and start Matter Runner - this was the missing piece!
-  runner = Matter.Runner.create();
-  Matter.Runner.run(runner, engine);
-
+function createWalls(includeTopWall = false) {
   const walls = [
     // Bottom wall
     Matter.Bodies.rectangle(
@@ -504,6 +496,33 @@ function initPhysics() {
     )
   ];
 
+  // Add top wall only if requested
+  if (includeTopWall) {
+    walls.push(
+        Matter.Bodies.rectangle(
+            boardWidth.value / 2,
+            -wallThickness / 2,
+            boardWidth.value,
+            wallThickness,
+            { isStatic: true, label: 'wall-top', restitution: 0.3 }
+        )
+    );
+  }
+
+  return walls;
+}
+
+function initPhysics() {
+  // Create engine with appropriate gravity
+  engine = Matter.Engine.create({
+    gravity: { x: 0, y: 0.5, scale: 0.001 } // Adjusted gravity for better gameplay
+  });
+
+  // Create and start Matter Runner - this was the missing piece!
+  runner = Matter.Runner.create();
+  Matter.Runner.run(runner, engine);
+
+  const walls = createWalls(false); // Keine obere Wand standardmäßig
   Matter.Composite.add(engine.world, walls);
   Matter.Events.on(engine, 'collisionStart', handleCollision);
 }
@@ -515,37 +534,10 @@ function startLevel(levelNumber) {
   // Reset score
   score.value = 0
 
-  // Reset physics engine and recreate walls like in startNextLevel
+  // Reset physics engine and recreate walls
   Matter.World.clear(engine.world, false)
 
-  const walls = [
-    // Bottom wall
-    Matter.Bodies.rectangle(
-        boardWidth.value / 2,
-        boardHeight.value + wallThickness / 2,
-        boardWidth.value,
-        wallThickness,
-        { isStatic: true, label: 'wall-bottom', restitution: 0.1 }
-    ),
-    // Left wall
-    Matter.Bodies.rectangle(
-        -wallThickness / 2,
-        boardHeight.value / 2,
-        wallThickness,
-        boardHeight.value,
-        { isStatic: true, label: 'wall-left', restitution: 0.1 }
-    ),
-    // Right wall
-    Matter.Bodies.rectangle(
-        boardWidth.value + wallThickness / 2,
-        boardHeight.value / 2,
-        wallThickness,
-        boardHeight.value,
-        { isStatic: true, label: 'wall-right', restitution: 0.1 }
-    )
-  ]
-
-  // Add walls back to the world
+  const walls = createWalls(false); // Keine obere Wand
   Matter.Composite.add(engine.world, walls)
 
   // Reset the fruits array
@@ -569,10 +561,10 @@ function startLevel(levelNumber) {
   nextFruit.value = generateFruit()
 
   // Reset all items
-  hammerCount.value = 0
+  hammerCount.value = 5
   hammerActive.value = false
   showHammerEffect.value = false
-  rocketCount.value = 0
+  rocketCount.value = 5
   rocketActive.value = false
   showRocketEffect.value = false
 
@@ -705,8 +697,8 @@ function levelUp() {
 }
 
 function clickToDrop(event) {
-  // Only allow click if the player can drop fruit and not currently dragging
-  if (!canDropFruit.value || isDragging.value) return;
+  // Only allow click if the player can drop fruit, not currently dragging, and no cooldown
+  if (!canDropFruit.value || isDragging.value || dropCooldown.value) return;
 
   event.preventDefault();
   const clientX = event.clientX || (event.touches && event.touches[0].clientX) || 0;
@@ -751,6 +743,12 @@ function addMergedFruit(fruit, x, y) {
 }
 
 function addFruitToWorld(fruit, x, y) {
+  // Prüfe ob Fruit dropping erlaubt ist und kein Cooldown aktiv
+  if (!canDropFruit.value || dropCooldown.value) return;
+
+  // Aktiviere Cooldown
+  dropCooldown.value = true;
+
   const fruitBody = Matter.Bodies.circle(
       x,
       y,
@@ -777,13 +775,18 @@ function addFruitToWorld(fruit, x, y) {
   // Hide next fruit temporarily
   showNextFruit.value = false;
 
-  // Show next fruit after delay
+  // Show next fruit after delay and reset cooldown
   setTimeout(() => {
     // Only show next fruit if level is not completed
     if (!levelCompleted.value) {
       nextFruit.value = generateFruit();
       showNextFruit.value = true;
     }
+
+    // Reset cooldown nach 800ms
+    setTimeout(() => {
+      dropCooldown.value = false;
+    }, 300); // Zusätzliche 300ms Cooldown nach dem Anzeigen der neuen Frucht
   }, 500); // 500ms delay
 }
 
@@ -832,7 +835,7 @@ function handleDrag(event) {
 }
 
 function endDrag(event) {
-  if (!isDragging.value) return;
+  if (!isDragging.value || dropCooldown.value) return; // Prüfe auch Cooldown
   isDragging.value = false;
 
   const newFruit = { ...nextFruit.value };
@@ -991,47 +994,50 @@ function deactivateHammer() {
 function hammerFruit(fruit) {
   if (hammerActive.value && hammerCount.value > 0) {
     if (fruit.body) {
-      // Phase 1: Hammerschlag nach unten (sofort)
-      Matter.Body.setVelocity(fruit.body, { x: 0, y: 3 }); // Schneller Schlag nach unten
-      Matter.Body.applyForce(fruit.body, fruit.body.position, { x: 0, y: 0.015 });
+      // Temporäre obere Wand erstellen
+      const topWall = Matter.Bodies.rectangle(
+          boardWidth.value / 2,
+          -wallThickness / 2,
+          boardWidth.value,
+          wallThickness,
+          { isStatic: true, label: 'wall-top-temp', restitution: 0.3 }
+      );
+      Matter.Composite.add(engine.world, topWall);
 
-      // Phase 2: Nach kurzer Verzögerung - Rückprall nach oben mit seitlichem Versatz
+      // Phase 1: Hammerschlag nach unten (sofort)
+      Matter.Body.setVelocity(fruit.body, { x: 0, y: 2 });
+      Matter.Body.applyForce(fruit.body, fruit.body.position, { x: 0, y: 0.01 });
+
+      // Phase 2: Nach kurzer Verzögerung - kontrollierter Rückprall
       setTimeout(() => {
         if (fruit.body) {
-          // Zufällige seitliche Richtung und Stärke
-          const sideForce = (Math.random() - 0.5) * 0.02; // -0.01 bis +0.01
-          const upwardForce = -0.025; // Stärkere Kraft nach oben
-          const sideVelocity = (Math.random() - 0.5) * 4; // -2 bis +2
-          const upwardVelocity = -10; // Starker Sprung nach oben
+          const sideForce = (Math.random() - 0.5) * 0.015;
+          const upwardForce = -0.02;
+          const sideVelocity = (Math.random() - 0.5) * 3;
+          const upwardVelocity = -7;
 
-          // Setze neue Geschwindigkeit für den Rückprall
           Matter.Body.setVelocity(fruit.body, {
             x: sideVelocity,
             y: upwardVelocity
           });
 
-          // Zusätzliche Kraft für den Effekt
           Matter.Body.applyForce(fruit.body, fruit.body.position, {
             x: sideForce,
             y: upwardForce
           });
 
-          // Leichte Rotation für mehr Dynamik
-          const rotationForce = (Math.random() - 0.5) * 0.1;
+          const rotationForce = (Math.random() - 0.5) * 0.05;
           Matter.Body.setAngularVelocity(fruit.body, rotationForce);
         }
-      }, 150); // 150ms Verzögerung zwischen Schlag und Rückprall
+      }, 150);
 
-      // Phase 3: Zusätzlicher kleiner Impuls nach weiterer Verzögerung für Nachschwingen
+      // Entferne die temporäre obere Wand nach 3 Sekunden
       setTimeout(() => {
-        if (fruit.body) {
-          const smallSideForce = (Math.random() - 0.5) * 0.005;
-          Matter.Body.applyForce(fruit.body, fruit.body.position, {
-            x: smallSideForce,
-            y: -0.005
-          });
+        const tempWall = engine.world.bodies.find(body => body.label === 'wall-top-temp');
+        if (tempWall) {
+          Matter.Composite.remove(engine.world, tempWall);
         }
-      }, 300);
+      }, 3000);
     }
     hammerCount.value -= 1;
     hammerActive.value = false;
@@ -1108,31 +1114,8 @@ function backToStartScreen() {
   // Reset physics and clear world
   Matter.World.clear(engine.world, false);
 
-  // Recreate walls
-  const walls = [
-    Matter.Bodies.rectangle(
-        boardWidth.value / 2,
-        boardHeight.value + wallThickness / 2,
-        boardWidth.value,
-        wallThickness,
-        { isStatic: true, label: 'wall-bottom', restitution: 0.1 }
-    ),
-    Matter.Bodies.rectangle(
-        -wallThickness / 2,
-        boardHeight.value / 2,
-        wallThickness,
-        boardHeight.value,
-        { isStatic: true, label: 'wall-left', restitution: 0.1 }
-    ),
-    Matter.Bodies.rectangle(
-        boardWidth.value + wallThickness / 2,
-        boardHeight.value / 2,
-        wallThickness,
-        boardHeight.value,
-        { isStatic: true, label: 'wall-right', restitution: 0.1 }
-    )
-  ];
-
+  // Recreate walls without top wall
+  const walls = createWalls(false);
   Matter.Composite.add(engine.world, walls);
 
   // Clear fruits array
@@ -1331,10 +1314,16 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="game-frame">
-          <div class="next-fruit-area" @click="clickToDrop" @touchend="clickToDrop">
+          <div
+              class="next-fruit-area"
+              :class="{ 'cooldown': dropCooldown }"
+              @click="clickToDrop"
+              @touchend="clickToDrop"
+          >
             <div
                 v-if="showNextFruit"
                 class="next-fruit fruit"
+                :class="{ 'disabled': dropCooldown }"
                 :style="{
                   width: `${nextFruit.size}px`,
                   height: `${nextFruit.size}px`,
