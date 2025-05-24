@@ -26,6 +26,10 @@ const maxUnlockedLevel = ref(1)
 const highscores = ref([])
 const showHighscores = ref(false)
 const showFruitList = ref(false)
+const showNameInput = ref(false)
+const playerName = ref('')
+const newHighscoreLevel = ref(0)
+const newHighscoreScore = ref(0)
 const availableLevels = ref([
   { number: 1, name: "Level 1", unlocked: true },
   { number: 2, name: "Level 2", unlocked: false },
@@ -546,6 +550,14 @@ const currentLevelHighscore = computed(() => {
   return Math.max(...levelHighscores.map(hs => hs.score))
 })
 
+const bestOverallHighscore = computed(() => {
+  if (highscores.value.length === 0) return null
+  const best = highscores.value.reduce((max, current) =>
+      current.score > max.score ? current : max
+  )
+  return best
+})
+
 function generateFruit() {
   // Generate fruits from level 1-5 to increase difficulty
   const maxStartingLevel = 5;
@@ -1003,38 +1015,52 @@ function toggleHighscores() {
 }
 
 function saveHighscore(level, score) {
+  const levelHighscores = highscores.value.filter(hs => hs.level === level)
+
+  // Check if it's a new highscore for the level
+  if (levelHighscores.length === 0 || Math.max(...levelHighscores.map(hs => hs.score)) < score) {
+    // Store the level and score for name input
+    newHighscoreLevel.value = level
+    newHighscoreScore.value = score
+    showNameInput.value = true
+    return true // New highscore achieved
+  }
+
+  return false // No new highscore
+}
+
+function saveHighscoreWithName() {
+  const name = playerName.value.toUpperCase().slice(0, 3).padEnd(3, ' ')
   const now = new Date()
   const dateString = now.toLocaleDateString('de-DE')
 
-  // Neuen Highscore erstellen
   const newHighscore = {
-    level,
-    score,
+    level: newHighscoreLevel.value,
+    score: newHighscoreScore.value,
+    name: name,
     date: dateString
   }
 
-  // Highscores nach Level gruppieren
-  const levelHighscores = highscores.value.filter(hs => hs.level === level)
+  // Remove old highscores for this level
+  highscores.value = highscores.value.filter(hs => hs.level !== newHighscoreLevel.value)
 
-  // Prüfen, ob es ein neuer Highscore für das Level ist
-  if (levelHighscores.length === 0 || Math.max(...levelHighscores.map(hs => hs.score)) < score) {
-    // Alte Highscores für dieses Level entfernen
-    highscores.value = highscores.value.filter(hs => hs.level !== level)
-    // Neuen Highscore hinzufügen
-    highscores.value.push(newHighscore)
-    // Sortieren nach Level und Score
-    highscores.value.sort((a, b) => {
-      if (a.level !== b.level) return a.level - b.level
-      return b.score - a.score
-    })
+  // Add new highscore
+  highscores.value.push(newHighscore)
 
-    // Im LocalStorage speichern
-    localStorage.setItem('fruitMergeHighscores', JSON.stringify(highscores.value))
+  // Sort by level and score
+  highscores.value.sort((a, b) => {
+    if (a.level !== b.level) return a.level - b.level
+    return b.score - a.score
+  })
 
-    return true // Neuer Highscore wurde gesetzt
-  }
+  // Save to localStorage
+  localStorage.setItem('fruitMergeHighscores', JSON.stringify(highscores.value))
 
-  return false // Kein neuer Highscore
+  // Reset input state
+  showNameInput.value = false
+  playerName.value = ''
+  newHighscoreLevel.value = 0
+  newHighscoreScore.value = 0
 }
 
 const fruitListForLevel = computed(() => {
@@ -1265,8 +1291,44 @@ onBeforeUnmount(() => {
   <div class="fruit-merge">
     <div class="game-container">
       <div v-if="showStartScreen" class="start-screen">
+        <div v-if="showNameInput" class="name-input-modal">
+          <div class="name-input-content">
+            <h3>New Highscore!</h3>
+            <p>Level {{ newHighscoreLevel }} - {{ newHighscoreScore }} Points</p>
+            <div class="name-input-form">
+              <label for="player-name">Enter your name (3 letters):</label>
+              <input
+                  id="player-name"
+                  v-model="playerName"
+                  type="text"
+                  maxlength="3"
+                  placeholder="ABC"
+                  @keyup.enter="saveHighscoreWithName"
+                  class="name-input"
+              />
+              <div class="name-input-buttons">
+                <button @click="saveHighscoreWithName" class="btn save-btn">Save</button>
+                <button @click="showNameInput = false; playerName = ''" class="btn cancel-btn">Skip</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <h3>Fruit Merge</h3>
-        <p>Kombiniere gleiche Früchte und erreiche hohe Punktzahlen!</p>
+
+        <!-- Best Highscore Display -->
+        <div v-if="bestOverallHighscore" class="best-score-display">
+          <div class="best-score-label">Best Score</div>
+          <div class="best-score-value">{{ bestOverallHighscore.score }}</div>
+          <div class="best-score-details">
+            {{ bestOverallHighscore.name }} - Level {{ bestOverallHighscore.level }}
+          </div>
+        </div>
+        <div v-else class="best-score-display">
+          <div class="best-score-label">Best Score</div>
+          <div class="best-score-value">0</div>
+          <div class="best-score-details">Play to set a record!</div>
+        </div>
 
         <!-- Highscore Toggle Button -->
         <div class="start-screen-buttons">
@@ -1300,13 +1362,15 @@ onBeforeUnmount(() => {
             <thead>
             <tr>
               <th>Level</th>
+              <th>Name</th>
               <th>Score</th>
-              <th>Datum</th>
+              <th>Date</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="(score, index) in highscores" :key="index">
               <td>{{ score.level }}</td>
+              <td>{{ score.name || '---' }}</td>
               <td>{{ score.score }}</td>
               <td>{{ score.date }}</td>
             </tr>
@@ -1752,14 +1816,15 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 1rem;
   text-align: center;
   background-color: rgba(234, 231, 214, 0.9);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   margin: 0 auto;
-  height: 490px;
+  height: 540px;
+  width: 100%;
 
   h3 {
     font-size: 1.5rem;
@@ -1944,15 +2009,115 @@ onBeforeUnmount(() => {
   right: -8px;
   font-size: 1.2rem;
 }
+
 .start-screen-buttons {
   display: flex;
   justify-content: center;
+}
+
+.best-score-display {
+  background-color: rgba(107, 137, 201, 0.1);
+  border: 2px solid #6b89c9;
+  border-radius: 1rem;
+  padding: 0.5rem;
+  text-align: center;
   margin-bottom: 1rem;
+  width: 100%;
+}
+
+.best-score-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.best-score-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6b89c9;
+}
+
+.best-score-details {
+  font-size: 0.8rem;
+  color: #333;
+}
+
+.name-input-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.name-input-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+  width: 90%;
+}
+
+.name-input-content h3 {
+  color: #4CAF50;
+  margin-bottom: 0.5rem;
+}
+
+.name-input-content p {
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.name-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.name-input-form label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.name-input {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1.2rem;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #6b89c9;
+}
+
+.name-input-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.save-btn {
+  background-color: #4CAF50;
+}
+
+.cancel-btn {
+  background-color: #9E9E9E;
 }
 
 .highscore-btn {
   background-color: #6b89c9;
-  margin-bottom: 0.5rem;
 }
 
 .highscore-container {
