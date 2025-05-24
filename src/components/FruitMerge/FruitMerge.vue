@@ -46,6 +46,7 @@ const showRocketEffect = ref(false)
 const topBoundary = computed(() => {
   return Math.max(30, 200 - (level.value - 1) * 15);
 });
+const nextFruitFading = ref(false);
 
 let engine = null;
 let runner = null;
@@ -107,33 +108,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 44, color: '#FF9800', level: 3, name: 'Orange',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <defs>
-          <radialGradient id="orangeGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#FFB74D"/>
-            <stop offset="100%" style="stop-color:#FF9800"/>
-          </radialGradient>
-        </defs>
-        <circle cx="32" cy="32" r="30" fill="url(#orangeGrad)" stroke="#E65100" stroke-width="2"/>
-        <circle cx="20" cy="20" r="1.5" fill="#FF7043" opacity="0.6"/>
-        <circle cx="44" cy="18" r="1.5" fill="#FF7043" opacity="0.6"/>
-        <circle cx="18" cy="40" r="1.5" fill="#FF7043" opacity="0.6"/>
-        <circle cx="46" cy="42" r="1.5" fill="#FF7043" opacity="0.6"/>
-        <circle cx="32" cy="48" r="1.5" fill="#FF7043" opacity="0.6"/>
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
-        <circle cx="24" cy="26" r="2.5" fill="black"/>
-        <circle cx="40" cy="26" r="2.5" fill="black"/>
-        <circle cx="25" cy="25" r="1" fill="white"/>
-        <circle cx="41" cy="25" r="1" fill="white"/>
-        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
-        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
-      </svg>`
-  },
-  {
-    size: 50, color: '#FFEB3B', level: 4, name: 'Lemon',
+    size: 42, color: '#FFEB3B', level: 3, name: 'Lemon',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="lemonGrad" cx="0.3" cy="0.3">
@@ -159,20 +134,20 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 56, color: '#8BC34A', level: 5, name: 'Apple',
+    size: 48, color: '#FF9800', level: 4, name: 'Orange',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
-          <radialGradient id="appleGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#AED581"/>
-            <stop offset="100%" style="stop-color:#8BC34A"/>
+          <radialGradient id="orangeGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFB74D"/>
+            <stop offset="100%" style="stop-color:#FF9800"/>
           </radialGradient>
         </defs>
-        <circle cx="32" cy="32" r="30" fill="url(#appleGrad)" stroke="#558B2F" stroke-width="2"/>
-        <circle cx="20" cy="20" r="1.5" fill="#689F38" opacity="0.6"/>
-        <circle cx="44" cy="18" r="1.5" fill="#689F38" opacity="0.6"/>
-        <circle cx="18" cy="40" r="1.5" fill="#689F38" opacity="0.6"/>
-        <circle cx="46" cy="42" r="1.5" fill="#689F38" opacity="0.6"/>
-        <circle cx="32" cy="48" r="1.5" fill="#689F38" opacity="0.6"/>
+        <circle cx="32" cy="32" r="30" fill="url(#orangeGrad)" stroke="#E65100" stroke-width="2"/>
+        <circle cx="20" cy="20" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="44" cy="18" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="18" cy="40" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="46" cy="42" r="1.5" fill="#FF7043" opacity="0.6"/>
+        <circle cx="32" cy="48" r="1.5" fill="#FF7043" opacity="0.6"/>
         <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
         <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
         <circle cx="24" cy="26" r="2.5" fill="black"/>
@@ -180,14 +155,40 @@ const fruitTypes = [
         <circle cx="25" cy="25" r="1" fill="white"/>
         <circle cx="41" cy="25" r="1" fill="white"/>
         <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
-        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
-        <ellipse cx="30" cy="8" rx="4" ry="2" fill="#795548"/>
-        <ellipse cx="34" cy="6" rx="2" ry="3" fill="#4CAF50"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
       </svg>`
   },
   {
-    size: 72, color: '#FFAB91', level: 6, name: 'Peach',
+    size: 56, color: '#8BC34A', level: 5, name: 'Apple',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="appleGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color: #d5cc81"/>
+            <stop offset="100%" style="stop-color: #11cb03"/>
+        </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="url(#appleGrad)" stroke="#4b9916" stroke-width="2"/>
+    <circle cx="20" cy="20" r="1.5" fill="#689F38" opacity="0.6"/>
+    <circle cx="44" cy="18" r="1.5" fill="#689F38" opacity="0.6"/>
+    <circle cx="18" cy="40" r="1.5" fill="#689F38" opacity="0.6"/>
+    <circle cx="46" cy="42" r="1.5" fill="#689F38" opacity="0.6"/>
+    <circle cx="32" cy="48" r="1.5" fill="#689F38" opacity="0.6"/>
+    <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+    <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+    <circle cx="24" cy="26" r="2.5" fill="black"/>
+    <circle cx="40" cy="26" r="2.5" fill="black"/>
+    <circle cx="25" cy="25" r="1" fill="white"/>
+    <circle cx="41" cy="25" r="1" fill="white"/>
+    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
+    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
+    <ellipse cx="30" cy="8" rx="4" ry="2" fill="#795548"/>
+    <ellipse cx="34" cy="6" rx="2" ry="3" fill="#4CAF50"/>
+</svg>`
+  },
+  {
+    size: 64, color: '#FFAB91', level: 6, name: 'Peach',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
       <defs>
         <radialGradient id="peachGrad" cx="0.3" cy="0.3">
@@ -219,41 +220,139 @@ const fruitTypes = [
     </svg>`
   },
   {
-    size: 80, color: '#F48FB1', level: 7, name: 'Watermelon',
+    size: 72, color: '#FF9800', level: 7, name: 'Mango',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-      <defs>
-        <radialGradient id="watermelonGrad" cx="0.3" cy="0.3">
-          <stop offset="0%" style="stop-color:#F8BBD0"/>
-          <stop offset="100%" style="stop-color:#F48FB1"/>
+    <defs>
+        <radialGradient id="mangoOuterGrad" cx="0.3" cy="0.25">
+            <stop offset="0%" style="stop-color:#FFB74D"/>
+            <stop offset="50%" style="stop-color:#FF9800"/>
+            <stop offset="100%" style="stop-color:#F57C00"/>
         </radialGradient>
-      </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#watermelonGrad)" stroke="#E91E63" stroke-width="2"/>
-      <circle cx="32" cy="32" r="26" fill="#F06292" opacity="0.8"/>
-      <circle cx="32" cy="32" r="22" fill="#EC407A" opacity="0.6"/>
-      <circle cx="22" cy="22" r="2" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="42" cy="20" r="2" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="20" cy="42" r="2" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="44" cy="44" r="2" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="32" cy="18" r="1.5" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="18" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="46" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="32" cy="46" r="1.5" fill="#1B5E20" opacity="0.9"/>
-      <circle cx="28" cy="36" r="1" fill="#1B5E20" opacity="0.8"/>
-      <circle cx="36" cy="28" r="1" fill="#1B5E20" opacity="0.8"/>
-      <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-      <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
-      <circle cx="24" cy="26" r="2.5" fill="black"/>
-      <circle cx="40" cy="26" r="2.5" fill="black"/>
-      <circle cx="25" cy="25" r="1" fill="white"/>
-      <circle cx="41" cy="25" r="1" fill="white"/>
-      <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
-      <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
-      <circle cx="32" cy="32" r="18" fill="none" stroke="#4CAF50" stroke-width="2" opacity="0.4"/>
-    </svg>`
+        <radialGradient id="mangoInnerGrad" cx="0.4" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFF8E1"/>
+            <stop offset="20%" style="stop-color:#FFECB3"/>
+            <stop offset="60%" style="stop-color:#FFD54F"/>
+            <stop offset="100%" style="stop-color:#FFC107"/>
+        </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="url(#mangoOuterGrad)" stroke="#E65100" stroke-width="2"/>
+    <circle cx="32" cy="32" r="28" fill="url(#mangoInnerGrad)" opacity="0.9"/>
+    <g fill="#FF5722" opacity="0.4">
+        <ellipse cx="20" cy="20" rx="4" ry="6"/>
+        <ellipse cx="44" cy="18" rx="3" ry="5"/>
+        <ellipse cx="46" cy="38" rx="2.5" ry="4"/>
+        <ellipse cx="18" cy="42" rx="3.5" ry="3"/>
+    </g>
+    <g fill="#8BC34A" opacity="0.3">
+        <ellipse cx="16" cy="28" rx="2" ry="4"/>
+        <ellipse cx="48" cy="32" rx="1.5" ry="3"/>
+        <ellipse cx="32" cy="50" rx="3" ry="2"/>
+    </g>
+    <g fill="#FFEB3B" opacity="0.7">
+        <ellipse cx="26" cy="18" rx="2.5" ry="1.5"/>
+        <ellipse cx="38" cy="16" rx="2" ry="2"/>
+        <ellipse cx="24" cy="32" rx="3" ry="1.8"/>
+        <ellipse cx="40" cy="30" rx="2.5" ry="1.5"/>
+        <ellipse cx="28" cy="44" rx="2" ry="1.2"/>
+        <ellipse cx="36" cy="46" rx="1.8" ry="1"/>
+    </g>
+    <g fill="#8D6E63" opacity="0.5">
+        <circle cx="24" cy="20" r="0.8"/>
+        <circle cx="40" cy="44" r="0.6"/>
+        <circle cx="16" cy="36" r="0.7"/>
+        <circle cx="48" cy="24" r="0.9"/>
+    </g>
+    <ellipse cx="24" cy="28" rx="4" ry="5" fill="white"/>
+    <ellipse cx="40" cy="28" rx="4" ry="5" fill="white"/>
+    <circle cx="24" cy="28" r="2.5" fill="black"/>
+    <circle cx="40" cy="28" r="2.5" fill="black"/>
+    <circle cx="25" cy="27" r="1" fill="white"/>
+    <circle cx="41" cy="27" r="1" fill="white"/>
+    <path d="M26,40 Q32,46 38,40" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>`
   },
   {
-    size: 88, color: '#2196F3', level: 8, name: 'Jackfruit',
+    size: 80, color: '#FFA726', level: 8, name: 'Pineapple',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="pineappleInnerGrad" cx="0.4" cy="0.4">
+            <stop offset="0%" style="stop-color:#FFF9C4"/>
+            <stop offset="30%" style="stop-color:#FFF176"/>
+            <stop offset="70%" style="stop-color:#FFEB3B"/>
+            <stop offset="100%" style="stop-color:#FDD835"/>
+        </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="#FFEE58" stroke="#5D4037" stroke-width="2"/>
+    <g stroke="#4CAF50" stroke-width="3.5" fill="#F9A825" opacity="0.8">
+        <path d="M20,12 L22,6 L24,12 L26,8 L28,14 Z"/>
+        <path d="M28,8 L30,4 L32,10 L34,6 L36,12 Z"/>
+        <path d="M36,8 L38,4 L40,10 L42,6 L44,12 Z"/>
+    </g>
+    <g stroke="#F9A825" stroke-width="2" fill="none" opacity="0.8">
+        <path d="M12,24 Q32,20 52,24"/>
+        <path d="M10,32 Q32,28 54,32"/>
+        <path d="M12,40 Q32,36 52,40"/>
+        <path d="M14,48 Q32,44 50,48"/>
+        <path d="M18,20 L22,24 L26,20 L30,24 L34,20 L38,24 L42,20 L46,24"/>
+        <path d="M16,28 L20,32 L24,28 L28,32 L32,28 L36,32 L40,28 L44,32 L48,28"/>
+        <path d="M18,36 L22,40 L26,36 L30,40 L34,36 L38,40 L42,36 L46,40"/>
+        <path d="M20,44 L24,48 L28,44 L32,48 L36,44 L40,48 L44,44"/>
+    </g>
+    <g fill="#FFEE58" opacity="0.6">
+        <path d="M24,22 L26,20 L28,22 L26,24 Z"/>
+        <path d="M36,22 L38,20 L40,22 L38,24 Z"/>
+        <path d="M18,30 L20,28 L22,30 L20,32 Z"/>
+        <path d="M30,30 L32,28 L34,30 L32,32 Z"/>
+        <path d="M42,30 L44,28 L46,30 L44,32 Z"/>
+        <path d="M24,38 L26,36 L28,38 L26,40 Z"/>
+        <path d="M36,38 L38,36 L40,38 L38,40 Z"/>
+        <path d="M30,46 L32,44 L34,46 L32,48 Z"/>
+    </g>
+    <ellipse cx="24" cy="28" rx="4" ry="5" fill="white"/>
+    <ellipse cx="40" cy="28" rx="4" ry="5" fill="white"/>
+    <circle cx="24" cy="28" r="2.5" fill="black"/>
+    <circle cx="40" cy="28" r="2.5" fill="black"/>
+    <circle cx="25" cy="27" r="1" fill="white"/>
+    <circle cx="41" cy="27" r="1" fill="white"/>
+    <path d="M26,40 Q32,46 38,40" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="16" cy="34" rx="3" ry="2" fill="#FFCC80" opacity="0.7"/>
+    <ellipse cx="48" cy="34" rx="3" ry="2" fill="#FFCC80" opacity="0.7"/>
+</svg>`
+  },
+  {
+    size: 88, color: '#F48FB1', level: 9, name: 'Watermelon',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="watermelonGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#F8BBD0"/>
+            <stop offset="100%" style="stop-color:#F48FB1"/>
+        </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="url(#watermelonGrad)" stroke="#008e00" stroke-width="2"/>
+    <circle cx="32" cy="32" r="26" fill="#F06292" opacity="0.8"/>
+    <circle cx="22" cy="22" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="42" cy="20" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="20" cy="42" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="44" cy="44" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="32" cy="18" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="18" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="46" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="32" cy="46" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="28" cy="36" r="1" fill="#1B5E20" opacity="0.8"/>
+    <circle cx="36" cy="28" r="1" fill="#1B5E20" opacity="0.8"/>
+    <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+    <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+    <circle cx="24" cy="26" r="2.5" fill="black"/>
+    <circle cx="40" cy="26" r="2.5" fill="black"/>
+    <circle cx="25" cy="25" r="1" fill="white"/>
+    <circle cx="41" cy="25" r="1" fill="white"/>
+    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+</svg>`
+  },
+  {
+    size: 96, color: '#2196F3', level: 10, name: 'Jackfruit',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="jackfruitGrad" cx="0.3" cy="0.3">
@@ -282,7 +381,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 96, color: '#9575CD', level: 9, name: 'Dragon Fruit',
+    size: 104, color: '#9575CD', level: 11, name: 'Dragon Fruit',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="dragonfruitGrad" cx="0.3" cy="0.3">
@@ -313,7 +412,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 104, color: '#4CAF50', level: 10, name: 'Durian',
+    size: 112, color: '#4CAF50', level: 12, name: 'Durian',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="durianGrad" cx="0.3" cy="0.3">
@@ -342,7 +441,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 112, color: '#8D6E63', level: 11, name: 'Coconut',
+    size: 120, color: '#8D6E63', level: 13, name: 'Coconut',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
       <defs>
         <radialGradient id="coconutGrad" cx="0.3" cy="0.3">
@@ -374,7 +473,7 @@ const fruitTypes = [
     </svg>`
   },
   {
-    size: 120, color: '#3F51B5', level: 12, name: 'Giant Grape',
+    size: 128, color: '#3F51B5', level: 14, name: 'Giant Grape',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="grapeGrad" cx="0.3" cy="0.3">
@@ -403,7 +502,7 @@ const fruitTypes = [
       </svg>`
   },
   {
-    size: 128, color: '#FFC107', level: 13, name: 'Super Fruit',
+    size: 136, color: '#FFC107', level: 15, name: 'Super Fruit',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
         <defs>
           <radialGradient id="superfruitGrad" cx="0.3" cy="0.3">
@@ -561,10 +660,10 @@ function startLevel(levelNumber) {
   nextFruit.value = generateFruit()
 
   // Reset all items
-  hammerCount.value = 5
+  hammerCount.value = 0
   hammerActive.value = false
   showHammerEffect.value = false
-  rocketCount.value = 5
+  rocketCount.value = 0
   rocketActive.value = false
   showRocketEffect.value = false
 
@@ -713,7 +812,7 @@ function clickToDrop(event) {
   nextFruitPosition.value = targetX;
 
   const newFruit = { ...nextFruit.value };
-  addFruitToWorld(newFruit, targetX - wallThickness / 4, -10);
+  addFruitToWorld(newFruit, targetX - wallThickness / 4, -30);
 }
 
 // Add a merged fruit to the world at a specific position
@@ -772,8 +871,7 @@ function addFruitToWorld(fruit, x, y) {
   Matter.Composite.add(engine.world, fruitBody);
   fruits.value.push(fruit);
 
-  // Hide next fruit temporarily
-  showNextFruit.value = false;
+  nextFruitFading.value = true;
 
   // Show next fruit after delay and reset cooldown
   setTimeout(() => {
@@ -781,6 +879,7 @@ function addFruitToWorld(fruit, x, y) {
     if (!levelCompleted.value) {
       nextFruit.value = generateFruit();
       showNextFruit.value = true;
+      nextFruitFading.value = false;
     }
 
     // Reset cooldown nach 800ms
@@ -839,7 +938,7 @@ function endDrag(event) {
   isDragging.value = false;
 
   const newFruit = { ...nextFruit.value };
-  addFruitToWorld(newFruit, nextFruitPosition.value - wallThickness / 4, -10);
+  addFruitToWorld(newFruit, nextFruitPosition.value - wallThickness / 4, -30);
 
   const moveEvent = 'ontouchstart' in window ? 'touchmove' : 'mousemove';
   const endEvent = 'ontouchstart' in window ? 'touchend' : 'mouseup';
@@ -1323,7 +1422,10 @@ onBeforeUnmount(() => {
             <div
                 v-if="showNextFruit"
                 class="next-fruit fruit"
-                :class="{ 'disabled': dropCooldown }"
+                :class="{
+                  'disabled': dropCooldown,
+                  'fading': nextFruitFading
+                }"
                 :style="{
                   width: `${nextFruit.size}px`,
                   height: `${nextFruit.size}px`,
@@ -1462,6 +1564,10 @@ onBeforeUnmount(() => {
   &:hover {
     background: linear-gradient(180deg, rgba(107, 201, 201, 0.6) 0%, rgba(107, 137, 201, 0.15) 100%);
   }
+
+  &.cooldown {
+    overflow: hidden;
+  }
 }
 
 .game-board {
@@ -1536,6 +1642,7 @@ onBeforeUnmount(() => {
 .next-fruit {
   bottom: 0;
   transform: translateX(-50%);
+  transition: opacity 0.2s ease;
   z-index: 2;
   cursor: grab;
 
@@ -1974,6 +2081,11 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 0.25rem;
   width: 25%;
+}
+
+.next-fruit.fading {
+  transform: translateX(-50%) translateY(100%);
+  transition: transform 0.3s ease;
 }
 
 .hammer-item,
