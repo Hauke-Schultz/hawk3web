@@ -114,28 +114,46 @@ const fruitTypes = [
   {
     size: 42, color: '#FFEB3B', level: 3, name: 'Lemon',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <defs>
-          <radialGradient id="lemonGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#FFF176"/>
-            <stop offset="100%" style="stop-color:#FFEB3B"/>
-          </radialGradient>
-        </defs>
-        <circle cx="32" cy="32" r="30" fill="url(#lemonGrad)" stroke="#F57F17" stroke-width="2"/>
-        <ellipse cx="22" cy="20" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
-        <ellipse cx="42" cy="18" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
-        <ellipse cx="18" cy="40" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
-        <ellipse cx="46" cy="42" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
-        <ellipse cx="32" cy="48" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
-        <circle cx="24" cy="26" r="2.5" fill="black"/>
-        <circle cx="40" cy="26" r="2.5" fill="black"/>
-        <circle cx="25" cy="25" r="1" fill="white"/>
-        <circle cx="41" cy="25" r="1" fill="white"/>
-        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFC107" opacity="0.4"/>
-        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFC107" opacity="0.4"/>
-      </svg>`
+    <defs>
+      <radialGradient id="lemonGrad" cx="0.3" cy="0.3">
+        <stop offset="0%" style="stop-color:#FFF176"/>
+        <stop offset="100%" style="stop-color:#FFEB3B"/>
+      </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="url(#lemonGrad)" stroke="#F57F17" stroke-width="2"/>
+    <ellipse cx="22" cy="20" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+    <ellipse cx="42" cy="18" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+    <ellipse cx="18" cy="40" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+    <ellipse cx="46" cy="42" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+    <ellipse cx="32" cy="48" rx="2" ry="1" fill="#F9A825" opacity="0.5"/>
+    <g id="openEyes">
+      <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+      <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+      <circle cx="24" cy="26" r="2.5" fill="black"/>
+      <circle cx="40" cy="26" r="2.5" fill="black"/>
+      <circle cx="25" cy="25" r="1" fill="white"/>
+      <circle cx="41" cy="25" r="1" fill="white"/>
+      <animate
+        attributeName="opacity"
+        values="1; 1; 0; 1; 1"
+        dur="3s"
+        repeatCount="indefinite"
+        calcMode="discrete"/>
+    </g>
+    <g id="closedEyes">
+      <line x1="20" y1="26" x2="28" y2="26" stroke="black" stroke-width="2" stroke-linecap="round"/>
+      <line x1="36" y1="26" x2="44" y2="26" stroke="black" stroke-width="2" stroke-linecap="round"/>
+      <animate
+        attributeName="opacity"
+        values="0; 0; 1; 0; 0"
+        dur="3s"
+        repeatCount="indefinite"
+        calcMode="discrete"/>
+    </g>
+    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFC107" opacity="0.4"/>
+    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFC107" opacity="0.4"/>
+</svg>`
   },
   {
     size: 48, color: '#FF9800', level: 4, name: 'Orange',
@@ -171,13 +189,55 @@ const fruitTypes = [
             <stop offset="0%" style="stop-color: #5fe865"/>
             <stop offset="100%" style="stop-color: #36c904"/>
         </radialGradient>
+        <radialGradient id="redOverlayGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color: #ff5252"/>
+            <stop offset="100%" style="stop-color: #d32f2f"/>
+        </radialGradient>
+
+        <radialGradient id="blushGrad" cx="0.5" cy="0.5">
+            <stop offset="0%" style="stop-color: #FF5252"/>
+            <stop offset="100%" style="stop-color: #F44336"/>
+        </radialGradient>
     </defs>
     <circle cx="32" cy="32" r="30" fill="url(#appleGrad)" stroke="#4b9916" stroke-width="2"/>
+    <circle cx="32" cy="32" r="30" fill="url(#redOverlayGrad)" opacity="0">
+        <animate attributeName="opacity"
+                 values="0; 0; 0.3; 0; 0; 0; 0; 0; 0"
+                 keyTimes="0; 0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.8; 1"
+                 dur="10s"
+                 repeatCount="indefinite"/>
+    </circle>
     <circle cx="20" cy="20" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="44" cy="18" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="18" cy="40" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="46" cy="42" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="32" cy="48" r="1.5" fill="#689F38" opacity="0.6"/>
+    <circle cx="14" cy="39" r="7" fill="url(#blushGrad)" opacity="0.4">
+        <animate
+                attributeName="opacity"
+                values="0; 0; 0.3; 0; 0; 0; 0; 0; 0"
+                keyTimes="0; 0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.8; 1"
+                dur="10s"
+                repeatCount="indefinite"/>
+        <animate
+                attributeName="r"
+                values="6; 10; 6"
+                dur="10s"
+                repeatCount="indefinite"/>
+    </circle>
+    <circle cx="50" cy="39" r="7" fill="url(#blushGrad)" opacity="0.4">
+        <animate
+                attributeName="opacity"
+                values="0; 0; 0.3; 0; 0; 0; 0; 0; 0"
+                keyTimes="0; 0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.8; 1"
+                dur="10s"
+                repeatCount="indefinite"/>
+        <animate
+                attributeName="r"
+                values="6; 10; 6"
+                dur="10s"
+                repeatCount="indefinite"/>
+    </circle>
     <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
     <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
     <circle cx="24" cy="26" r="2.5" fill="black"/>
@@ -185,8 +245,6 @@ const fruitTypes = [
     <circle cx="25" cy="25" r="1" fill="white"/>
     <circle cx="41" cy="25" r="1" fill="white"/>
     <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
-    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
     <ellipse cx="30" cy="8" rx="4" ry="2" fill="#795548"/>
     <ellipse cx="34" cy="6" rx="2" ry="3" fill="#4CAF50"/>
 </svg>`
@@ -812,7 +870,7 @@ function clickToDrop(event) {
   if (!canDropFruit.value || isDragging.value || dropCooldown.value) return;
 
   event.preventDefault();
-  const clientX = event.clientX || (event.touches && event.touches[0].clientX) || 0;
+  const clientX = event.clientX || (event.changedTouches && event.changedTouches[0].clientX) || 0;
   const boardRect = gameBoard.value.getBoundingClientRect();
   const relativeX = clientX - boardRect.left;
 
@@ -936,7 +994,7 @@ function startDrag(event) {
 function handleDrag(event) {
   if (!isDragging.value) return;
 
-  const clientX = event.clientX || (event.touches && event.touches[0].clientX) || 0;
+  const clientX = event.clientX || (event.changedTouches && event.changedTouches[0].clientX) || 0;
   const boardRect = gameBoard.value.getBoundingClientRect();
   const relativeX = clientX - boardRect.left;
 
@@ -1080,8 +1138,8 @@ const toggleFruitList = () => {
 
 function checkForItemReward() {
   // Check if player reached 100 points milestone for hammer
-  const currentHammerMilestone = Math.floor(score.value / 100)
-  const previousHammerMilestone = Math.floor((score.value - 10) / 100) // Use actual score increment
+  const currentHammerMilestone = Math.floor(score.value / 300)
+  const previousHammerMilestone = Math.floor((score.value - 10) / 300) // Use actual score increment
 
   if (currentHammerMilestone > previousHammerMilestone) {
     hammerCount.value += 1
@@ -1093,8 +1151,8 @@ function checkForItemReward() {
   }
 
   // Check if player reached 150 points milestone for rocket
-  const currentRocketMilestone = Math.floor(score.value / 150)
-  const previousRocketMilestone = Math.floor((score.value - 10) / 150) // Use actual score increment
+  const currentRocketMilestone = Math.floor(score.value / 600)
+  const previousRocketMilestone = Math.floor((score.value - 10) / 600) // Use actual score increment
 
   if (currentRocketMilestone > previousRocketMilestone) {
     rocketCount.value += 1
@@ -1398,13 +1456,9 @@ onBeforeUnmount(() => {
             <button class="btn restart-btn" @click="restartGame">Play Again</button>
           </div>
           <div v-else-if="!levelCompleted" class="level-row">
-            <div class="score">
+            <div class="score" :class="{ 'new-record': score > currentLevelHighscore }">
               <span>Score</span>
               <span>{{ score }}</span>
-            </div>
-            <div class="highscore" :class="{ 'new-record': score > currentLevelHighscore }">
-              <span>Best</span>
-              <span>{{ score > currentLevelHighscore ? score : currentLevelHighscore }}</span>
             </div>
             <div class="item-container">
               <div class="hammer-item">
@@ -1481,6 +1535,7 @@ onBeforeUnmount(() => {
               class="next-fruit-area"
               :class="{ 'cooldown': dropCooldown }"
               @click="clickToDrop"
+              @touchstart="clickToDrop"
               @touchend="clickToDrop"
           >
             <div
@@ -1497,6 +1552,7 @@ onBeforeUnmount(() => {
                 }"
                 @mousedown="startDrag"
                 @touchstart="startDrag"
+                @touchend="endDrag"
                 @click.stop
                 @touchend.stop
             >
@@ -1619,15 +1675,11 @@ onBeforeUnmount(() => {
   height: 70px;
   width: 100%;
   position: relative;
-  background: linear-gradient(180deg, rgba(107, 137, 201, 0.2) 0%, rgba(107, 137, 201, 0.1) 100%);
+  background: linear-gradient(180deg, rgba(107, 201, 201, 0.6) 0%, rgba(107, 137, 201, 0.15) 100%);
   border: 2px dashed rgba(107, 137, 201, 0.4);
   border-radius: 8px 8px 0 0;
   cursor: crosshair;
   transition: background-color 0.2s ease;
-
-  &:hover {
-    background: linear-gradient(180deg, rgba(107, 201, 201, 0.6) 0%, rgba(107, 137, 201, 0.15) 100%);
-  }
 
   &.cooldown {
     overflow: hidden;
@@ -2167,9 +2219,8 @@ onBeforeUnmount(() => {
   margin-bottom: 0.5rem;
 }
 
-.highscore.new-record {
+.new-record {
   color: #FFEB3B;
-  animation: pulse 1s infinite;
 }
 
 .hammer-btn {
