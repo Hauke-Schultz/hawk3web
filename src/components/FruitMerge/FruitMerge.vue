@@ -51,6 +51,8 @@ const topBoundary = computed(() => {
   return Math.max(30, 200 - (level.value - 1) * 15);
 });
 const nextFruitFading = ref(false);
+const lastHammerThreshold = ref(0)
+const lastRocketThreshold = ref(0)
 
 let engine = null;
 let runner = null;
@@ -221,8 +223,8 @@ const fruitTypes = [
     <circle cx="46" cy="42" r="1.5" fill="#FF7043" opacity="0.6"/>
     <circle cx="32" cy="48" r="1.5" fill="#FF7043" opacity="0.6"/>
     <g id="openEyes">
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
         <circle cx="24" cy="26" r="2.5" fill="black"/>
         <circle cx="40" cy="26" r="2.5" fill="black"/>
         <circle cx="25" cy="25" r="1" fill="white"/>
@@ -259,62 +261,43 @@ const fruitTypes = [
             <stop offset="0%" style="stop-color: #5fe865"/>
             <stop offset="100%" style="stop-color: #36c904"/>
         </radialGradient>
-        <radialGradient id="redOverlayGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color: #ff5252"/>
-            <stop offset="100%" style="stop-color: #d32f2f"/>
-        </radialGradient>
-
-        <radialGradient id="blushGrad" cx="0.5" cy="0.5">
-            <stop offset="0%" style="stop-color: #FF5252"/>
-            <stop offset="100%" style="stop-color: #F44336"/>
-        </radialGradient>
     </defs>
     <circle cx="32" cy="32" r="30" fill="url(#appleGrad)" stroke="#4b9916" stroke-width="2"/>
-    <circle cx="32" cy="32" r="30" fill="url(#redOverlayGrad)" opacity="0">
-        <animate attributeName="opacity"
-                 values="0; 0; 0.3; 0; 0; 0; 0; 0; 0"
-                 keyTimes="0; 0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.8; 1"
-                 dur="10s"
-                 repeatCount="indefinite"/>
-    </circle>
     <circle cx="20" cy="20" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="44" cy="18" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="18" cy="40" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="46" cy="42" r="1.5" fill="#689F38" opacity="0.6"/>
     <circle cx="32" cy="48" r="1.5" fill="#689F38" opacity="0.6"/>
-    <circle cx="14" cy="39" r="7" fill="url(#blushGrad)" opacity="0.4">
+    <g id="openEyes">
+        <ellipse cx="24" cy="26" rx="7" ry="7" fill="white"/>
+        <ellipse cx="40" cy="26" rx="6" ry="6" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="16" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
+        <ellipse cx="48" cy="32" rx="3" ry="2" fill="#C8E6C9" opacity="0.6"/>
         <animate
                 attributeName="opacity"
-                values="0; 0; 0.3; 0; 0; 0; 0; 0; 0"
-                keyTimes="0; 0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.8; 1"
+                values="1; 1; 0; 1; 1"
                 dur="10s"
-                repeatCount="indefinite"/>
-        <animate
-                attributeName="r"
-                values="6; 10; 6"
-                dur="10s"
-                repeatCount="indefinite"/>
-    </circle>
-    <circle cx="50" cy="39" r="7" fill="url(#blushGrad)" opacity="0.4">
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <g id="closedEyes">
+        <line x1="20" y1="25" x2="28" y2="26" stroke="black" stroke-width="2" stroke-linecap="round"/>
+        <line x1="36" y1="26" x2="44" y2="25" stroke="black" stroke-width="2" stroke-linecap="round"/>
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="14" cy="32" rx="9" ry="8" fill="#FF0000" opacity="0.4"/>
+        <ellipse cx="50" cy="32" rx="9" ry="8" fill="#FF0000" opacity="0.4"/>
         <animate
                 attributeName="opacity"
-                values="0; 0; 0.3; 0; 0; 0; 0; 0; 0"
-                keyTimes="0; 0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.8; 1"
+                values="0; 0; 1; 0; 0"
                 dur="10s"
-                repeatCount="indefinite"/>
-        <animate
-                attributeName="r"
-                values="6; 10; 6"
-                dur="10s"
-                repeatCount="indefinite"/>
-    </circle>
-    <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-    <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
-    <circle cx="24" cy="26" r="2.5" fill="black"/>
-    <circle cx="40" cy="26" r="2.5" fill="black"/>
-    <circle cx="25" cy="25" r="1" fill="white"/>
-    <circle cx="41" cy="25" r="1" fill="white"/>
-    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
     <ellipse cx="30" cy="8" rx="4" ry="2" fill="#795548"/>
     <ellipse cx="34" cy="6" rx="2" ry="3" fill="#4CAF50"/>
 </svg>`
@@ -338,8 +321,8 @@ const fruitTypes = [
       <circle cx="18" cy="40" r="1.5" fill="#FF8A65" opacity="0.6"/>
       <circle cx="46" cy="42" r="1.5" fill="#FF8A65" opacity="0.6"/>
       <circle cx="32" cy="48" r="1.5" fill="#FF8A65" opacity="0.6"/>
-      <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-      <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+      <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+      <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
       <circle cx="24" cy="26" r="2.5" fill="black"/>
       <circle cx="40" cy="26" r="2.5" fill="black"/>
       <circle cx="25" cy="25" r="1" fill="white"/>
@@ -394,8 +377,8 @@ const fruitTypes = [
         <circle cx="16" cy="36" r="0.7"/>
         <circle cx="48" cy="24" r="0.9"/>
     </g>
-    <ellipse cx="24" cy="28" rx="4" ry="5" fill="white"/>
-    <ellipse cx="40" cy="28" rx="4" ry="5" fill="white"/>
+    <ellipse cx="24" cy="28" rx="5" ry="5" fill="white"/>
+    <ellipse cx="40" cy="28" rx="5" ry="5" fill="white"/>
     <circle cx="24" cy="28" r="2.5" fill="black"/>
     <circle cx="40" cy="28" r="2.5" fill="black"/>
     <circle cx="25" cy="27" r="1" fill="white"/>
@@ -440,8 +423,8 @@ const fruitTypes = [
         <path d="M36,38 L38,36 L40,38 L38,40 Z"/>
         <path d="M30,46 L32,44 L34,46 L32,48 Z"/>
     </g>
-    <ellipse cx="24" cy="28" rx="4" ry="5" fill="white"/>
-    <ellipse cx="40" cy="28" rx="4" ry="5" fill="white"/>
+    <ellipse cx="24" cy="28" rx="5" ry="5" fill="white"/>
+    <ellipse cx="40" cy="28" rx="5" ry="5" fill="white"/>
     <circle cx="24" cy="28" r="2.5" fill="black"/>
     <circle cx="40" cy="28" r="2.5" fill="black"/>
     <circle cx="25" cy="27" r="1" fill="white"/>
@@ -472,8 +455,8 @@ const fruitTypes = [
     <circle cx="32" cy="46" r="1.5" fill="#1B5E20" opacity="0.9"/>
     <circle cx="28" cy="36" r="1" fill="#1B5E20" opacity="0.8"/>
     <circle cx="36" cy="28" r="1" fill="#1B5E20" opacity="0.8"/>
-    <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-    <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+    <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+    <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
     <circle cx="24" cy="26" r="2.5" fill="black"/>
     <circle cx="40" cy="26" r="2.5" fill="black"/>
     <circle cx="25" cy="25" r="1" fill="white"/>
@@ -501,8 +484,8 @@ const fruitTypes = [
         <circle cx="36" cy="52" r="2" fill="#1976D2" opacity="0.6"/>
         <circle cx="22" cy="32" r="1.5" fill="#1976D2" opacity="0.6"/>
         <circle cx="42" cy="34" r="1.5" fill="#1976D2" opacity="0.6"/>
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
         <circle cx="24" cy="26" r="2.5" fill="black"/>
         <circle cx="40" cy="26" r="2.5" fill="black"/>
         <circle cx="25" cy="25" r="1" fill="white"/>
@@ -531,8 +514,8 @@ const fruitTypes = [
         <circle cx="38" cy="14" r="1" fill="#1B5E20" opacity="0.8"/>
         <circle cx="14" cy="32" r="1" fill="#1B5E20" opacity="0.8"/>
         <circle cx="50" cy="30" r="1" fill="#1B5E20" opacity="0.8"/>
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
         <circle cx="24" cy="26" r="2.5" fill="black"/>
         <circle cx="40" cy="26" r="2.5" fill="black"/>
         <circle cx="25" cy="25" r="1" fill="white"/>
@@ -561,8 +544,8 @@ const fruitTypes = [
         <path d="M32,56 L34,60 L30,60" stroke="#388E3C" stroke-width="2" fill="none"/>
         <path d="M8,32 L4,30 L4,34" stroke="#388E3C" stroke-width="2" fill="none"/>
         <path d="M56,32 L60,30 L60,34" stroke="#388E3C" stroke-width="2" fill="none"/>
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
         <circle cx="24" cy="26" r="2.5" fill="black"/>
         <circle cx="40" cy="26" r="2.5" fill="black"/>
         <circle cx="25" cy="25" r="1" fill="white"/>
@@ -590,8 +573,8 @@ const fruitTypes = [
       <circle cx="42" cy="20" r="1.5" fill="#5D4037" opacity="0.8"/>
       <circle cx="20" cy="42" r="1.5" fill="#5D4037" opacity="0.8"/>
       <circle cx="44" cy="44" r="1.5" fill="#5D4037" opacity="0.8"/>
-      <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-      <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+      <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+      <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
       <circle cx="24" cy="26" r="2.5" fill="black"/>
       <circle cx="40" cy="26" r="2.5" fill="black"/>
       <circle cx="25" cy="25" r="1" fill="white"/>
@@ -622,8 +605,8 @@ const fruitTypes = [
         <circle cx="38" cy="48" r="3" fill="#303F9F" opacity="0.7"/>
         <circle cx="32" cy="20" r="2" fill="#303F9F" opacity="0.7"/>
         <circle cx="32" cy="44" r="2" fill="#303F9F" opacity="0.7"/>
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
         <circle cx="24" cy="26" r="2.5" fill="black"/>
         <circle cx="40" cy="26" r="2.5" fill="black"/>
         <circle cx="25" cy="25" r="1" fill="white"/>
@@ -648,8 +631,8 @@ const fruitTypes = [
         <circle cx="44" cy="18" r="2" fill="#FF8F00" opacity="0.8"/>
         <circle cx="18" cy="40" r="2" fill="#FF8F00" opacity="0.8"/>
         <circle cx="46" cy="42" r="2" fill="#FF8F00" opacity="0.8"/>
-        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
-        <ellipse cx="40" cy="26" rx="4" ry="5" fill="white"/>
+        <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
         <circle cx="24" cy="26" r="2.5" fill="black"/>
         <circle cx="40" cy="26" r="2.5" fill="black"/>
         <circle cx="25" cy="25" r="1" fill="white"/>
@@ -806,6 +789,8 @@ function startLevel(levelNumber) {
   rocketCount.value = 0
   rocketActive.value = false
   showRocketEffect.value = false
+  lastHammerThreshold.value = 0
+  lastRocketThreshold.value = 0
 
   // Hide start screen and start game
   showStartScreen.value = false
@@ -1207,26 +1192,26 @@ const toggleFruitList = () => {
 }
 
 function checkForItemReward() {
-  // Check if player reached 100 points milestone for hammer
-  const currentHammerMilestone = Math.floor(score.value / 300)
-  const previousHammerMilestone = Math.floor((score.value - 10) / 300) // Use actual score increment
+  const currentHammerThreshold = Math.floor(score.value / 300)
 
-  if (currentHammerMilestone > previousHammerMilestone) {
-    hammerCount.value += 1
-    // Show visual feedback
+  if (currentHammerThreshold > lastHammerThreshold.value) {
+    const newHammers = currentHammerThreshold - lastHammerThreshold.value
+    hammerCount.value += newHammers
+    lastHammerThreshold.value = currentHammerThreshold
+
     showHammerEffect.value = true
     setTimeout(() => {
       showHammerEffect.value = false
     }, 2000)
   }
 
-  // Check if player reached 150 points milestone for rocket
-  const currentRocketMilestone = Math.floor(score.value / 600)
-  const previousRocketMilestone = Math.floor((score.value - 10) / 600) // Use actual score increment
+  const currentRocketThreshold = Math.floor(score.value / 800)
 
-  if (currentRocketMilestone > previousRocketMilestone) {
-    rocketCount.value += 1
-    // Show visual feedback
+  if (currentRocketThreshold > lastRocketThreshold.value) {
+    const newRockets = currentRocketThreshold - lastRocketThreshold.value
+    rocketCount.value += newRockets
+    lastRocketThreshold.value = currentRocketThreshold
+
     showRocketEffect.value = true
     setTimeout(() => {
       showRocketEffect.value = false
