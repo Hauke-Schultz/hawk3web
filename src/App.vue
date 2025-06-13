@@ -1,5 +1,7 @@
+
 <script setup>
 import { onMounted, ref } from 'vue'
+import Header from './components/Header.vue'
 
 // Reactive data
 const theme = ref('dark')
@@ -42,6 +44,17 @@ const handlePackageClick = () => {
   // Continue journey logic here
 }
 
+// Header event handlers
+const handleMenuClick = (isOpen) => {
+  console.log('Menu toggled:', isOpen)
+  // Handle mobile menu toggle
+}
+
+const handleNotificationClick = () => {
+  console.log('Notifications clicked')
+  // Handle notification logic
+}
+
 // Lifecycle
 onMounted(() => {
   theme.value = localStorage.getItem('theme') || 'dark'
@@ -51,16 +64,17 @@ onMounted(() => {
 
 <template>
   <div class="app-container" :class="theme" role="application">
-    <!-- Header Section -->
-    <header class="app-header" role="banner">
-      <div class="header-content">
-        <div class="level-display">
-          <span class="level-number">15</span>
-          <span class="level-star">⭐</span>
-        </div>
-        <h1 class="app-title">Hawk3</h1>
-      </div>
-    </header>
+    <!-- New Header Component -->
+    <Header
+      :level="playerProfile.level"
+      :theme="theme"
+      :show-navigation="true"
+      :show-profile="true"
+      @toggle-theme="toggleTheme"
+      @profile-click="handleProfileClick"
+      @menu-click="handleMenuClick"
+      @notification-click="handleNotificationClick"
+    />
 
     <!-- Main Content Area -->
     <main class="main-content" id="main-content">
@@ -140,17 +154,6 @@ onMounted(() => {
         </div>
       </section>
     </main>
-
-    <!-- Theme Toggle Button -->
-    <button
-      class="theme-toggle"
-      @click="toggleTheme"
-      :aria-label="`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`"
-      title="Toggle theme"
-    >
-      <span v-if="theme === 'dark'">🌙</span>
-      <span v-else>☀️</span>
-    </button>
   </div>
 </template>
 
