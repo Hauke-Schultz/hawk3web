@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue'
+import Icon from "./Icon.vue";
 
 // Props from parent component
 const props = defineProps({
@@ -79,9 +80,7 @@ const handlePackageClick = () => {
       >
         <div class="card-icon">
           <div class="icon-btn icon-btn--primary" aria-label="Play">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
+            <Icon name="play" size="32" />
           </div>
         </div>
         <div class="card-content">
@@ -100,10 +99,7 @@ const handlePackageClick = () => {
       >
         <div class="card-icon">
           <div class="icon-btn icon-btn--success" aria-label="Profile">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-            </svg>
+            <Icon name="user" size="32" />
           </div>
         </div>
         <div class="card-content">
@@ -122,14 +118,7 @@ const handlePackageClick = () => {
       >
         <div class="card-icon">
           <div class="icon-btn icon-btn--warning" aria-label="Trophies">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-              <path d="M4 22h16"/>
-              <path d="M10 14.66V17c0 .55.47.98.97 1.21C12.04 18.75 13 19.38 13 20.15"/>
-              <path d="M14 14.66V17c0 .55-.47.98-.97 1.21C11.96 18.75 11 19.38 11 20.15"/>
-              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-            </svg>
+            <Icon name="trophy" size="32" />
           </div>
         </div>
         <div class="card-content">
@@ -148,10 +137,7 @@ const handlePackageClick = () => {
       >
         <div class="card-icon">
           <div class="icon-btn icon-btn--info" aria-label="Settings">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-            </svg>
+            <Icon name="settings" size="32" />
           </div>
         </div>
         <div class="card-content">
@@ -271,8 +257,8 @@ const handlePackageClick = () => {
 
 /* Icon Button Styles */
 .icon-btn {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: var(--space-12);
+  height: var(--space-12);
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -281,6 +267,7 @@ const handlePackageClick = () => {
   justify-content: center;
   transition: all 0.2s ease;
   font-size: var(--font-size-lg);
+  color: var(--white);
 
   &:focus-visible {
     outline: var(--focus-outline);
@@ -290,42 +277,18 @@ const handlePackageClick = () => {
 
   &--primary {
     background-color: var(--primary-color);
-    color: white;
-
-    &:hover {
-      background-color: var(--primary-hover);
-      transform: scale(1.05);
-    }
   }
 
   &--success {
     background-color: var(--success-color);
-    color: white;
-
-    &:hover {
-      background-color: var(--success-hover);
-      transform: scale(1.05);
-    }
   }
 
   &--warning {
     background-color: var(--warning-color);
-    color: white;
-
-    &:hover {
-      background-color: var(--warning-hover);
-      transform: scale(1.05);
-    }
   }
 
   &--info {
     background-color: var(--info-color);
-    color: white;
-
-    &:hover {
-      background-color: var(--info-hover);
-      transform: scale(1.05);
-    }
   }
 }
 </style>
