@@ -13,33 +13,18 @@ const props = defineProps({
     type: String,
     default: 'Hawk3'
   },
-  // Show navigation menu
-  showNavigation: {
-    type: Boolean,
-    default: true
-  },
-  // Show user profile section
   showProfile: {
     type: Boolean,
     default: true
-  },
-  // Current theme
-  theme: {
-    type: String,
-    default: 'dark'
   }
 })
 
 // Emits for parent component communication
 const emit = defineEmits([
-  'toggle-theme',
   'profile-click',
-  'menu-click',
-  'notification-click'
 ])
 
 // Reactive state
-const isMenuOpen = ref(false)
 const notificationCount = ref(3)
 
 // Computed properties
@@ -47,17 +32,13 @@ const levelDisplay = computed(() => {
   return props.level < 10 ? `0${props.level}` : props.level.toString()
 })
 
-const handleThemeToggle = () => {
-  emit('toggle-theme')
-}
-
 const handleNotificationClick = () => {
   emit('notification-click')
 }
 </script>
 
 <template>
-  <header class="app-header" role="banner">
+  <header class="header" role="banner">
     <div class="header-container">
       <!-- Left section: Menu & Logo -->
       <div class="header-left">
@@ -98,35 +79,16 @@ const handleNotificationClick = () => {
           </svg>
           <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
         </button>
-
-        <!-- Theme Toggle -->
-        <button
-          class="header-action-btn theme-toggle"
-          @click="handleThemeToggle"
-          :aria-label="`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`"
-        >
-          <svg v-if="theme === 'dark'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-          <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"/>
-            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-          </svg>
-        </button>
       </div>
     </div>
   </header>
 </template>
 
 <style lang="scss" scoped>
-.app-header {
+.header {
   background-color: var(--bg-header);
   border-bottom: 1px solid var(--card-border);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  max-width: 375px;
-  margin: 0 auto;
+  width: var(--content-width);
 }
 
 .header-container {
@@ -134,6 +96,7 @@ const handleNotificationClick = () => {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
 }
 
 // Left Section
@@ -144,57 +107,23 @@ const handleNotificationClick = () => {
   flex: 1;
 }
 
-.menu-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  .hamburger-line {
-    width: 1.5rem;
-    height: 0.125rem;
-    background-color: var(--text-color);
-    transition: all 0.3s ease;
-    margin: 0.125rem 0;
-
-    &.open {
-      &:nth-child(1) {
-        transform: rotate(-45deg) translate(-0.25rem, 0.25rem);
-      }
-      &:nth-child(2) {
-        opacity: 0;
-      }
-      &:nth-child(3) {
-        transform: rotate(45deg) translate(-0.25rem, -0.25rem);
-      }
-    }
-  }
-}
-
 .header-title {
   display: flex;
   flex-direction: column;
   gap: 0;
 
   .app-title {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
     color: var(--text-color);
     margin: 0;
     line-height: 1;
-
   }
 
   .app-subtitle {
     font-size: var(--font-size-xs);
     color: var(--text-secondary);
-    opacity: 0.8;
-    margin-top: -0.125rem;
+    line-height: 1;
   }
 }
 
@@ -208,11 +137,12 @@ const handleNotificationClick = () => {
 .player-profile {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 2rem;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2);
+  min-width: 180px;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -228,8 +158,8 @@ const handleNotificationClick = () => {
 }
 
 .player-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--success-color), var(--success-hover));
   display: flex;
@@ -290,7 +220,6 @@ const handleNotificationClick = () => {
 
   &:hover {
     background-color: var(--card-bg-hover);
-    transform: scale(1.05);
   }
 
   &:focus-visible {

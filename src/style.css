@@ -33,6 +33,16 @@
   --border-radius-xl: 1rem;    /* 16px */
   --border-radius-2xl: 1.5rem; /* 24px */
 
+  /* Settings */
+  --content-width: 375px;
+
+  /* Font Settings */
+  --font-family-base: 'Arial', sans-serif;
+  --font-line-height-base: 1.5;
+  --font-line-height-small: 1;
+  --font-weight-base: 400;
+  --font-weight-bold: 700;
+
   /* Light Theme Colors (Default/Fallback) */
   --bg-color: #f8f9fa;
   --bg-secondary: #e9ecef;
@@ -76,12 +86,9 @@
   --button-ghost-border: var(--primary-color);
   --button-ghost-bg-hover: rgba(79, 70, 229, 0.1);
 
-  /* Font Settings */
-  --font-family-base: 'Arial', sans-serif;
-  --font-line-height-base: 1.5;
-  --font-line-height-small: 1;
-  --font-weight-base: 400;
-  --font-weight-bold: 700;
+  /* Gradient Button */
+  --button-gradient-start: #4338CA;
+  --button-gradient-end: #6366F1;
 
   /* Focus States */
   --focus-outline: 0.125rem solid var(--primary-color);
@@ -145,7 +152,7 @@
   --button-ghost-border: var(--primary-hover);
   --button-ghost-bg-hover: rgba(99, 102, 241, 0.1);
 
-  /* Gradient Button (from SVG bottom section) */
+  /* Gradient Button */
   --button-gradient-start: #4433FF;
   --button-gradient-end: #7733EE;
 
