@@ -3,25 +3,41 @@ import { ref, computed } from 'vue'
 
 // Props for the header component
 const props = defineProps({
-  // Player level display
   level: {
     type: Number,
     default: 15
   },
-  // App title
   title: {
     type: String,
     default: 'Hawk3'
   },
+  subtitle: {
+    type: String,
+    default: 'Gaming Platform'
+  },
   showProfile: {
     type: Boolean,
     default: true
+  },
+  showNotifications: {
+    type: Boolean,
+    default: true
+  },
+  showBackButton: {
+    type: Boolean,
+    default: false
+  },
+  pageTitle: {
+    type: String,
+    default: ''
   }
 })
 
 // Emits for parent component communication
 const emit = defineEmits([
   'profile-click',
+  'notification-click',
+  'back-click'
 ])
 
 // Reactive state
@@ -32,26 +48,59 @@ const levelDisplay = computed(() => {
   return props.level < 10 ? `0${props.level}` : props.level.toString()
 })
 
+// Event handlers
 const handleNotificationClick = () => {
   emit('notification-click')
+}
+
+const handleBackClick = () => {
+  emit('back-click')
+}
+
+const handleProfileClick = () => {
+  emit('profile-click')
 }
 </script>
 
 <template>
   <header class="header" role="banner">
     <div class="header-container">
-      <!-- Left section: Menu & Logo -->
+      <!-- Left section: Back button or Logo -->
       <div class="header-left">
-        <!-- App Title/Logo -->
-        <div class="header-title">
+        <!-- Back Button for settings and other pages -->
+        <button
+          v-if="showBackButton"
+          class="btn btn--circle back-button"
+          @click="handleBackClick"
+          aria-label="Go back"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5m7-7l-7 7 7 7"/>
+          </svg>
+        </button>
+
+        <!-- App Title/Logo for home page -->
+        <div v-else class="header-title">
           <h1 class="app-title">{{ title }}</h1>
-          <span class="app-subtitle">Gaming Platform</span>
+          <span class="app-subtitle">{{ subtitle }}</span>
         </div>
       </div>
 
-      <!-- Center section: Player Profile -->
+      <!-- Center section: Page Title or Player Profile -->
       <div class="header-center">
-        <div class="player-profile">
+        <!-- Page Title for non-home pages -->
+        <h1 v-if="pageTitle" class="page-title">{{ pageTitle }}</h1>
+
+        <!-- Player Profile for home page -->
+        <div
+          v-else-if="showProfile"
+          class="player-profile"
+          @click="handleProfileClick"
+          @keydown.enter="handleProfileClick"
+          tabindex="0"
+          role="button"
+          aria-label="View player profile"
+        >
           <div class="player-avatar">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -65,11 +114,12 @@ const handleNotificationClick = () => {
         </div>
       </div>
 
-      <!-- Right section: Actions -->
+      <!-- Right section: Actions or Spacer -->
       <div class="header-right">
-        <!-- Notifications -->
+        <!-- Notifications for home page -->
         <button
-          class="header-action-btn notification-btn"
+          v-if="showNotifications"
+          class="btn btn--circle-ghost notification-btn"
           @click="handleNotificationClick"
           aria-label="View notifications"
         >
@@ -79,6 +129,9 @@ const handleNotificationClick = () => {
           </svg>
           <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
         </button>
+
+        <!-- Spacer for settings page to center the title -->
+        <div v-else-if="showBackButton" class="header-spacer"></div>
       </div>
     </div>
   </header>
@@ -97,6 +150,7 @@ const handleNotificationClick = () => {
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-2) var(--space-4);
+  height: 65px;
 }
 
 // Left Section
@@ -134,6 +188,14 @@ const handleNotificationClick = () => {
   flex: 1;
 }
 
+.page-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin: 0;
+  text-align: center;
+}
+
 .player-profile {
   display: flex;
   align-items: center;
@@ -158,8 +220,8 @@ const handleNotificationClick = () => {
 }
 
 .player-avatar {
-  width: 2rem;
-  height: 2rem;
+  width: var(--space-8);
+  height: var(--space-8);
   border-radius: 50%;
   background: linear-gradient(135deg, var(--success-color), var(--success-hover));
   display: flex;
@@ -186,7 +248,7 @@ const handleNotificationClick = () => {
     font-size: var(--font-size-sm);
     color: var(--success-color);
     line-height: 1;
-    margin-top: 0.125rem;
+    margin-top: var(--space-0);
   }
 }
 
@@ -197,53 +259,26 @@ const handleNotificationClick = () => {
   gap: var(--space-3);
   flex: 1;
   justify-content: flex-end;
-
-  @media (max-width: 480px) {
-    gap: var(--space-2);
-    flex: 0 0 auto;
-  }
 }
 
-.header-action-btn {
-  width: 2.5rem;
-  height: 2.5rem;
+.header-spacer {
+  width: var(--space-8); // Same as back button to center title
+}
+
+.notification-badge {
+  background-color: var(--error-color);
+  color: var(--white);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  position: absolute;
+  top: calc(-1 * var(--space-2));
+  right: calc(-1 * var(--space-2));
+  padding: var(--space-0) var(--space-1);
   border-radius: 50%;
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  color: var(--text-color);
-  cursor: pointer;
+  min-width: var(--space-5);
+  height: var(--space-5);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  position: relative;
-
-  &:hover {
-    background-color: var(--card-bg-hover);
-  }
-
-  &:focus-visible {
-    outline: var(--focus-outline);
-    outline-offset: 2px;
-  }
-}
-
-.notification-btn {
-  .notification-badge {
-    position: absolute;
-    top: -0.25rem;
-    right: -0.25rem;
-    background-color: var(--error-color);
-    color: white;
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-bold);
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.75rem;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 }
 </style>

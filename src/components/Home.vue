@@ -1,0 +1,331 @@
+<script setup>
+import { defineProps, defineEmits } from 'vue'
+
+// Props from parent component
+const props = defineProps({
+  playerProfile: {
+    type: Object,
+    required: true,
+    default: () => ({
+      name: 'Hawk',
+      level: 15,
+      score: 1325,
+      trophies: 5,
+    })
+  }
+})
+
+// Emits for parent component communication
+const emit = defineEmits([
+  'start-game',
+  'profile-click',
+  'trophy-click',
+  'settings-click',
+  'package-click'
+])
+
+// Event handlers - emit to parent component
+const handleStartGame = () => {
+  emit('start-game')
+}
+
+const handleProfileClick = () => {
+  emit('profile-click')
+}
+
+const handleTrophyClick = () => {
+  emit('trophy-click')
+}
+
+const handleSettingsClick = () => {
+  emit('settings-click')
+}
+
+const handlePackageClick = () => {
+  emit('package-click')
+}
+</script>
+
+<template>
+  <!-- Main Content Area -->
+  <main class="content" id="main-content">
+
+    <!-- Welcome Back Section -->
+    <section class="welcome-section" aria-label="Welcome back">
+      <div
+        class="welcome-card"
+        @click="handlePackageClick"
+        @keydown.enter="handlePackageClick"
+        tabindex="0"
+        role="button"
+      >
+        <div class="welcome-content">
+          <h2 class="welcome-title">Welcome back!</h2>
+          <p class="welcome-subtitle">Ready to continue your journey?</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game Actions Section -->
+    <section class="game-actions" aria-label="Game Actions">
+      <!-- Start Game Card -->
+      <div
+        class="action-card"
+        @click="handleStartGame"
+        @keydown.enter="handleStartGame"
+        tabindex="0"
+        role="button"
+        aria-label="Start new game"
+      >
+        <div class="card-icon">
+          <div class="icon-btn icon-btn--primary" aria-label="Play">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content">
+          <h2 class="card-title">Start</h2>
+        </div>
+      </div>
+
+      <!-- Profile Card -->
+      <div
+        class="action-card"
+        @click="handleProfileClick"
+        @keydown.enter="handleProfileClick"
+        tabindex="0"
+        role="button"
+        aria-label="View profile"
+      >
+        <div class="card-icon">
+          <div class="icon-btn icon-btn--success" aria-label="Profile">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content">
+          <h2 class="card-title">Profile</h2>
+        </div>
+      </div>
+
+      <!-- Trophy Card -->
+      <div
+        class="action-card"
+        @click="handleTrophyClick"
+        @keydown.enter="handleTrophyClick"
+        tabindex="0"
+        role="button"
+        aria-label="View trophies"
+      >
+        <div class="card-icon">
+          <div class="icon-btn icon-btn--warning" aria-label="Trophies">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16"/>
+              <path d="M10 14.66V17c0 .55.47.98.97 1.21C12.04 18.75 13 19.38 13 20.15"/>
+              <path d="M14 14.66V17c0 .55-.47.98-.97 1.21C11.96 18.75 11 19.38 11 20.15"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content">
+          <h2 class="card-title">Trophy</h2>
+        </div>
+      </div>
+
+      <!-- Settings Card -->
+      <div
+        class="action-card"
+        @click="handleSettingsClick"
+        @keydown.enter="handleSettingsClick"
+        tabindex="0"
+        role="button"
+        aria-label="Open settings"
+      >
+        <div class="card-icon">
+          <div class="icon-btn icon-btn--info" aria-label="Settings">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-content">
+          <h2 class="card-title">Settings</h2>
+        </div>
+      </div>
+    </section>
+  </main>
+</template>
+
+<style lang="scss" scoped>
+
+/* Game Actions Section */
+.game-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.action-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    background-color: var(--card-bg-hover);
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: 2px;
+    box-shadow: var(--focus-shadow);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.card-icon {
+  flex-shrink: 0;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
+  color: var(--text-color);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+/* Welcome Section */
+.welcome-section {
+  margin-top: auto; /* Push to bottom */
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: center;
+
+  &:hover {
+    opacity: 0.95;
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 2rem rgba(68, 51, 255, 0.3);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.welcome-content {
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.welcome-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--space-2) 0;
+  color: var(--white);
+}
+
+.welcome-subtitle {
+  font-size: var(--font-size-base);
+  margin: 0;
+  opacity: 0.9;
+  color: var(--white);
+}
+
+/* Icon Button Styles */
+.icon-btn {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: var(--font-size-lg);
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: 2px;
+    box-shadow: var(--focus-shadow);
+  }
+
+  &--primary {
+    background-color: var(--primary-color);
+    color: white;
+
+    &:hover {
+      background-color: var(--primary-hover);
+      transform: scale(1.05);
+    }
+  }
+
+  &--success {
+    background-color: var(--success-color);
+    color: white;
+
+    &:hover {
+      background-color: var(--success-hover);
+      transform: scale(1.05);
+    }
+  }
+
+  &--warning {
+    background-color: var(--warning-color);
+    color: white;
+
+    &:hover {
+      background-color: var(--warning-hover);
+      transform: scale(1.05);
+    }
+  }
+
+  &--info {
+    background-color: var(--info-color);
+    color: white;
+
+    &:hover {
+      background-color: var(--info-hover);
+      transform: scale(1.05);
+    }
+  }
+}
+</style>
