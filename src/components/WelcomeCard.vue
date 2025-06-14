@@ -76,7 +76,6 @@ const handleKeyDown = (event) => {
   gap: var(--space-4);
   text-align: center;
 
-  /* Modifier: Interactive */
   &--interactive {
     cursor: pointer;
 
@@ -96,7 +95,6 @@ const handleKeyDown = (event) => {
     }
   }
 
-  /* Element: Content */
   &__content {
     color: var(--white);
     display: flex;
@@ -105,7 +103,6 @@ const handleKeyDown = (event) => {
     align-items: flex-start;
   }
 
-  /* Element: Title */
   &__title {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
@@ -113,7 +110,6 @@ const handleKeyDown = (event) => {
     color: var(--white);
   }
 
-  /* Element: Subtitle */
   &__subtitle {
     font-size: var(--font-size-base);
     margin: 0;
