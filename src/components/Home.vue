@@ -1,6 +1,7 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue'
 import Icon from "./Icon.vue";
+import WelcomeCard from "./WelcomeCard.vue";
 
 // Props from parent component
 const props = defineProps({
@@ -52,20 +53,11 @@ const handlePackageClick = () => {
   <main class="content" id="main-content">
 
     <!-- Welcome Back Section -->
-    <section class="welcome-section" aria-label="Welcome back">
-      <div
-        class="welcome-card"
-        @click="handlePackageClick"
-        @keydown.enter="handlePackageClick"
-        tabindex="0"
-        role="button"
-      >
-        <div class="welcome-content">
-          <h2 class="welcome-title">Welcome back!</h2>
-          <p class="welcome-subtitle">Ready to continue your journey?</p>
-        </div>
-      </div>
-    </section>
+    <WelcomeCard
+      title="Welcome back!"
+      subtitle="Ready to continue your journey?"
+      @click="handlePackageClick"
+    />
 
     <!-- Game Actions Section -->
     <section class="game-actions" aria-label="Game Actions">
@@ -79,7 +71,7 @@ const handlePackageClick = () => {
         aria-label="Start new game"
       >
         <div class="card-icon">
-          <div class="icon-btn icon-btn--primary" aria-label="Play">
+          <div class="icon-btn btn--primary" aria-label="Play">
             <Icon name="play" size="32" />
           </div>
         </div>
@@ -98,7 +90,7 @@ const handlePackageClick = () => {
         aria-label="View profile"
       >
         <div class="card-icon">
-          <div class="icon-btn icon-btn--success" aria-label="Profile">
+          <div class="icon-btn btn--success" aria-label="Profile">
             <Icon name="user" size="32" />
           </div>
         </div>
@@ -117,7 +109,7 @@ const handlePackageClick = () => {
         aria-label="View trophies"
       >
         <div class="card-icon">
-          <div class="icon-btn icon-btn--warning" aria-label="Trophies">
+          <div class="icon-btn btn--warning" aria-label="Trophies">
             <Icon name="trophy" size="32" />
           </div>
         </div>
@@ -136,7 +128,7 @@ const handlePackageClick = () => {
         aria-label="Open settings"
       >
         <div class="card-icon">
-          <div class="icon-btn icon-btn--info" aria-label="Settings">
+          <div class="icon-btn btn--info" aria-label="Settings">
             <Icon name="settings" size="32" />
           </div>
         </div>
@@ -201,94 +193,4 @@ const handlePackageClick = () => {
   margin: 0;
 }
 
-/* Welcome Section */
-.welcome-section {
-  margin-top: auto; /* Push to bottom */
-}
-
-.welcome-card {
-  background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-6);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  text-align: center;
-
-  &:hover {
-    opacity: 0.95;
-    transform: translateY(-2px);
-    box-shadow: 0 0.5rem 2rem rgba(68, 51, 255, 0.3);
-  }
-
-  &:focus-visible {
-    outline: var(--focus-outline);
-    outline-offset: 2px;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-.welcome-content {
-  color: var(--white);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.welcome-title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  margin: 0 0 var(--space-2) 0;
-  color: var(--white);
-}
-
-.welcome-subtitle {
-  font-size: var(--font-size-base);
-  margin: 0;
-  opacity: 0.9;
-  color: var(--white);
-}
-
-/* Icon Button Styles */
-.icon-btn {
-  width: var(--space-12);
-  height: var(--space-12);
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-size: var(--font-size-lg);
-  color: var(--white);
-
-  &:focus-visible {
-    outline: var(--focus-outline);
-    outline-offset: 2px;
-    box-shadow: var(--focus-shadow);
-  }
-
-  &--primary {
-    background-color: var(--primary-color);
-  }
-
-  &--success {
-    background-color: var(--success-color);
-  }
-
-  &--warning {
-    background-color: var(--warning-color);
-  }
-
-  &--info {
-    background-color: var(--info-color);
-  }
-}
 </style>
