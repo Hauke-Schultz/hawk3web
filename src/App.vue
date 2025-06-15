@@ -1,23 +1,20 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useLocalStorage } from './composables/useLocalStorage.js'
 import Header from './components/Header.vue'
 import Settings from './components/Settings.vue'
+import Profile from './components/Profile.vue'
 import Home from './components/Home.vue'
 
+// LocalStorage service
+const { gameData, updatePlayer, updateSettings } = useLocalStorage()
+
 // Reactive data
-const theme = ref('dark')
 const currentView = ref('home')
-const playerProfile = {
-  name: 'Hawk',
-  level: 15,
-  score: 1325,
-  trophies: 5,
-}
 
 // Theme handling
 const handleThemeChange = (newTheme) => {
-  theme.value = newTheme
-  localStorage.setItem('theme', newTheme)
+  updateSettings({ theme: newTheme })
   document.documentElement.setAttribute('data-theme', newTheme)
 }
 
@@ -31,13 +28,19 @@ const handleSettingsClick = () => {
   currentView.value = 'settings'
 }
 
+const handleProfileClick = () => {
+  console.log('Opening profile...')
+  currentView.value = 'profile'
+}
+
+// Player profile handling
+const handlePlayerUpdate = (updatedProfile) => {
+  updatePlayer(updatedProfile)
+}
+
 // Game action handlers
 const handleStartGame = () => {
   console.log('Starting game...')
-}
-
-const handleProfileClick = () => {
-  console.log('Opening profile...')
 }
 
 const handleTrophyClick = () => {
@@ -54,31 +57,40 @@ const handleNotificationClick = () => {
 
 // Lifecycle
 onMounted(() => {
-  theme.value = localStorage.getItem('theme') || 'dark'
-  document.documentElement.setAttribute('data-theme', theme.value)
+  document.documentElement.setAttribute('data-theme', gameData.settings.theme)
 })
 </script>
 
 <template>
-  <div class="container" :class="theme" role="application">
+  <div class="container" :class="gameData.settings.theme" role="application">
     <!-- Home View -->
     <template v-if="currentView === 'home'">
       <Header
-        :level="playerProfile.level"
         :show-profile="true"
         @profile-click="handleProfileClick"
-        @menu-click="handleMenuClick"
         @notification-click="handleNotificationClick"
       />
 
       <Home
-        :player-profile="playerProfile"
+        :player-profile="gameData.player"
         @start-game="handleStartGame"
         @profile-click="handleProfileClick"
         @trophy-click="handleTrophyClick"
         @settings-click="handleSettingsClick"
         @package-click="handlePackageClick"
       />
+    </template>
+
+    <!-- Profile View -->
+    <template v-else-if="currentView === 'profile'">
+      <Header
+        :show-profile="true"
+        :show-back-button="true"
+        :page-title="'Profile'"
+        @back-click="handleBackToHome"
+      />
+
+      <Profile />
     </template>
 
     <!-- Settings View -->
@@ -91,7 +103,7 @@ onMounted(() => {
       />
 
       <Settings
-        :current-theme="theme"
+        :current-theme="gameData.settings.theme"
         @theme-change="handleThemeChange"
         @back="handleBackToHome"
       />

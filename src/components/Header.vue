@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useLocalStorage } from '../composables/useLocalStorage.js'
 import Icon from "./Icon.vue";
+
+// LocalStorage service
+const { gameData } = useLocalStorage()
 
 // Props for the header component
 const props = defineProps({
-  level: {
-    type: Number,
-    default: 15
-  },
   title: {
     type: String,
     default: 'Hawk3'
@@ -31,13 +31,6 @@ const props = defineProps({
   pageTitle: {
     type: String,
     default: ''
-  },
-  playerProfile: {
-    type: Object,
-    default: () => ({
-      name: 'Player',
-      avatar: 'user'
-    })
   }
 })
 
@@ -51,10 +44,17 @@ const emit = defineEmits([
 // Reactive state
 const notificationCount = ref(3)
 
-// Computed properties
+// Computed properties for player data from store
 const levelDisplay = computed(() => {
-  return props.level < 10 ? `0${props.level}` : props.level.toString()
+  const level = gameData.player.level
+  return level < 10 ? `0${level}` : level.toString()
 })
+
+const playerInfo = computed(() => ({
+  name: gameData.player.name,
+  avatar: gameData.player.avatar,
+  level: gameData.player.level
+}))
 
 // Event handlers
 const handleNotificationClick = () => {
@@ -105,11 +105,11 @@ const handleProfileClick = () => {
           aria-label="View player profile"
         >
           <div class="player-avatar">
-            <Icon :name="playerProfile.avatar || 'user'" size="24" />
+            <Icon :name="playerInfo.avatar" size="24" />
           </div>
           <div class="player-info">
-            <span class="player-name">Player</span>
-            <span class="player-status">Online</span>
+            <span class="player-name">{{ playerInfo.name }}</span>
+            <span class="player-status">Level {{ levelDisplay }}</span>
           </div>
         </div>
       </div>
@@ -231,7 +231,7 @@ const handleProfileClick = () => {
 
   .player-status {
     font-size: var(--font-size-sm);
-    color: var(--success-color);
+    color: var(--text-secondary);
     line-height: 1;
     margin-top: var(--space-0);
   }
