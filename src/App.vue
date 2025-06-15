@@ -84,7 +84,7 @@ onMounted(() => {
     <!-- Settings View -->
     <template v-else-if="currentView === 'settings'">
       <Header
-        :show-profile="false"
+        :show-profile="true"
         :show-back-button="true"
         :page-title="'Settings'"
         @back-click="handleBackToHome"

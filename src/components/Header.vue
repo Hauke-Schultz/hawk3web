@@ -31,6 +31,13 @@ const props = defineProps({
   pageTitle: {
     type: String,
     default: ''
+  },
+  playerProfile: {
+    type: Object,
+    default: () => ({
+      name: 'Player',
+      avatar: 'user'
+    })
   }
 })
 
@@ -66,9 +73,9 @@ const handleProfileClick = () => {
 <template>
   <header class="header" role="banner">
     <div class="header-container">
-      <!-- Left section: Back button or Logo -->
+      <!-- Left section -->
       <div class="header-left">
-        <!-- Back Button for settings and other pages -->
+        <!-- Back Button -->
         <button
           v-if="showBackButton"
           class="btn btn--circle back-button"
@@ -85,14 +92,11 @@ const handleProfileClick = () => {
         </div>
       </div>
 
-      <!-- Center section: Page Title or Player Profile -->
+      <!-- Center section -->
       <div class="header-center">
-        <!-- Page Title for non-home pages -->
-        <h1 v-if="pageTitle" class="page-title">{{ pageTitle }}</h1>
-
-        <!-- Player Profile for home page -->
+        <!-- Player Profile -->
         <div
-          v-else-if="showProfile"
+          v-if="showProfile"
           class="player-profile"
           @click="handleProfileClick"
           @keydown.enter="handleProfileClick"
@@ -101,7 +105,7 @@ const handleProfileClick = () => {
           aria-label="View player profile"
         >
           <div class="player-avatar">
-            <Icon name="user" size="24" />
+            <Icon :name="playerProfile.avatar || 'user'" size="24" />
           </div>
           <div class="player-info">
             <span class="player-name">Player</span>
@@ -110,9 +114,8 @@ const handleProfileClick = () => {
         </div>
       </div>
 
-      <!-- Right section: Actions or Spacer -->
+      <!-- Right section -->
       <div class="header-right">
-        <!-- Notifications for home page -->
         <button
           v-if="showNotifications"
           class="btn btn--circle-ghost notification-btn"
@@ -122,9 +125,6 @@ const handleProfileClick = () => {
           <Icon name="bell" size="24" />
           <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
         </button>
-
-        <!-- Spacer for settings page to center the title -->
-        <div v-else-if="showBackButton" class="header-spacer"></div>
       </div>
     </div>
   </header>
@@ -179,14 +179,6 @@ const handleProfileClick = () => {
   display: flex;
   justify-content: center;
   flex: 1;
-}
-
-.page-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  margin: 0;
-  text-align: center;
 }
 
 .player-profile {
@@ -252,10 +244,6 @@ const handleProfileClick = () => {
   gap: var(--space-3);
   flex: 1;
   justify-content: flex-end;
-}
-
-.header-spacer {
-  width: var(--space-8); // Same as back button to center title
 }
 
 .notification-badge {

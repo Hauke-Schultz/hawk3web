@@ -50,7 +50,7 @@ const handlePackageClick = () => {
 
 <template>
   <!-- Main Content Area -->
-  <main class="content" id="main-content">
+  <main class="content">
 
     <!-- Welcome Back Section -->
     <WelcomeCard
