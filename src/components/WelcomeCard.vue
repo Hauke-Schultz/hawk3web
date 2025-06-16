@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { computed, ref } from 'vue'
 
 // Props for the welcome card component
 const props = defineProps({
@@ -24,19 +24,51 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: true
+  },
+  // Card type for tracking read status
+  cardType: {
+    type: String,
+    default: 'welcomeCard'
+  },
+  // Whether to hide after being read
+  hideWhenRead: {
+    type: Boolean,
+    default: true
   }
 })
 
 // Emits for parent component communication
 const emit = defineEmits([
   'click',
-  'package-click' // Keep existing naming for compatibility
+  'package-click', // Keep existing naming for compatibility
+  'mark-as-read'
 ])
+
+// Reactive state for checkbox
+const isMarkedAsRead = ref(false)
 
 // Event handlers
 const handleClick = () => {
+  // Only emit click events, not mark-as-read
   emit('click')
   emit('package-click') // Emit both for backward compatibility
+}
+
+const handleCheckboxChange = (event) => {
+  // Stop event propagation to prevent card click
+  event.stopPropagation()
+
+  isMarkedAsRead.value = event.target.checked
+
+  if (event.target.checked) {
+    // Emit read event when checkbox is checked
+    emit('mark-as-read', props.cardType)
+  }
+}
+
+const handleCheckboxClick = (event) => {
+  // Prevent card click when clicking checkbox area
+  event.stopPropagation()
 }
 
 const handleKeyDown = (event) => {
@@ -59,6 +91,21 @@ const handleKeyDown = (event) => {
     tabindex="0"
     :aria-label="`${title} ${subtitle}`"
   >
+    <!-- Read Checkbox -->
+    <div class="read-checkbox-container" @click="handleCheckboxClick">
+      <label class="read-checkbox-label">
+        <input
+          type="checkbox"
+          class="read-checkbox"
+          :checked="isMarkedAsRead"
+          @change="handleCheckboxChange"
+          @click="handleCheckboxClick"
+          aria-label="Mark as read"
+        />
+        <span class="checkbox-custom"></span>
+      </label>
+    </div>
+
     <div class="welcome-card__content">
       <h2 class="welcome-card__title">{{ title }}</h2>
       <p class="welcome-card__subtitle">{{ subtitle }}</p>
@@ -75,6 +122,7 @@ const handleKeyDown = (event) => {
   flex-direction: column;
   gap: var(--space-4);
   text-align: center;
+  position: relative;
 
   &--interactive {
     cursor: pointer;
@@ -115,6 +163,73 @@ const handleKeyDown = (event) => {
     margin: 0;
     opacity: 0.9;
     color: var(--white);
+  }
+}
+
+// Read Checkbox Styles
+.read-checkbox-container {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 10;
+  cursor: pointer;
+}
+
+.read-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.read-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+
+  &:checked + .checkbox-custom {
+     background-color: rgba(255, 255, 255, 0.9);
+     border-color: rgba(255, 255, 255, 0.9);
+
+     &::after {
+       display: block;
+     }
+  }
+
+  &:focus + .checkbox-custom {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.checkbox-custom {
+  position: relative;
+  height: var(--space-5);
+  width: var(--space-5);
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+
+  // Checkmark
+  &::after {
+    content: '';
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid var(--primary-color);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
 }
 </style>

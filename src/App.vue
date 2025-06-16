@@ -6,6 +6,7 @@ import Settings from './components/Settings.vue'
 import Profile from './components/Profile.vue'
 import Home from './components/Home.vue'
 import Gaming from "./components/Gaming.vue";
+import Trophy from "./components/Trophy.vue";
 
 // LocalStorage service
 const { gameData, updatePlayer, updateSettings } = useLocalStorage()
@@ -57,6 +58,7 @@ const handleGameStart = (game) => {
 
 const handleTrophyClick = () => {
   console.log('Opening trophies...')
+  currentView.value = 'trophy'
 }
 
 const handlePackageClick = () => {
@@ -106,6 +108,18 @@ onMounted(() => {
         @start-game="handleGameStart"
         @back-to-home="handleBackToHome"
       />
+    </template>
+
+    <!-- Trophy View -->
+    <template v-else-if="currentView === 'trophy'">
+      <Header
+        :show-profile="true"
+        :show-back-button="true"
+        :page-title="'Trophies'"
+        @back-click="handleBackToHome"
+      />
+
+      <Trophy />
     </template>
 
     <!-- Profile View -->

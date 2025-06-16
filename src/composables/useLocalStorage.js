@@ -9,7 +9,7 @@ const getDefaultData = () => ({
 	player: {
 		name: 'Player',
 		avatar: 'user',
-		level: 1,
+		level: 0,
 		experience: 0,
 		totalScore: 0,
 		gamesPlayed: 0,
@@ -37,6 +37,21 @@ const getDefaultData = () => ({
 			maxLevel: 1,
 			totalMerges: 0
 		}
+	},
+	cardStates: {
+		welcomeCard: {
+			read: false,
+			lastShown: null,
+			readAt: null
+		},
+		trophyCard: {
+			read: false,
+			lastShown: null,
+			readAt: null
+		},
+		// Future card types can be added here
+		// notificationCard: { read: false, lastShown: null, readAt: null },
+		// promotionCard: { read: false, lastShown: null, readAt: null }
 	},
 	achievements: [
 		{
@@ -93,6 +108,22 @@ const validateGameData = (games) => {
 	}
 }
 
+const validateCardStates = (cardStates) => {
+	const defaultCards = getDefaultData().cardStates
+	const validated = {}
+
+	// Validate each card type
+	for (const [cardType, defaultState] of Object.entries(defaultCards)) {
+		validated[cardType] = {
+			read: typeof cardStates?.[cardType]?.read === 'boolean' ? cardStates[cardType].read : defaultState.read,
+			lastShown: cardStates?.[cardType]?.lastShown || defaultState.lastShown,
+			readAt: cardStates?.[cardType]?.readAt || defaultState.readAt
+		}
+	}
+
+	return validated
+}
+
 // Data migration function
 const migrateData = (data) => {
 	// Handle version migrations here
@@ -120,6 +151,7 @@ export function useLocalStorage() {
 					player: validatePlayerData(migrated.player),
 					settings: validateSettingsData(migrated.settings),
 					games: validateGameData(migrated.games),
+					cardStates: validateCardStates(migrated.cardStates),
 					achievements: Array.isArray(migrated.achievements) ? migrated.achievements : getDefaultData().achievements,
 					version: CURRENT_VERSION
 				}
@@ -208,6 +240,36 @@ export function useLocalStorage() {
 		return gameData.achievements.some(a => a.id === achievementId && a.earned)
 	}
 
+	// Card state methods
+	const markCardAsRead = (cardType) => {
+		if (gameData.cardStates[cardType]) {
+			gameData.cardStates[cardType].read = true
+			gameData.cardStates[cardType].readAt = new Date().toISOString()
+		}
+	}
+
+	const markCardAsShown = (cardType) => {
+		if (gameData.cardStates[cardType]) {
+			gameData.cardStates[cardType].lastShown = new Date().toISOString()
+		}
+	}
+
+	const resetCardState = (cardType) => {
+		if (gameData.cardStates[cardType]) {
+			gameData.cardStates[cardType].read = false
+			gameData.cardStates[cardType].readAt = null
+			gameData.cardStates[cardType].lastShown = null
+		}
+	}
+
+	const isCardRead = (cardType) => {
+		return gameData.cardStates[cardType]?.read || false
+	}
+
+	const getCardState = (cardType) => {
+		return gameData.cardStates[cardType] || { read: false, lastShown: null, readAt: null }
+	}
+
 	// Data management methods
 	const exportData = () => {
 		return JSON.stringify(gameData, null, 2)
@@ -264,6 +326,13 @@ export function useLocalStorage() {
 		// Achievement methods
 		addAchievement,
 		hasAchievement,
+
+		// Card state methods
+		markCardAsRead,
+		markCardAsShown,
+		resetCardState,
+		isCardRead,
+		getCardState,
 
 		// Data management
 		saveData,

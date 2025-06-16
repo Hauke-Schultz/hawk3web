@@ -1,7 +1,9 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import {defineProps, defineEmits, computed} from 'vue'
 import Icon from "./Icon.vue";
 import WelcomeCard from "./WelcomeCard.vue";
+import TrophyCard from "./TrophyCard.vue";
+import { useLocalStorage } from '../composables/useLocalStorage.js'
 
 // Props from parent component
 const props = defineProps({
@@ -17,6 +19,9 @@ const props = defineProps({
   }
 })
 
+// LocalStorage service for achievements
+const { gameData, markCardAsRead, isCardRead } = useLocalStorage()
+
 // Emits for parent component communication
 const emit = defineEmits([
   'start-game',
@@ -25,6 +30,83 @@ const emit = defineEmits([
   'settings-click',
   'package-click'
 ])
+
+// All possible achievements for mapping
+const allAchievements = [
+  {
+    id: 'welcome',
+    name: 'Welcome to Hawk3',
+    description: 'Started your gaming journey'
+  },
+  {
+    id: 'first_game',
+    name: 'First Game',
+    description: 'Played your first game'
+  },
+  {
+    id: 'level_5',
+    name: 'Rising Star',
+    description: 'Reached level 5'
+  },
+  {
+    id: 'level_10',
+    name: 'Dedicated Player',
+    description: 'Reached level 10'
+  },
+  {
+    id: 'level_15',
+    name: 'Gaming Expert',
+    description: 'Reached level 15'
+  },
+  {
+    id: 'score_1000',
+    name: 'Score Hunter',
+    description: 'Earned 1000 total points'
+  },
+  {
+    id: 'games_10',
+    name: 'Game Enthusiast',
+    description: 'Played 10 games'
+  },
+  {
+    id: 'perfectionist',
+    name: 'Perfectionist',
+    description: 'Complete a game with perfect score'
+  }
+]
+
+const isWelcomeCardVisible = computed(() => {
+  return !isCardRead('welcomeCard')
+})
+
+const isTrophyCardVisible = computed(() => {
+  return !isCardRead('trophyCard') && recentAchievements.value.length > 0
+})
+
+// Computed values for achievements
+const recentAchievements = computed(() => {
+  return gameData.achievements
+    .filter(achievement => achievement.earned)
+    .map(achievement => {
+      const details = allAchievements.find(a => a.id === achievement.id)
+      return {
+        ...achievement,
+        name: details?.name || achievement.name || 'Unknown Achievement'
+      }
+    })
+    .sort((a, b) => new Date(b.earnedAt) - new Date(a.earnedAt))
+    .slice(0, 3) // Show last 3 achievements
+})
+
+const achievementStats = computed(() => {
+  const earned = gameData.achievements.filter(a => a.earned).length
+  const total = allAchievements.length
+
+  return {
+    earned,
+    total
+  }
+})
 
 // Event handlers - emit to parent component
 const handleStartGame = () => {
@@ -46,6 +128,13 @@ const handleSettingsClick = () => {
 const handlePackageClick = () => {
   emit('package-click')
 }
+
+// Card read handlers
+const handleCardRead = (cardType) => {
+  console.log(`Marking ${cardType} as read...`)
+  markCardAsRead(cardType)
+}
+
 </script>
 
 <template>
@@ -54,9 +143,25 @@ const handlePackageClick = () => {
 
     <!-- Welcome Back Section -->
     <WelcomeCard
+      v-if="isWelcomeCardVisible"
       title="Welcome back!"
       subtitle="Ready to continue your journey?"
+      card-type="welcomeCard"
+      :hide-when-read="true"
+      @mark-as-read="handleCardRead"
       @click="handlePackageClick"
+    />
+
+    <!-- Latest Trophies Section -->
+    <TrophyCard
+      v-if="isTrophyCardVisible"
+      :achievements="recentAchievements"
+      :total-earned="achievementStats.earned"
+      :total-achievements="achievementStats.total"
+      card-type="trophyCard"
+      :hide-when-read="true"
+      @mark-as-read="handleCardRead"
+      @trophy-click="handleTrophyClick"
     />
 
     <!-- Game Actions Section -->

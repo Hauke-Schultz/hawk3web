@@ -4,7 +4,7 @@
 
 Create a comprehensive gaming platform featuring multiple mini-games with a modern, responsive interface that provides an engaging user experience across all devices.
 
-## 📊 Current Status (v0.2.0)
+## 📊 Current Status (v0.2.1)
 
 ✅ **Completed:**
 - Basic Vue 3 project structure with Vite
@@ -17,15 +17,46 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - Responsive mobile-first design (375px base)
 - Icon system with SVG components
 - **Gaming Hub Page** - Game selection interface with personal statistics
+- **Home Page Cards** - WelcomeCard and TrophyCard with read status functionality
+- **Card Management System** - Extensible card state tracking in localStorage
 
-## 🚀 Phase 1: Core Platform (v0.2.0) - NEARLY COMPLETE
+## 📋 Recent Additions (v0.2.1)
+*New features completed in this version*
+
+### **🏠 Home Page Enhancements**
+- **WelcomeCard**: Interactive gradient card with "Welcome back!" message
+- **TrophyCard**: Displays latest 3 achievements with completion statistics
+- **Read Status System**: Checkbox functionality to mark cards as read
+- **Persistent State**: Cards stay hidden once marked as read via localStorage
+
+### **💾 Data Structure Extensions**
+- **cardStates**: New localStorage section for tracking card read status
+- **Extensible System**: Easy addition of new card types (notifications, promotions, etc.)
+- **Migration Support**: Automatic data structure updates with version control
+
+### **🎨 UI/UX Improvements**
+- **Card-based Design**: Consistent card layout across home page
+- **Interactive Elements**: Hover effects and focus states for accessibility
+- **Visual Hierarchy**: Clear separation between welcome, achievements, and actions
+
+## 🚀 Phase 1: Core Platform (v0.2.1) - COMPLETE
 *Priority: High*
 
 - [x] **Profile Page** - Complete user data management
 - [x] **LocalStorage Service** - Centralized data persistence with structured storage
 - [x] **Gaming Hub Page** - Game selection interface with personal stats display
-- [ ] **Trophy Page** - Achievement system foundation
-- [ ] **Notifications Page** - Activity feed and alerts
+- [x] **WelcomeCard Component** - Interactive welcome back card with gradient design
+- [x] **TrophyCard Component** - Latest achievements display with progress statistics
+- [x] **Card Read Status System** - Mark cards as read with checkbox functionality
+- [x] **Card State Persistence** - LocalStorage tracking for card read states
+- [x] **Trophy Page** - Achievement system with categories, progress tracking, and rarity system
+
+## ⚙️ Phase 1.1: Settings & Data Management (v0.2.2)
+*Priority: High*
+
+- [ ] **Profile Reset Functionality** - "Delete Profile" button in Settings page
+- [ ] **LocalStorage Clear** - Complete localStorage reset with user confirmation
+- [ ] **Fresh Start State** - Automatic return to default data after profile deletion
 
 ## 🎮 Phase 2: First Game Memory (v0.3.0)
 *Priority: High*
@@ -46,6 +77,7 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 ## 👤 Phase 4: User Experience (v0.5.0)
 *Priority: Medium*
 
+- [ ] **Notifications Page** - Activity feed and alerts
 - [ ] **Navigation Enhancement** - Smooth transitions to Gaming Hub
 - [ ] **Enhanced Profile** - Statistics, game history, preferences
 - [ ] **Trophy System** - Complete achievement gallery
