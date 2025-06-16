@@ -105,7 +105,7 @@ const handleProfileClick = () => {
           aria-label="View player profile"
         >
           <div class="player-avatar">
-            <Icon :name="playerInfo.avatar" size="24" />
+            <Icon :name="playerInfo.avatar" size="34" />
           </div>
           <div class="player-info">
             <span class="player-name">{{ playerInfo.name }}</span>
@@ -208,7 +208,6 @@ const handleProfileClick = () => {
   width: var(--space-8);
   height: var(--space-8);
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--success-color), var(--success-hover));
   display: flex;
   align-items: center;
   justify-content: center;

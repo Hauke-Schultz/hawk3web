@@ -8,11 +8,11 @@ const { gameData, updatePlayer } = useLocalStorage()
 
 // Available avatar options
 const avatarOptions = [
-  { value: 'user', label: 'Default User', icon: 'user' },
-  { value: 'trophy', label: 'Champion', icon: 'trophy' },
-  { value: 'play', label: 'Gamer', icon: 'play' },
-  { value: 'settings', label: 'Tech Expert', icon: 'settings' },
-  { value: 'bell', label: 'Alert Master', icon: 'bell' }
+  { value: 'avatar/user', label: 'Default User', icon: 'avatar/user' },
+  { value: 'avatar/beard', label: 'Beard User', icon: 'avatar/beard' },
+  { value: 'avatar/glasses', label: 'Glasses User', icon: 'avatar/glasses' },
+  { value: 'avatar/headset', label: 'Headset User', icon: 'avatar/headset' },
+  { value: 'avatar/cap', label: 'Cap User', icon: 'avatar/cap' }
 ]
 
 // Computed values for direct access
@@ -56,7 +56,7 @@ const updatePlayerName = () => {
       <!-- Player Avatar Preview -->
       <div class="profile-preview">
         <div class="profile-avatar-large">
-          <Icon :name="selectedAvatar" size="48" />
+          <Icon :name="selectedAvatar" size="64" />
         </div>
         <div class="profile-info">
           <h3 class="profile-name">{{ playerName }}</h3>
@@ -108,7 +108,7 @@ const updatePlayerName = () => {
               :aria-pressed="selectedAvatar === option.value"
             >
               <div class="avatar-icon">
-                <Icon :name="option.icon" size="28" />
+                <Icon :name="option.icon" size="50" />
               </div>
             </button>
           </div>
@@ -149,7 +149,6 @@ const updatePlayerName = () => {
   width: var(--space-16);
   height: var(--space-16);
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--success-color), var(--success-hover));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -262,7 +261,7 @@ const updatePlayerName = () => {
   color: var(--text-color);
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: var(--space-3);
+  padding: 0;
 
   &:hover {
     background-color: var(--card-border);

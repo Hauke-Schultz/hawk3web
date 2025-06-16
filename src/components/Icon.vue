@@ -42,7 +42,7 @@ const props = defineProps({
 })
 
 // Import all SVG files from assets/svg directory
-const svgModules = import.meta.glob('/src/assets/svg/*.svg', {
+const svgModules = import.meta.glob('/src/assets/svg/**/*.svg', {
   as: 'raw',
   eager: true
 })
@@ -52,9 +52,19 @@ const iconMap = computed(() => {
   const icons = {}
 
   for (const path in svgModules) {
-    // Extract filename without extension from path
-    const filename = path.split('/').pop().replace('.svg', '')
-    icons[filename] = svgModules[path]
+    const pathSegments = path.split('/')
+    const filename = pathSegments.pop().replace('.svg', '') // 'settings.svg' -> 'settings'
+
+    // Für Root-Level: settings.svg -> 'settings'
+    // Für Subfolder: avatar/beard.svg -> 'avatar/beard'
+    if (pathSegments[pathSegments.length - 1] === 'svg') {
+      // Root level: /src/assets/svg/settings.svg
+      icons[filename] = svgModules[path]
+    } else {
+      // Subfolder: /src/assets/svg/avatar/beard.svg
+      const subfolder = pathSegments[pathSegments.length - 1]
+      icons[`${subfolder}/${filename}`] = svgModules[path]
+    }
   }
 
   return icons
