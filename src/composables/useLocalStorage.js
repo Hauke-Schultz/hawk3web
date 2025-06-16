@@ -7,12 +7,12 @@ const CURRENT_VERSION = '1.0'
 // Default data structure
 const getDefaultData = () => ({
 	player: {
-		name: 'Hawk',
+		name: 'Player',
 		avatar: 'user',
-		level: 15,
-		experience: 750,
-		totalScore: 1325,
-		gamesPlayed: 12,
+		level: 1,
+		experience: 0,
+		totalScore: 0,
+		gamesPlayed: 0,
 		createdAt: new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0]
 	},
@@ -26,12 +26,14 @@ const getDefaultData = () => ({
 		memory: {
 			highScore: 0,
 			gamesPlayed: 0,
+			totalScore: 0,
 			bestTime: null,
 			averageTime: null
 		},
 		fruitMerge: {
 			highScore: 0,
 			gamesPlayed: 0,
+			totalScore: 0,
 			maxLevel: 1,
 			totalMerges: 0
 		}
@@ -76,12 +78,14 @@ const validateGameData = (games) => {
 	return {
 		memory: {
 			highScore: typeof games?.memory?.highScore === 'number' ? games.memory.highScore : defaultGames.memory.highScore,
+			totalScore: typeof games?.memory?.totalScore === 'number' ? games.memory.totalScore : defaultGames.memory.totalScore,
 			gamesPlayed: typeof games?.memory?.gamesPlayed === 'number' ? games.memory.gamesPlayed : defaultGames.memory.gamesPlayed,
 			bestTime: typeof games?.memory?.bestTime === 'number' ? games.memory.bestTime : defaultGames.memory.bestTime,
 			averageTime: typeof games?.memory?.averageTime === 'number' ? games.memory.averageTime : defaultGames.memory.averageTime
 		},
 		fruitMerge: {
 			highScore: typeof games?.fruitMerge?.highScore === 'number' ? games.fruitMerge.highScore : defaultGames.fruitMerge.highScore,
+			totalScore: typeof games?.fruitMerge?.totalScore === 'number' ? games.fruitMerge.totalScore : defaultGames.fruitMerge.totalScore,
 			gamesPlayed: typeof games?.fruitMerge?.gamesPlayed === 'number' ? games.fruitMerge.gamesPlayed : defaultGames.fruitMerge.gamesPlayed,
 			maxLevel: typeof games?.fruitMerge?.maxLevel === 'number' ? games.fruitMerge.maxLevel : defaultGames.fruitMerge.maxLevel,
 			totalMerges: typeof games?.fruitMerge?.totalMerges === 'number' ? games.fruitMerge.totalMerges : defaultGames.fruitMerge.totalMerges

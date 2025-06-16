@@ -5,6 +5,7 @@ import Header from './components/Header.vue'
 import Settings from './components/Settings.vue'
 import Profile from './components/Profile.vue'
 import Home from './components/Home.vue'
+import Gaming from "./components/Gaming.vue";
 
 // LocalStorage service
 const { gameData, updatePlayer, updateSettings } = useLocalStorage()
@@ -38,9 +39,20 @@ const handlePlayerUpdate = (updatedProfile) => {
   updatePlayer(updatedProfile)
 }
 
+const handleGamingClick = () => {
+  console.log('Opening gaming hub...')
+  currentView.value = 'gaming'
+}
+
 // Game action handlers
 const handleStartGame = () => {
-  console.log('Starting game...')
+  console.log('Opening gaming hub...')
+  currentView.value = 'gaming'
+}
+
+const handleGameStart = (game) => {
+  console.log(`Starting ${game.name}...`)
+  // TODO: Navigate to specific game
 }
 
 const handleTrophyClick = () => {
@@ -78,6 +90,21 @@ onMounted(() => {
         @trophy-click="handleTrophyClick"
         @settings-click="handleSettingsClick"
         @package-click="handlePackageClick"
+      />
+    </template>
+
+    <!-- Gaming View -->
+    <template v-else-if="currentView === 'gaming'">
+      <Header
+        :show-profile="true"
+        :show-back-button="true"
+        :page-title="'Gaming Hub'"
+        @back-click="handleBackToHome"
+      />
+
+      <Gaming
+        @start-game="handleGameStart"
+        @back-to-home="handleBackToHome"
       />
     </template>
 
