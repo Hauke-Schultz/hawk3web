@@ -9,7 +9,7 @@ import Gaming from "./components/Gaming.vue";
 import Trophy from "./components/Trophy.vue";
 
 // LocalStorage service
-const { gameData, updatePlayer, updateSettings } = useLocalStorage()
+const { gameData, updatePlayer, updateSettings, checkAutoAchievements } = useLocalStorage()
 
 // Reactive data
 const currentView = ref('home')
@@ -72,6 +72,8 @@ const handleNotificationClick = () => {
 // Lifecycle
 onMounted(() => {
   document.documentElement.setAttribute('data-theme', gameData.settings.theme)
+
+  checkAutoAchievements()
 })
 </script>
 

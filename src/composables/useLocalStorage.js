@@ -164,7 +164,9 @@ export function useLocalStorage() {
 	}
 
 	// Reactive data
-	const gameData = reactive(loadData())
+	const gameData = reactive({})
+	Object.assign(gameData, loadData())
+	checkAutoAchievements()
 
 	// Save data to localStorage
 	const saveData = () => {
@@ -300,6 +302,72 @@ export function useLocalStorage() {
 		saveData()
 	}
 
+	function checkAutoAchievements() {
+		// First game achievement
+		if (gameData.player.gamesPlayed > 0 && !gameData.achievements.some(a => a.id === 'first_game' && a.earned)) {
+			gameData.achievements.push({
+				id: 'first_game',
+				name: 'First Game',
+				description: 'Played your first game',
+				earned: true,
+				earnedAt: new Date().toISOString()
+			})
+		}
+
+		// Level achievements
+		if (gameData.player.level >= 5 && !gameData.achievements.some(a => a.id === 'level_5' && a.earned)) {
+			gameData.achievements.push({
+				id: 'level_5',
+				name: 'Rising Star',
+				description: 'Reached level 5',
+				earned: true,
+				earnedAt: new Date().toISOString()
+			})
+		}
+
+		if (gameData.player.level >= 10 && !gameData.achievements.some(a => a.id === 'level_10' && a.earned)) {
+			gameData.achievements.push({
+				id: 'level_10',
+				name: 'Dedicated Player',
+				description: 'Reached level 10',
+				earned: true,
+				earnedAt: new Date().toISOString()
+			})
+		}
+
+		if (gameData.player.level >= 15 && !gameData.achievements.some(a => a.id === 'level_15' && a.earned)) {
+			gameData.achievements.push({
+				id: 'level_15',
+				name: 'Gaming Expert',
+				description: 'Reached level 15',
+				earned: true,
+				earnedAt: new Date().toISOString()
+			})
+		}
+
+		// Score achievement
+		if (gameData.player.totalScore >= 1000 && !gameData.achievements.some(a => a.id === 'score_1000' && a.earned)) {
+			gameData.achievements.push({
+				id: 'score_1000',
+				name: 'Score Hunter',
+				description: 'Earned 1000 total points',
+				earned: true,
+				earnedAt: new Date().toISOString()
+			})
+		}
+
+		// Games played achievement
+		if (gameData.player.gamesPlayed >= 10 && !gameData.achievements.some(a => a.id === 'games_10' && a.earned)) {
+			gameData.achievements.push({
+				id: 'games_10',
+				name: 'Game Enthusiast',
+				description: 'Played 10 games',
+				earned: true,
+				earnedAt: new Date().toISOString()
+			})
+		}
+	}
+
 	const clearStorage = () => {
 		localStorage.removeItem(STORAGE_KEY)
 		const defaultData = getDefaultData()
@@ -326,6 +394,7 @@ export function useLocalStorage() {
 		// Achievement methods
 		addAchievement,
 		hasAchievement,
+		checkAutoAchievements,
 
 		// Card state methods
 		markCardAsRead,

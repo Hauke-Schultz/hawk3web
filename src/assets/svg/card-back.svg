@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#4F46E5"/>
+            <stop offset="100%" style="stop-color:#7C3AED"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Card background -->
+    <rect x="5" y="5" width="90" height="90" rx="8" ry="8"
+          fill="url(#cardGradient)" stroke="#2D1B69" stroke-width="2"/>
+
+    <!-- Inner border -->
+    <rect x="10" y="10" width="80" height="80" rx="6" ry="6"
+          fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.3"/>
+
+    <!-- Central circle -->
+    <circle cx="50" cy="50" r="20" fill="#FFFFFF" opacity="0.2"/>
+    <circle cx="50" cy="50" r="15" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+
+    <!-- Simple question mark symbol -->
+    <text x="50" y="60" font-family="Arial, sans-serif" font-size="24" font-weight="bold"
+          text-anchor="middle" fill="#FFFFFF">?</text>
+
+    <!-- Corner dots -->
+    <circle cx="20" cy="20" r="2" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="80" cy="20" r="2" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="20" cy="80" r="2" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="80" cy="80" r="2" fill="#FFFFFF" opacity="0.6"/>
+</svg>

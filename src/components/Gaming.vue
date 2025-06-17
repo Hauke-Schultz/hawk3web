@@ -1,156 +1,167 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import Icon from "./Icon.vue"
+import Icon from './Icon.vue'
+import MemoryGame from './MemoryGame.vue'
 
-// LocalStorage service for game statistics
+// LocalStorage service
 const { gameData } = useLocalStorage()
 
-// Available games configuration - nur die ersten 2 Spiele
-const availableGames = [
-  {
-    id: 'memory',
-    name: 'Memory Game',
-    description: 'Test your memory with card matching',
-    icon: 'play',
-    color: 'primary',
-    status: 'coming-soon', // 'available', 'coming-soon', 'locked'
-  },
-  {
-    id: 'fruitMerge',
-    name: 'Fruit Merge',
-    description: 'Merge fruits to create new combinations',
-    icon: 'play',
-    color: 'success',
-    status: 'coming-soon',
-  }
-]
+// View management
+const currentView = ref('hub') // 'hub', 'memory-game'
 
-// Computed game statistics
-const getGameStats = (gameId) => {
-  return gameData.games[gameId] || {
-    highScore: 0,
-    gamesPlayed: 0,
-    totalScore: 0,
-    bestTime: null,
-    averageTime: null
+// Computed properties for gaming stats
+const totalGamesPlayed = computed(() => {
+  return Object.values(gameData.games).reduce((total, game) => total + game.gamesPlayed, 0)
+})
+
+const totalScore = computed(() => {
+  return Object.values(gameData.games).reduce((total, game) => total + game.totalScore, 0)
+})
+
+const highestScore = computed(() => {
+  return Math.max(...Object.values(gameData.games).map(game => game.highScore))
+})
+
+// Game methods
+const startGame = (gameId) => {
+  console.log(`Starting ${gameId} game...`)
+  if (gameId === 'memory') {
+    currentView.value = 'memory-game'
   }
 }
 
-// Event handlers
-const emit = defineEmits([
-  'start-game',
-  'back-to-home'
-])
-
-const handleGameStart = (game) => {
-  if (game.status === 'available') {
-    emit('start-game', game)
-  } else {
-    console.log(`${game.name} is ${game.status}`)
-  }
+const backToHub = () => {
+  currentView.value = 'hub'
 }
 
-const handleBackToHome = () => {
-  emit('back-to-home')
+const handleGameComplete = (gameResult) => {
+  console.log('Game completed:', gameResult)
+  // Could show completion modal or automatically return to hub
+}
+
+const viewLeaderboard = () => {
+  console.log('Opening leaderboard...')
+  // TODO: Implement leaderboard
+}
+
+const viewAchievements = () => {
+  console.log('Opening achievements...')
+  // TODO: Implement achievements view
 }
 </script>
 
 <template>
-  <main class="content">
-    <!-- Games Header -->
-    <section class="games-header">
-      <h2 class="games-title">Choose Your Game</h2>
-      <p class="games-subtitle">Select a game to start your adventure</p>
-    </section>
+  <main v-if="currentView === 'hub'" class="gaming-hub">
+    <div class="hero-section">
+      <h2 class="hero-title">Gaming Hub</h2>
+      <p class="hero-subtitle">Challenge yourself with exciting games</p>
+    </div>
 
-    <!-- Games Grid -->
-    <section class="games-grid" aria-label="Available Games">
-      <div
-        v-for="game in availableGames"
-        :key="game.id"
-        class="game-card"
-        :class="{
-          'game-card--available': game.status === 'available',
-          'game-card--coming-soon': game.status === 'coming-soon',
-          'game-card--locked': game.status === 'locked'
-        }"
-        @click="handleGameStart(game)"
-        @keydown.enter="handleGameStart(game)"
-        tabindex="0"
-        role="button"
-        :aria-label="`${game.name} - ${game.status}`"
-      >
-        <!-- Game Icon -->
+    <div class="games-grid">
+      <!-- Memory Game Card -->
+      <div class="game-card">
         <div class="game-icon">
-          <div
-            class="icon-btn"
-            :class="`btn--${game.color}`"
-            :aria-label="game.name"
-          >
-            <Icon :name="game.icon" size="28" />
+          <Icon name="brain" size="56" />
+        </div>
+        <div class="game-info">
+          <h3 class="game-title">Memory Game</h3>
+          <p class="game-description">Match pairs of cards and test your memory</p>
+          <div class="game-stats">
+            <span class="best-score">Best: {{ gameData.games.memory.highScore }}</span>
+            <span class="games-played">{{ gameData.games.memory.gamesPlayed }} played</span>
           </div>
         </div>
+        <button class="play-button" @click="startGame('memory')">
+          <Icon name="play" size="20" />
+          Play
+        </button>
+      </div>
 
-        <!-- Game Content -->
-        <div class="game-content">
-          <div class="game-header">
-            <h3 class="game-name">{{ game.name }}</h3>
-            <div
-              class="game-status-badge"
-              :class="`badge--${game.status}`"
-            >
-              {{ game.status === 'coming-soon' ? 'Coming Soon' :
-              game.status === 'locked' ? 'Locked' : 'Available' }}
-            </div>
-          </div>
-
-          <p class="game-description">{{ game.description }}</p>
-
-          <!-- Game Info mit Highscore und Punkten -->
-          <div class="game-info">
-            <div class="personal-stats">
-              <div class="personal-stat">
-                <span class="stat-label">Highscore</span>
-                <span class="stat-value">{{ getGameStats(game.id).highScore.toString() }}</span>
-              </div>
-              <div class="personal-stat">
-                <span class="stat-label">Points</span>
-                <span class="stat-value">{{ getGameStats(game.id).totalScore.toString() }}</span>
-              </div>
-            </div>
-          </div>
+      <!-- FruitMerge Game Card (Coming Soon) -->
+      <div class="game-card game-card--coming-soon">
+        <div class="game-icon">
+          <Icon name="play" size="32" />
         </div>
+        <div class="game-info">
+          <h3 class="game-title">Fruit Merge</h3>
+          <p class="game-description">Merge fruits to create new combinations</p>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+        <button class="play-button" disabled>
+          <Icon name="play" size="20" />
+          Soon
+        </button>
+      </div>
+    </div>
 
-        <!-- Play Button Overlay (nur für verfügbare Spiele) -->
-        <div
-          v-if="game.status === 'available'"
-          class="game-play-overlay"
-        >
-          <div class="play-button">
-            <Icon name="play" size="24" />
-          </div>
+    <!-- Gaming Stats Section -->
+    <div class="stats-section">
+      <h3 class="stats-title">Your Gaming Stats</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <Icon name="play" size="24" />
+          <span class="stat-value">{{ totalGamesPlayed }}</span>
+          <span class="stat-label">Games Played</span>
+        </div>
+        <div class="stat-card">
+          <Icon name="trophy" size="24" />
+          <span class="stat-value">{{ totalScore }}</span>
+          <span class="stat-label">Total Score</span>
+        </div>
+        <div class="stat-card">
+          <Icon name="trophy" size="24" />
+          <span class="stat-value">{{ highestScore }}</span>
+          <span class="stat-label">Best Score</span>
         </div>
       </div>
-    </section>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="action-button" @click="viewLeaderboard">
+        <Icon name="trophy" size="20" />
+        Leaderboard
+      </button>
+      <button class="action-button" @click="viewAchievements">
+        <Icon name="trophy" size="20" />
+        Achievements
+      </button>
+    </div>
   </main>
+
+  <!-- Memory Game View -->
+  <MemoryGame
+    v-else-if="currentView === 'memory-game'"
+    @back-to-gaming="backToHub"
+    @game-complete="handleGameComplete"
+  />
 </template>
 
 <style lang="scss" scoped>
-// Games Header
-.games-header {
-  text-align: center;
-  margin-bottom: var(--space-6);
+// Gaming Hub Main Container
+.gaming-hub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4);
+  min-height: calc(100vh - 80px);
 }
 
-.games-title {
+// Hero Section
+.hero-section {
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+.hero-title {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   margin: 0 0 var(--space-2) 0;
 }
 
-.games-subtitle {
+.hero-subtitle {
   font-size: var(--font-size-base);
   color: var(--text-secondary);
   margin: 0;
@@ -161,110 +172,59 @@ const handleBackToHome = () => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
 }
 
-// Game Card
+// Game Cards
 .game-card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--border-radius-xl);
   padding: var(--space-4);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-4);
-  cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
 
-  &:hover {
+  &:hover:not(&--coming-soon) {
     background-color: var(--card-bg-hover);
     box-shadow: var(--card-shadow-hover);
-    transform: translateY(-1px);
-  }
-
-  &:focus-visible {
-    outline: var(--focus-outline);
-    outline-offset: 2px;
-    box-shadow: var(--focus-shadow);
-  }
-
-  &--available {
-    &:hover .game-play-overlay {
-      opacity: 1;
-      visibility: visible;
-    }
+    transform: translateY(-2px);
   }
 
   &--coming-soon {
-    opacity: 0.8;
-    cursor: default;
+    opacity: 0.7;
 
-    &:hover {
-      transform: none;
-      box-shadow: var(--card-shadow);
-    }
-  }
-
-  &--locked {
-    opacity: 0.5;
-    cursor: not-allowed;
-
-    &:hover {
-      transform: none;
-      box-shadow: var(--card-shadow);
-      background-color: var(--card-bg);
+    .play-button {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 }
 
 .game-icon {
+  color: white;
+  border-radius: 50%;
+  width: var(--space-14);
+  height: var(--space-14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.game-content {
+.game-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-}
-
-.game-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
 }
 
-.game-name {
+.game-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   margin: 0;
-}
-
-.game-status-badge {
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-
-  &.badge--available {
-    background-color: var(--success-color);
-    color: white;
-  }
-
-  &.badge--coming-soon {
-    background-color: var(--warning-color);
-    color: white;
-  }
-
-  &.badge--locked {
-    background-color: var(--info-color);
-    color: white;
-  }
 }
 
 .game-description {
@@ -274,91 +234,178 @@ const handleBackToHome = () => {
   line-height: 1.4;
 }
 
-// Game Info mit Personal Stats
-.game-info {
+.game-stats {
   display: flex;
-  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.best-score,
+.games-played {
+  font-weight: var(--font-weight-bold);
+}
+
+.coming-soon-badge {
+  background-color: var(--warning-color);
+  color: white;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.play-button {
+  background-color: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background-color: var(--success-hover);
+    transform: scale(1.05);
+  }
+
+  &:disabled {
+    background-color: var(--info-color);
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// Stats Section
+.stats-section {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-4);
+}
+
+.stats-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin: 0 0 var(--space-4) 0;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
 }
 
-.personal-stats {
+.stat-card {
   display: flex;
-  gap: var(--space-4);
-  padding: var(--space-2) var(--space-3);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
   background-color: var(--card-bg-hover);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
   border: 1px solid var(--card-border);
 }
 
-.personal-stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-0);
-  align-items: flex-start;
-  flex: 1;
+.stat-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
 }
 
 .stat-label {
   font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  font-weight: var(--font-weight-base);
+  color: var(--text-secondary);
+  text-align: center;
   text-transform: uppercase;
-}
-
-.stat-value {
-  font-size: var(--font-size-base);
-  color: var(--text-color);
   font-weight: var(--font-weight-bold);
 }
 
-.game-meta {
+// Quick Actions
+.quick-actions {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-3);
+  justify-content: center;
 }
 
-.meta-item {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
+.action-button {
+  background-color: var(--info-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all 0.2s ease;
+  flex: 1;
+  justify-content: center;
 
-  strong {
-    color: var(--text-secondary);
+  &:hover {
+    background-color: var(--info-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--card-shadow-hover);
   }
 }
 
-// Play Button Overlay
-.game-play-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: rgba(79, 70, 229, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  border-radius: var(--border-radius-xl);
+// Mobile Responsive Design
+@media (max-width: 480px) {
+  .gaming-hub {
+    padding: var(--space-3);
+    gap: var(--space-4);
+  }
+
+  .game-card {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .game-icon {
+    width: var(--space-12);
+    height: var(--space-12);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .quick-actions {
+    flex-direction: column;
+  }
+
+  .hero-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .play-button {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-xs);
+  }
 }
 
-.play-button {
-  background-color: white;
-  color: var(--primary-color);
-  border-radius: 50%;
-  width: var(--space-12);
-  height: var(--space-12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
-}
+// Tablet Design
+@media (min-width: 481px) and (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
 
-// Games Actions
-.games-actions {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-4);
+  .games-grid {
+    gap: var(--space-3);
+  }
 }
 </style>

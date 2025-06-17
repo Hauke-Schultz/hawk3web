@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <radialGradient id="appleGradient" cx="40%" cy="30%" r="70%">
+            <stop offset="0%" style="stop-color:#BBF7D0"/>
+            <stop offset="30%" style="stop-color:#4ADE80"/>
+            <stop offset="70%" style="stop-color:#22C55E"/>
+            <stop offset="100%" style="stop-color:#16A34A"/>
+        </radialGradient>
+
+        <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#65A30D"/>
+            <stop offset="100%" style="stop-color:#4D7C0F"/>
+        </linearGradient>
+
+        <radialGradient id="highlight" cx="35%" cy="25%" r="30%">
+            <stop offset="0%" style="stop-color:#FFFFFF"/>
+            <stop offset="100%" style="stop-color:#FFFFFF" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+
+    <!-- Apple main body - perfectly round -->
+    <circle cx="50" cy="50" r="30" fill="url(#appleGradient)"/>
+
+    <!-- Apple top indent -->
+    <path d="M35 25 Q50 18 65 25 Q50 30 35 25" fill="#16A34A"/>
+
+    <!-- Apple stem -->
+    <rect x="49" y="15" width="2" height="10" fill="#8B4513" rx="1"/>
+
+    <!-- Apple leaf -->
+    <ellipse cx="58" cy="22" rx="6" ry="3" fill="url(#leafGradient)"
+             transform="rotate(25 58 22)"/>
+
+    <!-- Leaf vein -->
+    <path d="M55 22 Q58 22 61 22" stroke="#4D7C0F" stroke-width="0.8"
+          transform="rotate(25 58 22)"/>
+
+    <!-- Main highlight -->
+    <ellipse cx="42" cy="40" rx="8" ry="12" fill="url(#highlight)" opacity="0.7"/>
+
+    <!-- Small highlight -->
+    <ellipse cx="38" cy="38" rx="3" ry="4" fill="#FFFFFF" opacity="0.5"/>
+</svg>
