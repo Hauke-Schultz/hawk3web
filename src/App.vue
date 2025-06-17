@@ -35,16 +35,6 @@ const handleProfileClick = () => {
   currentView.value = 'profile'
 }
 
-// Player profile handling
-const handlePlayerUpdate = (updatedProfile) => {
-  updatePlayer(updatedProfile)
-}
-
-const handleGamingClick = () => {
-  console.log('Opening gaming hub...')
-  currentView.value = 'gaming'
-}
-
 // Game action handlers
 const handleStartGame = () => {
   console.log('Opening gaming hub...')
@@ -72,7 +62,6 @@ const handleNotificationClick = () => {
 // Lifecycle
 onMounted(() => {
   document.documentElement.setAttribute('data-theme', gameData.settings.theme)
-
   checkAutoAchievements()
 })
 </script>

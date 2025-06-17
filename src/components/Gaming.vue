@@ -10,19 +10,6 @@ const { gameData } = useLocalStorage()
 // View management
 const currentView = ref('hub') // 'hub', 'memory-game'
 
-// Computed properties for gaming stats
-const totalGamesPlayed = computed(() => {
-  return Object.values(gameData.games).reduce((total, game) => total + game.gamesPlayed, 0)
-})
-
-const totalScore = computed(() => {
-  return Object.values(gameData.games).reduce((total, game) => total + game.totalScore, 0)
-})
-
-const highestScore = computed(() => {
-  return Math.max(...Object.values(gameData.games).map(game => game.highScore))
-})
-
 // Game methods
 const startGame = (gameId) => {
   console.log(`Starting ${gameId} game...`)
@@ -38,16 +25,6 @@ const backToHub = () => {
 const handleGameComplete = (gameResult) => {
   console.log('Game completed:', gameResult)
   // Could show completion modal or automatically return to hub
-}
-
-const viewLeaderboard = () => {
-  console.log('Opening leaderboard...')
-  // TODO: Implement leaderboard
-}
-
-const viewAchievements = () => {
-  console.log('Opening achievements...')
-  // TODO: Implement achievements view
 }
 </script>
 
@@ -93,40 +70,6 @@ const viewAchievements = () => {
           Soon
         </button>
       </div>
-    </div>
-
-    <!-- Gaming Stats Section -->
-    <div class="stats-section">
-      <h3 class="stats-title">Your Gaming Stats</h3>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <Icon name="play" size="24" />
-          <span class="stat-value">{{ totalGamesPlayed }}</span>
-          <span class="stat-label">Games Played</span>
-        </div>
-        <div class="stat-card">
-          <Icon name="trophy" size="24" />
-          <span class="stat-value">{{ totalScore }}</span>
-          <span class="stat-label">Total Score</span>
-        </div>
-        <div class="stat-card">
-          <Icon name="trophy" size="24" />
-          <span class="stat-value">{{ highestScore }}</span>
-          <span class="stat-label">Best Score</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <button class="action-button" @click="viewLeaderboard">
-        <Icon name="trophy" size="20" />
-        Leaderboard
-      </button>
-      <button class="action-button" @click="viewAchievements">
-        <Icon name="trophy" size="20" />
-        Achievements
-      </button>
     </div>
   </main>
 
@@ -281,131 +224,6 @@ const viewAchievements = () => {
     background-color: var(--info-color);
     cursor: not-allowed;
     transform: none;
-  }
-}
-
-// Stats Section
-.stats-section {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-4);
-}
-
-.stats-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  margin: 0 0 var(--space-4) 0;
-  text-align: center;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
-}
-
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  background-color: var(--card-bg-hover);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--card-border);
-}
-
-.stat-value {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-}
-
-.stat-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  text-align: center;
-  text-transform: uppercase;
-  font-weight: var(--font-weight-bold);
-}
-
-// Quick Actions
-.quick-actions {
-  display: flex;
-  gap: var(--space-3);
-  justify-content: center;
-}
-
-.action-button {
-  background-color: var(--info-color);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-md);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  transition: all 0.2s ease;
-  flex: 1;
-  justify-content: center;
-
-  &:hover {
-    background-color: var(--info-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--card-shadow-hover);
-  }
-}
-
-// Mobile Responsive Design
-@media (max-width: 480px) {
-  .gaming-hub {
-    padding: var(--space-3);
-    gap: var(--space-4);
-  }
-
-  .game-card {
-    padding: var(--space-3);
-    gap: var(--space-3);
-  }
-
-  .game-icon {
-    width: var(--space-12);
-    height: var(--space-12);
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-2);
-  }
-
-  .quick-actions {
-    flex-direction: column;
-  }
-
-  .hero-title {
-    font-size: var(--font-size-xl);
-  }
-
-  .play-button {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--font-size-xs);
-  }
-}
-
-// Tablet Design
-@media (min-width: 481px) and (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-4);
-  }
-
-  .games-grid {
-    gap: var(--space-3);
   }
 }
 </style>

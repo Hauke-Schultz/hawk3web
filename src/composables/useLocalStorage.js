@@ -44,12 +44,9 @@ const getDefaultData = () => ({
 			lastShown: null,
 			readAt: null
 		},
-		trophyCard: {
-			read: false,
-			lastShown: null,
-			readAt: null
-		},
+
 		// Future card types can be added here
+		// trophyCard: { read: false, lastShown: null, readAt: null},
 		// notificationCard: { read: false, lastShown: null, readAt: null },
 		// promotionCard: { read: false, lastShown: null, readAt: null }
 	},
@@ -189,7 +186,9 @@ export function useLocalStorage() {
 
 	// Player methods
 	const updatePlayer = (updates) => {
-		Object.assign(gameData.player, validatePlayerData({ ...gameData.player, ...updates }))
+		const newPlayerData = { ...gameData.player, ...updates }
+		Object.assign(gameData.player, validatePlayerData(newPlayerData))
+		saveData()
 	}
 
 	const addExperience = (amount) => {

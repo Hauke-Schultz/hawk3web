@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import {ref, computed, watch} from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import Icon from "./Icon.vue";
 
@@ -68,6 +68,10 @@ const handleBackClick = () => {
 const handleProfileClick = () => {
   emit('profile-click')
 }
+
+watch(() => gameData.player, (newPlayer) => {
+  console.log('Player data changed in Header:', newPlayer)
+}, { deep: true })
 </script>
 
 <template>
