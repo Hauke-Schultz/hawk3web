@@ -79,7 +79,8 @@
 
   /* Status Colors */
   --error-color: #EF4444;
-  --error-light: #FEE2E2;
+  --error-hover: #F44336;
+  --error-light: rgba(239, 68, 68, 0.2);
 
   /* Button Colors */
   --button-bg: var(--primary-color);
@@ -145,14 +146,15 @@
 
   /* Status Colors */
   --error-color: #EF4444;
+  --error-hover: #F87171;
   --error-light: rgba(239, 68, 68, 0.2);
 
   /* Button Colors */
   --button-bg: var(--primary-color);
   --button-bg-hover: var(--primary-hover);
   --button-text: #ffffff;
-  --button-ghost-text: var(--primary-color);
-  --button-ghost-border: var(--primary-color);
+  --button-ghost-text: var(--white);
+  --button-ghost-border: var(--white);
   --button-ghost-bg-hover: rgba(99, 102, 241, 0.1);
 
   /* Gradient Button */
@@ -343,6 +345,58 @@ body {
 }
 .btn--circle-ghost:hover {
   background-color: var(--button-ghost-bg-hover);
+}
+
+/* Delete Button Styles */
+.btn--danger {
+  color: var(--white);
+  background-color: var(--error-color);
+}
+.btn--danger:hover {
+  background-color: var(--error-hover);
+  box-shadow:  0 0 0 0.25rem var(--error-light);
+}
+
+/* Lock Button Styles */
+.btn--lock {
+  background-color: var(--info-color);
+  color: white;
+  transition: all 0.3s ease;
+}
+.btn--lock:hover {
+  background-color: var(--info-hover);
+  box-shadow:  0 0 0 0.25rem rgba(107, 114, 128, 0.25);
+}
+
+.btn--unlock {
+  background-color: var(--warning-color);
+  color: var(--white);
+}
+.btn--unlock:hover {
+  background-color: var(--warning-hover);
+  box-shadow:  0 0 0 0.25rem rgba(245, 158, 11, 0.25);
+}
+
+.btn--delete {
+  background-color: var(--info-color);
+  color: var(--white);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn--delete:hover {
+  background-color: var(--info-color);
+  box-shadow:  0 0 0 0.25rem rgba(107, 114, 128, 0.25);
+}
+
+.btn--delete-active {
+  background-color: var(--error-color);
+  color: var(--white);
+  opacity: 1;
+  cursor: pointer;
+}
+.btn--delete-active:hover {
+  background-color: var(--error-hover);
+  box-shadow:  0 0 0 0.25rem rgba(239, 68, 68, 0.25);
 }
 
 /* Card Base Styles */
