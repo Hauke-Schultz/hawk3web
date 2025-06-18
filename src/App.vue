@@ -90,9 +90,9 @@ onMounted(() => {
     <template v-else-if="currentView === 'gaming'">
       <Header
         :show-profile="true"
-        :show-back-button="true"
+        :show-menu-button="true"
         :page-title="'Gaming Hub'"
-        @back-click="handleBackToHome"
+        @menu-click="handleBackToHome"
       />
 
       <Gaming
@@ -105,9 +105,9 @@ onMounted(() => {
     <template v-else-if="currentView === 'trophy'">
       <Header
         :show-profile="true"
-        :show-back-button="true"
+        :show-menu-button="true"
         :page-title="'Trophies'"
-        @back-click="handleBackToHome"
+        @menu-click="handleBackToHome"
       />
 
       <Trophy />
@@ -117,9 +117,9 @@ onMounted(() => {
     <template v-else-if="currentView === 'profile'">
       <Header
         :show-profile="true"
-        :show-back-button="true"
+        :show-menu-button="true"
         :page-title="'Profile'"
-        @back-click="handleBackToHome"
+        @menu-click="handleBackToHome"
       />
 
       <Profile />
@@ -129,9 +129,9 @@ onMounted(() => {
     <template v-else-if="currentView === 'settings'">
       <Header
         :show-profile="true"
-        :show-back-button="true"
+        :show-menu-button="true"
         :page-title="'Settings'"
-        @back-click="handleBackToHome"
+        @menu-click="handleBackToHome"
       />
 
       <Settings

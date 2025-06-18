@@ -46,10 +46,6 @@ const backToLevels = () => {
 
 const handleGameComplete = (gameResult) => {
   console.log('Game completed:', gameResult)
-  // Return to level selection after game completion
-  setTimeout(() => {
-    currentView.value = 'memory-levels'
-  }, 2000) // Give time to see the completion screen
 }
 </script>
 

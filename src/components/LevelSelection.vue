@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import GameLevelTile from './GameLevelTile.vue'
 import Icon from './Icon.vue'
+import ProgressOverview from "./ProgressOverview.vue";
 
 // Props for the level selection component
 const props = defineProps({
@@ -141,30 +142,16 @@ const handleBackToHub = () => {
     </div>
 
     <!-- Progress Overview -->
-    <div class="progress-overview">
-      <div class="progress-stats">
-        <div class="progress-item">
-          <span class="progress-number">{{ completionStats.completed }}</span>
-          <span class="progress-label">{{ completionStats.total }} Levels</span>
-        </div>
-        <div class="progress-item">
-          <span class="progress-number">{{ completionStats.totalStars }}</span>
-          <span class="progress-label">{{ completionStats.maxStars }} Stars</span>
-        </div>
-        <div class="progress-item">
-          <span class="progress-number">{{ completionStats.percentage }}%</span>
-          <span class="progress-label">Complete</span>
-        </div>
-      </div>
-
-      <!-- Progress Bar -->
-      <div class="progress-bar">
-        <div
-          class="progress-fill"
-          :style="{ width: `${completionStats.percentage}%` }"
-        ></div>
-      </div>
-    </div>
+    <ProgressOverview
+      :completed="completionStats.completed"
+      :total="completionStats.total"
+      :total-stars="completionStats.totalStars"
+      :max-stars="completionStats.maxStars"
+      :theme="theme"
+      levels-label="Levels"
+      stars-label="Stars"
+      complete-label="Complete"
+    />
 
     <!-- Levels Grid -->
     <div class="levels-grid">
@@ -182,22 +169,6 @@ const handleBackToHub = () => {
         :theme="theme"
         @play-level="handlePlayLevel"
       />
-    </div>
-
-    <!-- Game Tips (if no levels completed) -->
-    <div v-if="completionStats.completed === 0" class="game-tips">
-      <div class="tips-card">
-        <div class="tips-header">
-          <Icon name="brain" size="20" />
-          <h3>Memory Game Tips</h3>
-        </div>
-        <ul class="tips-list">
-          <li>Start with easier levels to practice</li>
-          <li>Try to remember card positions</li>
-          <li>Complete levels faster for higher scores</li>
-          <li>Use fewer moves to earn more stars</li>
-        </ul>
-      </div>
     </div>
   </main>
 </template>
@@ -239,58 +210,6 @@ const handleBackToHub = () => {
   margin: 0;
 }
 
-// Progress Overview
-.progress-overview {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.progress-stats {
-  display: flex;
-  gap: var(--space-4);
-  justify-content: center;
-}
-
-.progress-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.progress-number {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-}
-
-.progress-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  font-weight: var(--font-weight-bold);
-  text-align: center;
-}
-
-.progress-bar {
-  height: var(--space-2);
-  background-color: var(--card-border);
-  border-radius: var(--border-radius-md);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-  border-radius: var(--border-radius-md);
-  transition: width 0.3s ease;
-}
-
 // Levels Grid - 3 Spalten für Mobile
 .levels-grid {
   display: grid;
@@ -299,57 +218,4 @@ const handleBackToHub = () => {
   justify-items: stretch;
 }
 
-// Game Tips
-.game-tips {
-  margin-top: var(--space-2);
-}
-
-.tips-card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.tips-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--primary-color);
-
-  h3 {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-color);
-    margin: 0;
-  }
-}
-
-.tips-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-
-  li {
-    font-size: var(--font-size-xs);
-    color: var(--text-secondary);
-    line-height: 1.3;
-    padding-left: var(--space-3);
-    position: relative;
-
-    &::before {
-      content: '•';
-      color: var(--primary-color);
-      font-weight: var(--font-weight-bold);
-      position: absolute;
-      left: 0;
-    }
-  }
-}
 </style>

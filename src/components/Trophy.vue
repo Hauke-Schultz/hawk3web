@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import Icon from "./Icon.vue"
+import ProgressOverview from "./ProgressOverview.vue";
 
 // LocalStorage service for achievements
 const { gameData } = useLocalStorage()
@@ -190,20 +191,16 @@ const formatDate = (dateString) => {
     <!-- Trophy Header -->
     <section class="trophy-header">
       <h2 class="trophy-title">Trophy Collection</h2>
-      <div class="trophy-stats">
-        <div class="stat-card">
-          <span class="stat-number">{{ achievementStats.earned }}</span>
-          <span class="stat-label">Earned</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">{{ achievementStats.total }}</span>
-          <span class="stat-label">Total</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">{{ achievementStats.percentage }}%</span>
-          <span class="stat-label">Complete</span>
-        </div>
-      </div>
+      <ProgressOverview
+        :completed="achievementStats.earned"
+        :total="achievementStats.total"
+        theme="warning"
+        size="normal"
+        levels-label="Achievements"
+        :show-stars="false"
+        :show-percentage="true"
+        complete-label="Unlocked"
+      />
     </section>
 
     <!-- Achievement Categories -->
@@ -290,36 +287,6 @@ const formatDate = (dateString) => {
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   margin: 0 0 var(--space-4) 0;
-}
-
-.trophy-stats {
-  display: flex;
-  gap: var(--space-4);
-  justify-content: center;
-}
-
-.stat-card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  min-width: 80px;
-}
-
-.stat-number {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-}
-
-.stat-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  text-transform: uppercase;
 }
 
 // Achievement Categories

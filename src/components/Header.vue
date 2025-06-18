@@ -24,7 +24,7 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
-  showBackButton: {
+  showMenuButton: {
     type: Boolean,
     default: false
   },
@@ -38,7 +38,7 @@ const props = defineProps({
 const emit = defineEmits([
   'profile-click',
   'notification-click',
-  'back-click'
+  'menu-click'
 ])
 
 // Reactive state
@@ -61,8 +61,8 @@ const handleNotificationClick = () => {
   emit('notification-click')
 }
 
-const handleBackClick = () => {
-  emit('back-click')
+const handleMenuClick = () => {
+  emit('menu-click')
 }
 
 const handleProfileClick = () => {
@@ -79,14 +79,14 @@ watch(() => gameData.player, (newPlayer) => {
     <div class="header-container">
       <!-- Left section -->
       <div class="header-left">
-        <!-- Back Button -->
+        <!-- Menu Button -->
         <button
-          v-if="showBackButton"
-          class="btn btn--circle back-button"
-          @click="handleBackClick"
-          aria-label="Go back"
+          v-if="showMenuButton"
+          class="btn btn--circle-ghost menu-button"
+          @click="handleMenuClick"
+          aria-label="Go to menu"
         >
-          <Icon name="arrow-left" size="24" />
+          <Icon name="menu" size="24" />
         </button>
 
         <!-- App Title/Logo for home page -->

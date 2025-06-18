@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import Icon from './Icon.vue'
+import ProgressOverview from "./ProgressOverview.vue";
 
 const props = defineProps({
   level: {
@@ -68,6 +69,16 @@ const finalScore = computed(() => {
   let timeBonus = Math.max(0, currentLevelConfig.value.timeBonus - timeElapsed.value)
 
   return baseScore + moveBonus + timeBonus
+})
+
+const gameProgress = computed(() => {
+  return {
+    completed: matches.value,
+    total: totalPairs.value,
+    totalStars: 0, // Während des Spiels noch keine Sterne
+    maxStars: 3, // Maximum für aktuelles Level
+    percentage: Math.round((matches.value / totalPairs.value) * 100)
+  }
 })
 
 const initializeGame = () => {
@@ -344,19 +355,34 @@ onUnmounted(() => {
         <div class="level-indicator">Level {{ currentLevel }}</div>
       </div>
 
-      <!-- Game Stats -->
-      <div class="game-stats">
-        <div class="stat-item">
-          <span class="stat-label">Score</span>
-          <span class="stat-value">{{ score }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Time</span>
-          <span class="stat-value">{{ formatTime(timeElapsed) }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Moves</span>
-          <span class="stat-value">{{ moves }}</span>
+      <div class="game-stats-container">
+        <!-- Progress Overview -->
+        <ProgressOverview
+          :completed="gameProgress.completed"
+          :total="gameProgress.total"
+          :total-stars="gameProgress.totalStars"
+          :max-stars="gameProgress.maxStars"
+          theme="primary"
+          size="small"
+          levels-label="Pairs"
+          :show-stars="false"
+          :show-percentage="true"
+        />
+
+        <!-- Game Performance Stats -->
+        <div class="performance-stats">
+          <div class="stat-item">
+            <span class="stat-label">Score</span>
+            <span class="stat-value">{{ score }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Time</span>
+            <span class="stat-value">{{ formatTime(timeElapsed) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Moves</span>
+            <span class="stat-value">{{ moves }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -509,13 +535,20 @@ onUnmounted(() => {
   font-weight: var(--font-weight-bold);
 }
 
-.game-stats {
+.game-stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.performance-stats {
   display: flex;
   gap: var(--space-4);
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--border-radius-lg);
-  padding: var(--space-3);
+  padding: var(--space-2);
+  justify-content: space-around;
 }
 
 .stat-item {
