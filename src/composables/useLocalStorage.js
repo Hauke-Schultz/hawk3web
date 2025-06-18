@@ -28,14 +28,19 @@ const getDefaultData = () => ({
 			gamesPlayed: 0,
 			totalScore: 0,
 			bestTime: null,
-			averageTime: null
+			averageTime: null,
+			levels: {
+				// Level-specific data: levels[1], levels[2], etc.
+				// Each level contains: { completed, highScore, bestTime, stars, attempts, bestPerformance }
+			}
 		},
 		fruitMerge: {
 			highScore: 0,
 			gamesPlayed: 0,
 			totalScore: 0,
 			maxLevel: 1,
-			totalMerges: 0
+			totalMerges: 0,
+			levels: {}
 		}
 	},
 	cardStates: {
@@ -93,14 +98,16 @@ const validateGameData = (games) => {
 			totalScore: typeof games?.memory?.totalScore === 'number' ? games.memory.totalScore : defaultGames.memory.totalScore,
 			gamesPlayed: typeof games?.memory?.gamesPlayed === 'number' ? games.memory.gamesPlayed : defaultGames.memory.gamesPlayed,
 			bestTime: typeof games?.memory?.bestTime === 'number' ? games.memory.bestTime : defaultGames.memory.bestTime,
-			averageTime: typeof games?.memory?.averageTime === 'number' ? games.memory.averageTime : defaultGames.memory.averageTime
+			averageTime: typeof games?.memory?.averageTime === 'number' ? games.memory.averageTime : defaultGames.memory.averageTime,
+			levels: typeof games?.memory?.levels === 'object' ? games.memory.levels : {}
 		},
 		fruitMerge: {
 			highScore: typeof games?.fruitMerge?.highScore === 'number' ? games.fruitMerge.highScore : defaultGames.fruitMerge.highScore,
 			totalScore: typeof games?.fruitMerge?.totalScore === 'number' ? games.fruitMerge.totalScore : defaultGames.fruitMerge.totalScore,
 			gamesPlayed: typeof games?.fruitMerge?.gamesPlayed === 'number' ? games.fruitMerge.gamesPlayed : defaultGames.fruitMerge.gamesPlayed,
 			maxLevel: typeof games?.fruitMerge?.maxLevel === 'number' ? games.fruitMerge.maxLevel : defaultGames.fruitMerge.maxLevel,
-			totalMerges: typeof games?.fruitMerge?.totalMerges === 'number' ? games.fruitMerge.totalMerges : defaultGames.fruitMerge.totalMerges
+			totalMerges: typeof games?.fruitMerge?.totalMerges === 'number' ? games.fruitMerge.totalMerges : defaultGames.fruitMerge.totalMerges,
+			levels: typeof games?.fruitMerge?.levels === 'object' ? games.fruitMerge.levels : {}
 		}
 	}
 }
@@ -221,6 +228,132 @@ export function useLocalStorage() {
 
 	const getGameStats = (gameName) => {
 		return gameData.games[gameName] || null
+	}
+
+	// Level management methods
+	const updateLevelStats = (gameName, levelNumber, levelStats) => {
+		if (!gameData.games[gameName]) return false
+
+		// Initialize levels object if it doesn't exist
+		if (!gameData.games[gameName].levels) {
+			gameData.games[gameName].levels = {}
+		}
+
+		// Initialize level if it doesn't exist
+		if (!gameData.games[gameName].levels[levelNumber]) {
+			gameData.games[gameName].levels[levelNumber] = {
+				completed: false,
+				highScore: 0,
+				bestTime: null,
+				stars: 0,
+				attempts: 0,
+				bestPerformance: null
+			}
+		}
+
+		const level = gameData.games[gameName].levels[levelNumber]
+
+		// Update attempts
+		level.attempts += 1
+
+		// Update completion status
+		if (levelStats.completed && !level.completed) {
+			level.completed = true
+		}
+
+		// Update high score
+		if (levelStats.score > level.highScore) {
+			level.highScore = levelStats.score
+		}
+
+		// Update best time (only if level was completed)
+		if (levelStats.completed && levelStats.time) {
+			if (!level.bestTime || levelStats.time < level.bestTime) {
+				level.bestTime = levelStats.time
+			}
+		}
+
+		// Update best performance (overall best combination of score, time, moves)
+		if (levelStats.completed) {
+			const currentPerformance = calculatePerformanceScore(levelStats)
+			const bestPerformance = level.bestPerformance ?
+				calculatePerformanceScore(level.bestPerformance) : 0
+
+			if (currentPerformance > bestPerformance) {
+				level.bestPerformance = {
+					score: levelStats.score,
+					time: levelStats.time,
+					moves: levelStats.moves,
+					performanceScore: currentPerformance
+				}
+			}
+		}
+
+		// Calculate and update stars
+		level.stars = calculateLevelStars(levelStats, level)
+
+		// Save data
+		saveData()
+
+		return true
+	}
+
+// Calculate performance score for star rating
+	const calculatePerformanceScore = (stats) => {
+		if (!stats.score || !stats.time || !stats.moves) return 0
+
+		// Higher score is better, lower time is better, fewer moves is better
+		// Normalize values to create a performance score
+		const scoreWeight = stats.score * 0.6
+		const timeWeight = (300 - Math.min(stats.time, 300)) * 0.3 // Max 5 minutes
+		const moveWeight = (50 - Math.min(stats.moves, 50)) * 0.1 // Max 50 moves penalty
+
+		return scoreWeight + timeWeight + moveWeight
+	}
+
+// Calculate star rating (0-3) based on performance
+	const calculateLevelStars = (levelStats, levelData) => {
+		if (!levelStats.completed) return 0
+
+		// Minimum 1 star for completion
+		let stars = 1
+
+		// Add stars based on performance
+		if (levelData.bestPerformance) {
+			const performance = levelData.bestPerformance.performanceScore
+
+			// Define performance thresholds (these can be adjusted)
+			if (performance >= 800) stars = 3 // Excellent performance
+			else if (performance >= 500) stars = 2 // Good performance
+			// else stars = 1 (completion only)
+		}
+
+		return stars
+	}
+
+	const getLevelStats = (gameName, levelNumber) => {
+		return gameData.games[gameName]?.levels?.[levelNumber] || null
+	}
+
+	const isLevelUnlocked = (gameName, levelNumber) => {
+		// Level 1 is always unlocked
+		if (levelNumber === 1) return true
+
+		// Other levels require previous level completion
+		const previousLevel = gameData.games[gameName]?.levels?.[levelNumber - 1]
+		return previousLevel?.completed || false
+	}
+
+	const getGameProgress = (gameName) => {
+		const game = gameData.games[gameName]
+		if (!game || !game.levels) return { completed: 0, total: 0, stars: 0 }
+
+		const levels = Object.values(game.levels)
+		const completed = levels.filter(level => level.completed).length
+		const total = levels.length
+		const stars = levels.reduce((sum, level) => sum + (level.stars || 0), 0)
+
+		return { completed, total, stars, maxStars: total * 3 }
 	}
 
 	// Achievement methods
@@ -389,6 +522,12 @@ export function useLocalStorage() {
 		// Game methods
 		updateGameStats,
 		getGameStats,
+
+		// Level management methods
+		updateLevelStats,
+		getLevelStats,
+		isLevelUnlocked,
+		getGameProgress,
 
 		// Achievement methods
 		addAchievement,

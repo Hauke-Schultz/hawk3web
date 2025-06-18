@@ -3,28 +3,53 @@ import { computed, ref } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import Icon from './Icon.vue'
 import MemoryGame from './MemoryGame.vue'
+import LevelSelection from "./LevelSelection.vue";
 
 // LocalStorage service
 const { gameData } = useLocalStorage()
 
 // View management
-const currentView = ref('hub') // 'hub', 'memory-game'
+const currentView = ref('hub') // 'hub', 'memory-levels', 'memory-game'
+const selectedLevel = ref(1)
+
+// Memory game levels configuration
+const memoryLevels = [
+  { pairs: 2, timeBonus: 150, title: 'Starter', description: 'Match 2 pairs - Learn the basics' },
+  { pairs: 6, timeBonus: 300, title: 'Easy', description: 'Match 6 pairs - Build your skills' },
+  { pairs: 8, timeBonus: 400, title: 'Medium', description: 'Match 8 pairs - Test your memory' },
+  { pairs: 10, timeBonus: 500, title: 'Hard', description: 'Match 10 pairs - Challenge yourself' },
+  { pairs: 12, timeBonus: 600, title: 'Expert', description: 'Match 12 pairs - Expert level' },
+  { pairs: 15, timeBonus: 750, title: 'Master', description: 'Match 15 pairs - Master challenge' }
+]
 
 // Game methods
 const startGame = (gameId) => {
   console.log(`Starting ${gameId} game...`)
   if (gameId === 'memory') {
-    currentView.value = 'memory-game'
+    currentView.value = 'memory-levels'
   }
+}
+
+// Neue Funktionen hinzufügen:
+const handlePlayLevel = (levelNumber) => {
+  selectedLevel.value = levelNumber
+  currentView.value = 'memory-game'
 }
 
 const backToHub = () => {
   currentView.value = 'hub'
 }
 
+const backToLevels = () => {
+  currentView.value = 'memory-levels'
+}
+
 const handleGameComplete = (gameResult) => {
   console.log('Game completed:', gameResult)
-  // Could show completion modal or automatically return to hub
+  // Return to level selection after game completion
+  setTimeout(() => {
+    currentView.value = 'memory-levels'
+  }, 2000) // Give time to see the completion screen
 }
 </script>
 
@@ -73,10 +98,22 @@ const handleGameComplete = (gameResult) => {
     </div>
   </main>
 
-  <!-- Memory Game View -->
+  <!-- Memory Game Level Selection -->
+  <LevelSelection
+    v-else-if="currentView === 'memory-levels'"
+    game-id="memory"
+    game-title="Memory Game"
+    :levels="memoryLevels"
+    theme="primary"
+    @play-level="handlePlayLevel"
+    @back-to-game-hub="backToHub"
+  />
+
+  <!-- Memory Game View aktualisieren: -->
   <MemoryGame
     v-else-if="currentView === 'memory-game'"
-    @back-to-gaming="backToHub"
+    :level="selectedLevel"
+    @back-to-gaming="backToLevels"
     @game-complete="handleGameComplete"
   />
 </template>

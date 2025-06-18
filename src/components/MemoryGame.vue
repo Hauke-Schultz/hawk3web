@@ -3,15 +3,21 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import Icon from './Icon.vue'
 
-// Props and emits
+const props = defineProps({
+  level: {
+    type: Number,
+    default: 1
+  }
+})
+
 const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // LocalStorage service
-const { gameData, updateGameStats, addScore, addExperience, addAchievement } = useLocalStorage()
+const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, addAchievement } = useLocalStorage()
 
 // Game state
 const gameState = ref('ready') // 'ready', 'playing', 'paused', 'completed'
-const currentLevel = ref(1)
+const currentLevel = computed(() => props.level)
 const score = ref(0)
 const moves = ref(0)
 const matches = ref(0)
@@ -25,14 +31,14 @@ const matchedCards = ref([])
 const isProcessing = ref(false)
 
 // Game configuration based on level
-const gameLevels = {
-  1: { pairs: 2, timeBonus: 150 },   // 2x2 grid
-  2: { pairs: 6, timeBonus: 300 },   // 3x4 grid
-  3: { pairs: 8, timeBonus: 400 },   // 4x4 grid
-  4: { pairs: 10, timeBonus: 500 },  // 4x5 grid
-  5: { pairs: 12, timeBonus: 600 },  // 4x6 grid
-  6: { pairs: 15, timeBonus: 750 }   // 5x6 grid (optional)
-}
+const gameLevels = [
+  { pairs: 2, timeBonus: 150 },   // Level 1: 2x2 grid
+  { pairs: 6, timeBonus: 300 },   // Level 2: 3x4 grid
+  { pairs: 8, timeBonus: 400 },   // Level 3: 4x4 grid
+  { pairs: 10, timeBonus: 500 },  // Level 4: 4x5 grid
+  { pairs: 12, timeBonus: 600 },  // Level 5: 4x6 grid
+  { pairs: 15, timeBonus: 750 }   // Level 6: 5x6 grid
+]
 // Card symbols for memory game
 const cardSymbols = [
   '🎮', '🏆', '⭐', '🎯', '🚀', '💎',
@@ -42,7 +48,7 @@ const cardSymbols = [
 ]
 
 // Computed properties
-const currentLevelConfig = computed(() => gameLevels[currentLevel.value])
+const currentLevelConfig = computed(() => gameLevels[currentLevel.value - 1] || gameLevels[0])
 const totalPairs = computed(() => currentLevelConfig.value.pairs)
 const isGameComplete = computed(() => matches.value === totalPairs.value)
 const gridCols = computed(() => {
@@ -180,7 +186,18 @@ const completeGame = () => {
   const gameScore = finalScore.value
   score.value = gameScore
 
-  // Update statistics
+  // Prepare level completion data
+  const levelResult = {
+    completed: true,
+    score: gameScore,
+    time: timeElapsed.value,
+    moves: moves.value
+  }
+
+  // Update level statistics
+  updateLevelStats('memory', currentLevel.value, levelResult)
+
+  // Update overall game statistics
   const gameStats = {
     gamesPlayed: gameData.games.memory.gamesPlayed + 1,
     totalScore: gameData.games.memory.totalScore + gameScore,
@@ -201,10 +218,10 @@ const completeGame = () => {
   checkAchievements(gameScore)
 
   emit('game-complete', {
+    level: currentLevel.value,
     score: gameScore,
     time: timeElapsed.value,
-    moves: moves.value,
-    level: currentLevel.value
+    moves: moves.value
   })
 }
 
@@ -245,6 +262,31 @@ const checkAchievements = (gameScore) => {
       description: 'Earned 1000 total points'
     })
   }
+
+  if (currentLevel.value === 1 && isGameComplete.value) {
+    addAchievement({
+      id: 'memory_beginner',
+      name: 'Memory Beginner',
+      description: 'Completed first memory level'
+    })
+  }
+
+  // Level-specific achievements
+  if (currentLevel.value === 3 && isGameComplete.value) {
+    addAchievement({
+      id: 'memory_intermediate',
+      name: 'Memory Intermediate',
+      description: 'Completed level 3'
+    })
+  }
+
+  if (currentLevel.value === 6 && isGameComplete.value) {
+    addAchievement({
+      id: 'memory_master',
+      name: 'Memory Master',
+      description: 'Completed the hardest level'
+    })
+  }
 }
 
 const resetGame = () => {
@@ -269,8 +311,8 @@ const resumeGame = () => {
 
 const nextLevel = () => {
   if (currentLevel.value < 6) {
-    currentLevel.value++
-    resetGame()
+    // Emit to parent to change level
+    emit('back-to-gaming') // Return to level selection
   }
 }
 
@@ -431,11 +473,10 @@ onUnmounted(() => {
 
         <div class="completed-actions">
           <button
-            v-if="currentLevel < 5"
             class="btn btn--primary"
             @click="nextLevel"
           >
-            Next Level
+            Back to Levels
           </button>
           <button class="btn btn--ghost" @click="resetGame">
             Play Again
