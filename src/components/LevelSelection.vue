@@ -145,11 +145,11 @@ const handleBackToHub = () => {
       <div class="progress-stats">
         <div class="progress-item">
           <span class="progress-number">{{ completionStats.completed }}</span>
-          <span class="progress-label">/ {{ completionStats.total }} Levels</span>
+          <span class="progress-label">{{ completionStats.total }} Levels</span>
         </div>
         <div class="progress-item">
           <span class="progress-number">{{ completionStats.totalStars }}</span>
-          <span class="progress-label">/ {{ completionStats.maxStars }} Stars</span>
+          <span class="progress-label">{{ completionStats.maxStars }} Stars</span>
         </div>
         <div class="progress-item">
           <span class="progress-number">{{ completionStats.percentage }}%</span>
@@ -188,7 +188,7 @@ const handleBackToHub = () => {
     <div v-if="completionStats.completed === 0" class="game-tips">
       <div class="tips-card">
         <div class="tips-header">
-          <Icon name="brain" size="24" />
+          <Icon name="brain" size="20" />
           <h3>Memory Game Tips</h3>
         </div>
         <ul class="tips-list">
@@ -207,7 +207,7 @@ const handleBackToHub = () => {
 .level-selection {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
   padding: var(--space-4);
   min-height: calc(100vh - 80px);
 }
@@ -217,7 +217,7 @@ const handleBackToHub = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .level-title-section {
@@ -227,14 +227,14 @@ const handleBackToHub = () => {
 }
 
 .level-title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   margin: 0;
 }
 
 .level-subtitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   margin: 0;
 }
@@ -243,16 +243,16 @@ const handleBackToHub = () => {
 .progress-overview {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-4);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .progress-stats {
   display: flex;
-  gap: var(--space-6);
+  gap: var(--space-4);
   justify-content: center;
 }
 
@@ -264,7 +264,7 @@ const handleBackToHub = () => {
 }
 
 .progress-number {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
 }
@@ -274,6 +274,7 @@ const handleBackToHub = () => {
   color: var(--text-secondary);
   text-transform: uppercase;
   font-weight: var(--font-weight-bold);
+  text-align: center;
 }
 
 .progress-bar {
@@ -290,37 +291,37 @@ const handleBackToHub = () => {
   transition: width 0.3s ease;
 }
 
-// Levels Grid
+// Levels Grid - 3 Spalten für Mobile
 .levels-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-4);
-  justify-items: center;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  justify-items: stretch;
 }
 
 // Game Tips
 .game-tips {
-  margin-top: var(--space-4);
+  margin-top: var(--space-2);
 }
 
 .tips-card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-4);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .tips-header {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   color: var(--primary-color);
 
   h3 {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-bold);
     color: var(--text-color);
     margin: 0;
@@ -333,13 +334,13 @@ const handleBackToHub = () => {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 
   li {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--text-secondary);
-    line-height: 1.4;
-    padding-left: var(--space-4);
+    line-height: 1.3;
+    padding-left: var(--space-3);
     position: relative;
 
     &::before {
@@ -349,36 +350,6 @@ const handleBackToHub = () => {
       position: absolute;
       left: 0;
     }
-  }
-}
-
-// Responsive Design
-@media (max-width: 480px) {
-  .level-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-  }
-
-  .progress-stats {
-    gap: var(--space-4);
-  }
-
-  .levels-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
-  }
-}
-
-@media (max-width: 600px) {
-  .levels-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  }
-}
-
-@media (min-width: 768px) {
-  .levels-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }
 </style>

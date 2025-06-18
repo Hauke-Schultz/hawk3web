@@ -127,14 +127,14 @@ const handleKeyDown = (event) => {
   >
     <!-- Lock Overlay -->
     <div v-if="isLocked" class="level-tile__lock-overlay">
-      <Icon name="lock" size="24" />
+      <Icon name="lock" size="20" />
     </div>
 
     <!-- Level Header -->
     <div class="level-tile__header">
       <div class="level-tile__level-number">{{ level }}</div>
       <div v-if="isCompleted" class="level-tile__completion-badge">
-        <Icon name="trophy" size="16" />
+        <Icon name="completion-badge" size="20" />
       </div>
     </div>
 
@@ -148,8 +148,8 @@ const handleKeyDown = (event) => {
         <Icon
           v-for="starIndex in 3"
           :key="starIndex"
-          name="trophy"
-          size="14"
+          :name="starIndex <= stars ? 'star-filled' : 'star'"
+          size="20"
           :class="{
             'star--filled': starIndex <= stars,
             'star--empty': starIndex > stars
@@ -174,15 +174,14 @@ const handleKeyDown = (event) => {
     <div class="level-tile__actions">
       <button
         v-if="canPlay"
-        class="play-button"
+        class="btn"
         @click.stop="handlePlayClick"
         :aria-label="`Play ${levelTitle}`"
       >
-        <Icon name="play" size="16" />
         {{ isCompleted ? 'Replay' : 'Play' }}
       </button>
       <div v-else class="locked-indicator">
-        <Icon name="lock" size="16" />
+        <Icon name="lock" size="12" />
         Locked
       </div>
     </div>
@@ -194,21 +193,22 @@ const handleKeyDown = (event) => {
 .level-tile {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-4);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-2);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   transition: all 0.2s ease;
   position: relative;
   cursor: pointer;
-  min-height: 180px;
+  min-height: 140px;
+  width: 100%;
 
   &--playable {
     &:hover {
       background-color: var(--card-bg-hover);
       box-shadow: var(--card-shadow-hover);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
     &:focus-visible {
@@ -229,43 +229,31 @@ const handleKeyDown = (event) => {
       right: 0;
       bottom: 0;
       background-color: rgba(0, 0, 0, 0.3);
-      border-radius: var(--border-radius-xl);
+      border-radius: var(--border-radius-lg);
       z-index: 1;
     }
   }
 
   &--completed {
     border-color: var(--success-color);
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: var(--space-2);
-      right: var(--space-2);
-      width: var(--space-6);
-      height: var(--space-6);
-      background-color: var(--success-color);
-      border-radius: 50%;
-      z-index: 2;
-    }
   }
 
   // Size variants
   &--small {
-    padding: var(--space-3);
-    min-height: 140px;
+    padding: var(--space-1);
+    min-height: 120px;
 
     .level-tile__title {
-      font-size: var(--font-size-sm);
+      font-size: var(--font-size-xs);
     }
   }
 
   &--large {
-    padding: var(--space-6);
-    min-height: 220px;
+    padding: var(--space-3);
+    min-height: 160px;
 
     .level-tile__title {
-      font-size: var(--font-size-lg);
+      font-size: var(--font-size-base);
     }
   }
 
@@ -346,19 +334,20 @@ const handleKeyDown = (event) => {
 }
 
 .level-tile__level-number {
-  width: var(--space-8);
-  height: var(--space-8);
+  width: var(--space-5);
+  height: var(--space-5);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-xs);
 }
 
 .level-tile__completion-badge {
   color: var(--success-color);
+  display: flex;
 }
 
 // Level Content
@@ -366,21 +355,27 @@ const handleKeyDown = (event) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .level-tile__title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   margin: 0;
+  line-height: 1.2;
 }
 
 .level-tile__description {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 // Star Rating
@@ -388,6 +383,8 @@ const handleKeyDown = (event) => {
   display: flex;
   gap: var(--space-1);
   align-items: center;
+  justify-content: center;
+  margin-top: var(--space-1);
 }
 
 .star--filled {
@@ -395,35 +392,35 @@ const handleKeyDown = (event) => {
 }
 
 .star--empty {
-  color: var(--card-border);
+  color: var(--white);
 }
 
 // Level Stats
 .level-tile__stats {
   display: flex;
-  gap: var(--space-4);
-  padding: var(--space-2) 0;
-  border-top: 1px solid var(--card-border);
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0);
+  gap: 0;
   flex: 1;
+  text-align: center;
 }
 
 .stat-label {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-xxs);
   color: var(--text-secondary);
   text-transform: uppercase;
-  font-weight: var(--font-weight-bold);
+  line-height: 1;
 }
 
 .stat-value {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-color);
-  font-weight: var(--font-weight-bold);
+  line-height: 1;
 }
 
 // Actions
@@ -431,64 +428,22 @@ const handleKeyDown = (event) => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
+  margin-top: var(--space-1);
 
-.play-button {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-md);
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  transition: all 0.2s ease;
-  width: 100%;
-  justify-content: center;
-
-  &:hover {
-    transform: scale(1.05);
+  .btn {
+    width: 100%;
   }
 }
 
 .locked-indicator {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   width: 100%;
   justify-content: center;
-  padding: var(--space-2) var(--space-4);
-}
-
-// Responsive Design
-@media (max-width: 400px) {
-  .level-tile {
-    min-height: 160px;
-
-    &--small {
-      min-height: 120px;
-    }
-
-    &--large {
-      min-height: 200px;
-    }
-  }
-
-  .level-tile__stats {
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .stat-item {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
+  padding: var(--space-1) var(--space-2);
 }
 </style>

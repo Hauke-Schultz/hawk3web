@@ -16,7 +16,7 @@ const emit = defineEmits(['back-to-gaming', 'game-complete'])
 const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, addAchievement } = useLocalStorage()
 
 // Game state
-const gameState = ref('ready') // 'ready', 'playing', 'paused', 'completed'
+const gameState = ref('playing') // 'playing', 'paused', 'completed'
 const currentLevel = computed(() => props.level)
 const score = ref(0)
 const moves = ref(0)
@@ -70,7 +70,6 @@ const finalScore = computed(() => {
   return baseScore + moveBonus + timeBonus
 })
 
-// Game methods
 const initializeGame = () => {
   // Create pairs of cards
   const pairs = totalPairs.value
@@ -96,6 +95,10 @@ const initializeGame = () => {
   matches.value = 0
   timeElapsed.value = 0
   isProcessing.value = false
+
+  // Direkt starten
+  gameState.value = 'playing'
+  startTimer()
 }
 
 const shuffleArray = (array) => {
@@ -105,11 +108,6 @@ const shuffleArray = (array) => {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
   return shuffled
-}
-
-const startGame = () => {
-  gameState.value = 'playing'
-  startTimer()
 }
 
 const startTimer = () => {
@@ -292,7 +290,6 @@ const checkAchievements = (gameScore) => {
 const resetGame = () => {
   stopTimer()
   initializeGame()
-  gameState.value = 'ready'
 }
 
 const pauseGame = () => {
@@ -364,27 +361,8 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Game Ready State -->
-    <div v-if="gameState === 'ready'" class="game-ready">
-      <div class="ready-content">
-        <h3 class="ready-title">Ready to Play?</h3>
-        <p class="ready-description">
-          Match {{ totalPairs }} pairs of cards in the fewest moves possible!
-        </p>
-        <div class="ready-actions">
-          <button class="btn btn--primary" @click="startGame">
-            <Icon name="play" size="20" />
-            Start Game
-          </button>
-          <button class="btn btn--ghost" @click="backToGaming">
-            Back to Games
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Game Playing State -->
-    <div v-else-if="gameState === 'playing' || gameState === 'paused'" class="game-board">
+    <!-- Game Playing State - Direkt anzeigen -->
+    <div v-if="gameState === 'playing' || gameState === 'paused'" class="game-board">
       <!-- Game Controls -->
       <div class="game-controls">
         <button
@@ -403,6 +381,9 @@ onUnmounted(() => {
         </button>
         <button class="btn btn--ghost btn--small" @click="resetGame">
           Reset
+        </button>
+        <button class="btn btn--ghost btn--small" @click="backToGaming">
+          Back
         </button>
       </div>
 
@@ -563,42 +544,6 @@ onUnmounted(() => {
   }
 }
 
-// Game Ready State
-.game-ready {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ready-content {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-width: 300px;
-}
-
-.ready-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  margin: 0;
-}
-
-.ready-description {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.ready-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
 // Game Board
 .game-board {
   flex: 1;
@@ -612,6 +557,7 @@ onUnmounted(() => {
   display: flex;
   gap: var(--space-2);
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 // Cards Grid

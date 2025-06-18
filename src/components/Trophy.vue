@@ -356,36 +356,6 @@ const formatDate = (dateString) => {
   &--earned {
     background-color: var(--card-bg-hover);
     border-color: var(--success-color);
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: var(--space-2);
-      right: var(--space-2);
-      width: var(--space-6);
-      height: var(--space-6);
-      background-color: var(--success-color);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    &::after {
-      content: '✓';
-      position: absolute;
-      top: var(--space-2);
-      right: var(--space-2);
-      width: var(--space-6);
-      height: var(--space-6);
-      color: white;
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-bold);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-    }
   }
 
   &--locked {

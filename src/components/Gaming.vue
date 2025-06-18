@@ -74,7 +74,7 @@ const handleGameComplete = (gameResult) => {
             <span class="games-played">{{ gameData.games.memory.gamesPlayed }} played</span>
           </div>
         </div>
-        <button class="play-button" @click="startGame('memory')">
+        <button class="btn" @click="startGame('memory')">
           <Icon name="play" size="20" />
           Play
         </button>
@@ -90,7 +90,7 @@ const handleGameComplete = (gameResult) => {
           <p class="game-description">Merge fruits to create new combinations</p>
           <div class="coming-soon-badge">Coming Soon</div>
         </div>
-        <button class="play-button" disabled>
+        <button class="btn" disabled>
           <Icon name="play" size="20" />
           Soon
         </button>
@@ -175,7 +175,7 @@ const handleGameComplete = (gameResult) => {
   &--coming-soon {
     opacity: 0.7;
 
-    .play-button {
+    .btn {
       opacity: 0.5;
       cursor: not-allowed;
     }
@@ -237,30 +237,4 @@ const handleGameComplete = (gameResult) => {
   width: fit-content;
 }
 
-.play-button {
-  background-color: var(--success-color);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-md);
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-
-  &:hover:not(:disabled) {
-    background-color: var(--success-hover);
-    transform: scale(1.05);
-  }
-
-  &:disabled {
-    background-color: var(--info-color);
-    cursor: not-allowed;
-    transform: none;
-  }
-}
 </style>
