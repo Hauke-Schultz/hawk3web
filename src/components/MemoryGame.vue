@@ -6,6 +6,7 @@ import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
 import GameCompletedModal from "./GameCompletedModal.vue";
 import PerformanceStats from "./PerformanceStats.vue";
+import GameControls from "./GameControls.vue";
 
 const props = defineProps({
   level: {
@@ -56,8 +57,8 @@ const gameProgress = computed(() => {
   return {
     completed: matches.value,
     total: totalPairs.value,
-    totalStars: 0, // Während des Spiels noch keine Sterne
-    maxStars: 3, // Maximum für aktuelles Level
+    totalStars: 0,
+    maxStars: 3,
     percentage: Math.round((matches.value / totalPairs.value) * 100)
   }
 })
@@ -87,8 +88,6 @@ const initializeGame = () => {
   matches.value = 0
   timeElapsed.value = 0
   isProcessing.value = false
-
-  // Direkt starten
   gameState.value = 'playing'
   startTimer()
 }
@@ -257,7 +256,6 @@ const resumeGame = () => {
 
 const nextLevel = () => {
   if (currentLevel.value < 6) {
-    // Emit to parent to change level
     emit('back-to-gaming') // Return to level selection
   }
 }
@@ -321,28 +319,13 @@ onUnmounted(() => {
     <!-- Game Playing State -->
     <div v-if="gameState === 'playing' || gameState === 'paused'" class="game-board">
       <!-- Game Controls -->
-      <div class="game-controls">
-        <button
-          v-if="gameState === 'playing'"
-          class="btn btn--ghost btn--small"
-          @click="pauseGame"
-        >
-          Pause
-        </button>
-        <button
-          v-else
-          class="btn btn--primary btn--small"
-          @click="resumeGame"
-        >
-          Resume
-        </button>
-        <button class="btn btn--ghost btn--small" @click="resetGame">
-          Reset
-        </button>
-        <button class="btn btn--ghost btn--small" @click="backToGaming">
-          Back
-        </button>
-      </div>
+      <GameControls
+        :game-state="gameState"
+        @pause-game="pauseGame"
+        @resume-game="resumeGame"
+        @reset-game="resetGame"
+        @back-to-gaming="backToGaming"
+      />
 
       <!-- Cards Grid -->
       <div
@@ -370,17 +353,6 @@ onUnmounted(() => {
           <div class="card-face card-front">
             <span class="card-symbol">{{ card.symbol }}</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Pause Overlay -->
-      <div v-if="gameState === 'paused'" class="pause-overlay">
-        <div class="pause-content">
-          <h3>Game Paused</h3>
-          <button class="btn btn--primary" @click="resumeGame">
-            <Icon name="play" size="20" />
-            Resume
-          </button>
         </div>
       </div>
     </div>
@@ -458,42 +430,28 @@ onUnmounted(() => {
   position: relative;
 }
 
-.game-controls {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
 // Cards Grid
 .cards-grid {
   display: grid;
   gap: var(--space-2);
   justify-content: center;
-  flex: 1;
+  max-width: calc(var(--content-width) - 2 * var(--space-4));
+  margin: 0 auto;
+  padding: var(--space-1);
 
   &--cols-2 {
     grid-template-columns: repeat(2, 1fr);
     max-width: 180px;
-    margin: 0 auto;
   }
 
   &--cols-3 {
     grid-template-columns: repeat(3, 1fr);
     max-width: 280px;
-    margin: 0 auto;
   }
 
-  &--cols-4 {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: 320px;
-    margin: 0 auto;
-  }
-
+  &--cols-4,
   &--cols-5 {
-    grid-template-columns: repeat(5, 1fr);
-    max-width: 350px;
-    margin: 0 auto;
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -503,11 +461,7 @@ onUnmounted(() => {
   position: relative;
   cursor: pointer;
   perspective: 1000px;
-  min-height: 60px;
-
-  .cards-grid--cols-2 & {
-    min-height: 80px;
-  }
+  height: 80px;
 
   &--disabled {
     cursor: not-allowed;
@@ -519,12 +473,11 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.6s;
-  border: 2px solid var(--card-border);
 }
 
 .card-back {
@@ -557,71 +510,6 @@ onUnmounted(() => {
     background-color: var(--success-color);
     color: white;
     border-color: var(--success-color);
-  }
-}
-
-// Pause Overlay
-.pause-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--border-radius-lg);
-}
-
-.pause-content {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-6);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-
-  h3 {
-    margin: 0;
-    color: var(--text-color);
-  }
-}
-
-// Responsive Design
-@media (max-width: 400px) {
-  .cards-grid {
-    gap: var(--space-1);
-
-    // NEU: 2x2 Mobile Anpassung
-    &--cols-2 {
-      max-width: 160px;
-    }
-
-    &--cols-3 {
-      max-width: 240px;
-    }
-
-    &--cols-4 {
-      max-width: 280px;
-    }
-
-    &--cols-5 {
-      max-width: 300px;
-    }
-  }
-
-  .memory-card {
-    min-height: 50px;
-
-    .cards-grid--cols-2 & {
-      min-height: 70px;
-    }
-  }
-
-  .card-symbol {
-    font-size: var(--font-size-lg);
   }
 }
 </style>

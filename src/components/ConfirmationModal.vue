@@ -237,20 +237,4 @@ const handleKeyDown = (event) => {
     transform: translateY(0) scale(1);
   }
 }
-
-// Mobile responsiveness
-@media (max-width: 480px) {
-  .confirmation-modal {
-    width: 95%;
-    margin: var(--space-4);
-  }
-
-  .modal-actions {
-    flex-direction: column-reverse;
-
-    .btn {
-      width: 100%;
-    }
-  }
-}
 </style>

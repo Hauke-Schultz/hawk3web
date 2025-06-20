@@ -263,18 +263,4 @@ const displayStats = computed(() => {
   }
 }
 
-// Responsive Design
-@media (max-width: 480px) {
-  .progress-stats {
-    gap: var(--space-2);
-  }
-
-  .progress-item {
-    flex: 1;
-  }
-
-  .progress-label {
-    font-size: var(--font-size-xxs);
-  }
-}
 </style>

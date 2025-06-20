@@ -68,7 +68,10 @@ const newVariable = ref(false)
 - **Vue 3**: Use `<script setup>` syntax with Composition API
 - **Comments**: Always write source code comments in English
 - **SCSS + BEM**: Follow BEM methodology for CSS class naming
-- **Mobile-first**: 375px width as base for mobile-first design
+- **Mobile-first**: Optimize primarily for 375px width, desktop secondary
+- **CSS Optimization**: Primary focus on 375px mobile experience
+- **Responsive Strategy**: Mobile-first with progressive enhancement
+- **Performance**: Minimize CSS for optimal mobile loading
 
 ### Project Structure
 - **Components**: Modular, reusable Vue components
@@ -107,7 +110,10 @@ const newVariable = ref(false)
 - [ ] Clear line-by-line modifications
 - [ ] Proper error handling considered
 - [ ] Mobile-first approach maintained
-
+- [ ] Optimized specifically for 375px viewport
+- [ ] Touch-friendly interactive elements (min 44px)
+- [ ] Performance optimized for mobile devices
+- 
 ### After Implementation
 - [ ] Feature tested and working
 - [ ] Documentation updated

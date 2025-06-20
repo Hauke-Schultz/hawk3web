@@ -210,7 +210,6 @@ const handleBackToHub = () => {
   margin: 0;
 }
 
-// Levels Grid - 3 Spalten für Mobile
 .levels-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -7,11 +7,11 @@
     </defs>
 
     <!-- Card background -->
-    <rect x="5" y="5" width="90" height="90" rx="8" ry="8"
+    <rect x="0" y="0" width="100" height="100" rx="8" ry="8"
           fill="url(#cardGradient)" stroke="#2D1B69" stroke-width="2"/>
 
     <!-- Inner border -->
-    <rect x="10" y="10" width="80" height="80" rx="6" ry="6"
+    <rect x="6" y="6" width="88" height="88" rx="6" ry="6"
           fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.3"/>
 
     <!-- Central circle -->

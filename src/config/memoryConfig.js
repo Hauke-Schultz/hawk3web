@@ -54,11 +54,11 @@ export const memoryConfig = {
 		},
 		{
 			level: 6,
-			pairs: 15,
+			pairs: 18,
 			timeBonus: 750,
 			title: 'Master',
-			description: 'Match 15 pairs - Master challenge',
-			gridCols: 5,
+			description: 'Match 18 pairs - Master challenge',
+			gridCols: 4,
 			minHeight: 60
 		}
 	],
@@ -94,10 +94,9 @@ export const memoryConfig = {
 
 	// Grid configurations
 	gridConfigs: {
-		2: { cols: 2, maxWidth: '180px', mobileMaxWidth: '160px' },
-		3: { cols: 3, maxWidth: '280px', mobileMaxWidth: '240px' },
-		4: { cols: 4, maxWidth: '320px', mobileMaxWidth: '280px' },
-		5: { cols: 5, maxWidth: '350px', mobileMaxWidth: '300px' }
+		2: { cols: 2 },
+		3: { cols: 3 },
+		4: { cols: 4 }
 	},
 
 	// Achievement configurations related to memory game
@@ -172,6 +171,5 @@ export const calculateStars = (score, levelConfig) => {
 export const getGridConfig = (pairs) => {
 	if (pairs <= 2) return memoryConfig.gridConfigs[2]
 	if (pairs <= 6) return memoryConfig.gridConfigs[3]
-	if (pairs <= 12) return memoryConfig.gridConfigs[4]
-	return memoryConfig.gridConfigs[5]
+	return memoryConfig.gridConfigs[4]
 }
