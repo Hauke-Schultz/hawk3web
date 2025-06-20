@@ -9,10 +9,10 @@ export const memoryConfig = {
 	levels: [
 		{
 			level: 1,
-			pairs: 2,
+			pairs: 3,
 			timeBonus: 150,
 			title: 'Starter',
-			description: 'Match 2 pairs - Learn the basics',
+			description: 'Match 3 pairs - Learn the basics',
 			gridCols: 2,
 			minHeight: 80
 		},
@@ -98,46 +98,6 @@ export const memoryConfig = {
 		3: { cols: 3 },
 		4: { cols: 4 }
 	},
-
-	// Achievement configurations related to memory game
-	achievements: [
-		{
-			id: 'memory_beginner',
-			name: 'Memory Beginner',
-			description: 'Completed first memory level',
-			category: 'gaming',
-			icon: 'brain',
-			rarity: 'common',
-			trigger: { type: 'level_complete', level: 1 }
-		},
-		{
-			id: 'memory_intermediate',
-			name: 'Memory Intermediate',
-			description: 'Completed level 3',
-			category: 'gaming',
-			icon: 'brain',
-			rarity: 'uncommon',
-			trigger: { type: 'level_complete', level: 3 }
-		},
-		{
-			id: 'memory_master',
-			name: 'Memory Master',
-			description: 'Completed the hardest level',
-			category: 'gaming',
-			icon: 'brain',
-			rarity: 'rare',
-			trigger: { type: 'level_complete', level: 6 }
-		},
-		{
-			id: 'perfectionist',
-			name: 'Perfectionist',
-			description: 'Complete a game with perfect score',
-			category: 'special',
-			icon: 'trophy',
-			rarity: 'legendary',
-			trigger: { type: 'perfect_game' }
-		}
-	]
 }
 
 // Helper functions

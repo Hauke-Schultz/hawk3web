@@ -70,7 +70,7 @@ const updatePlayerName = () => {
               <span class="stat-value">{{ gameData.player.totalScore }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Games</span>
+              <span class="stat-label">Played</span>
               <span class="stat-value">{{ gameData.player.gamesPlayed }}</span>
             </div>
           </div>

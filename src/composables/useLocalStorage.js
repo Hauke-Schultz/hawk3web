@@ -1,4 +1,5 @@
 import { ref, reactive, watch } from 'vue'
+import { achievementsConfig, getAchievementById, checkAchievementCondition } from '../config/achievementsConfig.js'
 
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'
@@ -8,7 +9,7 @@ const CURRENT_VERSION = '1.0'
 const getDefaultData = () => ({
 	player: {
 		name: 'Player',
-		avatar: 'user',
+		avatar: 'avatar/user',
 		level: 0,
 		experience: 0,
 		totalScore: 0,
@@ -70,12 +71,12 @@ const getDefaultData = () => ({
 // Validation functions
 const validatePlayerData = (player) => {
 	return {
-		name: typeof player?.name === 'string' ? player.name : 'Hawk',
-		avatar: typeof player?.avatar === 'string' ? player.avatar : 'user',
-		level: typeof player?.level === 'number' ? player.level : 15,
-		experience: typeof player?.experience === 'number' ? player.experience : 750,
-		totalScore: typeof player?.totalScore === 'number' ? player.totalScore : 1325,
-		gamesPlayed: typeof player?.gamesPlayed === 'number' ? player.gamesPlayed : 12,
+		name: typeof player?.name === 'string' ? player.name : 'Player',
+		avatar: typeof player?.avatar === 'string' ? player.avatar : 'avatar/user',
+		level: typeof player?.level === 'number' ? player.level : 0,
+		experience: typeof player?.experience === 'number' ? player.experience : 0,
+		totalScore: typeof player?.totalScore === 'number' ? player.totalScore : 0,
+		gamesPlayed: typeof player?.gamesPlayed === 'number' ? player.gamesPlayed : 0,
 		createdAt: player?.createdAt || new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0]
 	}
@@ -435,69 +436,42 @@ export function useLocalStorage() {
 	}
 
 	function checkAutoAchievements() {
-		// First game achievement
-		if (gameData.player.gamesPlayed > 0 && !gameData.achievements.some(a => a.id === 'first_game' && a.earned)) {
-			gameData.achievements.push({
-				id: 'first_game',
-				name: 'First Game',
-				description: 'Played your first game',
-				earned: true,
-				earnedAt: new Date().toISOString()
-			})
-		}
+		const autoAchievements = achievementsConfig.definitions.filter(
+			achievement => achievement.trigger.type === 'auto'
+		)
 
-		// Level achievements
-		if (gameData.player.level >= 5 && !gameData.achievements.some(a => a.id === 'level_5' && a.earned)) {
-			gameData.achievements.push({
-				id: 'level_5',
-				name: 'Rising Star',
-				description: 'Reached level 5',
-				earned: true,
-				earnedAt: new Date().toISOString()
-			})
-		}
+		autoAchievements.forEach(achievement => {
+			// Check if already earned
+			const alreadyEarned = gameData.achievements.some(a => a.id === achievement.id && a.earned)
+			if (alreadyEarned) return
 
-		if (gameData.player.level >= 10 && !gameData.achievements.some(a => a.id === 'level_10' && a.earned)) {
-			gameData.achievements.push({
-				id: 'level_10',
-				name: 'Dedicated Player',
-				description: 'Reached level 10',
-				earned: true,
-				earnedAt: new Date().toISOString()
-			})
-		}
+			// Check if condition is met
+			if (checkAchievementCondition(achievement, gameData.player)) {
+				gameData.achievements.push({
+					id: achievement.id,
+					name: achievement.name,
+					description: achievement.description,
+					earned: true,
+					earnedAt: new Date().toISOString()
+				})
+			}
+		})
+	}
 
-		if (gameData.player.level >= 15 && !gameData.achievements.some(a => a.id === 'level_15' && a.earned)) {
-			gameData.achievements.push({
-				id: 'level_15',
-				name: 'Gaming Expert',
-				description: 'Reached level 15',
-				earned: true,
-				earnedAt: new Date().toISOString()
-			})
-		}
+	const checkGameLevelAchievements = (gameName, levelNumber) => {
+		const levelAchievements = achievementsConfig.definitions.filter(
+			achievement =>
+				achievement.trigger.type === 'level_complete' &&
+				achievement.trigger.game === gameName &&
+				achievement.trigger.level === levelNumber
+		)
 
-		// Score achievement
-		if (gameData.player.totalScore >= 1000 && !gameData.achievements.some(a => a.id === 'score_1000' && a.earned)) {
-			gameData.achievements.push({
-				id: 'score_1000',
-				name: 'Score Hunter',
-				description: 'Earned 1000 total points',
-				earned: true,
-				earnedAt: new Date().toISOString()
-			})
-		}
-
-		// Games played achievement
-		if (gameData.player.gamesPlayed >= 10 && !gameData.achievements.some(a => a.id === 'games_10' && a.earned)) {
-			gameData.achievements.push({
-				id: 'games_10',
-				name: 'Game Enthusiast',
-				description: 'Played 10 games',
-				earned: true,
-				earnedAt: new Date().toISOString()
-			})
-		}
+		levelAchievements.forEach(achievement => {
+			const alreadyEarned = gameData.achievements.some(a => a.id === achievement.id && a.earned)
+			if (!alreadyEarned) {
+				addAchievement(achievement)
+			}
+		})
 	}
 
 	const clearStorage = () => {
@@ -533,6 +507,7 @@ export function useLocalStorage() {
 		addAchievement,
 		hasAchievement,
 		checkAutoAchievements,
+		checkGameLevelAchievements,
 
 		// Card state methods
 		markCardAsRead,

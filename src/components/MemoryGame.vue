@@ -18,7 +18,7 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // LocalStorage service
-const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, addAchievement } = useLocalStorage()
+const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, addAchievement, checkGameLevelAchievements } = useLocalStorage()
 
 // Game state
 const gameState = ref('playing') // 'playing', 'paused', 'completed'
@@ -172,10 +172,6 @@ const calculateCurrentStars = () => {
   return calculateStars(finalScore.value, currentLevelConfig.value)
 }
 
-const getMaxPossibleScore = () => {
-  return calculateMaxPossibleScore(currentLevelConfig.value)
-}
-
 const completeGame = () => {
   stopTimer()
   gameState.value = 'completed'
@@ -224,15 +220,7 @@ const completeGame = () => {
 }
 
 const checkLevelAchievements = () => {
-  const levelAchievements = memoryConfig.achievements.filter(
-    ach => ach.trigger.type === 'level_complete' && ach.trigger.level === currentLevel.value
-  )
-
-  levelAchievements.forEach(achievement => {
-    if (isGameComplete.value) {
-      addAchievement(achievement)
-    }
-  })
+  checkGameLevelAchievements('memory', currentLevel.value)
 }
 
 const resetGame = () => {

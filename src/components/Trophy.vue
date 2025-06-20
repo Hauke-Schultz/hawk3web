@@ -3,102 +3,16 @@ import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import Icon from "./Icon.vue"
 import ProgressOverview from "./ProgressOverview.vue";
+import { achievementsConfig } from '../config/achievementsConfig.js'
 
 // LocalStorage service for achievements
 const { gameData } = useLocalStorage()
 
 // Achievement categories for organization
-const achievementCategories = [
-  {
-    id: 'general',
-    name: 'General',
-    color: 'primary'
-  },
-  {
-    id: 'gaming',
-    name: 'Gaming',
-    color: 'success'
-  },
-  {
-    id: 'progress',
-    name: 'Progress',
-    color: 'warning'
-  },
-  {
-    id: 'special',
-    name: 'Special',
-    color: 'info'
-  }
-]
+const achievementCategories = achievementsConfig.categories
 
 // All possible achievements (earned and unearned)
-const allAchievements = [
-  // General achievements
-  {
-    id: 'welcome',
-    name: 'Welcome to Hawk3',
-    description: 'Started your gaming journey',
-    category: 'general',
-    icon: 'user',
-    rarity: 'common'
-  },
-  {
-    id: 'first_game',
-    name: 'First Game',
-    description: 'Played your first game',
-    category: 'gaming',
-    icon: 'play',
-    rarity: 'common'
-  },
-  {
-    id: 'level_5',
-    name: 'Rising Star',
-    description: 'Reached level 5',
-    category: 'progress',
-    icon: 'trophy',
-    rarity: 'common'
-  },
-  {
-    id: 'level_10',
-    name: 'Dedicated Player',
-    description: 'Reached level 10',
-    category: 'progress',
-    icon: 'trophy',
-    rarity: 'uncommon'
-  },
-  {
-    id: 'level_15',
-    name: 'Gaming Expert',
-    description: 'Reached level 15',
-    category: 'progress',
-    icon: 'trophy',
-    rarity: 'rare'
-  },
-  {
-    id: 'score_1000',
-    name: 'Score Hunter',
-    description: 'Earned 1000 total points',
-    category: 'gaming',
-    icon: 'trophy',
-    rarity: 'uncommon'
-  },
-  {
-    id: 'games_10',
-    name: 'Game Enthusiast',
-    description: 'Played 10 games',
-    category: 'gaming',
-    icon: 'play',
-    rarity: 'uncommon'
-  },
-  {
-    id: 'perfectionist',
-    name: 'Perfectionist',
-    description: 'Complete a game with perfect score',
-    category: 'special',
-    icon: 'trophy',
-    rarity: 'legendary'
-  }
-]
+const allAchievements = achievementsConfig.definitions
 
 // Computed achievements with earned status
 const achievementsWithStatus = computed(() => {
