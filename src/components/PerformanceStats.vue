@@ -29,6 +29,30 @@ const props = defineProps({
     type: Number,
     default: null
   },
+  comboCount: {
+    type: Number,
+    default: null
+  },
+  comboMultiplier: {
+    type: Number,
+    default: null
+  },
+  maxCombo: {
+    type: Number,
+    default: null
+  },
+  comboTimeRemaining: {
+    type: Number,
+    default: 0
+  },
+  comboTimeMax: {
+    type: Number,
+    default: 8000
+  },
+  isComboActive: {
+    type: Boolean,
+    default: false
+  },
 
   // Display customization
   showScore: {
@@ -44,6 +68,10 @@ const props = defineProps({
     default: true
   },
   showMatches: {
+    type: Boolean,
+    default: false
+  },
+  showCombo: {
     type: Boolean,
     default: false
   },
@@ -90,10 +118,18 @@ const props = defineProps({
     type: String,
     default: 'Matches'
   },
+  comboLabel: {
+    type: String,
+    default: 'Combo'
+  },
+  maxComboLabel: {
+    type: String,
+    default: 'Max Combo'
+  },
   levelLabel: {
     type: String,
     default: 'Level'
-  }
+  },
 })
 
 // Format time display
@@ -107,6 +143,18 @@ const formatTime = (seconds) => {
 const formatMatches = computed(() => {
   if (props.matches === null || props.totalPairs === null) return props.matches || 0
   return `${props.matches}/${props.totalPairs}`
+})
+
+// Format combo display
+const formatCombo = computed(() => {
+  if (props.comboCount === 0) return '0'
+  return `${props.comboCount} (x${props.comboMultiplier.toFixed(1)})`
+})
+
+// Combo timer percentage
+const comboTimePercentage = computed(() => {
+  if (props.comboTimeMax === 0) return 0
+  return Math.max(0, (props.comboTimeRemaining / props.comboTimeMax) * 100)
 })
 
 // Stats to display
@@ -158,6 +206,17 @@ const statsToShow = computed(() => {
     })
   }
 
+  if (props.showCombo) {
+    stats.push({
+      key: 'combo',
+      label: props.comboLabel,
+      value: formatCombo.value,
+      type: 'combo',
+      isActive: props.isComboActive,
+      timePercentage: comboTimePercentage.value
+    })
+  }
+
   return stats
 })
 
@@ -178,10 +237,30 @@ const containerClass = computed(() => {
       v-for="stat in statsToShow"
       :key="stat.key"
       class="stat-item"
-      :class="`stat-item--${stat.type}`"
+      :class="[
+        `stat-item--${stat.type}`,
+        {
+          'stat-item--inactive': stat.type === 'combo' && !stat.isActive
+        }
+      ]"
     >
       <span class="stat-label">{{ stat.label }}</span>
       <span class="stat-value">{{ stat.value }}</span>
+
+      <!-- Combo Timer Bar -->
+      <div
+        v-if="stat.type === 'combo'"
+        class="combo-timer"
+        :class="{ 'combo-timer--inactive': !stat.isActive }"
+      >
+        <div
+          class="combo-timer-bar"
+          :style="{
+          width: `${stat.timePercentage}%`,
+          backgroundColor: stat.isActive ? 'var(--warning-color)' : 'var(--text-muted)'
+        }"
+        ></div>
+      </div>
     </div>
   </div>
 </template>
@@ -196,7 +275,7 @@ const containerClass = computed(() => {
   &--horizontal {
     flex-direction: row;
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start;
   }
 
   &--vertical {
@@ -249,6 +328,26 @@ const containerClass = computed(() => {
     background-color: var(--bg-secondary);
     border-radius: var(--border-radius-md);
   }
+
+  &--combo {
+    .stat-value {
+      color: var(--warning-color);
+      font-weight: var(--font-weight-bold);
+      transition: color 0.3s ease, opacity 0.3s ease;
+    }
+  }
+
+  &--inactive {
+    opacity: 0.5;
+
+    .stat-value {
+      color: var(--text-muted);
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+    }
+  }
 }
 
 // Stat Items
@@ -269,22 +368,25 @@ const containerClass = computed(() => {
   // Type-specific styling
   &--number {
     .stat-value {
-      color: var(--primary-color);
       font-weight: var(--font-weight-bold);
     }
   }
 
   &--time {
     .stat-value {
-      color: var(--info-color);
       font-weight: var(--font-weight-bold);
-      font-family: 'Courier New', monospace;
     }
   }
 
   &--progress {
     .stat-value {
-      color: var(--success-color);
+      font-weight: var(--font-weight-bold);
+    }
+  }
+
+  &--combo {
+    .stat-value {
+      color: var(--warning-color);
       font-weight: var(--font-weight-bold);
     }
   }
@@ -316,27 +418,6 @@ const containerClass = computed(() => {
   }
 }
 
-// Responsive Design
-@media (max-width: 480px) {
-  .performance-stats {
-    &--horizontal {
-      gap: var(--space-2);
-    }
-
-    &--grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  .stat-label {
-    font-size: var(--font-size-xxs);
-  }
-
-  .stat-value {
-    font-size: var(--font-size-sm);
-  }
-}
-
 // Animation for value changes
 .stat-value {
   transition: color 0.3s ease, transform 0.2s ease;
@@ -347,4 +428,26 @@ const containerClass = computed(() => {
     transform: scale(1.05);
   }
 }
+
+// Combo Timer
+.combo-timer {
+  width: 100%;
+  height: 3px;
+  background-color: var(--card-border);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  margin-top: var(--space-1);
+  transition: opacity 0.3s ease;
+
+  &--inactive {
+    opacity: 0.3;
+  }
+}
+
+.combo-timer-bar {
+  height: 100%;
+  transition: width 0.1s linear, background-color 0.3s ease;
+  border-radius: var(--border-radius-sm);
+}
+
 </style>

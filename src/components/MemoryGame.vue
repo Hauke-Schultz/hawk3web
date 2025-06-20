@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { memoryConfig, getMemoryLevel, calculateMaxPossibleScore, calculateStars, getGridConfig } from '../config/memoryConfig.js'
+import { useComboSystem } from '../composables/useComboSystem.js'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
 import GameCompletedModal from "./GameCompletedModal.vue";
@@ -42,6 +43,15 @@ const totalPairs = computed(() => currentLevelConfig.value.pairs)
 const isGameComplete = computed(() => matches.value === totalPairs.value)
 const gridCols = computed(() => {
   return getGridConfig(totalPairs.value).cols
+})
+
+// Combo system
+const comboSystem = useComboSystem({
+  minComboLength: 2,        // Memory Game: 2 consecutive matches = combo
+  maxComboLength: 8,        // Max 8 combo levels
+  comboTimeout: 8000,       // 8 seconds to maintain combo
+  baseMultiplier: 1.2,      // Lower base for memory game
+  multiplierIncrement: 0.3  // Gradual increase
 })
 
 const finalScore = computed(() => {
@@ -149,15 +159,26 @@ const checkForMatch = () => {
     matchedCards.value.push(firstIndex, secondIndex)
     matches.value++
 
-    // Add immediate score for match
-    const matchScore = 100
-    score.value += matchScore
+    // Add combo for successful match
+    const comboResult = comboSystem.addCombo()
+    console.log('Combo added:', comboResult)
+
+    // Calculate score with combo multiplier
+    const baseMatchScore = 100
+    const comboMultipliedScore = Math.round(baseMatchScore * comboResult.multiplier)
+    score.value += comboMultipliedScore
 
     // Check if game is complete
     if (isGameComplete.value) {
       completeGame()
     }
   } else {
+    // No match - break combo
+    const comboBreak = comboSystem.breakCombo()
+    if (comboBreak.comboBroken) {
+      console.log('Combo broken at:', comboBreak.finalCount)
+    }
+
     // No match - flip cards back
     firstCard.isFlipped = false
     secondCard.isFlipped = false
@@ -172,9 +193,9 @@ const calculateCurrentStars = () => {
   if (!isGameComplete.value) return 0
   return calculateStars(finalScore.value, currentLevelConfig.value)
 }
-
 const completeGame = () => {
   stopTimer()
+  comboSystem.cleanup() // Cleanup combo system
   gameState.value = 'completed'
 
   // Calculate final score
@@ -202,7 +223,11 @@ const completeGame = () => {
       timeElapsed.value,
     averageTime: gameData.games.memory.averageTime ?
       Math.round((gameData.games.memory.averageTime + timeElapsed.value) / 2) :
-      timeElapsed.value
+      timeElapsed.value,
+    maxCombo: Math.max(
+      gameData.games.memory.maxCombo || 0,
+      comboSystem.comboCount.value
+    )
   }
 
   updateGameStats('memory', gameStats)
@@ -237,6 +262,7 @@ const checkLevelAchievements = () => {
 
 const resetGame = () => {
   stopTimer()
+  comboSystem.resetCombo() // Reset combo system
   initializeGame()
 }
 
@@ -272,6 +298,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopTimer()
+  comboSystem.cleanup() // Cleanup combo system
 })
 </script>
 
@@ -305,6 +332,12 @@ onUnmounted(() => {
           :moves="moves"
           :matches="matches"
           :total-pairs="totalPairs"
+          :combo-count="comboSystem.comboCount.value"
+          :combo-multiplier="comboSystem.comboMultiplier.value"
+          :max-combo="gameData.games.memory.maxCombo || 0"
+          :combo-time-remaining="comboSystem.timeRemaining.value"
+          :combo-time-max="comboSystem.config.comboTimeout"
+          :is-combo-active="comboSystem.isComboActive.value"
           layout="horizontal"
           theme="card"
           size="normal"
@@ -312,6 +345,7 @@ onUnmounted(() => {
           :show-time="true"
           :show-moves="true"
           :show-matches="false"
+          :show-combo="true"
         />
       </div>
     </div>

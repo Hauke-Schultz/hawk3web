@@ -30,10 +30,8 @@ const getDefaultData = () => ({
 			totalScore: 0,
 			bestTime: null,
 			averageTime: null,
-			levels: {
-				// Level-specific data: levels[1], levels[2], etc.
-				// Each level contains: { completed, highScore, bestTime, stars, attempts, bestPerformance }
-			}
+			maxCombo: 0,
+			levels: {}
 		},
 		fruitMerge: {
 			highScore: 0,
@@ -100,6 +98,7 @@ const validateGameData = (games) => {
 			gamesPlayed: typeof games?.memory?.gamesPlayed === 'number' ? games.memory.gamesPlayed : defaultGames.memory.gamesPlayed,
 			bestTime: typeof games?.memory?.bestTime === 'number' ? games.memory.bestTime : defaultGames.memory.bestTime,
 			averageTime: typeof games?.memory?.averageTime === 'number' ? games.memory.averageTime : defaultGames.memory.averageTime,
+			maxCombo: typeof games?.memory?.maxCombo === 'number' ? games.memory.maxCombo : defaultGames.memory.maxCombo,
 			levels: typeof games?.memory?.levels === 'object' ? games.memory.levels : {}
 		},
 		fruitMerge: {
@@ -222,6 +221,11 @@ export function useLocalStorage() {
 	// Game data methods
 	const updateGameStats = (gameName, stats) => {
 		if (gameData.games[gameName]) {
+			// Track max combo if provided
+			if (stats.maxCombo && (!gameData.games[gameName].maxCombo || stats.maxCombo > gameData.games[gameName].maxCombo)) {
+				gameData.games[gameName].maxCombo = stats.maxCombo
+			}
+
 			Object.assign(gameData.games[gameName], stats)
 			gameData.player.gamesPlayed += 1
 		}

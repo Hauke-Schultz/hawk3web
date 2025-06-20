@@ -4,7 +4,7 @@
 
 Create a comprehensive gaming platform featuring multiple mini-games with a modern, responsive interface that provides an engaging user experience across all devices.
 
-## 📊 Current Status (v0.2.4)
+## 📊 Current Status (v0.2.5)
 
 ✅ **Completed:**
 - Basic Vue 3 project structure with Vite
@@ -28,49 +28,33 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - **Level Selection System** - Visual level selection with GameLevelTile components
 - **Star Rating System** - 3-star performance-based rating system
 - **Level Completion Tracking** - Individual level progress and statistics
+- **Combo System Implementation** - Advanced combo tracking with multipliers and timers
+- **PerformanceStats Integration** - Combo display with timer bars and visual feedback
 
-## 📋 Recent Additions (v0.2.4)
+## 📋 Recent Additions (v0.2.5)
 *New features completed in this version*
 
-### **🎮 Level Selection System (Complete)**
-- **GameLevelTile Component**: Reusable level tiles with star ratings, scores, and lock states
-- **LevelSelection Component**: Grid-based level selection with progress overview
-- **Enhanced LocalStorage**: Level-specific data tracking and performance scoring
-- **Star Rating Calculation**: 3-star system based on score, time, and moves performance
-- **Level Unlock Progression**: Sequential level unlocking system
-- **Progress Tracking**: Visual progress bars and completion statistics
+### **🔥 Combo System Implementation (Complete)**
+- **useComboSystem Composable**: Complete combo logic with configurable timeouts and multipliers
+- **PerformanceStats Combo Integration**: Real-time combo display with timer bars
+- **Score Multipliers**: Dynamic score multiplication based on consecutive matches
+- **Visual Feedback**: Inactive state visualization and smooth transitions
+- **Data Persistence**: Max combo tracking in localStorage and game statistics
 
-### **🎯 Memory Game Level Integration (Complete)**
-- **Level-Based Gameplay**: Each level with unique pair counts and difficulty
-- **Level Completion Tracking**: Individual level statistics and best performances
-- **Return to Level Selection**: Seamless navigation back to level overview
-- **Level-Specific Achievements**: Achievements for completing specific levels
-- **Performance Scoring**: Complex scoring system for star rating calculation
+### **⚡ Enhanced Game Experience (Complete)**
+- **Real-time Combo Tracking**: Live combo counter with multiplier display
+- **Combo Timer Visualization**: Progress bar showing remaining combo time
+- **Improved Scoring System**: Combo-based score bonuses for better gameplay
+- **Enhanced Memory Game**: Integrated combo system for more engaging gameplay
+- **Performance Statistics**: Comprehensive game statistics including combo metrics
 
-### **🔧 Enhanced Game Framework (Complete)**
-- **Reusable Components**: GameLevelTile ready for other games
-- **Flexible Level Configuration**: Easy addition of new levels and games
-- **Performance Metrics**: Comprehensive tracking of game performance data
-- **Navigation Flow**: Improved game-to-game navigation system
+### **🎯 Memory Game Optimization (Complete)**
+- **Combo Integration**: Seamless combo system integration in memory game logic
+- **Enhanced Scoring**: Dynamic scoring with combo multipliers
+- **Improved Game Flow**: Better match detection with combo rewards/penalties
+- **Statistics Tracking**: Complete combo statistics in game data
 
-### **🔒 Profile Reset System (Complete)**
-- **Lock/Unlock Button**: Security system with lock/unlock icons (auto-lock after 10 seconds)
-- **Delete Profile Button**: Only active when unlocked, with clear visual states
-- **ConfirmationModal Component**: Reusable modal component for dangerous actions
-- **Complete Data Reset**: Full localStorage clear with return to default state
-- **Enhanced Security**: Two-stage confirmation process to prevent accidental deletion
-
-### **🎨 Global Button System (Complete)**
-- **Danger Button Styles**: Red button variant for destructive actions
-- **Lock/Unlock Button Styles**: Visual feedback for security states
-- **Delete Button States**: Disabled/enabled states with proper accessibility
-
-### **💾 Data Structure Completion (Complete)**
-- **Card State Management**: Full implementation of card read/hide functionality
-- **Achievement System**: Complete trophy tracking with progress calculation
-- **Profile Data**: Comprehensive user data with games, achievements, and settings
-
-## 🚀 Phase 2: First Game Memory (v0.3.0) - IN PROGRESS ⚡
+## 🚀 Phase 2: First Game Memory (v0.2.5) - COMPLETE ✅
 *Priority: High*
 
 - [x] **Game 1: Memory Game** - Card matching game ✅
@@ -82,18 +66,45 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - [x] **Reusable Game Components** - GameLevelTile component for all games ✅
 - [x] **Level Completion Tracking** - Track which levels are completed ✅
 - [x] **Enhanced LocalStorage** - Level-specific data persistence ✅
-- [x] **Level Selection Optimization** - UI/UX improvements and polish
-- [x] **Memory Game Optimization** - Performance and visual enhancements
-- [ ] **Combo System** - Basic combo tracking for Memory Game
+- [x] **Level Selection Optimization** - UI/UX improvements and polish ✅
+- [x] **Memory Game Optimization** - Performance and visual enhancements ✅
+- [x] **Combo System** - Advanced combo tracking with multipliers and timers ✅
 
-## 🎮 Phase 3: FruitMerge Game (v0.4.0)
+## 🌐 Phase 3: Internationalization & Language Support (v0.2.6) - IN PROGRESS ⚡
+*Priority: High*
+
+- [ ] **Language Configuration** - Implement custom solution
+- [ ] **Translation Files** - Create English and German translation files
+- [ ] **Settings Language Selection** - Add language selector in Settings page
+- [ ] **Component Translation** - Migrate all hardcoded text to translation keys
+- [ ] **Dynamic Language Switching** - Real-time language switching without page reload
+- [ ] **LocalStorage Language Persistence** - Save and restore language preference
+- [ ] **Game Content Translation** - Translate game instructions, achievements, and UI text
+- [ ] **Date and Number Formatting** - Locale-specific formatting for dates and numbers
+- [ ] **Responsive Text Length** - Handle different text lengths for German vs English
+- [ ] **Translation Management** - Organized translation key structure and management
+
+### **📋 Translation Scope**
+- **Core Navigation**: Home, Gaming, Profile, Trophy, Settings
+- **Game Interface**: Memory Game instructions, level descriptions, combo text
+- **Achievement System**: Trophy names, descriptions, categories
+- **Settings & Profile**: All configuration options and user interface text
+- **Modal & Dialogs**: Confirmation dialogs, game completion messages
+- **Performance Stats**: Labels for score, time, moves, combo statistics
+- **Error Messages**: User-friendly error and validation messages
+
+## 🎮 Phase 4: FruitMerge Game (v0.4.0)
 *Priority: High*
 
 - [ ] **Game 2: FruitMerge Game** - Refactor old FruitMerge game
 - [ ] **Game Framework Enhancements** - Improved game components
 - [ ] **Level Selection Integration** - Use GameLevelTile for FruitMerge
+- [ ] **FruitMerge Combo System** - Integrate combo system for FruitMerge gameplay
+- [ ] **Physics-based Gameplay** - Matter.js integration for fruit dropping mechanics
+- [ ] **Merge Animations** - Smooth fruit combination animations
+- [ ] **Multilingual Game Content** - German and English support for FruitMerge
 
-## 👤 Phase 4: User Experience (v0.5.0)
+## 👤 Phase 5: User Experience Enhancement (v0.5.0)
 *Priority: Medium*
 
 - [ ] **Notifications Page** - Activity feed and alerts
@@ -104,15 +115,19 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - [ ] **User Customization** - More avatar options, themes
 - [ ] **Progress Tracking** - Visual progress indicators
 - [ ] **Leaderboards** - Local high scores
+- [ ] **Game Settings** - Per-game configuration options
+- [ ] **Advanced Statistics** - Detailed analytics and progress charts
 
-## ⚡ Phase 5: Advanced Features (v0.6.0)
+## ⚡ Phase 6: Advanced Features (v0.6.0)
 *Priority: Low*
 
-- [ ] **Sound System** - Background music and sound effects
+- [ ] **Sound System** - Background music and sound effects with language-specific audio
 - [ ] **Animations** - Enhanced UI transitions and game animations
-- [ ] **Accessibility** - Screen reader support, keyboard navigation
+- [ ] **Accessibility** - Screen reader support, keyboard navigation, multilingual accessibility
 - [ ] **Performance** - Optimize for mobile devices
-- [ ] **PWA Features** - Offline capability, install prompt
+- [ ] **PWA Features** - Offline capability, install prompt with multilingual support
+- [ ] **Advanced Themes** - More theme options and customization
+- [ ] **Game Tutorials** - Interactive tutorials in multiple languages
 
 ## 🌟 Future Ideas (v1.0.0+)
 *Priority: Future*
@@ -132,11 +147,14 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - **Performance focus** - Keep bundle size minimal
 - **User feedback** - Test each feature thoroughly
 - **Documentation** - Update README and CHANGELOG with each release
+- **Internationalization** - Design with multiple languages in mind
+- **Accessibility** - Ensure multilingual accessibility compliance
+- **Code Quality** - Maintain clean, translatable, and maintainable code
 
 ## 🏷️ Version Naming
 
 - **v0.x.x** - Development versions
-- **v1.0.0** - First stable release with core games
+- **v1.0.0** - First stable release with core games and full i18n
 - **v1.x.x** - Feature additions and improvements
 - **v2.0.0** - Major platform overhaul (if needed)
 
@@ -147,11 +165,12 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - **✅ v0.2.2** - Profile reset functionality with security system
 - **✅ v0.2.3** - Memory Game implementation complete
 - **✅ v0.2.4** - Level Selection System and GameLevelTile components
-- **🎯 v0.3.0** - Combo System and Game Settings completion
-- **🎯 v0.4.0** - Second game (FruitMerge)
-- **🎯 v0.5.0** - Enhanced user experience
-- **🎯 v1.0.0** - Stable release with multiple games
+- **✅ v0.2.5** - Combo System implementation and PerformanceStats integration
+- **🎯 v0.2.6** - Internationalization and Language Support (English/German)
+- **🎯 v0.4.0** - Second game (FruitMerge) with multilingual support
+- **🎯 v0.5.0** - Enhanced user experience with advanced features
+- **🎯 v1.0.0** - Stable release with multiple games and full i18n support
 
 ---
 
-*This roadmap is a living document and will be updated as the project evolves. Last updated: v0.2.4 - Level Selection System Complete*
+*This roadmap is a living document and will be updated as the project evolves. Last updated: v0.2.6 - Starting Internationalization Phase*
