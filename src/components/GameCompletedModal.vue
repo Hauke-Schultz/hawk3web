@@ -45,6 +45,14 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  newAchievements: {
+    type: Array,
+    default: () => []
+  },
+  showAchievements: {
+    type: Boolean,
+    default: true
+  },
   // Action button configurations
   showNextLevel: {
     type: Boolean,
@@ -170,6 +178,26 @@ const handleKeyDown = (event) => {
             score-label="Final Score"
           />
 
+          <!-- Achievements Section -->
+          <div v-if="showAchievements && newAchievements.length > 0" class="achievements-section">
+            <h4 class="achievements-title">🏆 New Achievements!</h4>
+            <div class="achievements-list">
+              <div
+                v-for="achievement in newAchievements"
+                :key="achievement.id"
+                class="achievement-item"
+              >
+                <div class="achievement-icon">
+                  <Icon :name="achievement.icon" size="20" />
+                </div>
+                <div class="achievement-info">
+                  <span class="achievement-name">{{ achievement.name }}</span>
+                  <span class="achievement-description">{{ achievement.description }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="completed-actions">
             <button
               v-if="showNextLevel"
@@ -289,6 +317,81 @@ const handleKeyDown = (event) => {
   color: var(--primary-color);
   margin: 0;
   animation: messageSlide 0.8s ease-out;
+}
+// Achievements Section
+.achievements-section {
+  background-color: var(--card-bg-hover);
+  border: 1px solid var(--success-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.achievements-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--success-color);
+  margin: 0 0 var(--space-3) 0;
+  text-align: center;
+}
+
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-2) var(--space-3);
+  animation: achievementSlide 0.5s ease-out;
+}
+
+.achievement-icon {
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: 50%;
+  background-color: var(--success-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.achievement-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.achievement-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  line-height: 1.2;
+}
+
+.achievement-description {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+@keyframes achievementSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 // Star animations

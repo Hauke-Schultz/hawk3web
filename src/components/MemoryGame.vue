@@ -28,6 +28,7 @@ const moves = ref(0)
 const matches = ref(0)
 const timeElapsed = ref(0)
 const timer = ref(null)
+const earnedAchievements = ref([])
 
 // Card system
 const cards = ref([])
@@ -205,6 +206,17 @@ const completeGame = () => {
   }
 
   updateGameStats('memory', gameStats)
+  // Check for achievements and track new ones
+  const achievementsBefore = [...gameData.achievements]
+  checkLevelAchievements()
+  const achievementsAfter = [...gameData.achievements]
+
+  // Find newly earned achievements
+  const newAchievements = achievementsAfter.filter(after =>
+    !achievementsBefore.some(before => before.id === after.id && before.earned)
+  )
+  earnedAchievements.value = newAchievements
+
   addScore(gameScore)
   addExperience(50)
 
@@ -357,6 +369,8 @@ onUnmounted(() => {
       :total-pairs="totalPairs"
       :stars-earned="calculateCurrentStars()"
       :show-stars="true"
+      :new-achievements="earnedAchievements"
+      :show-achievements="true"
       @next-level="nextLevel"
       @play-again="resetGame"
       @back-to-games="backToGaming"
