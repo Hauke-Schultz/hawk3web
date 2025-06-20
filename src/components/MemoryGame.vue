@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { memoryConfig, getMemoryLevel, calculateMaxPossibleScore, calculateStars, getGridConfig } from '../config/memoryConfig.js'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
+import GameCompletedModal from "./GameCompletedModal.vue";
+import PerformanceStats from "./PerformanceStats.vue";
 
 const props = defineProps({
   level: {
@@ -31,34 +34,12 @@ const flippedCards = ref([])
 const matchedCards = ref([])
 const isProcessing = ref(false)
 
-// Game configuration based on level
-const gameLevels = [
-  { pairs: 2, timeBonus: 150 },   // Level 1: 2x2 grid
-  { pairs: 6, timeBonus: 300 },   // Level 2: 3x4 grid
-  { pairs: 8, timeBonus: 400 },   // Level 3: 4x4 grid
-  { pairs: 10, timeBonus: 500 },  // Level 4: 4x5 grid
-  { pairs: 12, timeBonus: 600 },  // Level 5: 4x6 grid
-  { pairs: 15, timeBonus: 750 }   // Level 6: 5x6 grid
-]
-// Card symbols for memory game
-const cardSymbols = [
-  '🎮', '🏆', '⭐', '🎯', '🚀', '💎',
-  '🔥', '⚡', '🎨', '🎵', '🌟', '💫',
-  '🎪', '🎭', '🎺', '🎸', '🎤', '🎲',
-  '🏅', '🎖️', '🏆', '👑', '💰', '🎁'
-]
-
 // Computed properties
-const currentLevelConfig = computed(() => gameLevels[currentLevel.value - 1] || gameLevels[0])
+const currentLevelConfig = computed(() => getMemoryLevel(currentLevel.value))
 const totalPairs = computed(() => currentLevelConfig.value.pairs)
 const isGameComplete = computed(() => matches.value === totalPairs.value)
 const gridCols = computed(() => {
-  const pairs = totalPairs.value
-  if (pairs <= 2) return 2  // 2x2 for 2 pairs
-  if (pairs <= 6) return 3  // 3x4 for 6 pairs
-  if (pairs <= 8) return 4  // 4x4 for 8 pairs
-  if (pairs <= 12) return 4 // 4x6 for 12 pairs
-  return 5                  // 5x6 for 15 pairs
+  return getGridConfig(totalPairs.value).cols
 })
 
 const finalScore = computed(() => {
@@ -84,7 +65,7 @@ const gameProgress = computed(() => {
 const initializeGame = () => {
   // Create pairs of cards
   const pairs = totalPairs.value
-  const selectedSymbols = cardSymbols.slice(0, pairs)
+  const selectedSymbols = memoryConfig.cardSymbols.slice(0, pairs)
   const gameCards = []
 
   // Create pairs
@@ -152,7 +133,7 @@ const flipCard = (cardIndex) => {
 
     setTimeout(() => {
       checkForMatch()
-    }, 1000)
+    }, memoryConfig.settings.flipDuration)
   }
 }
 
@@ -185,6 +166,15 @@ const checkForMatch = () => {
   // Reset flipped cards
   flippedCards.value = []
   isProcessing.value = false
+}
+
+const calculateCurrentStars = () => {
+  if (!isGameComplete.value) return 0
+  return calculateStars(finalScore.value, currentLevelConfig.value)
+}
+
+const getMaxPossibleScore = () => {
+  return calculateMaxPossibleScore(currentLevelConfig.value)
 }
 
 const completeGame = () => {
@@ -224,7 +214,7 @@ const completeGame = () => {
   addExperience(50)
 
   // Check for achievements
-  checkAchievements(gameScore)
+  checkLevelAchievements()
 
   emit('game-complete', {
     level: currentLevel.value,
@@ -234,68 +224,16 @@ const completeGame = () => {
   })
 }
 
-const checkAchievements = (gameScore) => {
-  // First game achievement
-  if (gameData.games.memory.gamesPlayed === 0) {
-    addAchievement({
-      id: 'first_game',
-      name: 'First Game',
-      description: 'Played your first game'
-    })
-  }
+const checkLevelAchievements = () => {
+  const levelAchievements = memoryConfig.achievements.filter(
+    ach => ach.trigger.type === 'level_complete' && ach.trigger.level === currentLevel.value
+  )
 
-  // Perfect game achievement (minimal moves)
-  const minPossibleMoves = totalPairs.value
-  if (moves.value === minPossibleMoves) {
-    addAchievement({
-      id: 'perfectionist',
-      name: 'Perfectionist',
-      description: 'Complete a game with perfect score'
-    })
-  }
-
-  // NEU: Easy Level Achievement für 2x2
-  if (currentLevel.value === 1 && isGameComplete.value) {
-    addAchievement({
-      id: 'memory_beginner',
-      name: 'Memory Beginner',
-      description: 'Completed first memory level'
-    })
-  }
-
-  // Score achievements
-  if (gameScore >= 1000) {
-    addAchievement({
-      id: 'score_1000',
-      name: 'Score Hunter',
-      description: 'Earned 1000 total points'
-    })
-  }
-
-  if (currentLevel.value === 1 && isGameComplete.value) {
-    addAchievement({
-      id: 'memory_beginner',
-      name: 'Memory Beginner',
-      description: 'Completed first memory level'
-    })
-  }
-
-  // Level-specific achievements
-  if (currentLevel.value === 3 && isGameComplete.value) {
-    addAchievement({
-      id: 'memory_intermediate',
-      name: 'Memory Intermediate',
-      description: 'Completed level 3'
-    })
-  }
-
-  if (currentLevel.value === 6 && isGameComplete.value) {
-    addAchievement({
-      id: 'memory_master',
-      name: 'Memory Master',
-      description: 'Completed the hardest level'
-    })
-  }
+  levelAchievements.forEach(achievement => {
+    if (isGameComplete.value) {
+      addAchievement(achievement)
+    }
+  })
 }
 
 const resetGame = () => {
@@ -327,13 +265,6 @@ const nextLevel = () => {
 const backToGaming = () => {
   stopTimer()
   emit('back-to-gaming')
-}
-
-// Format time display
-const formatTime = (seconds) => {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
 // Lifecycle hooks
@@ -370,24 +301,24 @@ onUnmounted(() => {
         />
 
         <!-- Game Performance Stats -->
-        <div class="performance-stats">
-          <div class="stat-item">
-            <span class="stat-label">Score</span>
-            <span class="stat-value">{{ score }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Time</span>
-            <span class="stat-value">{{ formatTime(timeElapsed) }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Moves</span>
-            <span class="stat-value">{{ moves }}</span>
-          </div>
-        </div>
+        <PerformanceStats
+          :score="score"
+          :time-elapsed="timeElapsed"
+          :moves="moves"
+          :matches="matches"
+          :total-pairs="totalPairs"
+          layout="horizontal"
+          theme="card"
+          size="normal"
+          :show-score="true"
+          :show-time="true"
+          :show-moves="true"
+          :show-matches="false"
+        />
       </div>
     </div>
 
-    <!-- Game Playing State - Direkt anzeigen -->
+    <!-- Game Playing State -->
     <div v-if="gameState === 'playing' || gameState === 'paused'" class="game-board">
       <!-- Game Controls -->
       <div class="game-controls">
@@ -455,45 +386,22 @@ onUnmounted(() => {
     </div>
 
     <!-- Game Completed State -->
-    <div v-else-if="gameState === 'completed'" class="game-completed">
-      <div class="completed-content">
-        <h3 class="completed-title">🎉 Level Complete!</h3>
-
-        <div class="final-stats">
-          <div class="final-stat">
-            <span class="stat-label">Final Score</span>
-            <span class="stat-value stat-value--large">{{ finalScore }}</span>
-          </div>
-          <div class="final-stat">
-            <span class="stat-label">Time</span>
-            <span class="stat-value">{{ formatTime(timeElapsed) }}</span>
-          </div>
-          <div class="final-stat">
-            <span class="stat-label">Moves</span>
-            <span class="stat-value">{{ moves }}</span>
-          </div>
-          <div class="final-stat">
-            <span class="stat-label">Matches</span>
-            <span class="stat-value">{{ matches }}/{{ totalPairs }}</span>
-          </div>
-        </div>
-
-        <div class="completed-actions">
-          <button
-            class="btn btn--primary"
-            @click="nextLevel"
-          >
-            Back to Levels
-          </button>
-          <button class="btn btn--ghost" @click="resetGame">
-            Play Again
-          </button>
-          <button class="btn btn--ghost" @click="backToGaming">
-            Back to Games
-          </button>
-        </div>
-      </div>
-    </div>
+    <GameCompletedModal
+      :visible="gameState === 'completed'"
+      :level="currentLevel"
+      :game-title="memoryConfig.gameTitle"
+      :final-score="finalScore"
+      :time-elapsed="timeElapsed"
+      :moves="moves"
+      :matches="matches"
+      :total-pairs="totalPairs"
+      :stars-earned="calculateCurrentStars()"
+      :show-stars="true"
+      @next-level="nextLevel"
+      @play-again="resetGame"
+      @back-to-games="backToGaming"
+      @close="backToGaming"
+    />
   </main>
 </template>
 
@@ -539,42 +447,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-}
-
-.performance-stats {
-  display: flex;
-  gap: var(--space-4);
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-2);
-  justify-content: space-around;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  flex: 1;
-}
-
-.stat-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  font-weight: var(--font-weight-bold);
-}
-
-.stat-value {
-  font-size: var(--font-size-lg);
-  color: var(--text-color);
-  font-weight: var(--font-weight-bold);
-
-  &--large {
-    font-size: var(--font-size-2xl);
-    color: var(--primary-color);
-  }
 }
 
 // Game Board
@@ -715,52 +587,6 @@ onUnmounted(() => {
     margin: 0;
     color: var(--text-color);
   }
-}
-
-// Game Completed State
-.game-completed {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.completed-content {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-width: 350px;
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-6);
-}
-
-.completed-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  margin: 0;
-}
-
-.final-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-}
-
-.final-stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  align-items: center;
-}
-
-.completed-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
 }
 
 // Responsive Design

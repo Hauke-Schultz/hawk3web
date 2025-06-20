@@ -81,7 +81,7 @@ const handleCardRead = (cardType) => {
           </div>
         </div>
         <div class="card-content">
-          <h2 class="card-title">Start</h2>
+          <h2 class="card-title">Gaming Hub</h2>
         </div>
       </div>
 
