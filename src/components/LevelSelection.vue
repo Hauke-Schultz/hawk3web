@@ -1,9 +1,11 @@
 <script setup>
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 import GameLevelTile from './GameLevelTile.vue'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
+import {getMemoryLevelDescription, getMemoryLevelTitle} from "../config/memoryConfig.js";
 
 // Props for the level selection component
 const props = defineProps({
@@ -37,6 +39,7 @@ const emit = defineEmits([
 
 // LocalStorage service
 const { gameData } = useLocalStorage()
+const { t } = useI18n()
 
 // Computed game data
 const gameStats = computed(() => {
@@ -58,8 +61,8 @@ const levelData = computed(() => {
 
     return {
       level: levelNumber,
-      title: level.title || `Level ${levelNumber}`,
-      description: level.description || `Match ${level.pairs} pairs`,
+      title: getMemoryLevelTitle(levelNumber, t),
+      description: getMemoryLevelDescription(levelNumber, t),
       pairs: level.pairs,
       timeBonus: level.timeBonus,
       isLocked: !isUnlocked,
@@ -128,16 +131,16 @@ const handleBackToHub = () => {
     <div class="level-header">
       <div class="level-title-section">
         <h2 class="level-title">{{ gameTitle }}</h2>
-        <p class="level-subtitle">Choose your level</p>
+        <p class="level-subtitle">{{ t('gaming.choose_level') }}</p>
       </div>
 
       <button
         class="btn btn--ghost btn--small"
         @click="handleBackToHub"
-        aria-label="Back to game hub"
+        :aria-label="t('gaming.back_to_game_hub')"
       >
         <Icon name="arrow-left" size="16" />
-        Back
+        {{ t('common.back') }}
       </button>
     </div>
 
@@ -148,9 +151,9 @@ const handleBackToHub = () => {
       :total-stars="completionStats.totalStars"
       :max-stars="completionStats.maxStars"
       :theme="theme"
-      levels-label="Levels"
-      stars-label="Stars"
-      complete-label="Complete"
+      :levels-label="t('gaming.stats.levels')"
+      :stars-label="t('gaming.stats.stars')"
+      :complete-label="t('common.complete')"
     />
 
     <!-- Levels Grid -->

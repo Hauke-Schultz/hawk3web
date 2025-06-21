@@ -189,6 +189,14 @@ export const getAchievementsByTrigger = (triggerType) => {
 	return achievementsConfig.definitions.filter(achievement => achievement.trigger.type === triggerType)
 }
 
+export const getTranslatedAchievement = (achievement, t) => {
+	return {
+		...achievement,
+		name: t(`achievements.definitions.${achievement.id}.name`),
+		description: t(`achievements.definitions.${achievement.id}.description`)
+	}
+}
+
 export const checkAchievementCondition = (achievement, playerData) => {
 	if (achievement.trigger.type === 'auto') {
 		const condition = achievement.trigger.condition

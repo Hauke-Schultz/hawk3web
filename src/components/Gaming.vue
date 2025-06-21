@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 import { memoryConfig } from '../config/memoryConfig.js'
 import Icon from './Icon.vue'
 import MemoryGame from './MemoryGame.vue'
@@ -8,6 +9,7 @@ import LevelSelection from "./LevelSelection.vue";
 
 // LocalStorage service
 const { gameData } = useLocalStorage()
+const { t } = useI18n()
 
 // View management
 const currentView = ref('hub') // 'hub', 'memory-levels', 'memory-game'
@@ -43,8 +45,8 @@ const handleGameComplete = (gameResult) => {
 <template>
   <main v-if="currentView === 'hub'" class="gaming-hub">
     <div class="hero-section">
-      <h2 class="hero-title">Gaming Hub</h2>
-      <p class="hero-subtitle">Challenge yourself with exciting games</p>
+      <h2 class="hero-title">{{ t('gaming.title') }}</h2>
+      <p class="hero-subtitle">{{ t('gaming.subtitle') }}</p>
     </div>
 
     <div class="games-grid">
@@ -54,16 +56,16 @@ const handleGameComplete = (gameResult) => {
           <Icon :name="memoryConfig.gameIcon" size="56" />
         </div>
         <div class="game-info">
-          <h3 class="game-title">{{ memoryConfig.gameTitle }}</h3>
-          <p class="game-description">{{ memoryConfig.gameDescription }}</p>
+          <h3 class="game-title">{{ t('memory.title') }}</h3>
+          <p class="game-description">{{ t('memory.description') }}</p>
           <div class="game-stats">
-            <span class="best-score">Best: {{ gameData.games.memory.highScore }}</span>
-            <span class="games-played">{{ gameData.games.memory.gamesPlayed }} played</span>
+            <span class="best-score">{{ t('gaming.stats.best_score', { score: gameData.games.memory.highScore }) }}</span>
+            <span class="games-played">{{ t('gaming.stats.games_played', { count: gameData.games.memory.gamesPlayed }) }}</span>
           </div>
         </div>
         <button class="btn" @click="startGame('memory')">
           <Icon name="play" size="20" />
-          Play
+          {{ t('common.play') }}
         </button>
       </div>
 
@@ -75,12 +77,8 @@ const handleGameComplete = (gameResult) => {
         <div class="game-info">
           <h3 class="game-title">Fruit Merge</h3>
           <p class="game-description">Merge fruits to create new combinations</p>
-          <div class="coming-soon-badge">Coming Soon</div>
+          <div class="coming-soon-badge">{{ t('gaming.coming_soon') }}</div>
         </div>
-        <button class="btn" disabled>
-          <Icon name="play" size="20" />
-          Soon
-        </button>
       </div>
     </div>
   </main>

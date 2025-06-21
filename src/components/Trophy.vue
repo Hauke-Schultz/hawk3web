@@ -1,12 +1,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 import ProgressOverview from "./ProgressOverview.vue";
 import { achievementsConfig } from '../config/achievementsConfig.js'
 
 // LocalStorage service for achievements
 const { gameData } = useLocalStorage()
+const { t, currentLanguage } = useI18n()
 
 // Achievement categories for organization
 const achievementCategories = achievementsConfig.categories
@@ -92,7 +94,7 @@ const getRarityClass = (rarity) => {
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(currentLanguage.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -104,16 +106,16 @@ const formatDate = (dateString) => {
   <main class="content">
     <!-- Trophy Header -->
     <section class="trophy-header">
-      <h2 class="trophy-title">Trophy Collection</h2>
+      <h2 class="trophy-title">{{ t('achievements.title') }}</h2>
       <ProgressOverview
         :completed="achievementStats.earned"
         :total="achievementStats.total"
         theme="warning"
         size="normal"
-        levels-label="Achievements"
+        :levels-label="t('nav.trophies')"
         :show-stars="false"
         :show-percentage="true"
-        complete-label="Unlocked"
+        :complete-label="t('gaming.stats.unlocked')"
       />
     </section>
 
@@ -123,7 +125,7 @@ const formatDate = (dateString) => {
       :key="category.id"
       class="achievement-category"
     >
-      <h3 class="category-title">{{ category.name }}</h3>
+      <h3 class="category-title">{{ t(`achievements.categories.${category.id}`) }}</h3>
 
       <div class="achievements-grid">
         <div
@@ -149,16 +151,14 @@ const formatDate = (dateString) => {
           <!-- Achievement Content -->
           <div class="achievement-content">
             <div class="achievement-header">
-              <h4 class="achievement-name">{{ achievement.name }}</h4>
-              <div
-                class="rarity-badge"
-                :class="getRarityClass(achievement.rarity)"
-              >
-                {{ achievement.rarity }}
+              <h4 class="achievement-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</h4>
+              <div class="rarity-badge" :class="getRarityClass(achievement.rarity)">
+                {{ t(`achievements.rarities.${achievement.rarity}`) }}
               </div>
             </div>
 
-            <p class="achievement-description">{{ achievement.description }}</p>
+            <p class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</p>
+
 
             <!-- Progress Bar (for unearned achievements) -->
             <div
@@ -175,12 +175,9 @@ const formatDate = (dateString) => {
             </div>
 
             <!-- Earned Date -->
-            <div
-              v-if="achievement.earned && achievement.earnedAt"
-              class="earned-date"
-            >
+            <div v-if="achievement.earned && achievement.earnedAt" class="earned-date">
               <Icon name="trophy" size="14" />
-              <span>Earned {{ formatDate(achievement.earnedAt) }}</span>
+              <span>{{ t('achievements.earned', { date: formatDate(achievement.earnedAt) }) }}</span>
             </div>
           </div>
         </div>

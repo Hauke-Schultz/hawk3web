@@ -2,7 +2,14 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import './style.css'
 
-const savedTheme = localStorage.getItem('theme') || 'dark'
-document.documentElement.setAttribute('data-theme', savedTheme)
+const initializeApp = async () => {
+	const savedTheme = localStorage.getItem('theme') || 'dark'
+	document.documentElement.setAttribute('data-theme', savedTheme)
 
-createApp(App).mount('#app')
+	const savedLanguage = localStorage.getItem('hawk3_language') || 'en'
+	document.documentElement.setAttribute('lang', savedLanguage)
+
+	createApp(App).mount('#app')
+}
+
+initializeApp()

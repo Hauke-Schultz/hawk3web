@@ -1,20 +1,24 @@
 <script setup>
 import {ref, computed, watch} from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue";
 
 // LocalStorage service
 const { gameData } = useLocalStorage()
 
+// Internationalization
+const { t } = useI18n()
+
 // Props for the header component
 const props = defineProps({
   title: {
     type: String,
-    default: 'Hawk3'
+    default: ''
   },
   subtitle: {
     type: String,
-    default: 'Gaming Platform'
+    default: ''
   },
   showProfile: {
     type: Boolean,
@@ -56,6 +60,15 @@ const playerInfo = computed(() => ({
   level: gameData.player.level
 }))
 
+// Computed title and subtitle with i18n fallback
+const displayTitle = computed(() => {
+  return props.title || t('app.title')
+})
+
+const displaySubtitle = computed(() => {
+  return props.subtitle || t('app.subtitle')
+})
+
 // Event handlers
 const handleNotificationClick = () => {
   emit('notification-click')
@@ -84,15 +97,15 @@ watch(() => gameData.player, (newPlayer) => {
           v-if="showMenuButton"
           class="btn btn--circle-ghost menu-button"
           @click="handleMenuClick"
-          aria-label="Go to menu"
+          :aria-label="t('a11y.menu_button')"
         >
           <Icon name="menu" size="24" />
         </button>
 
         <!-- App Title/Logo for home page -->
         <div v-else class="header-title">
-          <h1 class="app-title">{{ title }}</h1>
-          <span class="app-subtitle">{{ subtitle }}</span>
+          <h1 class="app-title">{{ displayTitle }}</h1>
+          <span class="app-subtitle">{{ displaySubtitle }}</span>
         </div>
       </div>
 
@@ -106,14 +119,14 @@ watch(() => gameData.player, (newPlayer) => {
           @keydown.enter="handleProfileClick"
           tabindex="0"
           role="button"
-          aria-label="View player profile"
+          :aria-label="t('a11y.profile_button')"
         >
           <div class="player-avatar">
             <Icon :name="playerInfo.avatar" size="34" />
           </div>
           <div class="player-info">
             <span class="player-name">{{ playerInfo.name }}</span>
-            <span class="player-status">Level {{ levelDisplay }}</span>
+            <span class="player-status">{{ t('common.level') }} {{ levelDisplay }}</span>
           </div>
         </div>
       </div>
@@ -124,7 +137,7 @@ watch(() => gameData.player, (newPlayer) => {
           v-if="showNotifications"
           class="btn btn--circle-ghost notification-btn"
           @click="handleNotificationClick"
-          aria-label="View notifications"
+          :aria-label="t('a11y.notification_button')"
         >
           <Icon name="bell" size="24" />
           <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>

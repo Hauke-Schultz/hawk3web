@@ -1,0 +1,346 @@
+// English translation file
+export default {
+	// Global/Common
+	common: {
+		ok: 'OK',
+		cancel: 'Cancel',
+		confirm: 'Confirm',
+		delete: 'Delete',
+		save: 'Save',
+		edit: 'Edit',
+		back: 'Back',
+		next: 'Next',
+		previous: 'Previous',
+		close: 'Close',
+		loading: 'Loading...',
+		error: 'Error',
+		success: 'Success',
+		warning: 'Warning',
+		info: 'Info',
+		yes: 'Yes',
+		no: 'No',
+		play: 'Play',
+		pause: 'Pause',
+		resume: 'Resume',
+		reset: 'Reset',
+		restart: 'Restart',
+		continue: 'Continue',
+		finish: 'Finish',
+		skip: 'Skip',
+		unlock: 'Unlock',
+		lock: 'Lock',
+		locked: 'Locked',
+		unlocked: 'Unlocked',
+		level: 'Level',
+		score: 'Score',
+		time: 'Time',
+		moves: 'Moves',
+		combo: 'Combo',
+		complete: 'Complete',
+		completed: 'Completed',
+		progress: 'Progress',
+		total: 'Total',
+		best: 'Best',
+		new: 'New',
+		try_again: 'Try Again',
+		mark_as_read: 'Mark as read',
+	},
+
+	// App/Header
+	app: {
+		title: 'Hawk3',
+		subtitle: 'Gaming Platform',
+		welcome_back: 'Welcome back!',
+		ready_to_continue: 'Ready to continue your journey?'
+	},
+
+	// Navigation
+	nav: {
+		home: 'Home',
+		gaming: 'Gaming',
+		gaming_hub: 'Gaming Hub',
+		profile: 'Profile',
+		trophy: 'Trophy',
+		trophies: 'Trophies',
+		settings: 'Settings',
+		notifications: 'Notifications'
+	},
+
+	// Home Page
+	home: {
+		welcome_title: 'Welcome back!',
+		welcome_subtitle: 'Ready to continue your journey?',
+		start_game: 'Start Game',
+		gaming_hub: 'Gaming Hub',
+		view_profile: 'View Profile',
+		view_trophies: 'View Trophies',
+		open_settings: 'Open Settings'
+	},
+
+	// Profile
+	profile: {
+		title: 'Player Profile',
+		display_name: 'Display Name',
+		avatar: 'Avatar',
+		level: 'Level',
+		experience: 'Experience',
+		total_score: 'Total Score',
+		games_played: 'Games Played',
+		created_at: 'Member Since',
+		last_played: 'Last Played',
+		select_avatar: 'Select {name} avatar',
+		stats: {
+			level: 'Level',
+			score: 'Score',
+			played: 'Played'
+		},
+		avatars: {
+			default_user: 'Default User',
+			beard_user: 'Beard User',
+			glasses_user: 'Glasses User',
+			headset_user: 'Headset User',
+			cap_user: 'Cap User'
+		}
+	},
+
+	// Settings
+	settings: {
+		title: 'Settings',
+		theme: 'Theme',
+		language: 'Language',
+		sound: 'Sound',
+		music: 'Music',
+		profile_management: 'Profile Management',
+		delete_profile: 'Delete Profile',
+		delete_profile_description: 'This will permanently delete all your game progress, achievements, and settings. This action cannot be undone.',
+		delete_warning: 'This action cannot be undone!',
+		delete_confirmation: {
+			title: 'Confirm Profile Deletion',
+			message: 'Are you absolutely sure you want to delete your profile? This will permanently remove:',
+			items: [
+				'All game progress and scores',
+				'All achievements and trophies',
+				'Player settings and preferences',
+				'Avatar and profile customizations'
+			],
+			warning: 'This action cannot be undone!',
+			confirm: 'Delete Everything'
+		},
+		themes: {
+			dark: 'Dark',
+			light: 'Light',
+			system: 'System'
+		},
+		languages: {
+			english: 'English',
+			german: 'Deutsch'
+		}
+	},
+
+	// Gaming Hub
+	gaming: {
+		title: 'Gaming Hub',
+		subtitle: 'Challenge yourself with exciting games',
+		choose_level: 'Choose your level',
+		back_to_games: 'Back to Games',
+		back_to_game_hub: 'Back to Game Hub',
+		coming_soon: 'Coming Soon',
+		play_level: 'Play {title}',
+		replay: 'Replay',
+		stats: {
+			best_score: 'Best: {score}',
+			games_played: '{count} played',
+			levels: 'Levels',
+			stars: 'Stars',
+			unlocked: 'Unlocked',
+			pairs: 'Pairs'
+		}
+	},
+
+	// Memory Game
+	memory: {
+		title: 'Memory Game',
+		description: 'Match pairs of cards and test your memory',
+		level_title: 'Level {level}',
+		game_paused: 'Game Paused',
+		level_complete: 'Level Complete!',
+		game_complete: 'Game Complete!',
+		perfect_performance: 'Perfect Performance!',
+		great_job: 'Great Job!',
+		well_done: 'Well Done!',
+		back_to_levels: 'Back to Levels',
+		play_again: 'Play Again',
+		next_level: 'Next Level',
+		levels: {
+			1: { title: 'Starter', description: 'Match 3 pairs - Learn the basics' },
+			2: { title: 'Easy', description: 'Match 6 pairs - Build your skills' },
+			3: { title: 'Medium', description: 'Match 8 pairs - Test your memory' },
+			4: { title: 'Hard', description: 'Match 10 pairs - Challenge yourself' },
+			5: { title: 'Expert', description: 'Match 12 pairs - Expert level' },
+			6: { title: 'Master', description: 'Match 18 pairs - Master challenge' }
+		}
+	},
+
+	// Performance Stats
+	stats: {
+		score: 'Score',
+		final_score: 'Final Score',
+		high_score: 'High Score',
+		time: 'Time',
+		time_elapsed: 'Time Elapsed',
+		best_time: 'Best Time',
+		moves: 'Moves',
+		matches: 'Matches',
+		pairs: 'Pairs',
+		combo: 'Combo',
+		max_combo: 'Max Combo',
+		level: 'Level',
+		attempts: 'Attempts',
+		completion: 'Completion',
+		performance: 'Performance'
+	},
+
+	// Achievements/Trophies
+	achievements: {
+		title: 'Trophy Collection',
+		new_achievements: 'New Achievements!',
+		earned: 'Earned {date}',
+		progress: 'Progress',
+		categories: {
+			general: 'General',
+			gaming: 'Gaming',
+			progress: 'Progress',
+			special: 'Special'
+		},
+		rarities: {
+			common: 'Common',
+			uncommon: 'Uncommon',
+			rare: 'Rare',
+			epic: 'Epic',
+			legendary: 'Legendary'
+		},
+		definitions: {
+			welcome: {
+				name: 'Welcome to Hawk3',
+				description: 'Started your gaming journey'
+			},
+			first_game: {
+				name: 'First Game',
+				description: 'Played your first game'
+			},
+			level_5: {
+				name: 'Rising Star',
+				description: 'Reached level 5'
+			},
+			level_10: {
+				name: 'Dedicated Player',
+				description: 'Reached level 10'
+			},
+			level_15: {
+				name: 'Gaming Expert',
+				description: 'Reached level 15'
+			},
+			score_1000: {
+				name: 'Score Hunter',
+				description: 'Earned 1000 total points'
+			},
+			games_10: {
+				name: 'Game Enthusiast',
+				description: 'Played 10 games'
+			},
+			memory_beginner: {
+				name: 'Memory Beginner',
+				description: 'Completed first memory level'
+			},
+			memory_intermediate: {
+				name: 'Memory Intermediate',
+				description: 'Completed level 3'
+			},
+			memory_master: {
+				name: 'Memory Master',
+				description: 'Completed the hardest level'
+			},
+			perfectionist: {
+				name: 'Perfectionist',
+				description: 'Complete a game with perfect score'
+			}
+		}
+	},
+
+	// Game Controls
+	controls: {
+		pause: 'Pause',
+		resume: 'Resume',
+		reset: 'Reset',
+		back: 'Back',
+		menu: 'Menu'
+	},
+
+	// Time/Date Formatting
+	time: {
+		seconds: 'seconds',
+		minutes: 'minutes',
+		hours: 'hours',
+		days: 'days',
+		weeks: 'weeks',
+		months: 'months',
+		years: 'years',
+		ago: 'ago',
+		in: 'in',
+		now: 'now',
+		format: {
+			time_short: '{minutes}:{seconds}',
+		}
+	},
+
+	// Error Messages
+	errors: {
+		generic: 'Something went wrong',
+		loading_failed: 'Loading failed',
+		save_failed: 'Failed to save',
+		invalid_input: 'Invalid input',
+		network_error: 'Network error',
+		not_found: 'Not found',
+		permission_denied: 'Permission denied',
+		session_expired: 'Session expired'
+	},
+
+	// Success Messages
+	success: {
+		saved: 'Saved successfully',
+		updated: 'Updated successfully',
+		deleted: 'Deleted successfully',
+		completed: 'Completed successfully',
+		unlocked: 'Unlocked!',
+		achievement_earned: 'Achievement earned!'
+	},
+
+	// Validation Messages
+	validation: {
+		required: 'This field is required',
+		min_length: 'Minimum {count} characters required',
+		max_length: 'Maximum {count} characters allowed',
+		invalid_email: 'Invalid email address',
+		invalid_format: 'Invalid format',
+		numbers_only: 'Numbers only',
+		letters_only: 'Letters only'
+	},
+
+	// Accessibility
+	a11y: {
+		menu_button: 'Open menu',
+		close_button: 'Close',
+		play_button: 'Play game',
+		pause_button: 'Pause game',
+		settings_button: 'Open settings',
+		profile_button: 'View profile',
+		notification_button: 'View notifications',
+		back_button: 'Go back',
+		star_rating: '{count} out of 3 stars',
+		level_locked: 'Level locked',
+		level_unlocked: 'Level unlocked',
+		achievement_earned: 'Achievement earned',
+		combo_active: 'Combo active',
+		combo_inactive: 'Combo inactive'
+	}
+}

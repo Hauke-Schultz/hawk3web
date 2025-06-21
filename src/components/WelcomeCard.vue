@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 
 // Props for the welcome card component
 const props = defineProps({
@@ -43,6 +44,8 @@ const emit = defineEmits([
   'package-click', // Keep existing naming for compatibility
   'mark-as-read'
 ])
+
+const { t } = useI18n()
 
 // Reactive state for checkbox
 const isMarkedAsRead = ref(false)
@@ -100,7 +103,7 @@ const handleKeyDown = (event) => {
           :checked="isMarkedAsRead"
           @change="handleCheckboxChange"
           @click="handleCheckboxClick"
-          aria-label="Mark as read"
+          :aria-label="t('common.mark_as_read')"
         />
         <span class="checkbox-custom"></span>
       </label>

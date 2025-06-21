@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 import { memoryConfig, getMemoryLevel, calculateMaxPossibleScore, calculateStars, getGridConfig } from '../config/memoryConfig.js'
 import { useComboSystem } from '../composables/useComboSystem.js'
 import Icon from './Icon.vue'
@@ -20,6 +21,8 @@ const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // LocalStorage service
 const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, addAchievement, checkGameLevelAchievements } = useLocalStorage()
+
+const { t } = useI18n()
 
 // Game state
 const gameState = ref('playing') // 'playing', 'paused', 'completed'
@@ -193,6 +196,7 @@ const calculateCurrentStars = () => {
   if (!isGameComplete.value) return 0
   return calculateStars(finalScore.value, currentLevelConfig.value)
 }
+
 const completeGame = () => {
   stopTimer()
   comboSystem.cleanup() // Cleanup combo system
@@ -307,8 +311,8 @@ onUnmounted(() => {
     <!-- Game Header -->
     <div class="game-header">
       <div class="game-info">
-        <h2 class="game-title">Memory Game</h2>
-        <div class="level-indicator">Level {{ currentLevel }}</div>
+        <h2 class="game-title">{{ t('memory.title') }}</h2>
+        <div class="level-indicator">{{ t('memory.level_title', { level: currentLevel }) }}</div>
       </div>
 
       <div class="game-stats-container">
@@ -320,7 +324,7 @@ onUnmounted(() => {
           :max-stars="gameProgress.maxStars"
           theme="primary"
           size="small"
-          levels-label="Pairs"
+          :levels-label="t('gaming.stats.pairs')"
           :show-stars="false"
           :show-percentage="true"
         />
@@ -346,6 +350,10 @@ onUnmounted(() => {
           :show-moves="true"
           :show-matches="false"
           :show-combo="true"
+          :score-label="t('stats.score')"
+          :time-label="t('stats.time')"
+          :moves-label="t('stats.moves')"
+          :combo-label="t('stats.combo')"
         />
       </div>
     </div>
@@ -355,6 +363,10 @@ onUnmounted(() => {
       <!-- Game Controls -->
       <GameControls
         :game-state="gameState"
+        :pause-label="t('controls.pause')"
+        :resume-label="t('controls.resume')"
+        :reset-label="t('controls.reset')"
+        :back-label="t('common.back')"
         @pause-game="pauseGame"
         @resume-game="resumeGame"
         @reset-game="resetGame"
@@ -395,7 +407,7 @@ onUnmounted(() => {
     <GameCompletedModal
       :visible="gameState === 'completed'"
       :level="currentLevel"
-      :game-title="memoryConfig.gameTitle"
+      :game-title="t('memory.title')"
       :final-score="finalScore"
       :time-elapsed="timeElapsed"
       :moves="moves"
@@ -405,6 +417,9 @@ onUnmounted(() => {
       :show-stars="true"
       :new-achievements="earnedAchievements"
       :show-achievements="true"
+      :next-level-label="t('memory.back_to_levels')"
+      :play-again-label="t('memory.play_again')"
+      :back-to-games-label="t('gaming.back_to_games')"
       @next-level="nextLevel"
       @play-again="resetGame"
       @back-to-games="backToGaming"

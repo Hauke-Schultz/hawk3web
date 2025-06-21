@@ -3,7 +3,7 @@ import { achievementsConfig, getAchievementById, checkAchievementCondition } fro
 
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'
-const CURRENT_VERSION = '1.0'
+const CURRENT_VERSION = '1.1'
 
 // Default data structure
 const getDefaultData = () => ({
@@ -85,7 +85,7 @@ const validateSettingsData = (settings) => {
 		theme: ['dark', 'light', 'system'].includes(settings?.theme) ? settings.theme : 'dark',
 		soundEnabled: typeof settings?.soundEnabled === 'boolean' ? settings.soundEnabled : true,
 		musicEnabled: typeof settings?.musicEnabled === 'boolean' ? settings.musicEnabled : true,
-		language: typeof settings?.language === 'string' ? settings.language : 'en'
+		language: ['en', 'de'].includes(settings?.language) ? settings.language : 'en'
 	}
 }
 
@@ -134,7 +134,11 @@ const migrateData = (data) => {
 	if (!data.version || data.version !== CURRENT_VERSION) {
 		console.log(`Migrating data from version ${data.version || 'unknown'} to ${CURRENT_VERSION}`)
 
-		// Add any migration logic here for future versions
+		if (!data.settings?.language) {
+			data.settings = data.settings || {}
+			data.settings.language = 'en'
+		}
+
 		data.version = CURRENT_VERSION
 	}
 
@@ -478,6 +482,19 @@ export function useLocalStorage() {
 		})
 	}
 
+	// Language methods
+	const updateLanguage = (language) => {
+		if (['en', 'de'].includes(language)) {
+			updateSettings({ language })
+			return true
+		}
+		return false
+	}
+
+	const getCurrentLanguage = () => {
+		return gameData.settings.language
+	}
+
 	const clearStorage = () => {
 		localStorage.removeItem(STORAGE_KEY)
 		const defaultData = getDefaultData()
@@ -496,6 +513,10 @@ export function useLocalStorage() {
 
 		// Settings methods
 		updateSettings,
+
+		// Language methods
+		updateLanguage,
+		getCurrentLanguage,
 
 		// Game methods
 		updateGameStats,

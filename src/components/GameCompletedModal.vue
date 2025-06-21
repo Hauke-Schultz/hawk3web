@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
 import PerformanceStats from "./PerformanceStats.vue";
 
@@ -88,16 +89,18 @@ const emit = defineEmits([
   'close'
 ])
 
+const { t } = useI18n()
+
 const getPerformanceMessage = () => {
   switch (props.starsEarned) {
     case 3:
-      return 'Perfect Performance!'
+      return t('memory.perfect_performance')
     case 2:
-      return 'Great Job!'
+      return t('memory.great_job')
     case 1:
-      return 'Well Done!'
+      return t('memory.well_done')
     default:
-      return 'Level Complete!'
+      return t('memory.level_complete')
   }
 }
 
@@ -143,7 +146,9 @@ const handleKeyDown = (event) => {
       >
         <div class="completed-content">
           <div class="completion-header">
-            <h3 id="completed-title" class="completed-title">{{ gameTitle }} - Level {{ level }}</h3>
+            <h3 id="completed-title" class="completed-title">
+              {{ gameTitle }} - {{ t('memory.level_title', { level: level }) }}
+            </h3>
 
             <!-- Stars Display -->
             <div v-if="showStars" class="stars-display">
@@ -180,7 +185,7 @@ const handleKeyDown = (event) => {
 
           <!-- Achievements Section -->
           <div v-if="showAchievements && newAchievements.length > 0" class="achievements-section">
-            <h4 class="achievements-title">🏆 New Achievements!</h4>
+            <h4 class="achievements-title">🏆 {{ t('achievements.new_achievements') }}</h4>
             <div class="achievements-list">
               <div
                 v-for="achievement in newAchievements"
@@ -191,8 +196,8 @@ const handleKeyDown = (event) => {
                   <Icon :name="achievement.icon" size="20" />
                 </div>
                 <div class="achievement-info">
-                  <span class="achievement-name">{{ achievement.name }}</span>
-                  <span class="achievement-description">{{ achievement.description }}</span>
+                  <span class="achievement-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</span>
+                  <span class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</span>
                 </div>
               </div>
             </div>

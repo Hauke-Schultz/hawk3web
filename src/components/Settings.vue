@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
 
@@ -13,21 +14,25 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['theme-change', 'back'])
+const emit = defineEmits(['theme-change', 'language-change', 'back'])
 
 // LocalStorage service
 const { clearStorage } = useLocalStorage()
 
+// Internationalization
+const { t, currentLanguage, availableLanguages, setLanguage } = useI18n()
+
 // State
 const selectedTheme = ref(props.currentTheme)
+const selectedLanguage = ref(currentLanguage.value)
 const isDeleteUnlocked = ref(false)
 const showDeleteConfirmation = ref(false)
 
 // Theme options
 const themeOptions = [
-  { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light' },
-  { value: 'system', label: 'System' }
+  { value: 'dark', label: () => t('settings.themes.dark') },
+  { value: 'light', label: () => t('settings.themes.light') },
+  { value: 'system', label: () => t('settings.themes.system') }
 ]
 
 // Watch for prop changes
@@ -35,10 +40,23 @@ watch(() => props.currentTheme, (newTheme) => {
   selectedTheme.value = newTheme
 })
 
+// Watch for language changes
+watch(currentLanguage, (newLang) => {
+  selectedLanguage.value = newLang
+})
+
 // Methods
 const selectTheme = (theme) => {
   selectedTheme.value = theme
   emit('theme-change', theme)
+}
+
+const selectLanguage = async (languageCode) => {
+  const success = await setLanguage(languageCode)
+  if (success) {
+    selectedLanguage.value = languageCode
+    emit('language-change', languageCode)
+  }
 }
 
 const handleBack = () => {
@@ -80,7 +98,7 @@ const cancelDelete = () => {
   <main class="content">
     <!-- Theme Section -->
     <section class="theme-section">
-      <h2 class="section-title">Theme</h2>
+      <h2 class="section-title">{{ t('settings.theme') }}</h2>
 
       <div class="theme-selector">
         <button
@@ -91,21 +109,39 @@ const cancelDelete = () => {
           @click="selectTheme(option.value)"
           :aria-pressed="selectedTheme === option.value"
         >
-          {{ option.label }}
+          {{ option.label() }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Language Section -->
+    <section class="language-section">
+      <h2 class="section-title">{{ t('settings.language') }}</h2>
+
+      <div class="language-selector">
+        <button
+          v-for="language in availableLanguages"
+          :key="language.code"
+          class="language-option"
+          :class="{ 'language-option--active': selectedLanguage === language.code }"
+          @click="selectLanguage(language.code)"
+          :aria-pressed="selectedLanguage === language.code"
+        >
+          <span class="language-flag">{{ language.flag }}</span>
+          <span class="language-name">{{ language.nativeName }}</span>
         </button>
       </div>
     </section>
 
     <!-- Profile Reset Section -->
     <section class="profile-section">
-      <h2 class="section-title">Profile Management</h2>
+      <h2 class="section-title">{{ t('settings.profile_management') }}</h2>
 
       <div class="reset-container">
         <div class="reset-info">
-          <h3 class="reset-title">Delete Profile</h3>
+          <h3 class="reset-title">{{ t('settings.delete_profile') }}</h3>
           <p class="reset-description">
-            This will permanently delete all your game progress, achievements, and settings.
-            This action cannot be undone.
+            {{ t('settings.delete_profile_description') }}
           </p>
         </div>
 
@@ -115,7 +151,7 @@ const cancelDelete = () => {
             class="btn btn--circle"
             :class="isDeleteUnlocked ? 'btn--unlock' : 'btn--lock'"
             @click="toggleDeleteLock"
-            :aria-label="isDeleteUnlocked ? 'Lock delete button' : 'Unlock delete button'"
+            :aria-label="isDeleteUnlocked ? t('common.lock') : t('common.unlock')"
           >
             <Icon :name="isDeleteUnlocked ? 'unlock' : 'lock'" size="20" />
           </button>
@@ -126,9 +162,9 @@ const cancelDelete = () => {
             :class="isDeleteUnlocked ? 'btn--delete-active' : 'btn--delete'"
             :disabled="!isDeleteUnlocked"
             @click="handleDeleteProfile"
-            aria-label="Delete profile"
+            :aria-label="t('settings.delete_profile')"
           >
-            Delete Profile
+            {{ t('settings.delete_profile') }}
           </button>
         </div>
       </div>
@@ -137,17 +173,17 @@ const cancelDelete = () => {
     <!-- Confirmation Modal -->
     <ConfirmationModal
       :visible="showDeleteConfirmation"
-      title="Confirm Profile Deletion"
-      message="Are you absolutely sure you want to delete your profile? This will permanently remove:"
+      :title="t('settings.delete_confirmation.title')"
+      :message="t('settings.delete_confirmation.message')"
       :items="[
-        'All game progress and scores',
-        'All achievements and trophies',
-        'Player settings and preferences',
-        'Avatar and profile customizations'
+        t('settings.delete_confirmation.items.0'),
+        t('settings.delete_confirmation.items.1'),
+        t('settings.delete_confirmation.items.2'),
+        t('settings.delete_confirmation.items.3')
       ]"
-      warning="This action cannot be undone!"
-      confirm-text="Delete Everything"
-      cancel-text="Cancel"
+      :warning="t('settings.delete_confirmation.warning')"
+      :confirm-text="t('settings.delete_confirmation.confirm')"
+      :cancel-text="t('common.cancel')"
       confirm-variant="danger"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
@@ -156,7 +192,8 @@ const cancelDelete = () => {
 </template>
 
 <style lang="scss" scoped>
-.theme-section {
+.theme-section,
+.language-section {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -208,6 +245,60 @@ const cancelDelete = () => {
       background-color: var(--primary-hover);
     }
   }
+}
+
+// Language Selector
+.language-selector {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  border: none;
+  background-color: transparent;
+  color: var(--text-color);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-base);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family-base), serif;
+  text-align: left;
+
+  &:hover {
+    background-color: var(--card-bg-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background-color: var(--primary-color);
+    color: white;
+
+    &:hover {
+      background-color: var(--primary-hover);
+    }
+  }
+}
+
+.language-flag {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.language-name {
+  font-weight: var(--font-weight-bold);
 }
 
 // Profile Reset Section

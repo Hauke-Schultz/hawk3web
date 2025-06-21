@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
 
 // Props for the level tile component
@@ -67,6 +68,8 @@ const emit = defineEmits([
   'play-level'
 ])
 
+const { t, formatTime: i18nFormatTime } = useI18n()
+
 // Computed properties
 const levelTitle = computed(() => {
   return props.title || `Level ${props.level}`
@@ -88,11 +91,10 @@ const tileClass = computed(() => {
 })
 
 // Format time display
+
 const formatTime = (seconds) => {
   if (!seconds) return '--'
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  return i18nFormatTime(seconds)
 }
 
 // Event handlers
@@ -161,11 +163,11 @@ const handleKeyDown = (event) => {
     <!-- Level Stats -->
     <div class="level-tile__stats">
       <div class="stat-item">
-        <span class="stat-label">Score</span>
+        <span class="stat-label">{{ t('stats.score') }}</span>
         <span class="stat-value">{{ highScore || 0 }}</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Time</span>
+        <span class="stat-label">{{ t('stats.time') }}</span>
         <span class="stat-value">{{ formatTime(bestTime) }}</span>
       </div>
     </div>
@@ -176,13 +178,13 @@ const handleKeyDown = (event) => {
         v-if="canPlay"
         class="btn"
         @click.stop="handlePlayClick"
-        :aria-label="`Play ${levelTitle}`"
+        :aria-label="t('gaming.play_level', { title: levelTitle })"
       >
-        {{ isCompleted ? 'Replay' : 'Play' }}
+        {{ isCompleted ? t('gaming.replay') : t('common.play') }}
       </button>
       <div v-else class="locked-indicator">
         <Icon name="lock" size="12" />
-        Locked
+        {{ t('common.locked') }}
       </div>
     </div>
   </div>

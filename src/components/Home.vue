@@ -3,6 +3,7 @@ import {defineEmits, computed} from 'vue'
 import Icon from "./Icon.vue";
 import WelcomeCard from "./WelcomeCard.vue";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 
 // LocalStorage service for achievements
 const { markCardAsRead, isCardRead } = useLocalStorage()
@@ -15,6 +16,8 @@ const emit = defineEmits([
   'settings-click',
   'package-click'
 ])
+
+const { t } = useI18n()
 
 const isWelcomeCardVisible = computed(() => {
   return !isCardRead('welcomeCard')
@@ -56,8 +59,8 @@ const handleCardRead = (cardType) => {
     <!-- Welcome Back Section -->
     <WelcomeCard
       v-if="isWelcomeCardVisible"
-      title="Welcome back!"
-      subtitle="Ready to continue your journey?"
+      :title="t('home.welcome_title')"
+      :subtitle="t('home.welcome_subtitle')"
       card-type="welcomeCard"
       :hide-when-read="true"
       @mark-as-read="handleCardRead"
@@ -73,7 +76,7 @@ const handleCardRead = (cardType) => {
         @keydown.enter="handleStartGame"
         tabindex="0"
         role="button"
-        aria-label="Start new game"
+        aria-label="t('home.start_game')"
       >
         <div class="card-icon">
           <div class="icon-btn btn--primary" aria-label="Play">
@@ -81,7 +84,7 @@ const handleCardRead = (cardType) => {
           </div>
         </div>
         <div class="card-content">
-          <h2 class="card-title">Gaming Hub</h2>
+          <h2 class="card-title">{{ t('nav.gaming_hub') }}</h2>
         </div>
       </div>
 
@@ -92,7 +95,7 @@ const handleCardRead = (cardType) => {
         @keydown.enter="handleProfileClick"
         tabindex="0"
         role="button"
-        aria-label="View profile"
+        aria-label="t('home.view_profile')"
       >
         <div class="card-icon">
           <div class="icon-btn btn--success" aria-label="Profile">
@@ -100,7 +103,7 @@ const handleCardRead = (cardType) => {
           </div>
         </div>
         <div class="card-content">
-          <h2 class="card-title">Profile</h2>
+          <h2 class="card-title">{{ t('nav.profile') }}</h2>
         </div>
       </div>
 
@@ -111,7 +114,7 @@ const handleCardRead = (cardType) => {
         @keydown.enter="handleTrophyClick"
         tabindex="0"
         role="button"
-        aria-label="View trophies"
+        aria-label="t('home.view_trophies')"
       >
         <div class="card-icon">
           <div class="icon-btn btn--warning" aria-label="Trophies">
@@ -119,7 +122,7 @@ const handleCardRead = (cardType) => {
           </div>
         </div>
         <div class="card-content">
-          <h2 class="card-title">Trophy</h2>
+          <h2 class="card-title">{{ t('nav.trophy') }}</h2>
         </div>
       </div>
 
@@ -130,7 +133,7 @@ const handleCardRead = (cardType) => {
         @keydown.enter="handleSettingsClick"
         tabindex="0"
         role="button"
-        aria-label="Open settings"
+        aria-label="t('home.open_settings')"
       >
         <div class="card-icon">
           <div class="icon-btn btn--info" aria-label="Settings">
@@ -138,7 +141,7 @@ const handleCardRead = (cardType) => {
           </div>
         </div>
         <div class="card-content">
-          <h2 class="card-title">Settings</h2>
+          <h2 class="card-title">{{ t('nav.settings') }}</h2>
         </div>
       </div>
     </section>

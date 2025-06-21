@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 
 const props = defineProps({
   // Current game performance data
@@ -132,11 +133,11 @@ const props = defineProps({
   },
 })
 
+const { t, formatTime: i18nFormatTime } = useI18n()
+
 // Format time display
 const formatTime = (seconds) => {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  return i18nFormatTime(seconds)
 }
 
 // Format matches display

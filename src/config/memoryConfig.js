@@ -105,6 +105,14 @@ export const getMemoryLevel = (levelNumber) => {
 	return memoryConfig.levels.find(level => level.level === levelNumber) || memoryConfig.levels[0]
 }
 
+export const getMemoryLevelTitle = (level, t) => {
+	return t(`memory.levels.${level}.title`) || `Level ${level}`
+}
+
+export const getMemoryLevelDescription = (level, t) => {
+	return t(`memory.levels.${level}.description`) || `Match ${level} pairs`
+}
+
 export const getMaxMemoryLevel = () => {
 	return memoryConfig.levels.length
 }

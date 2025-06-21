@@ -1,18 +1,20 @@
 <script setup>
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 
 // LocalStorage service
 const { gameData, updatePlayer } = useLocalStorage()
+const { t } = useI18n()
 
 // Available avatar options
 const avatarOptions = [
-  { value: 'avatar/user', label: 'Default User', icon: 'avatar/user' },
-  { value: 'avatar/beard', label: 'Beard User', icon: 'avatar/beard' },
-  { value: 'avatar/glasses', label: 'Glasses User', icon: 'avatar/glasses' },
-  { value: 'avatar/headset', label: 'Headset User', icon: 'avatar/headset' },
-  { value: 'avatar/cap', label: 'Cap User', icon: 'avatar/cap' }
+  { value: 'avatar/user', label: t('profile.avatars.default_user'), icon: 'avatar/user' },
+  { value: 'avatar/beard', label: t('profile.avatars.beard_user'), icon: 'avatar/beard' },
+  { value: 'avatar/glasses', label: t('profile.avatars.glasses_user'), icon: 'avatar/glasses' },
+  { value: 'avatar/headset', label: t('profile.avatars.headset_user'), icon: 'avatar/headset' },
+  { value: 'avatar/cap', label: t('profile.avatars.cap_user'), icon: 'avatar/cap' }
 ]
 
 // Computed values for direct access
@@ -51,7 +53,7 @@ const updatePlayerName = () => {
   <main class="content">
     <!-- Player Profile Section -->
     <section class="profile-section">
-      <h2 class="section-title">Player Profile</h2>
+      <h2 class="section-title">{{ t('profile.title') }}</h2>
 
       <!-- Player Avatar Preview -->
       <div class="profile-preview">
@@ -62,15 +64,15 @@ const updatePlayerName = () => {
           <h3 class="profile-name">{{ playerName }}</h3>
           <div class="profile-stats">
             <div class="stat-item">
-              <span class="stat-label">Level</span>
+              <span class="stat-label">{{ t('profile.stats.level') }}</span>
               <span class="stat-value">{{ gameData.player.level }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Score</span>
+              <span class="stat-label">{{ t('profile.stats.score') }}</span>
               <span class="stat-value">{{ gameData.player.totalScore }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Played</span>
+              <span class="stat-label">{{ t('profile.stats.played') }}</span>
               <span class="stat-value">{{ gameData.player.gamesPlayed }}</span>
             </div>
           </div>
@@ -81,13 +83,13 @@ const updatePlayerName = () => {
       <div class="player-settings">
         <!-- Player Name Input -->
         <div class="setting-group">
-          <label for="player-name" class="setting-label">Display Name</label>
+          <label for="player-name" class="setting-label">{{ t('profile.display_name') }}</label>
           <input
             id="player-name"
             v-model="playerName"
             type="text"
             class="name-input"
-            placeholder="Enter your name"
+            :placeholder="t('profile.display_name')"
             maxlength="20"
             @blur="updatePlayerName"
             @keydown.enter="updatePlayerName"
@@ -96,7 +98,7 @@ const updatePlayerName = () => {
 
         <!-- Avatar Selection -->
         <div class="setting-group">
-          <label class="setting-label">Avatar</label>
+          <label class="setting-label">{{ t('profile.avatar') }}</label>
           <div class="avatar-selector">
             <button
               v-for="option in avatarOptions"
@@ -104,7 +106,7 @@ const updatePlayerName = () => {
               class="avatar-option"
               :class="{ 'avatar-option--active': selectedAvatar === option.value }"
               @click="selectAvatar(option.value)"
-              :aria-label="`Select ${option.label} avatar`"
+              :aria-label="t('profile.select_avatar', { name: option.label })"
               :aria-pressed="selectedAvatar === option.value"
             >
               <div class="avatar-icon">

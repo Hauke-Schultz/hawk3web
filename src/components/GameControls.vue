@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
 
 const props = defineProps({
@@ -46,6 +47,7 @@ const emit = defineEmits([
   'back-to-gaming'
 ])
 
+const { t } = useI18n()
 // Event handlers
 const handlePause = () => {
   emit('pause-game')
@@ -100,7 +102,7 @@ const handleBack = () => {
   <!-- Pause Overlay -->
   <div v-if="gameState === 'paused'" class="pause-overlay">
     <div class="pause-content">
-      <h3>Game Paused</h3>
+      <h3>{{ t('memory.game_paused') }}</h3>
       <button class="btn btn--primary" @click="handleResume">
         <Icon name="play" size="20" />
         {{ resumeLabel }}

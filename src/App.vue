@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useLocalStorage } from './composables/useLocalStorage.js'
+import { useI18n } from './composables/useI18n.js' // ✅ i18n import
 import Header from './components/Header.vue'
 import Settings from './components/Settings.vue'
 import Profile from './components/Profile.vue'
@@ -9,7 +10,10 @@ import Gaming from "./components/Gaming.vue";
 import Trophy from "./components/Trophy.vue";
 
 // LocalStorage service
-const { gameData, updatePlayer, updateSettings, checkAutoAchievements } = useLocalStorage()
+const { gameData, updatePlayer, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
+
+// i18n system initialisieren
+const { t, setLanguage, initLanguage, currentLanguage } = useI18n()
 
 // Reactive data
 const currentView = ref('home')
@@ -18,6 +22,14 @@ const currentView = ref('home')
 const handleThemeChange = (newTheme) => {
   updateSettings({ theme: newTheme })
   document.documentElement.setAttribute('data-theme', newTheme)
+}
+
+const handleLanguageChange = async (newLanguage) => {
+  const success = await setLanguage(newLanguage)
+  if (success) {
+    updateSettings({ language: newLanguage })
+    document.documentElement.setAttribute('lang', newLanguage)
+  }
 }
 
 // Navigation handling
@@ -60,8 +72,13 @@ const handleNotificationClick = () => {
 }
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   document.documentElement.setAttribute('data-theme', gameData.settings.theme)
+
+  const storedLanguage = getCurrentLanguage()
+  await setLanguage(storedLanguage)
+  document.documentElement.setAttribute('lang', storedLanguage)
+
   checkAutoAchievements()
 })
 </script>
@@ -91,7 +108,7 @@ onMounted(() => {
       <Header
         :show-profile="true"
         :show-menu-button="true"
-        :page-title="'Gaming Hub'"
+        :page-title="t('nav.gaming')"
         @menu-click="handleBackToHome"
       />
 
@@ -106,7 +123,7 @@ onMounted(() => {
       <Header
         :show-profile="true"
         :show-menu-button="true"
-        :page-title="'Trophies'"
+        :page-title="t('nav.trophies')"
         @menu-click="handleBackToHome"
       />
 
@@ -118,7 +135,7 @@ onMounted(() => {
       <Header
         :show-profile="true"
         :show-menu-button="true"
-        :page-title="'Profile'"
+        :page-title="t('nav.profile')"
         @menu-click="handleBackToHome"
       />
 
@@ -130,13 +147,14 @@ onMounted(() => {
       <Header
         :show-profile="true"
         :show-menu-button="true"
-        :page-title="'Settings'"
+        :page-title="t('nav.settings')"
         @menu-click="handleBackToHome"
       />
 
       <Settings
         :current-theme="gameData.settings.theme"
         @theme-change="handleThemeChange"
+        @language-change="handleLanguageChange"
         @back="handleBackToHome"
       />
     </template>
