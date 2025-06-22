@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="pineappleInnerGrad" cx="0.4" cy="0.4">
+            <stop offset="0%" style="stop-color:#FFF9C4"/>
+            <stop offset="30%" style="stop-color:#FFF176"/>
+            <stop offset="70%" style="stop-color:#FFEB3B"/>
+            <stop offset="100%" style="stop-color:#FDD835"/>
+        </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="#FFEE58" stroke="#5D4037" stroke-width="2"/>
+    <g stroke="#4CAF50" stroke-width="5.5" fill="#F9A825" opacity="0.8">
+        <path d="M20,12 L22,6 L24,12 L26,8 L28,14 Z"/>
+        <path d="M28,8 L30,4 L32,10 L34,6 L36,12 Z"/>
+        <path d="M36,8 L38,4 L40,10 L42,6 L44,12 Z"/>
+    </g>
+    <g stroke="#F9A825" stroke-width="2" fill="none" opacity="0.8">
+        <path d="M12,24 Q32,20 52,24"/>
+        <path d="M10,32 Q32,28 54,32"/>
+        <path d="M12,40 Q32,36 52,40"/>
+        <path d="M14,48 Q32,44 50,48"/>
+        <path d="M18,20 L22,24 L26,20 L30,24 L34,20 L38,24 L42,20 L46,24"/>
+        <path d="M16,28 L20,32 L24,28 L28,32 L32,28 L36,32 L40,28 L44,32 L48,28"/>
+        <path d="M18,36 L22,40 L26,36 L30,40 L34,36 L38,40 L42,36 L46,40"/>
+        <path d="M20,44 L24,48 L28,44 L32,48 L36,44 L40,48 L44,44"/>
+    </g>
+    <g fill="#FFEE58" opacity="0.6">
+        <path d="M24,22 L26,20 L28,22 L26,24 Z"/>
+        <path d="M36,22 L38,20 L40,22 L38,24 Z"/>
+        <path d="M18,30 L20,28 L22,30 L20,32 Z"/>
+        <path d="M30,30 L32,28 L34,30 L32,32 Z"/>
+        <path d="M42,30 L44,28 L46,30 L44,32 Z"/>
+        <path d="M24,38 L26,36 L28,38 L26,40 Z"/>
+        <path d="M36,38 L38,36 L40,38 L38,40 Z"/>
+        <path d="M30,46 L32,44 L34,46 L32,48 Z"/>
+    </g>
+    <ellipse cx="24" cy="28" rx="5" ry="5" fill="white"/>
+    <ellipse cx="40" cy="28" rx="5" ry="5" fill="white"/>
+    <circle cx="24" cy="28" r="2.5" fill="black"/>
+    <circle cx="40" cy="28" r="2.5" fill="black"/>
+    <circle cx="25" cy="27" r="1" fill="white"/>
+    <circle cx="41" cy="27" r="1" fill="white"/>
+    <path d="M26,40 Q32,46 38,40" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="16" cy="34" rx="3" ry="2" fill="#FFCC80" opacity="0.7"/>
+    <ellipse cx="48" cy="34" rx="3" ry="2" fill="#FFCC80" opacity="0.7"/>
+</svg>

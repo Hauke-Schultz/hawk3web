@@ -1,56 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
-        <radialGradient id="orangeGradient" cx="35%" cy="25%" r="70%">
-            <stop offset="0%" style="stop-color:#FED7AA"/>
-            <stop offset="20%" style="stop-color:#FB923C"/>
-            <stop offset="50%" style="stop-color:#EA580C"/>
-            <stop offset="80%" style="stop-color:#C2410C"/>
-            <stop offset="100%" style="stop-color:#9A3412"/>
+        <radialGradient id="orangeGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFB74D"/>
+            <stop offset="100%" style="stop-color:#FF9800"/>
         </radialGradient>
-
-        <radialGradient id="highlight" cx="30%" cy="20%" r="25%">
-            <stop offset="0%" style="stop-color:#FFFFFF"/>
-            <stop offset="100%" style="stop-color:#FFFFFF" stop-opacity="0"/>
-        </radialGradient>
-
-        <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#65A30D"/>
-            <stop offset="100%" style="stop-color:#4D7C0F"/>
-        </linearGradient>
-
-        <pattern id="orangeTexture" patternUnits="userSpaceOnUse" width="4" height="4">
-            <circle cx="2" cy="2" r="0.3" fill="#C2410C" opacity="0.4"/>
-        </pattern>
     </defs>
-
-    <!-- Orange main body - perfectly round -->
-    <circle cx="50" cy="50" r="30" fill="url(#orangeGradient)"/>
-
-    <!-- Orange texture overlay -->
-    <circle cx="50" cy="50" r="30" fill="url(#orangeTexture)"/>
-
-    <!-- Orange stem -->
-    <rect x="49" y="15" width="2" height="5" fill="#8B4513" rx="1"/>
-
-    <!-- Orange leaf -->
-    <ellipse cx="56" cy="22" rx="5" ry="2.5" fill="url(#leafGradient)"
-             transform="rotate(20 56 22)"/>
-
-    <!-- Leaf vein -->
-    <path d="M54 22 Q56 22 58 22" stroke="#4D7C0F" stroke-width="0.6"
-          transform="rotate(20 56 22)"/>
-
-    <!-- Main highlight -->
-    <ellipse cx="42" cy="40" rx="7" ry="10" fill="url(#highlight)" opacity="0.7"/>
-
-    <!-- Small highlight -->
-    <ellipse cx="39" cy="38" rx="2.5" ry="3.5" fill="#FFFFFF" opacity="0.5"/>
-
-    <!-- Orange dimples (characteristic indentations) -->
-    <circle cx="38" cy="45" r="0.8" fill="#C2410C" opacity="0.4"/>
-    <circle cx="45" cy="60" r="0.6" fill="#C2410C" opacity="0.4"/>
-    <circle cx="60" cy="42" r="0.7" fill="#C2410C" opacity="0.4"/>
-    <circle cx="58" cy="58" r="0.5" fill="#C2410C" opacity="0.4"/>
-    <circle cx="42" cy="30" r="0.6" fill="#C2410C" opacity="0.4"/>
-    <circle cx="65" cy="55" r="0.8" fill="#C2410C" opacity="0.4"/>
+    <circle cx="32" cy="32" r="30" fill="url(#orangeGrad)" stroke="#E65100" stroke-width="2"/>
+    <circle cx="20" cy="20" r="1.5" fill="#FF7043" opacity="0.6"/>
+    <circle cx="44" cy="18" r="1.5" fill="#FF7043" opacity="0.6"/>
+    <circle cx="18" cy="40" r="1.5" fill="#FF7043" opacity="0.6"/>
+    <circle cx="46" cy="42" r="1.5" fill="#FF7043" opacity="0.6"/>
+    <circle cx="32" cy="48" r="1.5" fill="#FF7043" opacity="0.6"/>
+    <g id="openEyes">
+        <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+        <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <animate
+                attributeName="opacity"
+                values="1; 1; 0; 1; 1"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <g id="closedEyes">
+        <ellipse cx="24" cy="26" rx="4" ry="5" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <line x1="36" y1="26" x2="44" y2="26" stroke="black" stroke-width="2" stroke-linecap="round"/>
+        <animate
+                attributeName="opacity"
+                values="0; 0; 1; 0; 0"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
+    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FF5722" opacity="0.4"/>
 </svg>
