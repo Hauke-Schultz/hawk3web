@@ -1,3 +1,85 @@
+// Memory Game Level Configurations
+export const MEMORY_LEVELS = {
+	1: {
+		pairs: 3,
+		timeBonus: 150,
+		title: 'Starter',
+		description: 'Match 3 pairs - Learn the basics',
+		gridCols: 2,
+		minHeight: 80,
+		starThresholds: {
+			1: { score: 150, time: 150, moves: 10 }, // 1 star: basic completion
+			2: { score: 250, time: 120, moves: 7 },  // 2 stars: good performance
+			3: { score: 350, time: 60, moves: 4 }    // 3 stars: excellent performance
+		}
+	},
+	2: {
+		pairs: 6,
+		timeBonus: 300,
+		title: 'Easy',
+		description: 'Match 6 pairs - Build your skills',
+		gridCols: 3,
+		minHeight: 60,
+		starThresholds: {
+			1: { score: 400, time: 180, moves: 20 },
+			2: { score: 500, time: 180, moves: 16 },
+			3: { score: 700, time: 120, moves: 12 }
+		}
+	},
+	3: {
+		pairs: 8,
+		timeBonus: 400,
+		title: 'Medium',
+		description: 'Match 8 pairs - Test your memory',
+		gridCols: 4,
+		minHeight: 60,
+		starThresholds: {
+			1: { score: 550, time: 240, moves: 24 },
+			2: { score: 650, time: 240, moves: 20 },
+			3: { score: 950, time: 180, moves: 16 }
+		}
+	},
+	4: {
+		pairs: 10,
+		timeBonus: 500,
+		title: 'Hard',
+		description: 'Match 10 pairs - Challenge yourself',
+		gridCols: 4,
+		minHeight: 60,
+		starThresholds: {
+			1: { score: 700, time: 300, moves: 28 },
+			2: { score: 800, time: 300, moves: 26 },
+			3: { score: 1200, time: 240, moves: 20 }
+		}
+	},
+	5: {
+		pairs: 12,
+		timeBonus: 600,
+		title: 'Expert',
+		description: 'Match 12 pairs - Expert level',
+		gridCols: 4,
+		minHeight: 60,
+		starThresholds: {
+			1: { score: 800, time: 420, moves: 32 },
+			2: { score: 950, time: 360, moves: 30 },
+			3: { score: 1450, time: 300, moves: 24 }
+		}
+	},
+	6: {
+		pairs: 18,
+		timeBonus: 750,
+		title: 'Master',
+		description: 'Match 18 pairs - Master challenge',
+		gridCols: 4,
+		minHeight: 60,
+		starThresholds: {
+			1: { score: 1000, time: 540, moves: 48 },
+			2: { score: 1400, time: 540, moves: 44 },
+			3: { score: 2150, time: 450, moves: 36 }
+		}
+	}
+}
+
 export const memoryConfig = {
 	// Game metadata
 	gameId: 'memory',
@@ -5,63 +87,11 @@ export const memoryConfig = {
 	gameDescription: 'Match pairs of cards and test your memory',
 	gameIcon: 'brain',
 
-	// Level configurations
-	levels: [
-		{
-			level: 1,
-			pairs: 3,
-			timeBonus: 150,
-			title: 'Starter',
-			description: 'Match 3 pairs - Learn the basics',
-			gridCols: 2,
-			minHeight: 80
-		},
-		{
-			level: 2,
-			pairs: 6,
-			timeBonus: 300,
-			title: 'Easy',
-			description: 'Match 6 pairs - Build your skills',
-			gridCols: 3,
-			minHeight: 60
-		},
-		{
-			level: 3,
-			pairs: 8,
-			timeBonus: 400,
-			title: 'Medium',
-			description: 'Match 8 pairs - Test your memory',
-			gridCols: 4,
-			minHeight: 60
-		},
-		{
-			level: 4,
-			pairs: 10,
-			timeBonus: 500,
-			title: 'Hard',
-			description: 'Match 10 pairs - Challenge yourself',
-			gridCols: 4,
-			minHeight: 60
-		},
-		{
-			level: 5,
-			pairs: 12,
-			timeBonus: 600,
-			title: 'Expert',
-			description: 'Match 12 pairs - Expert level',
-			gridCols: 4,
-			minHeight: 60
-		},
-		{
-			level: 6,
-			pairs: 18,
-			timeBonus: 750,
-			title: 'Master',
-			description: 'Match 18 pairs - Master challenge',
-			gridCols: 4,
-			minHeight: 60
-		}
-	],
+	// Level configurations (converted to array for backward compatibility)
+	levels: Object.values(MEMORY_LEVELS).map((level, index) => ({
+		level: index + 1,
+		...level
+	})),
 
 	// Card symbols for the memory game
 	cardSymbols: [
@@ -102,7 +132,7 @@ export const memoryConfig = {
 
 // Helper functions
 export const getMemoryLevel = (levelNumber) => {
-	return memoryConfig.levels.find(level => level.level === levelNumber) || memoryConfig.levels[0]
+	return MEMORY_LEVELS[levelNumber] || MEMORY_LEVELS[1]
 }
 
 export const getMemoryLevelTitle = (level, t) => {
@@ -114,7 +144,7 @@ export const getMemoryLevelDescription = (level, t) => {
 }
 
 export const getMaxMemoryLevel = () => {
-	return memoryConfig.levels.length
+	return Object.keys(MEMORY_LEVELS).length
 }
 
 export const calculateMaxPossibleScore = (levelConfig, actualTime = 0, actualMoves = 0) => {
@@ -126,13 +156,40 @@ export const calculateMaxPossibleScore = (levelConfig, actualTime = 0, actualMov
 	return baseScore + moveBonus + timeBonus
 }
 
-export const calculateStars = (score, levelConfig) => {
-	const maxScore = calculateMaxPossibleScore(levelConfig)
-	const percentage = (score / maxScore) * 100
+export const calculateLevelStars = (levelStats, levelNumber) => {
+	if (!levelStats.completed) return 0
 
-	if (percentage >= memoryConfig.scoring.starThresholds.threeStar) return 3
-	if (percentage >= memoryConfig.scoring.starThresholds.twoStar) return 2
-	if (percentage >= memoryConfig.scoring.starThresholds.oneStar) return 1
+	const { score, time, moves } = levelStats.bestPerformance || {}
+	if (!score || !time || !moves) return 1 // Minimum 1 star for completion
+
+	return calculateStars(score, time, moves, levelNumber)
+}
+
+export const calculateStars = (score, time, moves, levelNumber) => {
+	const levelConfig = MEMORY_LEVELS[levelNumber]
+	if (!levelConfig) return 0
+
+	const thresholds = levelConfig.starThresholds
+
+	// Check for 3 stars first (most demanding)
+	if (score >= thresholds[3].score &&
+		time <= thresholds[3].time &&
+		moves <= thresholds[3].moves) {
+		return 3
+	}
+
+	// Check for 2 stars
+	if (score >= thresholds[2].score &&
+		time <= thresholds[2].time &&
+		moves <= thresholds[2].moves) {
+		return 2
+	}
+
+	// Check for 1 star (basic completion)
+	if (score >= thresholds[1].score) {
+		return 1
+	}
+
 	return 0
 }
 

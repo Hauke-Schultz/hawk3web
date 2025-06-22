@@ -1,5 +1,6 @@
 import { ref, reactive, watch } from 'vue'
 import { achievementsConfig, getAchievementById, checkAchievementCondition } from '../config/achievementsConfig.js'
+import { calculateLevelStars } from "../config/memoryConfig.js";
 
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'
@@ -318,26 +319,6 @@ export function useLocalStorage() {
 		const moveWeight = (50 - Math.min(stats.moves, 50)) * 0.1 // Max 50 moves penalty
 
 		return scoreWeight + timeWeight + moveWeight
-	}
-
-// Calculate star rating (0-3) based on performance
-	const calculateLevelStars = (levelStats, levelData) => {
-		if (!levelStats.completed) return 0
-
-		// Minimum 1 star for completion
-		let stars = 1
-
-		// Add stars based on performance
-		if (levelData.bestPerformance) {
-			const performance = levelData.bestPerformance.performanceScore
-
-			// Define performance thresholds (these can be adjusted)
-			if (performance >= 800) stars = 3 // Excellent performance
-			else if (performance >= 500) stars = 2 // Good performance
-			// else stars = 1 (completion only)
-		}
-
-		return stars
 	}
 
 	const getLevelStats = (gameName, levelNumber) => {

@@ -5,7 +5,7 @@ import { useI18n } from '../composables/useI18n.js'
 import GameLevelTile from './GameLevelTile.vue'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
-import {getMemoryLevelDescription, getMemoryLevelTitle} from "../config/memoryConfig.js";
+import { getMemoryLevelDescription, getMemoryLevelTitle, calculateLevelStars } from "../config/memoryConfig.js";
 
 // Props for the level selection component
 const props = defineProps({
@@ -57,7 +57,7 @@ const levelData = computed(() => {
       (gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
     // Calculate stars based on performance (0-3 stars)
-    const stars = calculateStars(levelStats, level)
+    const stars = calculateLevelStars(levelStats, levelNumber)
 
     return {
       level: levelNumber,
@@ -74,30 +74,6 @@ const levelData = computed(() => {
     }
   })
 })
-
-// Calculate star rating based on performance
-const calculateStars = (levelStats, levelConfig) => {
-  if (!levelStats.completed) return 0
-
-  const { score, time, moves } = levelStats.bestPerformance || {}
-  if (!score) return 1 // Minimum 1 star for completion
-
-  const maxPossibleScore = getMaxPossibleScore(levelConfig, time, moves)
-  const scorePercentage = (score / maxPossibleScore) * 100
-
-  if (scorePercentage >= 90) return 3 // 3 stars for 90%+ efficiency
-  if (scorePercentage >= 70) return 2 // 2 stars for 70%+ efficiency
-  return 1 // 1 star for completion
-}
-
-// Calculate maximum possible score for a level
-const getMaxPossibleScore = (levelConfig, actualTime, actualMoves) => {
-  const baseScore = levelConfig.pairs * 100
-  const perfectMoves = levelConfig.pairs // Perfect game uses minimum moves
-  const timeBonus = levelConfig.timeBonus
-
-  return baseScore + (perfectMoves * 10) + timeBonus
-}
 
 // Completion stats
 const completionStats = computed(() => {

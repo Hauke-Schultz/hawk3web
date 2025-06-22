@@ -194,7 +194,7 @@ const checkForMatch = () => {
 
 const calculateCurrentStars = () => {
   if (!isGameComplete.value) return 0
-  return calculateStars(finalScore.value, currentLevelConfig.value)
+  return calculateStars(finalScore.value, timeElapsed.value, moves.value, currentLevel.value)
 }
 
 const completeGame = () => {
