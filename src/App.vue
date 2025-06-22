@@ -1,13 +1,14 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useLocalStorage } from './composables/useLocalStorage.js'
-import { useI18n } from './composables/useI18n.js' // ✅ i18n import
+import { useI18n } from './composables/useI18n.js'
 import Header from './components/Header.vue'
 import Settings from './components/Settings.vue'
 import Profile from './components/Profile.vue'
 import Home from './components/Home.vue'
 import Gaming from "./components/Gaming.vue";
 import Trophy from "./components/Trophy.vue";
+import About from "./components/About.vue";
 
 // LocalStorage service
 const { gameData, updatePlayer, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
@@ -45,6 +46,11 @@ const handleSettingsClick = () => {
 const handleProfileClick = () => {
   console.log('Opening profile...')
   currentView.value = 'profile'
+}
+
+const handleAboutClick = () => {
+  console.log('Opening about...')
+  currentView.value = 'about'
 }
 
 // Game action handlers
@@ -99,6 +105,7 @@ onMounted(async () => {
         @profile-click="handleProfileClick"
         @trophy-click="handleTrophyClick"
         @settings-click="handleSettingsClick"
+        @about-click="handleAboutClick"
         @package-click="handlePackageClick"
       />
     </template>
@@ -157,6 +164,18 @@ onMounted(async () => {
         @language-change="handleLanguageChange"
         @back="handleBackToHome"
       />
+    </template>
+
+    <!-- About View -->
+    <template v-else-if="currentView === 'about'">
+      <Header
+        :show-profile="true"
+        :show-menu-button="true"
+        :page-title="t('nav.about')"
+        @menu-click="handleBackToHome"
+      />
+
+      <About />
     </template>
   </div>
 </template>

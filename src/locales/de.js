@@ -62,7 +62,8 @@ export default {
 		trophy: 'Trophäe',
 		trophies: 'Trophäen',
 		settings: 'Einstellungen',
-		notifications: 'Benachrichtigungen'
+		notifications: 'Benachrichtigungen',
+		about: 'Über uns'
 	},
 
 	// Startseite
@@ -73,7 +74,78 @@ export default {
 		gaming_hub: 'Spiele-Hub',
 		view_profile: 'Profil anzeigen',
 		view_trophies: 'Trophäen anzeigen',
-		open_settings: 'Einstellungen öffnen'
+		open_settings: 'Einstellungen öffnen',
+		view_about: 'Über uns anzeigen'
+	},
+
+	// Über uns
+	about: {
+		title: 'Über Hawk3',
+		subtitle: 'Erfahre mehr über diese Spieleplattform und ihren Entwickler',
+
+		platform: {
+			title: 'Über die Plattform',
+			description: 'Hawk3 ist eine moderne Spieleplattform, die mit Vue 3 entwickelt wurde und mehrere Mini-Spiele, Erfolg-Systeme und mehrsprachige Unterstützung bietet. Entwickelt mit einem Mobile-First-Ansatz für die beste Spielerfahrung.',
+			version: 'Version',
+			status: 'Status',
+			status_value: 'Aktive Entwicklung',
+			features: 'Features',
+			technologies: 'Technologien',
+			feature_list: {
+				memory_game: 'Memory-Spiel mit 6 Leveln',
+				achievement_system: 'Umfassendes Erfolgs-System',
+				internationalization: 'Deutsch & Englisch Unterstützung'
+			}
+		},
+
+		developer: {
+			title: 'Über den Entwickler',
+			description: 'Hawk3 wird mit Leidenschaft für ansprechende und zugängliche Spielerfahrungen entwickelt. Der Fokus liegt auf sauberem Code, modernen Technologien und benutzerfreundlichem Design.',
+			name: 'Entwickler',
+			location: 'Standort',
+			contact: 'Entwickler kontaktieren'
+		},
+
+		privacy: {
+			title: 'Datenschutz & Daten',
+			description: 'Deine Privatsphäre ist uns wichtig. Hawk3 ist mit datenschutzfreundlichen Prinzipien und transparenter Datenverarbeitung entwickelt.',
+			local_storage: {
+				title: 'Lokale Datenspeicherung',
+				description: 'Alle deine Spielfortschritte, Einstellungen und Erfolge werden lokal in deinem Browser gespeichert. Keine Daten werden an externe Server gesendet.'
+			},
+			no_tracking: {
+				title: 'Kein Tracking',
+				description: 'Wir verwenden keine Analyse-Tools, Tracking-Skripte oder Drittanbieter-Services, die deine persönlichen Daten sammeln.'
+			},
+			data_control: {
+				title: 'Vollständige Datenkontrolle',
+				description: 'Du hast die vollständige Kontrolle über deine Daten. Du kannst jederzeit alle deine Daten über die Einstellungen exportieren, importieren oder löschen.'
+			}
+		},
+
+		legal: {
+			title: 'Rechtliche Informationen',
+			description: 'Wichtige rechtliche Informationen zur Nutzung der Hawk3 Spieleplattform.',
+			license: {
+				title: 'Open Source',
+				description: 'Hawk3 nutzt Open-Source-Technologien und folgt modernen Web-Standards. Das Projekt respektiert alle Software-Lizenzen und Zuordnungen.'
+			},
+			disclaimer: {
+				title: 'Haftungsausschluss',
+				description: 'Hawk3 wird wie besehen für Unterhaltungszwecke bereitgestellt. Obwohl wir uns um eine fehlerfreie Erfahrung bemühen, können wir keinen ununterbrochenen Service garantieren.'
+			},
+			usage: {
+				title: 'Nutzungsbedingungen',
+				description: 'Durch die Nutzung von Hawk3 stimmst du zu, die Plattform verantwortlich und in Übereinstimmung mit geltenden Gesetzen und Vorschriften zu nutzen.'
+			}
+		},
+
+		contact: {
+			title: 'Kontakt & Feedback',
+			description: 'Wir schätzen dein Feedback und deine Vorschläge zur Verbesserung von Hawk3. Zögere nicht, dich mit Fragen, Fehlermeldungen oder Feature-Wünschen zu melden.',
+			email: 'E-Mail senden',
+			feedback: 'Feedback teilen'
+		}
 	},
 
 	// Profil

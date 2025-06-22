@@ -1,132 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-    <!-- Background glow effect -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <defs>
-        <radialGradient id="brainGlow" cx="50%" cy="30%" r="70%">
-            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.3"/>
-            <stop offset="70%" style="stop-color:#FF6B9D;stop-opacity:0.2"/>
-            <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:0.1"/>
-        </radialGradient>
-
-        <linearGradient id="leftBrain" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#FF6B9D"/>
-            <stop offset="50%" style="stop-color:#FF8E9B"/>
-            <stop offset="100%" style="stop-color:#FFB5BA"/>
-        </linearGradient>
-
-        <linearGradient id="rightBrain" x1="0%" y1="0%" x2="100%" y2="100%">
+        <!-- Card gradients -->
+        <linearGradient id="card1" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#4F46E5"/>
-            <stop offset="50%" style="stop-color:#7C3AED"/>
-            <stop offset="100%" style="stop-color:#A855F7"/>
+            <stop offset="100%" style="stop-color:#7C3AED"/>
         </linearGradient>
 
-        <linearGradient id="neuralGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#FFD700"/>
-            <stop offset="100%" style="stop-color:#FFA500"/>
+        <linearGradient id="card2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#10B981"/>
+            <stop offset="100%" style="stop-color:#059669"/>
         </linearGradient>
 
-        <!-- Memory spark effect -->
-        <filter id="sparkle">
-            <feTurbulence baseFrequency="0.9" numOctaves="4" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="1"/>
-            <feGaussianBlur stdDeviation="0.5"/>
-        </filter>
+        <linearGradient id="card3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#F59E0B"/>
+            <stop offset="100%" style="stop-color:#D97706"/>
+        </linearGradient>
+
+        <linearGradient id="card4" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#EF4444"/>
+            <stop offset="100%" style="stop-color:#DC2626"/>
+        </linearGradient>
     </defs>
 
-    <!-- Background glow -->
-    <ellipse cx="12" cy="11" rx="11" ry="10" fill="url(#brainGlow)"/>
+    <!-- Card 1 (Top Left) - Purple -->
+    <rect x="10" y="15" width="35" height="30" rx="4" ry="4"
+          fill="url(#card1)"/>
+    <text x="27.5" y="35" font-family="Arial" font-size="16"
+          text-anchor="middle" fill="#FFFFFF">🎮</text>
 
-    <!-- Left brain hemisphere -->
-    <path d="M9.5 2.5C7.8 2.5 6.2 3.8 5.8 5.8c-1.8 0.2-3.3 1.8-3.3 3.8s1.2 3.8 3 4c0.2 2.8 2.2 5 5 5.2"
-          fill="url(#leftBrain)" stroke="#FF1B6B" stroke-width="0.3"/>
+    <!-- Card 2 (Top Right) - Green -->
+    <rect x="55" y="15" width="35" height="30" rx="4" ry="4"
+          fill="url(#card2)"/>
+    <text x="72.5" y="35" font-family="Arial" font-size="16"
+          text-anchor="middle" fill="#FFFFFF">⭐</text>
 
-    <!-- Right brain hemisphere -->
-    <path d="M14.5 2.5C16.2 2.5 17.8 3.8 18.2 5.8c1.8 0.2 3.3 1.8 3.3 3.8s-1.2 3.8-3 4c-0.2 2.8-2.2 5-5 5.2"
-          fill="url(#rightBrain)" stroke="#3730A3" stroke-width="0.3"/>
+    <!-- Card 3 (Bottom Left) - Orange -->
+    <rect x="10" y="55" width="35" height="30" rx="4" ry="4"
+          fill="url(#card3)"/>
+    <text x="27.5" y="75" font-family="Arial" font-size="16"
+          text-anchor="middle" fill="#FFFFFF">🏆</text>
 
-    <!-- Central dividing line with electric effect -->
-    <path d="M12 3v15" stroke="#FFD700" stroke-width="0.8" opacity="0.9"/>
-    <path d="M12 3v15" stroke="#FFFFFF" stroke-width="0.3" opacity="0.7"/>
-
-    <!-- Detailed brain folds and convolutions -->
-    <!-- Left hemisphere details -->
-    <path d="M6.5 6.5c1-0.8 2.5-0.5 3.2 0.3" stroke="#FF1B6B" stroke-width="0.6" fill="none"/>
-    <path d="M7 9c1.2-0.6 2.8-0.3 3.5 0.5" stroke="#FF1B6B" stroke-width="0.6" fill="none"/>
-    <path d="M8 12c1-0.5 2.3-0.2 3 0.4" stroke="#FF1B6B" stroke-width="0.6" fill="none"/>
-    <path d="M8.5 14.5c0.8-0.3 1.8-0.1 2.3 0.3" stroke="#FF1B6B" stroke-width="0.5" fill="none"/>
-
-    <!-- Right hemisphere details -->
-    <path d="M17.5 6.5c-1-0.8-2.5-0.5-3.2 0.3" stroke="#3730A3" stroke-width="0.6" fill="none"/>
-    <path d="M17 9c-1.2-0.6-2.8-0.3-3.5 0.5" stroke="#3730A3" stroke-width="0.6" fill="none"/>
-    <path d="M16 12c-1-0.5-2.3-0.2-3 0.4" stroke="#3730A3" stroke-width="0.6" fill="none"/>
-    <path d="M15.5 14.5c-0.8-0.3-1.8-0.1-2.3 0.3" stroke="#3730A3" stroke-width="0.5" fill="none"/>
-
-    <!-- Memory nodes (glowing neurons) -->
-    <circle cx="8" cy="7" r="1" fill="#FFD700" opacity="0.8"/>
-    <circle cx="8" cy="7" r="0.6" fill="#FFFFFF" opacity="0.9"/>
-    <circle cx="8" cy="7" r="0.3" fill="#FFD700"/>
-
-    <circle cx="16" cy="7" r="1" fill="#00D9FF" opacity="0.8"/>
-    <circle cx="16" cy="7" r="0.6" fill="#FFFFFF" opacity="0.9"/>
-    <circle cx="16" cy="7" r="0.3" fill="#00D9FF"/>
-
-    <circle cx="9" cy="10.5" r="0.8" fill="#FF6B9D" opacity="0.8"/>
-    <circle cx="9" cy="10.5" r="0.5" fill="#FFFFFF" opacity="0.9"/>
-    <circle cx="9" cy="10.5" r="0.2" fill="#FF6B9D"/>
-
-    <circle cx="15" cy="10.5" r="0.8" fill="#A855F7" opacity="0.8"/>
-    <circle cx="15" cy="10.5" r="0.5" fill="#FFFFFF" opacity="0.9"/>
-    <circle cx="15" cy="10.5" r="0.2" fill="#A855F7"/>
-
-    <circle cx="10.5" cy="13.5" r="0.7" fill="#10B981" opacity="0.8"/>
-    <circle cx="10.5" cy="13.5" r="0.4" fill="#FFFFFF" opacity="0.9"/>
-    <circle cx="10.5" cy="13.5" r="0.2" fill="#10B981"/>
-
-    <circle cx="13.5" cy="13.5" r="0.7" fill="#F59E0B" opacity="0.8"/>
-    <circle cx="13.5" cy="13.5" r="0.4" fill="#FFFFFF" opacity="0.9"/>
-    <circle cx="13.5" cy="13.5" r="0.2" fill="#F59E0B"/>
-
-    <!-- Neural network connections -->
-    <path d="M8 7 Q12 8 16 7" stroke="url(#neuralGlow)" stroke-width="0.8" fill="none" opacity="0.7"/>
-    <path d="M9 10.5 Q12 11 15 10.5" stroke="url(#neuralGlow)" stroke-width="0.6" fill="none" opacity="0.6"/>
-    <path d="M10.5 13.5 Q12 13 13.5 13.5" stroke="url(#neuralGlow)" stroke-width="0.5" fill="none" opacity="0.5"/>
-
-    <!-- Cross-hemisphere connections -->
-    <path d="M8 7 Q10 9 9 10.5" stroke="#FFD700" stroke-width="0.4" fill="none" opacity="0.6"/>
-    <path d="M16 7 Q14 9 15 10.5" stroke="#00D9FF" stroke-width="0.4" fill="none" opacity="0.6"/>
-    <path d="M9 10.5 Q11 12 10.5 13.5" stroke="#FF6B9D" stroke-width="0.4" fill="none" opacity="0.5"/>
-    <path d="M15 10.5 Q13 12 13.5 13.5" stroke="#A855F7" stroke-width="0.4" fill="none" opacity="0.5"/>
-
-    <!-- Memory/data particles floating around -->
-    <circle cx="5" cy="4" r="0.3" fill="#FFD700" opacity="0.8"/>
-    <circle cx="19" cy="5" r="0.3" fill="#00D9FF" opacity="0.8"/>
-    <circle cx="4" cy="15" r="0.3" fill="#FF6B9D" opacity="0.8"/>
-    <circle cx="20" cy="14" r="0.3" fill="#A855F7" opacity="0.8"/>
-    <circle cx="6" cy="17" r="0.2" fill="#10B981" opacity="0.8"/>
-    <circle cx="18" cy="16" r="0.2" fill="#F59E0B" opacity="0.8"/>
-
-    <!-- Thinking waves/signals above brain -->
-    <path d="M5 1.5c1.5-0.5 3 0 4 1" stroke="#FFD700" stroke-width="0.8" fill="none" opacity="0.6"/>
-    <path d="M15 2.5c1.5-0.5 3 0 4 1" stroke="#00D9FF" stroke-width="0.8" fill="none" opacity="0.6"/>
-    <path d="M7 0.8c1-0.3 2.5 0 3 0.7" stroke="#FF6B9D" stroke-width="0.6" fill="none" opacity="0.5"/>
-    <path d="M14 1.2c1-0.3 2.5 0 3 0.7" stroke="#A855F7" stroke-width="0.6" fill="none" opacity="0.5"/>
-
-    <!-- Memory card symbols floating (subtle) -->
-    <text x="3" y="8" font-family="serif" font-size="1.2" fill="#FFD700" opacity="0.4">♠</text>
-    <text x="21" y="9" font-family="serif" font-size="1.2" fill="#00D9FF" opacity="0.4">♥</text>
-    <text x="2" y="13" font-family="serif" font-size="1" fill="#FF6B9D" opacity="0.3">♦</text>
-    <text x="22" y="12" font-family="serif" font-size="1" fill="#A855F7" opacity="0.3">♣</text>
-
-    <!-- Brainstem connection with electrical activity -->
-    <path d="M9.5 18.5h5" stroke="#666" stroke-width="1.2"/>
-    <path d="M11 18.5v2.5" stroke="#666" stroke-width="0.8"/>
-    <path d="M13 18.5v2.5" stroke="#666" stroke-width="0.8"/>
-    <path d="M12 18.5v3" stroke="#FFD700" stroke-width="0.4" opacity="0.8"/>
-
-    <!-- Electrical impulses -->
-    <circle cx="11.5" cy="19.5" r="0.2" fill="#FFD700" opacity="0.9"/>
-    <circle cx="12.5" cy="20" r="0.2" fill="#00D9FF" opacity="0.9"/>
-
-    <!-- Additional detail: Cerebellum hint -->
-    <ellipse cx="12" cy="17.5" rx="2" ry="0.8" fill="#999" opacity="0.6"/>
-    <ellipse cx="12" cy="17.5" rx="1.5" ry="0.6" fill="#BBB" opacity="0.5"/>
+    <!-- Card 4 (Bottom Right) - Red -->
+    <rect x="55" y="55" width="35" height="30" rx="4" ry="4"
+          fill="url(#card4)"/>
+    <text x="72.5" y="75" font-family="Arial" font-size="16"
+          text-anchor="middle" fill="#FFFFFF">🎯</text>
 </svg>

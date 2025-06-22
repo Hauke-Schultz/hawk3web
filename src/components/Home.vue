@@ -14,6 +14,7 @@ const emit = defineEmits([
   'profile-click',
   'trophy-click',
   'settings-click',
+  'about-click',
   'package-click'
 ])
 
@@ -38,6 +39,10 @@ const handleTrophyClick = () => {
 
 const handleSettingsClick = () => {
   emit('settings-click')
+}
+
+const handleAboutClick = () => {
+  emit('about-click')
 }
 
 const handlePackageClick = () => {
@@ -142,6 +147,25 @@ const handleCardRead = (cardType) => {
         </div>
         <div class="card-content">
           <h2 class="card-title">{{ t('nav.settings') }}</h2>
+        </div>
+      </div>
+
+      <!-- About Card -->
+      <div
+        class="action-card"
+        @click="handleAboutClick"
+        @keydown.enter="handleAboutClick"
+        tabindex="0"
+        role="button"
+        aria-label="t('home.view_about')"
+      >
+        <div class="card-icon">
+          <div class="icon-btn btn--primary" aria-label="About">
+            <Icon name="about" size="32" />
+          </div>
+        </div>
+        <div class="card-content">
+          <h2 class="card-title">{{ t('nav.about') }}</h2>
         </div>
       </div>
     </section>
