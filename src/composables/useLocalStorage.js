@@ -1,6 +1,6 @@
 import { ref, reactive, watch } from 'vue'
 import { achievementsConfig, getAchievementById, checkAchievementCondition } from '../config/achievementsConfig.js'
-import { calculateLevelStars } from "../config/memoryConfig.js";
+import { calculateLevelStars } from '../config/levelUtils.js'
 
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'

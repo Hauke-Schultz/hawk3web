@@ -254,7 +254,7 @@ export default {
 	},
 
 	// FruitMerge Game
-	fruitmerge: {
+	fruitMerge: {
 		title: 'Fruit Merge',
 		description: 'Merge fruits to create new combinations',
 		target: 'Target',

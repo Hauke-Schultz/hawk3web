@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import { memoryConfig, getMemoryLevel, calculateMaxPossibleScore, calculateStars, getGridConfig } from '../config/memoryConfig.js'
+import { calculateLevelStars } from '../config/levelUtils.js'
 import { useComboSystem } from '../composables/useComboSystem.js'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
@@ -194,7 +195,10 @@ const checkForMatch = () => {
 
 const calculateCurrentStars = () => {
   if (!isGameComplete.value) return 0
-  return calculateStars(finalScore.value, timeElapsed.value, moves.value, currentLevel.value)
+  return calculateLevelStars(
+    { score: finalScore.value, moves: moves.value, completed: true },
+    currentLevelConfig.value
+  )
 }
 
 const completeGame = () => {

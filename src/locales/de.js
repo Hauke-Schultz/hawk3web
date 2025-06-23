@@ -253,7 +253,7 @@ export default {
 	},
 
 	// FruitMerge-Spiel
-	fruitmerge: {
+	fruitMerge: {
 		title: 'Fruit Merge',
 		description: 'Füge Früchte zusammen und erstelle neue Kombinationen',
 		target: 'Ziel',

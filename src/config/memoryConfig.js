@@ -8,9 +8,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 2,
 		minHeight: 80,
 		starThresholds: {
-			1: { score: 150, time: 150, moves: 10 }, // 1 star: basic completion
-			2: { score: 250, time: 120, moves: 7 },  // 2 stars: good performance
-			3: { score: 350, time: 60, moves: 4 }    // 3 stars: excellent performance
+			1: { moves: 8 },
+			2: { moves: 6 },
+			3: { moves: 4 }
 		}
 	},
 	2: {
@@ -21,9 +21,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 3,
 		minHeight: 60,
 		starThresholds: {
-			1: { score: 400, time: 180, moves: 20 },
-			2: { score: 500, time: 180, moves: 16 },
-			3: { score: 700, time: 120, moves: 12 }
+			1: { moves: 20 },
+			2: { moves: 16 },
+			3: { moves: 12 }
 		}
 	},
 	3: {
@@ -34,9 +34,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 4,
 		minHeight: 60,
 		starThresholds: {
-			1: { score: 550, time: 240, moves: 24 },
-			2: { score: 650, time: 240, moves: 20 },
-			3: { score: 950, time: 180, moves: 16 }
+			1: { moves: 24 },
+			2: { moves: 20 },
+			3: { moves: 16 }
 		}
 	},
 	4: {
@@ -47,9 +47,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 4,
 		minHeight: 60,
 		starThresholds: {
-			1: { score: 700, time: 300, moves: 28 },
-			2: { score: 800, time: 300, moves: 26 },
-			3: { score: 1200, time: 240, moves: 20 }
+			1: { moves: 28 },
+			2: { moves: 26 },
+			3: { moves: 20 }
 		}
 	},
 	5: {
@@ -60,9 +60,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 4,
 		minHeight: 60,
 		starThresholds: {
-			1: { score: 800, time: 420, moves: 32 },
-			2: { score: 950, time: 360, moves: 30 },
-			3: { score: 1450, time: 300, moves: 24 }
+			1: { moves: 32 },
+			2: { moves: 30 },
+			3: { moves: 24 }
 		}
 	},
 	6: {
@@ -73,9 +73,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 4,
 		minHeight: 60,
 		starThresholds: {
-			1: { score: 1000, time: 540, moves: 48 },
-			2: { score: 1400, time: 540, moves: 44 },
-			3: { score: 2150, time: 450, moves: 36 }
+			1: { moves: 48 },
+			2: { moves: 44 },
+			3: { moves: 36 }
 		}
 	}
 }
@@ -135,18 +135,6 @@ export const getMemoryLevel = (levelNumber) => {
 	return MEMORY_LEVELS[levelNumber] || MEMORY_LEVELS[1]
 }
 
-export const getMemoryLevelTitle = (level, t) => {
-	return t(`memory.levels.${level}.title`) || `Level ${level}`
-}
-
-export const getMemoryLevelDescription = (level, t) => {
-	return t(`memory.levels.${level}.description`) || `Match ${level} pairs`
-}
-
-export const getMaxMemoryLevel = () => {
-	return Object.keys(MEMORY_LEVELS).length
-}
-
 export const calculateMaxPossibleScore = (levelConfig, actualTime = 0, actualMoves = 0) => {
 	const baseScore = levelConfig.pairs * memoryConfig.scoring.baseScore
 	const perfectMoves = levelConfig.pairs
@@ -154,15 +142,6 @@ export const calculateMaxPossibleScore = (levelConfig, actualTime = 0, actualMov
 	const timeBonus = levelConfig.timeBonus
 
 	return baseScore + moveBonus + timeBonus
-}
-
-export const calculateLevelStars = (levelStats, levelNumber) => {
-	if (!levelStats.completed) return 0
-
-	const { score, time, moves } = levelStats.bestPerformance || {}
-	if (!score || !time || !moves) return 1 // Minimum 1 star for completion
-
-	return calculateStars(score, time, moves, levelNumber)
 }
 
 export const calculateStars = (score, time, moves, levelNumber) => {

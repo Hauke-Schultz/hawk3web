@@ -5,13 +5,7 @@ import { useI18n } from '../composables/useI18n.js'
 import GameLevelTile from './GameLevelTile.vue'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
-import { getMemoryLevelDescription, getMemoryLevelTitle, calculateLevelStars } from "../config/memoryConfig.js";
-import {
-  calculateFruitMergeLevelStars,
-  FRUIT_TYPES,
-  getFruitMergeLevelDescription,
-  getFruitMergeLevelTitle
-} from "../config/fruitMergeConfig.js";
+import { calculateLevelStars, getLevelTitle, getLevelDescription } from "../config/levelUtils.js"
 
 // Props for the level selection component
 const props = defineProps({
@@ -52,35 +46,18 @@ const gameStats = computed(() => {
   return gameData.games[props.gameId] || {}
 })
 
-const getFruitEmoji = (fruitName) => {
-  const fruitType = FRUIT_TYPES[fruitName]
-  return fruitType ? fruitType.emoji : '🍎'
-}
-
 // Compute level data with completion status
 const levelData = computed(() => {
   return props.levels.map((level, index) => {
     const levelNumber = index + 1
     const levelStats = gameStats.value.levels?.[levelNumber] || {}
 
-    // A level is unlocked if it's the first level or the previous level is completed
     const isUnlocked = levelNumber === 1 ||
       (gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
-    let stars = 0
-    let title = ''
-    let description = ''
-
-    // Game-specific logic
-    if (props.gameId === 'memory') {
-      stars = calculateLevelStars(levelStats, levelNumber)
-      title = getMemoryLevelTitle(levelNumber, t)
-      description = getMemoryLevelDescription(levelNumber, t)
-    } else if (props.gameId === 'fruitMerge') {
-      stars = calculateFruitMergeLevelStars(levelStats, levelNumber)
-      title = getFruitMergeLevelTitle(levelNumber, t)
-      description = getFruitMergeLevelDescription(levelNumber, t)
-    }
+    const stars = calculateLevelStars(levelStats, level)
+    const title = getLevelTitle(levelNumber, props.gameId, t)
+    const description = getLevelDescription(levelNumber, props.gameId, t)
 
     return {
       level: levelNumber,
