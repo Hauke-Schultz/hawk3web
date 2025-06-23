@@ -252,6 +252,69 @@ export default {
 		}
 	},
 
+	// FruitMerge-Spiel
+	fruitmerge: {
+		title: 'Fruit Merge',
+		description: 'Füge Früchte zusammen und erstelle neue Kombinationen',
+		target: 'Ziel',
+		level_title: 'Level {level}',
+		game_paused: 'Spiel pausiert',
+		level_complete: 'Level abgeschlossen!',
+		game_complete: 'Spiel abgeschlossen!',
+		back_to_levels: 'Zurück zu Leveln',
+		play_again: 'Nochmal spielen',
+		next_level: 'Nächstes Level',
+		fruits: {
+			blueberry: 'Blaubeere',
+			strawberry: 'Erdbeere',
+			grape: 'Traube',
+			orange: 'Orange',
+			apple: 'Apfel',
+			peach: 'Pfirsich',
+			pineapple: 'Ananas',
+			coconut: 'Kokosnuss',
+			melon: 'Melone'
+		},
+		levels: {
+			1: {
+				title: 'Anfänger',
+				description: 'Erstelle einen Apfel'
+			},
+			2: {
+				title: 'Doppelt gut',
+				description: 'Erstelle zwei Äpfel'
+			},
+			3: {
+				title: 'Pfirsich-Meister',
+				description: 'Erstelle zwei Pfirsiche'
+			},
+			4: {
+				title: 'Ananas-Challenge',
+				description: 'Erstelle eine Ananas'
+			},
+			5: {
+				title: 'Apfel-Sammler',
+				description: 'Erstelle zehn Äpfel'
+			},
+			6: {
+				title: 'Kokosnuss-Experte',
+				description: 'Erstelle eine Kokosnuss'
+			},
+			7: {
+				title: 'Doppelte Kokosnuss',
+				description: 'Erstelle zwei Kokosnüsse'
+			},
+			8: {
+				title: 'Melonen-Meister',
+				description: 'Erstelle eine Melone'
+			},
+			9: {
+				title: 'Ultimative Challenge',
+				description: 'Erstelle zwei Melonen'
+			}
+		}
+	},
+
 	// Leistungsstatistiken
 	stats: {
 		score: 'Punkte',

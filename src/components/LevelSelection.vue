@@ -6,6 +6,12 @@ import GameLevelTile from './GameLevelTile.vue'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
 import { getMemoryLevelDescription, getMemoryLevelTitle, calculateLevelStars } from "../config/memoryConfig.js";
+import {
+  calculateFruitMergeLevelStars,
+  FRUIT_TYPES,
+  getFruitMergeLevelDescription,
+  getFruitMergeLevelTitle
+} from "../config/fruitMergeConfig.js";
 
 // Props for the level selection component
 const props = defineProps({
@@ -46,6 +52,11 @@ const gameStats = computed(() => {
   return gameData.games[props.gameId] || {}
 })
 
+const getFruitEmoji = (fruitName) => {
+  const fruitType = FRUIT_TYPES[fruitName]
+  return fruitType ? fruitType.emoji : '🍎'
+}
+
 // Compute level data with completion status
 const levelData = computed(() => {
   return props.levels.map((level, index) => {
@@ -56,13 +67,25 @@ const levelData = computed(() => {
     const isUnlocked = levelNumber === 1 ||
       (gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
-    // Calculate stars based on performance (0-3 stars)
-    const stars = calculateLevelStars(levelStats, levelNumber)
+    let stars = 0
+    let title = ''
+    let description = ''
+
+    // Game-specific logic
+    if (props.gameId === 'memory') {
+      stars = calculateLevelStars(levelStats, levelNumber)
+      title = getMemoryLevelTitle(levelNumber, t)
+      description = getMemoryLevelDescription(levelNumber, t)
+    } else if (props.gameId === 'fruitMerge') {
+      stars = calculateFruitMergeLevelStars(levelStats, levelNumber)
+      title = getFruitMergeLevelTitle(levelNumber, t)
+      description = getFruitMergeLevelDescription(levelNumber, t)
+    }
 
     return {
       level: levelNumber,
-      title: getMemoryLevelTitle(levelNumber, t),
-      description: getMemoryLevelDescription(levelNumber, t),
+      title: title,
+      description: description,
       pairs: level.pairs,
       timeBonus: level.timeBonus,
       isLocked: !isUnlocked,
@@ -146,6 +169,7 @@ const handleBackToHub = () => {
         :high-score="level.highScore"
         :best-time="level.bestTime"
         :theme="theme"
+        :game-type="gameId"
         @play-level="handlePlayLevel"
       />
     </div>

@@ -253,6 +253,69 @@ export default {
 		}
 	},
 
+	// FruitMerge Game
+	fruitmerge: {
+		title: 'Fruit Merge',
+		description: 'Merge fruits to create new combinations',
+		target: 'Target',
+		level_title: 'Level {level}',
+		game_paused: 'Game Paused',
+		level_complete: 'Level Complete!',
+		game_complete: 'Game Complete!',
+		back_to_levels: 'Back to Levels',
+		play_again: 'Play Again',
+		next_level: 'Next Level',
+		fruits: {
+			blueberry: 'Blueberry',
+			strawberry: 'Strawberry',
+			grape: 'Grape',
+			orange: 'Orange',
+			apple: 'Apple',
+			peach: 'Peach',
+			pineapple: 'Pineapple',
+			coconut: 'Coconut',
+			melon: 'Melon'
+		},
+		levels: {
+			1: {
+				title: 'Beginner',
+				description: 'Create an apple'
+			},
+			2: {
+				title: 'Double Trouble',
+				description: 'Create two apples'
+			},
+			3: {
+				title: 'Peach Master',
+				description: 'Create two peaches'
+			},
+			4: {
+				title: 'Pineapple Challenge',
+				description: 'Create a pineapple'
+			},
+			5: {
+				title: 'Apple Collector',
+				description: 'Create ten apples'
+			},
+			6: {
+				title: 'Coconut Expert',
+				description: 'Create a coconut'
+			},
+			7: {
+				title: 'Double Coconut',
+				description: 'Create two coconuts'
+			},
+			8: {
+				title: 'Melon Master',
+				description: 'Create a melon'
+			},
+			9: {
+				title: 'Ultimate Challenge',
+				description: 'Create two melons'
+			}
+		}
+	},
+
 	// Performance Stats
 	stats: {
 		score: 'Score',

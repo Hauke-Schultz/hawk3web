@@ -534,10 +534,11 @@ export const COMBO_CONFIG = {
 }
 
 // Level Goal Configuration
-export const LEVELS = {
+export const FRUIT_MERGE_LEVELS = {
 	1: {
 		targetFruit: 'APPLE',
 		gameOverHeight: 100,
+		title: 'Easy',
 		description: "Erstelle einen Apfel",
 		starThresholds: {
 			1: { targetFruit: 'APPLE', score: 100, moves: 8 },
@@ -548,6 +549,7 @@ export const LEVELS = {
 	2: {
 		targetFruit: 'APPLE',
 		gameOverHeight: 100,
+		title: 'Medium',
 		description: "Erstelle zwei Äpfel",
 		starThresholds: {
 			1: { targetFruit: 'APPLE', targetCount: 2, score: 240, moves: 16 },
@@ -558,6 +560,7 @@ export const LEVELS = {
 	3: {
 		targetFruit: 'PEACH',
 		gameOverHeight: 100,
+		title: 'Hard',
 		description: "Erstelle zwei Pfirsiche",
 		starThresholds: {
 			1: { targetFruit: 'PEACH', targetCount: 2, score: 1400, moves: 50 },
@@ -568,6 +571,7 @@ export const LEVELS = {
 	4: {
 		targetFruit: 'PINEAPPLE',
 		gameOverHeight: 100,
+		title: 'Expert',
 		description: "Erstelle eine Ananas",
 		starThresholds: {
 			1: { targetFruit: 'PINEAPPLE', score: 3200, moves: 60 },
@@ -578,6 +582,7 @@ export const LEVELS = {
 	5: {
 		targetFruit: 'APPLE',
 		gameOverHeight: 100,
+		title: 'Master',
 		description: "Erstelle zehn Äpfel",
 		starThresholds: {
 			1: { targetFruit: 'APPLE', targetCount: 10, score: 2000, moves: 80 },
@@ -588,6 +593,7 @@ export const LEVELS = {
 	6: {
 		targetFruit: 'COCONUT',
 		gameOverHeight: 30,
+		title: 'Legend',
 		description: "Erstelle eine Kokosnuss",
 		starThresholds: {
 			1: { targetFruit: 'COCONUT', score: 6400, moves: 100 },
@@ -598,6 +604,7 @@ export const LEVELS = {
 	7: {
 		targetFruit: 'COCONUT',
 		gameOverHeight: 30,
+		title: 'Ultimate',
 		description: "Erstelle zwei Kokosnüsse",
 		starThresholds: {
 			1: { targetFruit: 'COCONUT', targetCount: 2, score: 12800, moves: 120 },
@@ -608,6 +615,7 @@ export const LEVELS = {
 	8: {
 		targetFruit: 'MELON',
 		gameOverHeight: 30,
+		title: 'Epic',
 		description: "Erstelle eine Melone",
 		starThresholds: {
 			1: { targetFruit: 'MELON', score: 25600, moves: 150 },
@@ -618,6 +626,7 @@ export const LEVELS = {
 	9: {
 		targetFruit: 'MELON',
 		gameOverHeight: 30,
+		title: 'Legendary',
 		description: "Erstelle zwei Melonen",
 		starThresholds: {
 			1: { targetFruit: 'MELON', targetCount: 2, score: 51200, moves: 200 },
@@ -625,4 +634,71 @@ export const LEVELS = {
 			3: { targetFruit: 'MELON', targetCount: 2, score: 64000, moves: 160 }
 		}
 	},
+}
+
+export const fruitMergeConfig = {
+	gameId: 'fruitMerge',
+	gameTitle: 'Fruit Merge',
+	gameDescription: 'Merge fruits to create new combinations',
+	gameIcon: 'apple',
+	levels: Object.values(FRUIT_MERGE_LEVELS).map((level, index) => ({
+		level: index + 1,
+		...level
+	}))
+}
+
+export const getFruitMergeLevelTitle = (level, t) => {
+	return t(`fruitmerge.levels.${level}.title`) || `Level ${level}`
+}
+
+export const getFruitMergeLevelDescription = (level, t) => {
+	const levelConfig = FRUIT_MERGE_LEVELS[level]
+	if (!levelConfig) return `Level ${level}`
+
+	const targetFruit = levelConfig.targetFruit
+	const targetCount = levelConfig.starThresholds[1].targetCount || 1
+
+	if (targetCount > 1) {
+		return t(`fruitmerge.levels.${level}.description`) ||
+			`Erstelle ${targetCount} ${t(`fruitmerge.fruits.${targetFruit.toLowerCase()}`)}`
+	} else {
+		return t(`fruitmerge.levels.${level}.description`) ||
+			`Erstelle eine ${t(`fruitmerge.fruits.${targetFruit.toLowerCase()}`)}`
+	}
+}
+
+export const calculateFruitMergeLevelStars = (levelStats, levelNumber) => {
+	if (!levelStats || !levelStats.completed) return 0
+
+	const levelConfig = FRUIT_MERGE_LEVELS[levelNumber]
+	if (!levelConfig) return 0
+
+	const { score, moves } = levelStats.bestPerformance || levelStats
+	if (!score || !moves) return 1 // Minimum 1 star for completion
+
+	return calculateFruitMergeStars(score, moves, levelNumber)
+}
+
+export const calculateFruitMergeStars = (score, moves, levelNumber) => {
+	const levelConfig = FRUIT_MERGE_LEVELS[levelNumber]
+	if (!levelConfig) return 0
+
+	const thresholds = levelConfig.starThresholds
+
+	// Check for 3 stars first (most demanding)
+	if (score >= thresholds[3].score && moves <= thresholds[3].moves) {
+		return 3
+	}
+
+	// Check for 2 stars
+	if (score >= thresholds[2].score && moves <= thresholds[2].moves) {
+		return 2
+	}
+
+	// Check for 1 star (basic completion)
+	if (score >= thresholds[1].score) {
+		return 1
+	}
+
+	return 0
 }

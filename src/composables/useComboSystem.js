@@ -191,8 +191,7 @@ export function useComboSystem(options = {}) {
 		}, config.animationDuration * 0.5)
 	}
 
-	// Get combo color based on level
-// Get combo color based on level and activity
+	// Get combo color based on level and activity
 	const getComboColor = (forceActive = false) => {
 		if (!isComboActive.value && !forceActive) return '#6B7280' // Gray when inactive
 		if (comboLevel.value === 0) return '#6B7280' // Gray

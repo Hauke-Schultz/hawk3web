@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import { memoryConfig } from '../config/memoryConfig.js'
+import { fruitMergeConfig } from '../config/fruitMergeConfig.js'
 import Icon from './Icon.vue'
 import MemoryGame from './MemoryGame.vue'
 import LevelSelection from "./LevelSelection.vue";
@@ -12,7 +13,7 @@ const { gameData } = useLocalStorage()
 const { t } = useI18n()
 
 // View management
-const currentView = ref('hub') // 'hub', 'memory-levels', 'memory-game'
+const currentView = ref('hub') // 'hub', 'memory-levels', 'memory-game', 'fruitmerge-levels', 'fruitmerge-game'
 const selectedLevel = ref(1)
 
 // Game methods
@@ -20,6 +21,8 @@ const startGame = (gameId) => {
   console.log(`Starting ${gameId} game...`)
   if (gameId === 'memory') {
     currentView.value = 'memory-levels'
+  } else if (gameId === 'fruitMerge') {
+    currentView.value = 'fruitmerge-levels'
   }
 }
 
@@ -35,6 +38,20 @@ const backToHub = () => {
 
 const backToLevels = () => {
   currentView.value = 'memory-levels'
+}
+
+const startFruitMergeGame = () => {
+  console.log('Starting FruitMerge game...')
+  currentView.value = 'fruitmerge-levels'
+}
+
+const handlePlayFruitMergeLevel = (levelNumber) => {
+  selectedLevel.value = levelNumber
+  currentView.value = 'fruitmerge-game'
+}
+
+const backToFruitMergeLevels = () => {
+  currentView.value = 'fruitmerge-levels'
 }
 
 const handleGameComplete = (gameResult) => {
@@ -70,15 +87,22 @@ const handleGameComplete = (gameResult) => {
       </div>
 
       <!-- FruitMerge Game Card (Coming Soon) -->
-      <div class="game-card game-card--coming-soon">
+      <div class="game-card">
         <div class="game-icon">
-          <Icon name="play" size="32" />
+          <Icon :name="fruitMergeConfig.gameIcon" size="56" />
         </div>
         <div class="game-info">
-          <h3 class="game-title">Fruit Merge</h3>
-          <p class="game-description">Merge fruits to create new combinations</p>
-          <div class="coming-soon-badge">{{ t('gaming.coming_soon') }}</div>
+          <h3 class="game-title">{{ fruitMergeConfig.gameTitle }}</h3>
+          <p class="game-description">{{ fruitMergeConfig.gameDescription }}</p>
+          <div class="game-stats">
+            <span class="best-score">{{ t('gaming.stats.best_score', { score: gameData.games.fruitMerge.highScore }) }}</span>
+            <span class="games-played">{{ t('gaming.stats.games_played', { count: gameData.games.fruitMerge.gamesPlayed }) }}</span>
+          </div>
         </div>
+        <button class="btn" @click="startGame('fruitMerge')">
+          <Icon name="play" size="20" />
+          {{ t('common.play') }}
+        </button>
       </div>
     </div>
   </main>
@@ -94,13 +118,37 @@ const handleGameComplete = (gameResult) => {
     @back-to-game-hub="backToHub"
   />
 
-  <!-- Memory Game View aktualisieren: -->
+  <LevelSelection
+    v-else-if="currentView === 'fruitmerge-levels'"
+    :game-id="fruitMergeConfig.gameId"
+    :game-title="fruitMergeConfig.gameTitle"
+    :levels="fruitMergeConfig.levels"
+    theme="warning"
+    @play-level="handlePlayFruitMergeLevel"
+    @back-to-game-hub="backToHub"
+  />
+
+  <!-- Memory Game View -->
   <MemoryGame
     v-else-if="currentView === 'memory-game'"
     :level="selectedLevel"
     @back-to-gaming="backToLevels"
     @game-complete="handleGameComplete"
   />
+
+  <div
+    v-else-if="currentView === 'fruitmerge-game'"
+    class="fruitmerge-placeholder"
+  >
+    <div class="content">
+      <h2>FruitMerge Game - Level {{ selectedLevel }}</h2>
+      <p>FruitMerge Spiel wird hier implementiert...</p>
+      <button class="btn btn--ghost" @click="backToFruitMergeLevels">
+        <Icon name="arrow-left" size="16" />
+        {{ t('common.back') }}
+      </button>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
