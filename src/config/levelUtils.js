@@ -8,7 +8,6 @@ export const calculateLevelStars = (levelStats, level) => {
 	// Get star thresholds from the level configuration
 	const thresholds = level.starThresholds
 	if (!thresholds) return 1
-	console.log(score, levelStats, level)
 
 	// Check for 3 stars first (most demanding)
 	if (score >= thresholds[3].score || moves <= thresholds[3].moves) {

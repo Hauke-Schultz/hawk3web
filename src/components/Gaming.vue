@@ -7,6 +7,7 @@ import { fruitMergeConfig } from '../config/fruitMergeConfig.js'
 import Icon from './Icon.vue'
 import MemoryGame from './MemoryGame.vue'
 import LevelSelection from "./LevelSelection.vue";
+import FruitMergeGame from "./FruitMergeGame.vue";
 
 // LocalStorage service
 const { gameData } = useLocalStorage()
@@ -136,19 +137,13 @@ const handleGameComplete = (gameResult) => {
     @game-complete="handleGameComplete"
   />
 
-  <div
+  <!-- FruitMerge Game View -->
+  <FruitMergeGame
     v-else-if="currentView === 'fruitmerge-game'"
-    class="fruitmerge-placeholder"
-  >
-    <div class="content">
-      <h2>FruitMerge Game - Level {{ selectedLevel }}</h2>
-      <p>FruitMerge Spiel wird hier implementiert...</p>
-      <button class="btn btn--ghost" @click="backToFruitMergeLevels">
-        <Icon name="arrow-left" size="16" />
-        {{ t('common.back') }}
-      </button>
-    </div>
-  </div>
+    :level="selectedLevel"
+    @back-to-gaming="backToFruitMergeLevels"
+    @game-complete="handleGameComplete"
+  />
 </template>
 
 <style lang="scss" scoped>
