@@ -6,9 +6,62 @@ export const PHYSICS_CONFIG = {
 		height: 400,
 		thickness: 10,
 	},
-	dropCooldown: 600, // Milliseconds between drops
-	gameOverHeight: 320, // Height at which game is over
-	warningZone: 30
+
+	// Physik Engine Einstellungen
+	engine: {
+		gravity: {
+			x: 0,
+			y: 0.8,
+			scale: 0.001
+		},
+		velocityIterations: 4,
+		positionIterations: 6,
+		enableSleeping: true,
+		timing: {
+			timeScale: 1
+		}
+	},
+
+	// Frucht Physik
+	fruit: {
+		restitution: 0.3,        // Sprungkraft (0-1)
+		friction: 0.4,           // Reibung (0-1)
+		frictionAir: 0.01,       // Luftwiderstand
+		density: 0.001,          // Dichte
+		sleepThreshold: 60,      // Ruhe-Schwellenwert
+
+		// Kollisions-Filter
+		collisionFilter: {
+			group: 0,
+			category: 0x0001,
+			mask: 0xFFFF
+		}
+	},
+
+	// Wand Eigenschaften
+	walls: {
+		restitution: 0.2,
+		friction: 0.8,
+		frictionStatic: 1.0,
+
+		collisionFilter: {
+			group: 0,
+			category: 0x0002,
+			mask: 0xFFFF
+		}
+	},
+
+	// Drop Mechanik
+	dropCooldown: 600,           // Millisekunden zwischen Drops
+	dropPosition: {
+		x: 0.5,                    // Relative Position (0-1)
+		y: 0.1                     // Relative Position von oben
+	},
+
+	// Game Over Erkennung
+	gameOverHeight: 320,         // Höhe bei der Game Over eintritt
+	warningZone: 30,            // Warnbereich Höhe
+	gameOverCheckInterval: 1000  // Prüfung alle 1000ms
 }
 
 // Fruit Configuration System

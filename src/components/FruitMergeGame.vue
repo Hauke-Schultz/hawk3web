@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import {ref, computed, onMounted, onUnmounted, nextTick} from 'vue'
+import Matter from 'matter-js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
-import { fruitMergeConfig, FRUIT_MERGE_LEVELS } from '../config/fruitMergeConfig.js'
+import {PHYSICS_CONFIG, FRUIT_TYPES, FRUIT_SPAWN_WEIGHTS, FRUIT_MERGE_LEVELS} from '../config/fruitMergeConfig.js'
 import { useComboSystem } from '../composables/useComboSystem.js'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue"
@@ -34,6 +35,23 @@ const merges = ref(0)
 const timeElapsed = ref(0)
 const timer = ref(null)
 const earnedAchievements = ref([])
+
+const gameField = ref(null)
+const engine = ref(null)
+const world = ref(null)
+const render = ref(null)
+const runner = ref(null)
+const walls = ref([])
+const fruits = ref([])
+const dropFruit = ref(null)
+const dropPosition = ref({ x: 0, y: 0 })
+const isDragging = ref(false)
+const isDropReady = ref(false)
+const renderLoop = ref(null)
+const isRenderingActive = ref(false)
+
+const isPhysicsReady = ref(false)
+const dropCooldown = ref(false)
 
 // FruitMerge specific state
 const fruitsCreated = ref({}) // Track created fruits by type
@@ -92,8 +110,413 @@ const initializeGame = () => {
   // Reset combo system
   comboSystem.resetCombo()
 
+  // Drop-Frucht initialisieren
+  dropFruit.value = null
+  isDragging.value = false
+  isDropReady.value = false
+  dropCooldown.value = false
+
   startTimer()
+
+  // Physik nach kurzer Verzögerung initialisieren
+  nextTick(() => {
+    setTimeout(() => {
+      initializePhysics()
+      // Erste Drop-Frucht generieren
+      setTimeout(() => {
+        generateNewDropFruit()
+      }, 200)
+    }, 100)
+  })
 }
+
+const initializePhysics = () => {
+  if (!gameField.value) return
+
+  // Matter.js Engine erstellen
+  engine.value = Matter.Engine.create()
+  world.value = engine.value.world
+
+  // Schwerkraft anpassen für Früchte
+  engine.value.world.gravity.y = PHYSICS_CONFIG.engine.gravity.y
+  engine.value.world.gravity.scale = PHYSICS_CONFIG.engine.gravity.scale
+
+  // Wände erstellen
+  createWalls()
+
+  // Kollisions-Events
+  setupCollisionEvents()
+
+  // Runner für kontinuierliche Updates
+  runner.value = Matter.Runner.create()
+  Matter.Runner.run(runner.value, engine.value)
+
+  // Render Loop starten
+  startRenderLoop()
+
+  isPhysicsReady.value = true
+  console.log('Physics initialized')
+}
+
+const createWalls = () => {
+  if (!gameField.value) return
+
+  // Feste Größe verwenden
+  const width = PHYSICS_CONFIG.board.width
+  const height = PHYSICS_CONFIG.board.height
+  const thickness = PHYSICS_CONFIG.board.thickness
+
+  // Boden
+  const ground = Matter.Bodies.rectangle(
+    width / 2,
+    height - thickness / 2,
+    width,
+    thickness,
+    {
+      isStatic: true,
+      label: 'ground',
+      restitution: PHYSICS_CONFIG.walls.restitution,
+      friction: PHYSICS_CONFIG.walls.friction
+    }
+  )
+
+  // Linke Wand
+  const leftWall = Matter.Bodies.rectangle(
+    thickness / 2,
+    height / 2,
+    thickness,
+    height,
+    {
+      isStatic: true,
+      label: 'leftWall',
+      restitution: PHYSICS_CONFIG.walls.restitution,
+      friction: PHYSICS_CONFIG.walls.friction
+    }
+  )
+
+  // Rechte Wand
+  const rightWall = Matter.Bodies.rectangle(
+    width - thickness / 2,
+    height / 2,
+    thickness,
+    height,
+    {
+      isStatic: true,
+      label: 'rightWall',
+      restitution: PHYSICS_CONFIG.walls.restitution,
+      friction: PHYSICS_CONFIG.walls.friction
+    }
+  )
+
+  walls.value = [ground, leftWall, rightWall]
+  Matter.World.add(world.value, walls.value)
+}
+
+const setupCollisionEvents = () => {
+  Matter.Events.on(engine.value, 'collisionStart', (event) => {
+    const pairs = event.pairs
+
+    pairs.forEach(pair => {
+      const bodyA = pair.bodyA
+      const bodyB = pair.bodyB
+
+      // Prüfen ob beide Körper Früchte sind
+      if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
+        handleFruitCollision(bodyA, bodyB)
+      }
+    })
+  })
+}
+
+const getRandomFruit = () => {
+  const weights = FRUIT_SPAWN_WEIGHTS
+  const random = Math.random()
+  let cumulative = 0
+
+  for (const [fruitType, weight] of Object.entries(weights)) {
+    cumulative += weight
+    if (random <= cumulative) {
+      return FRUIT_TYPES[fruitType]
+    }
+  }
+
+  // Fallback zur ersten Frucht
+  return FRUIT_TYPES.BLUEBERRY
+}
+
+const generateNewDropFruit = () => {
+  if (dropCooldown.value) return
+
+  const fruit = getRandomFruit()
+  dropFruit.value = {
+    ...fruit,
+    id: `drop-${Date.now()}`,
+    x: 50, // Prozent von links (Mitte)
+    y: 10, // Prozent von oben
+    isDropping: false
+  }
+
+  isDropReady.value = true
+}
+
+const updateDropPosition = (event) => {
+  if (!isDropReady.value || !gameField.value) return
+
+  const fieldRect = gameField.value.getBoundingClientRect()
+  const relativeX = ((event.clientX - fieldRect.left) / PHYSICS_CONFIG.board.width) * 100
+
+  // Begrenzen auf Spielfeld (mit Fruchtradius als Abstand)
+  const fruitRadius = dropFruit.value?.radius || 20
+  const paddingPercent = (fruitRadius / PHYSICS_CONFIG.board.width) * 100
+  const minX = paddingPercent
+  const maxX = 100 - paddingPercent
+  const clampedX = Math.max(minX, Math.min(maxX, relativeX))
+
+  if (dropFruit.value) {
+    dropFruit.value.x = clampedX
+  }
+}
+
+const startDragging = (event) => {
+  if (!isDropReady.value) return
+
+  isDragging.value = true
+  updateDropPosition(event)
+}
+
+const continueDragging = (event) => {
+  if (!isDragging.value || !isDropReady.value) return
+
+  updateDropPosition(event)
+}
+
+const dropFruitIntoField = () => {
+  if (!isDragging.value || !isDropReady.value || !dropFruit.value) return
+
+  isDragging.value = false
+  isDropReady.value = false
+
+  // Frucht in Physik-Welt hinzufügen
+  createPhysicalFruit(dropFruit.value)
+
+  // Drop-Frucht zurücksetzen
+  dropFruit.value = null
+
+  // Drop-Cooldown aktivieren
+  dropCooldown.value = true
+
+  setTimeout(() => {
+    dropCooldown.value = false
+    // Sofort neue Frucht generieren wenn Cooldown vorbei
+    generateNewDropFruit()
+  }, PHYSICS_CONFIG.dropCooldown)
+
+  // Stats aktualisieren
+  moves.value++
+}
+
+const createPhysicalFruit = (fruitData) => {
+  if (!gameField.value || !world.value) return
+
+  // Feste Spielfeld-Größe verwenden
+  const width = PHYSICS_CONFIG.board.width
+  const height = PHYSICS_CONFIG.board.height
+
+  const absoluteX = (fruitData.x / 100) * width
+  const absoluteY = (fruitData.y / 100) * height
+
+  // Matter.js Körper erstellen
+  const body = Matter.Bodies.circle(
+    absoluteX,
+    absoluteY,
+    fruitData.radius,
+    {
+      label: `fruit-${fruitData.id}`,
+      restitution: PHYSICS_CONFIG.fruit.restitution,
+      friction: PHYSICS_CONFIG.fruit.friction,
+      frictionAir: PHYSICS_CONFIG.fruit.frictionAir,
+      density: PHYSICS_CONFIG.fruit.density,
+      collisionFilter: PHYSICS_CONFIG.fruit.collisionFilter,
+      render: {
+        fillStyle: fruitData.color
+      },
+      fruitType: fruitData.id,
+      fruitData: fruitData
+    }
+  )
+
+  // HTML Element erstellen
+  const fruitElement = createFruitElement(fruitData)
+
+  // Zur Physik-Welt hinzufügen
+  Matter.World.add(world.value, body)
+
+  // Zur Früchte-Liste hinzufügen
+  const fruitObject = {
+    body: body,
+    data: fruitData,
+    element: fruitElement,
+    id: fruitData.id
+  }
+
+  fruits.value.push(fruitObject)
+
+  // Element zum DOM hinzufügen
+  const container = gameField.value.querySelector('.fruits-container')
+  if (container) {
+    container.appendChild(fruitElement)
+  }
+
+  console.log('Fruit dropped:', fruitData.emoji, 'at', absoluteX, absoluteY)
+}
+
+const createFruitElement = (fruitData) => {
+  const element = document.createElement('div')
+  element.className = 'physics-fruit'
+  element.id = `fruit-${fruitData.id}`
+
+  // Größe setzen
+  const size = fruitData.radius * 2
+  element.style.width = `${size}px`
+  element.style.height = `${size}px`
+  element.style.position = 'absolute'
+  element.style.pointerEvents = 'none'
+  element.style.zIndex = '10'
+
+  // SVG Container erstellen
+  const svgContainer = document.createElement('div')
+  svgContainer.className = 'fruit-svg-container'
+  svgContainer.innerHTML = fruitData.svg
+
+  // SVG Größe anpassen
+  const svg = svgContainer.querySelector('svg')
+  if (svg) {
+    svg.style.width = '100%'
+    svg.style.height = '100%'
+    svg.style.filter = `drop-shadow(${fruitData.shadow})`
+  }
+
+  element.appendChild(svgContainer)
+
+  return element
+}
+
+const startRenderLoop = () => {
+  if (isRenderingActive.value) return
+
+  isRenderingActive.value = true
+
+  const render = () => {
+    if (!isRenderingActive.value) return
+
+    // Früchte-Positionen synchronisieren
+    syncFruitPositions()
+
+    // Game Over prüfen
+    checkGameOver()
+
+    renderLoop.value = requestAnimationFrame(render)
+  }
+
+  render()
+}
+
+const stopRenderLoop = () => {
+  isRenderingActive.value = false
+  if (renderLoop.value) {
+    cancelAnimationFrame(renderLoop.value)
+    renderLoop.value = null
+  }
+}
+
+const syncFruitPositions = () => {
+  fruits.value.forEach(fruit => {
+    if (fruit.element && fruit.body) {
+      const { x, y } = fruit.body.position
+      const rotation = fruit.body.angle
+
+      // Element Position aktualisieren
+      fruit.element.style.left = `${x - fruit.data.radius}px`
+      fruit.element.style.top = `${y - fruit.data.radius}px`
+      fruit.element.style.transform = `rotate(${rotation}rad)`
+    }
+  })
+}
+
+const checkGameOver = () => {
+  if (!gameField.value) return
+
+  const fieldRect = gameField.value.getBoundingClientRect()
+  const gameOverY = PHYSICS_CONFIG.gameOverHeight
+
+  const fruitAboveLimit = fruits.value.some(fruit => {
+    if (!fruit.body) return false
+    return fruit.body.position.y <= gameOverY
+  })
+
+  if (fruitAboveLimit && gameState.value === 'playing') {
+    // Game Over Logic hier später
+    console.log('Game Over! Fruit reached the top')
+  }
+}
+
+const handleMouseDown = (event) => {
+  if (!isPhysicsReady.value) return
+  startDragging(event)
+}
+
+const handleMouseMove = (event) => {
+  if (!isPhysicsReady.value) return
+  continueDragging(event)
+}
+
+const handleMouseUp = () => {
+  if (!isPhysicsReady.value) return
+  dropFruitIntoField()
+}
+
+const handleMouseLeave = () => {
+  // Dragging stoppen wenn Maus das Feld verlässt
+  isDragging.value = false
+}
+
+const handleFruitCollision = (fruitA, fruitB) => {
+  // Hier kommt später die Merge-Logik
+  console.log('Fruit collision detected:', fruitA.label, fruitB.label)
+}
+
+const cleanupPhysics = () => {
+  // Render Loop stoppen
+  stopRenderLoop()
+
+  if (runner.value) {
+    Matter.Runner.stop(runner.value)
+  }
+  if (render.value) {
+    Matter.Render.stop(render.value)
+  }
+  if (engine.value) {
+    Matter.Engine.clear(engine.value)
+  }
+
+  // DOM Früchte entfernen
+  const container = gameField.value?.querySelector('.fruits-container')
+  if (container) {
+    container.innerHTML = ''
+  }
+
+  walls.value = []
+  fruits.value = []
+  dropFruit.value = null
+  isDragging.value = false
+  isDropReady.value = false
+  isPhysicsReady.value = false
+}
+
+const dropFruitSvg = computed(() => {
+  if (!dropFruit.value) return ''
+  return dropFruit.value.svg
+})
 
 const startTimer = () => {
   timer.value = setInterval(() => {
@@ -248,6 +671,7 @@ onMounted(() => {
 onUnmounted(() => {
   stopTimer()
   comboSystem.cleanup()
+  cleanupPhysics()
 })
 </script>
 
@@ -319,31 +743,89 @@ onUnmounted(() => {
         @back-to-gaming="backToGaming"
       />
 
-      <!-- Game Field Placeholder -->
+      <!-- Game Field -->
       <div class="game-field">
-        <div class="field-placeholder">
-          <div class="placeholder-content">
+        <!-- Physik Spielfeld -->
+        <div
+          ref="gameField"
+          class="physics-field"
+          :class="{
+      'physics-ready': isPhysicsReady,
+      'dragging': isDragging,
+      'drop-ready': isDropReady
+    }"
+          @mousedown="handleMouseDown"
+          @mousemove="handleMouseMove"
+          @mouseup="handleMouseUp"
+          @mouseleave="handleMouseLeave"
+        >
+          <!-- Früchte Container -->
+          <div class="fruits-container">
+            <!-- Physik-Früchte werden hier dynamisch eingefügt -->
+          </div>
+
+          <!-- Drop Frucht -->
+          <div
+            v-if="dropFruit && isDropReady"
+            class="drop-fruit"
+            :class="{ 'is-dragging': isDragging }"
+            :style="{
+        left: `${dropFruit.x}%`,
+        top: `${dropFruit.y}%`,
+        width: `${dropFruit.radius * 2}px`,
+        height: `${dropFruit.radius * 2}px`
+      }"
+          >
+            <div class="fruit-svg-container drop-svg" v-html="dropFruitSvg"></div>
+          </div>
+
+          <!-- Drop Guidelines -->
+          <div v-if="isDragging" class="drop-guidelines">
+            <div class="drop-line" :style="{ left: `${dropFruit.x}%` }"></div>
+          </div>
+
+          <!-- Game Over Warning Zone -->
+          <div
+            class="warning-zone"
+            :style="{ height: `${PHYSICS_CONFIG.warningZone}px` }"
+          ></div>
+        </div>
+
+        <!-- Loading/Fallback wenn Physik nicht bereit -->
+        <div v-if="!isPhysicsReady" class="field-loading">
+          <div class="loading-content">
             <Icon name="apple" size="64" />
             <h3>{{ t('fruitMerge.title') }}</h3>
-            <p>{{ t('fruitMerge.level_title', { level: currentLevel }) }}</p>
-            <div class="target-info">
-              <span>{{ t('fruitMerge.target') }}: {{ targetCount }}x {{ t(`fruitMerge.fruits.${targetFruit.toLowerCase()}`) }}</span>
-            </div>
-
-            <!-- Demo buttons for testing -->
-            <div class="demo-controls" style="margin-top: 20px;">
-              <button class="btn btn--small" @click="handleFruitMerge('APPLE', 100)">
-                Test Merge Apple (+100)
-              </button>
-              <button class="btn btn--small" @click="handleMissedDrop()">
-                Test Miss
-              </button>
-            </div>
+            <p>{{ t('common.loading') }}</p>
           </div>
         </div>
       </div>
     </div>
+    <div class="demo-controls" style="margin-top: 20px;">
+      <div class="drop-info">
+        <p v-if="dropFruit">
+          Nächste: {{ dropFruit.emoji }} ({{ dropFruit.radius * 2 }}px)
+        </p>
+        <p v-else-if="dropCooldown" class="cooldown-text">
+          Cooldown: {{ Math.ceil((Date.now() % PHYSICS_CONFIG.dropCooldown) / 100) / 10 }}s
+        </p>
+        <p v-else class="waiting-text">
+          Bereit zum Droppen
+        </p>
+        <p class="game-info">
+          Spielfeld: 300×400px | Früchte: {{ fruits.length }}
+        </p>
+      </div>
 
+      <div class="demo-buttons">
+        <button class="btn btn--small" @click="generateNewDropFruit" :disabled="!isPhysicsReady || dropCooldown">
+          Neue Frucht
+        </button>
+        <button class="btn btn--small" @click="() => { fruits.forEach(f => { if(f.element) f.element.remove(); Matter.World.remove(world, f.body) }); fruits.splice(0) }">
+          Feld leeren
+        </button>
+      </div>
+    </div>
     <!-- Game Completed State -->
     <GameCompletedModal
       :visible="gameState === 'completed'"
@@ -422,23 +904,6 @@ onUnmounted(() => {
   position: relative;
 }
 
-// Game Field Placeholder
-.game-field {
-  flex: 1;
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-}
-
-.field-placeholder {
-  padding: var(--space-6);
-  text-align: center;
-}
-
 .placeholder-content {
   display: flex;
   flex-direction: column;
@@ -468,10 +933,320 @@ onUnmounted(() => {
   font-weight: var(--font-weight-bold);
 }
 
+
+// Game Field
+.game-field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-4);
+  position: relative;
+  overflow: hidden;
+  min-height: 450px;
+}
+
+.physics-field {
+  // Exakt die Größe aus PHYSICS_CONFIG
+  width: 300px;
+  height: 400px;
+  position: relative;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    transparent 70%,
+    rgba(245, 158, 11, 0.1) 85%,
+    rgba(239, 68, 68, 0.1) 100%
+  );
+  border: 2px solid var(--card-border);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+
+  &.physics-ready {
+    cursor: crosshair;
+  }
+
+  &.drop-ready {
+    cursor: pointer;
+  }
+
+  &.dragging {
+    cursor: grabbing;
+  }
+}
+
+.physics-fruit {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  transform-origin: center center;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.fruit-svg-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+
+    // Smooth rendering
+    shape-rendering: geometricPrecision;
+    image-rendering: crisp-edges;
+  }
+}
+
+// Drop SVG spezifische Styles
+.drop-svg {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  transition: filter 0.2s ease;
+
+  .is-dragging & {
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+  }
+
+  svg {
+    animation: dropBob 2s ease-in-out infinite;
+  }
+}
+
+@keyframes dropBob {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
+}
+
+.fruits-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+
+  // Hardware acceleration für bessere Performance
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+// Drop Zone
+.drop-zone {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.drop-indicator {
+  width: 40px;
+  height: 40px;
+  border: 2px dashed var(--warning-color);
+  border-radius: 50%;
+  background-color: rgba(245, 158, 11, 0.1);
+  animation: dropPulse 2s infinite;
+}
+
+.drop-fruit {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 20;
+  transition: all 0.1s ease;
+
+  &.is-dragging {
+    transition: none;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  }
+}
+
+.fruit-visual {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    filter: blur(4px);
+  }
+}
+
+.fruit-emoji {
+  font-size: 1.2em;
+  z-index: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+// Drop Guidelines
+.drop-guidelines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.drop-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom,
+    var(--warning-color) 0%,
+    transparent 30%,
+    transparent 70%,
+    var(--warning-color) 100%
+  );
+  transform: translateX(-50%);
+  opacity: 0.6;
+  animation: dropLineGlow 1s infinite alternate;
+}
+
+@keyframes dropLineGlow {
+  from { opacity: 0.4; }
+  to { opacity: 0.8; }
+}
+
+// Warning Zone
+.warning-zone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom,
+    rgba(239, 68, 68, 0.0) 0%,
+    rgba(239, 68, 68, 0.15) 100%
+  );
+  border-bottom: 2px dashed var(--error-color);
+  pointer-events: none;
+  z-index: 5;
+}
+
+// Loading State anpassen
+.field-loading {
+  width: 300px;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--card-border);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--bg-secondary);
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+// Loading State
+.field-loading {
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+}
+
+.loading-content h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin: 0;
+}
+
+.loading-content p {
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+@keyframes dropLineGlow {
+  from { opacity: 0.4; }
+  to { opacity: 0.8; }
+}
+
+// Warning Zone erweitern
+.warning-zone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom,
+    rgba(239, 68, 68, 0.0) 0%,
+    rgba(239, 68, 68, 0.1) 100%
+  );
+  border-bottom: 1px dashed var(--error-color);
+  pointer-events: none;
+  z-index: 5;
+}
+
+
 // Demo Controls
 .demo-controls {
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.drop-info {
+  text-align: center;
+  font-size: var(--font-size-sm);
+
+  p {
+    margin: var(--space-1) 0;
+  }
+
+  .cooldown-text {
+    color: var(--warning-color);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .waiting-text {
+    color: var(--success-color);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .game-info {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+  }
+}
+
+.demo-buttons {
+  display: flex;
   gap: var(--space-2);
 }
 </style>
