@@ -132,7 +132,7 @@ const handleBack = () => {
   align-items: center;
   justify-content: center;
   border-radius: var(--border-radius-lg);
-  z-index: 10;
+  z-index: 30;
 }
 
 .pause-content {

@@ -447,20 +447,6 @@ const syncFruitPositions = () => {
 }
 
 const checkGameOver = () => {
-  if (!gameField.value) return
-
-  const fieldRect = gameField.value.getBoundingClientRect()
-  const gameOverY = PHYSICS_CONFIG.gameOverHeight
-
-  const fruitAboveLimit = fruits.value.some(fruit => {
-    if (!fruit.body) return false
-    return fruit.body.position.y <= gameOverY
-  })
-
-  if (fruitAboveLimit && gameState.value === 'playing') {
-    // Game Over Logic hier später
-    console.log('Game Over! Fruit reached the top')
-  }
 }
 
 const handleMouseDown = (event) => {
@@ -804,7 +790,7 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-    <div class="demo-controls" style="margin-top: 20px;">
+    <div class="demo-controls">
       <div class="drop-info">
         <p v-if="dropFruit">
           Nächste: {{ dropFruit.emoji }} ({{ dropFruit.radius * 2 }}px)
@@ -816,7 +802,7 @@ onUnmounted(() => {
           Bereit zum Droppen
         </p>
         <p class="game-info">
-          Spielfeld: 300×400px | Früchte: {{ fruits.length }}
+          Spielfeld: 280×320px | Früchte: {{ fruits.length }}
         </p>
       </div>
 
@@ -903,6 +889,8 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: var(--space-4);
   position: relative;
 }
@@ -943,18 +931,16 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-4);
+  border-radius: var(--border-radius-lg);
   position: relative;
   overflow: hidden;
-  min-height: 450px;
+  min-height: 320px;
 }
 
 .physics-field {
   // Exakt die Größe aus PHYSICS_CONFIG
-  width: 300px;
-  height: 400px;
+  width: 280px;
+  height: 320px;
   position: relative;
   background: linear-gradient(to bottom,
     transparent 0%,
@@ -1146,8 +1132,8 @@ onUnmounted(() => {
 
 // Loading State anpassen
 .field-loading {
-  width: 300px;
-  height: 400px;
+  width: 280px;
+  height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1219,7 +1205,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: var(--space-3);
   align-items: center;
-  max-width: 300px;
+  max-width: 280px;
   margin: 0 auto;
 }
 

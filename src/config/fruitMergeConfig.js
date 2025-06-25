@@ -2,8 +2,8 @@
 // Physics configuration
 export const PHYSICS_CONFIG = {
 	board: {
-		width: 300,
-		height: 400,
+		width: 280,
+		height: 320,
 		thickness: 10,
 	},
 
@@ -58,8 +58,8 @@ export const PHYSICS_CONFIG = {
 	},
 
 	// Game Over Erkennung
-	gameOverHeight: 320,         // Höhe bei der Game Over eintritt
-	warningZone: 30,            // Warnbereich Höhe
+	gameOverHeight: 100,         // Höhe bei der Game Over eintritt
+	warningZone: 80,             // Warnbereich Höhe
 	gameOverCheckInterval: 1000  // Prüfung alle 1000ms
 }
 
@@ -67,6 +67,7 @@ export const PHYSICS_CONFIG = {
 export const FRUIT_TYPES = {
 	BLUEBERRY: {
 		id: 1,
+		type: 'BLUEBERRY',
 		emoji: '🫐',
 		radius: 15,
 		nextType: 'STRAWBERRY',
@@ -130,6 +131,7 @@ export const FRUIT_TYPES = {
 	},
 	STRAWBERRY: {
 		id: 2,
+		type: 'STRAWBERRY',
 		emoji: '🍓',
 		radius: 20,
 		nextType: 'GRAPE',
@@ -190,6 +192,7 @@ export const FRUIT_TYPES = {
 	},
 	GRAPE: {
 		id: 3,
+		type: 'GRAPE',
 		emoji: '🍇',
 		radius: 24,
 		nextType: 'ORANGE',
@@ -243,6 +246,7 @@ export const FRUIT_TYPES = {
 	},
 	ORANGE: {
 		id: 4,
+		type: 'ORANGE',
 		emoji: '🍊',
 		radius: 28,
 		nextType: 'APPLE',
@@ -298,6 +302,7 @@ export const FRUIT_TYPES = {
 	},
 	APPLE: {
 		id: 5,
+		type: 'APPLE',
 		emoji: '🍎',
 		radius: 34,
 		nextType: 'PEACH',
@@ -356,6 +361,7 @@ export const FRUIT_TYPES = {
 	},
 	PEACH: {
 		id: 6,
+		type: 'PEACH',
 		emoji: '🍑',
 		radius: 40,
 		nextType: 'PINEAPPLE',
@@ -397,6 +403,7 @@ export const FRUIT_TYPES = {
 	},
 	PINEAPPLE: {
 		id: 7,
+		type: 'PINEAPPLE',
 		emoji: '🍍',
 		radius: 58,
 		nextType: 'COCONUT',
@@ -454,6 +461,7 @@ export const FRUIT_TYPES = {
 	},
 	COCONUT: {
 		id: 9,
+		type: 'COCONUT',
 		emoji: '🥥',
 		radius: 74,
 		nextType: 'MELON',
@@ -495,6 +503,7 @@ export const FRUIT_TYPES = {
 	},
 	MELON: {
 		id: 8,
+		type: 'MELON',
 		emoji: '🍉',
 		radius: 88,
 		nextType: null,
