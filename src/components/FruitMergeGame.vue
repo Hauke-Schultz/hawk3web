@@ -147,8 +147,11 @@ const initializePhysics = () => {
   // Kollisions-Events
   setupCollisionEvents()
 
-  // Runner für kontinuierliche Updates
-  runner.value = Matter.Runner.create()
+  // Runner für kontinuierliche Updates mit optimierten Einstellungen
+  runner.value = Matter.Runner.create({
+    delta: 16.666,  // 60 FPS target
+    isFixed: false
+  })
   Matter.Runner.run(runner.value, engine.value)
 
   // Render Loop starten
@@ -750,10 +753,10 @@ onUnmounted(() => {
           ref="gameField"
           class="physics-field"
           :class="{
-      'physics-ready': isPhysicsReady,
-      'dragging': isDragging,
-      'drop-ready': isDropReady
-    }"
+            'physics-ready': isPhysicsReady,
+            'dragging': isDragging,
+            'drop-ready': isDropReady
+          }"
           @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
           @mouseup="handleMouseUp"
@@ -770,11 +773,11 @@ onUnmounted(() => {
             class="drop-fruit"
             :class="{ 'is-dragging': isDragging }"
             :style="{
-        left: `${dropFruit.x}%`,
-        top: `${dropFruit.y}%`,
-        width: `${dropFruit.radius * 2}px`,
-        height: `${dropFruit.radius * 2}px`
-      }"
+              left: `${dropFruit.x}%`,
+              top: `${dropFruit.y}%`,
+              width: `${dropFruit.radius * 2}px`,
+              height: `${dropFruit.radius * 2}px`
+            }"
           >
             <div class="fruit-svg-container drop-svg" v-html="dropFruitSvg"></div>
           </div>
@@ -983,6 +986,8 @@ onUnmounted(() => {
   transform-origin: center center;
   will-change: transform;
   backface-visibility: hidden;
+  contain: layout style paint;
+  transform: translateZ(0);
 }
 
 .fruit-svg-container {
@@ -996,10 +1001,8 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-
-    // Smooth rendering
-    shape-rendering: geometricPrecision;
-    image-rendering: crisp-edges;
+    shape-rendering: optimizeSpeed;
+    image-rendering: optimizeSpeed;
   }
 }
 
@@ -1029,10 +1032,9 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   pointer-events: none;
-
-  // Hardware acceleration für bessere Performance
   transform: translateZ(0);
   will-change: transform;
+  contain: layout style paint;
 }
 
 // Drop Zone

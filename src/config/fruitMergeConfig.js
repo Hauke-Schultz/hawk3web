@@ -7,7 +7,6 @@ export const PHYSICS_CONFIG = {
 		thickness: 10,
 	},
 
-	// Physik Engine Einstellungen
 	engine: {
 		gravity: {
 			x: 0,
@@ -15,14 +14,14 @@ export const PHYSICS_CONFIG = {
 			scale: 0.001
 		},
 		velocityIterations: 4,
-		positionIterations: 6,
+		positionIterations: 4,
 		enableSleeping: true,
 		timing: {
 			timeScale: 1
 		}
 	},
 
-	// Frucht Physik
+	// Optimierte Frucht Physik
 	fruit: {
 		restitution: 0.3,        // Sprungkraft (0-1)
 		friction: 0.4,           // Reibung (0-1)
