@@ -39,15 +39,10 @@ export const PHYSICS_CONFIG = {
 
 	// Wand Eigenschaften
 	walls: {
-		restitution: 0.2,
+		restitution: 0.3,
 		friction: 0.8,
 		frictionStatic: 1.0,
-
-		collisionFilter: {
-			group: 0,
-			category: 0x0002,
-			mask: 0xFFFF
-		}
+		color: '#333'
 	},
 
 	// Drop Mechanik
