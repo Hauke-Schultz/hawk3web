@@ -49,6 +49,9 @@ const isDragging = ref(false)
 const isDropReady = ref(false)
 const renderLoop = ref(null)
 const isRenderingActive = ref(false)
+const gameComplete = ref(false)
+const lastMouseUpdate = ref(0)
+const collisionBuffer = ref([])
 
 const isPhysicsReady = ref(false)
 const dropCooldown = ref(false)
@@ -133,32 +136,106 @@ const initializeGame = () => {
 const initializePhysics = () => {
   if (!gameField.value) return
 
-  // Matter.js Engine erstellen
-  engine.value = Matter.Engine.create()
+  // Matter.js Engine mit optimierten Einstellungen erstellen
+  engine.value = Matter.Engine.create({
+    enableSleeping: true,
+    timing: {
+      timeScale: 1,
+      isFixed: true
+    },
+    velocityIterations: 4,
+    positionIterations: 4
+  })
+
   world.value = engine.value.world
 
-  // Schwerkraft anpassen für Früchte
+  // Optimierte Schwerkraft
   engine.value.world.gravity.y = PHYSICS_CONFIG.engine.gravity.y
   engine.value.world.gravity.scale = PHYSICS_CONFIG.engine.gravity.scale
 
-  // Wände erstellen
   createWalls()
+  setupOptimizedCollisionEvents()
 
-  // Kollisions-Events
-  setupCollisionEvents()
-
-  // Runner für kontinuierliche Updates mit optimierten Einstellungen
+  // Optimierter Runner mit fester Delta-Zeit
   runner.value = Matter.Runner.create({
-    delta: 16.666,  // 60 FPS target
-    isFixed: false
+    delta: 16.666,
+    isFixed: true
   })
   Matter.Runner.run(runner.value, engine.value)
 
-  // Render Loop starten
-  startRenderLoop()
-
+  startOptimizedRenderLoop()
   isPhysicsReady.value = true
-  console.log('Physics initialized')
+  console.log('Optimized physics initialized')
+}
+
+const startOptimizedRenderLoop = () => {
+  if (isRenderingActive.value) return
+
+  isRenderingActive.value = true
+
+  const render = () => {
+    if (!isRenderingActive.value) return
+
+    // Effiziente Frucht-Position-Updates
+    optimizedSyncFruitPositions()
+
+    // Kollisionen verarbeiten
+    processCollisionBuffer()
+
+    // Game Over prüfen (weniger häufig)
+    if (Date.now() % 500 < 16) { // Alle ~500ms prüfen
+      checkGameOver()
+    }
+
+    renderLoop.value = requestAnimationFrame(render)
+  }
+
+  render()
+}
+
+const optimizedSyncFruitPositions = () => {
+  fruits.value.forEach(fruit => {
+    if (fruit.element && fruit.body) {
+      const { x, y } = fruit.body.position
+      const rotation = fruit.body.angle
+
+      // Nur bei tatsächlicher Änderung updaten
+      if (fruit.lastX !== x || fruit.lastY !== y || fruit.lastRotation !== rotation) {
+        const elementStyle = fruit.element.style
+        elementStyle.left = `${x - fruit.data.radius}px`
+        elementStyle.top = `${y - fruit.data.radius}px`
+        elementStyle.transform = `rotate(${rotation}rad)`
+
+        // Cache für nächsten Frame
+        fruit.lastX = x
+        fruit.lastY = y
+        fruit.lastRotation = rotation
+      }
+    }
+  })
+}
+
+const setupOptimizedCollisionEvents = () => {
+  Matter.Events.on(engine.value, 'collisionStart', (event) => {
+    // Buffer Kollisionen für effiziente Verarbeitung
+    collisionBuffer.value.push(...event.pairs)
+  })
+}
+
+const processCollisionBuffer = () => {
+  if (collisionBuffer.value.length > 0) {
+    const pairs = [...collisionBuffer.value]
+    collisionBuffer.value = []
+
+    pairs.forEach(pair => {
+      const bodyA = pair.bodyA
+      const bodyB = pair.bodyB
+
+      if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
+        handleFruitCollision(bodyA, bodyB)
+      }
+    })
+  }
 }
 
 const createWalls = () => {
@@ -254,8 +331,8 @@ const generateNewDropFruit = () => {
   dropFruit.value = {
     ...fruit,
     id: `drop-${Date.now()}`,
-    x: 50, // Prozent von links (Mitte)
-    y: 10, // Prozent von oben
+    x: 50,
+    y: 10,
     isDropping: false
   }
 
@@ -263,17 +340,18 @@ const generateNewDropFruit = () => {
 }
 
 const updateDropPosition = (event) => {
+  const now = Date.now()
+  if (now - lastMouseUpdate.value < 16) return // 60fps throttling
+  lastMouseUpdate.value = now
+
   if (!isDropReady.value || !gameField.value) return
 
   const fieldRect = gameField.value.getBoundingClientRect()
   const relativeX = ((event.clientX - fieldRect.left) / PHYSICS_CONFIG.board.width) * 100
 
-  // Begrenzen auf Spielfeld (mit Fruchtradius als Abstand)
   const fruitRadius = dropFruit.value?.radius || 20
   const paddingPercent = (fruitRadius / PHYSICS_CONFIG.board.width) * 100
-  const minX = paddingPercent
-  const maxX = 100 - paddingPercent
-  const clampedX = Math.max(minX, Math.min(maxX, relativeX))
+  const clampedX = Math.max(paddingPercent, Math.min(100 - paddingPercent, relativeX))
 
   if (dropFruit.value) {
     dropFruit.value.x = clampedX
@@ -296,8 +374,10 @@ const continueDragging = (event) => {
 const dropFruitIntoField = () => {
   if (!isDragging.value || !isDropReady.value || !dropFruit.value) return
 
+  // Sofortiger State-Change
   isDragging.value = false
   isDropReady.value = false
+  dropCooldown.value = true
 
   // Frucht in Physik-Welt hinzufügen
   createPhysicalFruit(dropFruit.value)
@@ -314,21 +394,18 @@ const dropFruitIntoField = () => {
     generateNewDropFruit()
   }, PHYSICS_CONFIG.dropCooldown)
 
-  // Stats aktualisieren
   moves.value++
 }
 
 const createPhysicalFruit = (fruitData) => {
   if (!gameField.value || !world.value) return
 
-  // Feste Spielfeld-Größe verwenden
   const width = PHYSICS_CONFIG.board.width
   const height = PHYSICS_CONFIG.board.height
-
   const absoluteX = (fruitData.x / 100) * width
   const absoluteY = (fruitData.y / 100) * height
 
-  // Matter.js Körper erstellen
+  // Optimierter Matter.js Body
   const body = Matter.Bodies.circle(
     absoluteX,
     absoluteY,
@@ -339,10 +416,9 @@ const createPhysicalFruit = (fruitData) => {
       friction: PHYSICS_CONFIG.fruit.friction,
       frictionAir: PHYSICS_CONFIG.fruit.frictionAir,
       density: PHYSICS_CONFIG.fruit.density,
+      sleepThreshold: 60, // Wichtig für Performance!
       collisionFilter: PHYSICS_CONFIG.fruit.collisionFilter,
-      render: {
-        fillStyle: fruitData.color
-      },
+      render: { fillStyle: fruitData.color },
       fruitType: fruitData.id,
       fruitData: fruitData
     }
@@ -354,12 +430,15 @@ const createPhysicalFruit = (fruitData) => {
   // Zur Physik-Welt hinzufügen
   Matter.World.add(world.value, body)
 
-  // Zur Früchte-Liste hinzufügen
+  // Zur Früchte-Liste hinzufügen mit Cache-Werten
   const fruitObject = {
     body: body,
     data: fruitData,
     element: fruitElement,
-    id: fruitData.id
+    id: fruitData.id,
+    lastX: null,
+    lastY: null,
+    lastRotation: null
   }
 
   fruits.value.push(fruitObject)
@@ -370,7 +449,7 @@ const createPhysicalFruit = (fruitData) => {
     container.appendChild(fruitElement)
   }
 
-  console.log('Fruit dropped:', fruitData.emoji, 'at', absoluteX, absoluteY)
+  console.log('Optimized fruit dropped:', fruitData.emoji, 'at', absoluteX, absoluteY)
 }
 
 const createFruitElement = (fruitData) => {
@@ -378,28 +457,36 @@ const createFruitElement = (fruitData) => {
   element.className = 'physics-fruit'
   element.id = `fruit-${fruitData.id}`
 
-  // Größe setzen
+  // Optimierte CSS-Properties in einem Zug setzen
   const size = fruitData.radius * 2
-  element.style.width = `${size}px`
-  element.style.height = `${size}px`
-  element.style.position = 'absolute'
-  element.style.pointerEvents = 'none'
-  element.style.zIndex = '10'
+  element.style.cssText = `
+    position: absolute;
+    width: ${size}px;
+    height: ${size}px;
+    pointer-events: none;
+    z-index: 10;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    contain: layout style paint;
+    transform-origin: center center;
+  `
 
-  // SVG Container erstellen
-  const svgContainer = document.createElement('div')
-  svgContainer.className = 'fruit-svg-container'
-  svgContainer.innerHTML = fruitData.svg
+  // Direkte SVG-Insertion ohne zusätzlichen Container
+  element.innerHTML = fruitData.svg
 
-  // SVG Größe anpassen
-  const svg = svgContainer.querySelector('svg')
+  // SVG Performance optimieren
+  const svg = element.querySelector('svg')
   if (svg) {
-    svg.style.width = '100%'
-    svg.style.height = '100%'
-    svg.style.filter = `drop-shadow(${fruitData.shadow})`
+    svg.style.cssText = `
+      width: 100%;
+      height: 100%;
+      filter: ${fruitData.shadow};
+      shape-rendering: optimizeSpeed;
+      image-rendering: optimizeSpeed;
+      vector-effect: non-scaling-stroke;
+    `
   }
-
-  element.appendChild(svgContainer)
 
   return element
 }
@@ -476,7 +563,14 @@ const handleFruitCollision = (fruitA, fruitB) => {
 
 const cleanupPhysics = () => {
   // Render Loop stoppen
-  stopRenderLoop()
+  isRenderingActive.value = false
+  if (renderLoop.value) {
+    cancelAnimationFrame(renderLoop.value)
+    renderLoop.value = null
+  }
+
+  // Collision Buffer leeren
+  collisionBuffer.value = []
 
   if (runner.value) {
     Matter.Runner.stop(runner.value)
@@ -493,6 +587,12 @@ const cleanupPhysics = () => {
   if (container) {
     container.innerHTML = ''
   }
+
+  // Memory cleanup
+  fruits.value.forEach(fruit => {
+    fruit.element = null
+    fruit.body = null
+  })
 
   walls.value = []
   fruits.value = []
@@ -652,6 +752,21 @@ const calculateCurrentStars = () => {
   )
 }
 
+const handleTouchStart = (event) => {
+  event.preventDefault() // Verhindert Scroll-Performance-Issues
+  startDragging(event.touches[0])
+}
+
+const handleTouchMove = (event) => {
+  event.preventDefault()
+  continueDragging(event.touches[0])
+}
+
+const handleTouchEnd = (event) => {
+  event.preventDefault()
+  dropFruitIntoField()
+}
+
 // Lifecycle hooks
 onMounted(() => {
   initializeGame()
@@ -747,6 +862,9 @@ onUnmounted(() => {
           @mousemove="handleMouseMove"
           @mouseup="handleMouseUp"
           @mouseleave="handleMouseLeave"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="handleTouchEnd"
         >
           <!-- Früchte Container -->
           <div class="fruits-container">

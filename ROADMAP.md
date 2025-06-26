@@ -55,19 +55,14 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 
 ### 🔄 **In Progress:**
 - **Collision & Merging Logic** - Fruit combination mechanics when same types collide
-- **Merge Animations** - Visual effects for successful fruit combinations
 - **Game Over Detection** - Height-based game over when fruits reach warning zone
 
 ### 📋 **Remaining Tasks:**
 - [ ] **Fruit Merging System** - Complete merge logic with fruit type progression
-- [ ] **Merge Visual Effects** - Particle effects and smooth transitions
 - [ ] **Score Calculation** - Points for merges with combo multipliers
 - [ ] **Level Objectives** - Target fruit achievement and level completion
 - [ ] **FruitMerge Achievements** - Game-specific achievements integration
-- [ ] **Level Progression** - Unlock system and difficulty scaling
-- [ ] **Game Polish** - Sound effects, improved animations, and user feedback
 - [ ] **Performance Optimization** - Efficient physics and rendering for mobile
-- [ ] **Bug Testing** - Comprehensive testing across devices and scenarios
 
 ## 👤 Phase 5: User Experience Enhancement (v0.4.0)
 *Priority: Medium - After FruitMerge Completion*
@@ -93,7 +88,6 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - [ ] **PWA Features** - Offline capability, install prompt with multilingual support
 - [ ] **Advanced Themes** - Custom theme creation, seasonal themes
 - [ ] **Interactive Tutorials** - Step-by-step game tutorials in multiple languages
-- [ ] **Data Export/Import** - Backup and restore functionality for user data
 - [ ] **Advanced Game Modes** - Time trials, endless modes, daily challenges
 - [ ] **Visual Enhancements** - Particle effects, smooth transitions, micro-animations
 
@@ -103,13 +97,9 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - [ ] **Additional Games** - More mini-games (Puzzle, Strategy, Action games)
 - [ ] **Multiplayer Games** - Real-time competitive games with matchmaking
 - [ ] **Social Features** - Friend system, sharing achievements, community features
-- [ ] **Game Editor** - User-created content and level designer
 - [ ] **Advanced Graphics** - WebGL-based games and 3D experiences
 - [ ] **Mobile App** - Native mobile application with platform-specific features
-- [ ] **Cloud Sync** - Cross-device progress synchronization and account system
-- [ ] **AI Opponents** - Smart computer opponents for competitive games
 - [ ] **Tournament System** - Organized competitions and seasonal events
-- [ ] **Content Creator Tools** - Streaming integration, screenshot sharing
 
 ## 📋 Development Guidelines
 
