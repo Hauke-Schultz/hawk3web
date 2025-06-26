@@ -397,13 +397,15 @@ const dropFruitIntoField = () => {
   moves.value++
 }
 
-const createPhysicalFruit = (fruitData) => {
+const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
   if (!gameField.value || !world.value) return
 
   const width = PHYSICS_CONFIG.board.width
   const height = PHYSICS_CONFIG.board.height
-  const absoluteX = (fruitData.x / 100) * width
-  const absoluteY = (fruitData.y / 100) * height
+
+  // Use custom position for merges, or calculate from percentage for drops
+  const absoluteX = customX !== null ? customX : (fruitData.x / 100) * width
+  const absoluteY = customY !== null ? customY : (fruitData.y / 100) * height
 
   // Optimierter Matter.js Body
   const body = Matter.Bodies.circle(
@@ -419,8 +421,12 @@ const createPhysicalFruit = (fruitData) => {
       sleepThreshold: 60, // Wichtig für Performance!
       collisionFilter: PHYSICS_CONFIG.fruit.collisionFilter,
       render: { fillStyle: fruitData.color },
-      fruitType: fruitData.id,
-      fruitData: fruitData
+      fruitType: fruitData.type,
+      fruitData: {
+        ...fruitData,
+        id: fruitData.id,
+        type: fruitData.type
+      }
     }
   )
 
@@ -457,7 +463,7 @@ const createFruitElement = (fruitData) => {
   element.className = 'physics-fruit'
   element.id = `fruit-${fruitData.id}`
 
-  // Optimierte CSS-Properties in einem Zug setzen
+  // Enhanced CSS with merge animations
   const size = fruitData.radius * 2
   element.style.cssText = `
     position: absolute;
@@ -465,23 +471,37 @@ const createFruitElement = (fruitData) => {
     height: ${size}px;
     pointer-events: none;
     z-index: 10;
-    will-change: transform;
+    will-change: transform, opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
     contain: layout style paint;
     transform-origin: center center;
+    transition: opacity 0.3s ease;
   `
 
-  // Direkte SVG-Insertion ohne zusätzlichen Container
+  // Add merge animation class if this is a newly merged fruit
+  if (fruitData.id.startsWith('merged-')) {
+    element.style.opacity = '0'
+    element.style.transform = 'translateZ(0) scale(0.5)'
+
+    // Animate in the new fruit
+    setTimeout(() => {
+      element.style.transition = 'opacity 0.4s ease, transform 0.4s ease'
+      element.style.opacity = '1'
+      element.style.transform = 'translateZ(0) scale(1)'
+    }, 50)
+  }
+
+  // SVG insertion with enhanced styling
   element.innerHTML = fruitData.svg
 
-  // SVG Performance optimieren
+  // Enhanced SVG styling
   const svg = element.querySelector('svg')
   if (svg) {
     svg.style.cssText = `
       width: 100%;
       height: 100%;
-      filter: ${fruitData.shadow};
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
       shape-rendering: optimizeSpeed;
       image-rendering: optimizeSpeed;
       vector-effect: non-scaling-stroke;
@@ -557,8 +577,91 @@ const handleMouseLeave = () => {
 }
 
 const handleFruitCollision = (fruitA, fruitB) => {
-  // Hier kommt später die Merge-Logik
-  console.log('Fruit collision detected:', fruitA.label, fruitB.label)
+  // Get fruit data from physics bodies
+  const fruitDataA = fruitA.fruitData
+  const fruitDataB = fruitB.fruitData
+
+  // Check if fruits are the same type and can merge
+  if (fruitDataA.type === fruitDataB.type && fruitDataA.nextType) {
+    // Prevent multiple merges on same fruits
+    const fruitObjectA = fruits.value.find(f => f.id === fruitDataA.id)
+    const fruitObjectB = fruits.value.find(f => f.id === fruitDataB.id)
+
+    if (fruitObjectA?.merging || fruitObjectB?.merging) return
+
+    // Mark fruits as merging
+    if (fruitObjectA) fruitObjectA.merging = true
+    if (fruitObjectB) fruitObjectB.merging = true
+
+    // Calculate merge position (center between two fruits)
+    const mergeX = (fruitA.position.x + fruitB.position.x) / 2
+    const mergeY = (fruitA.position.y + fruitB.position.y) / 2
+
+    // Remove old fruits after short delay for visual effect
+    setTimeout(() => {
+      performFruitMerge(fruitA, fruitB, fruitDataA, fruitDataB, mergeX, mergeY)
+    }, 150)
+  }
+}
+
+const performFruitMerge = (bodyA, bodyB, fruitDataA, fruitDataB, mergeX, mergeY) => {
+  // Remove physics bodies
+  Matter.Composite.remove(world.value, [bodyA, bodyB])
+
+  // Remove fruit objects from array
+  fruits.value = fruits.value.filter(f =>
+    f.id !== fruitDataA.id && f.id !== fruitDataB.id
+  )
+
+  // Remove DOM elements
+  const elementA = document.getElementById(`fruit-${fruitDataA.id}`)
+  const elementB = document.getElementById(`fruit-${fruitDataB.id}`)
+  if (elementA) elementA.remove()
+  if (elementB) elementB.remove()
+
+  // Get next fruit type from configuration
+  const nextFruitType = FRUIT_TYPES[fruitDataA.nextType]
+  if (!nextFruitType) return
+
+  // Create new merged fruit
+  const mergedFruit = {
+    id: `merged-${Date.now()}-${Math.random()}`,
+    type: nextFruitType.type,
+    emoji: nextFruitType.emoji,
+    radius: nextFruitType.radius,
+    nextType: nextFruitType.nextType,
+    color: nextFruitType.color,
+    svg: nextFruitType.svg,
+    scoreValue: nextFruitType.scoreValue,
+    merging: false
+  }
+
+  // Add merged fruit to physics world
+  createPhysicalFruit(mergedFruit, mergeX, mergeY)
+
+  // Update game statistics
+  const baseScore = nextFruitType.scoreValue
+  handleFruitMerge(nextFruitType.type, baseScore)
+
+  console.log(`Merged ${fruitDataA.type} + ${fruitDataB.type} → ${nextFruitType.type}`)
+}
+
+const checkLevelCompletion = () => {
+  const targetType = targetFruit.value
+  const requiredCount = targetCount.value
+  const currentCount = fruitsCreated.value[targetType] || 0
+
+  console.log(`Level check: ${currentCount}/${requiredCount} ${targetType} created`)
+
+  if (currentCount >= requiredCount && !targetReached.value) {
+    targetReached.value = true
+    console.log(`Level completed! Target reached: ${currentCount}/${requiredCount}`)
+
+    // Add visual feedback delay before completing
+    setTimeout(() => {
+      completeGame()
+    }, 1000)
+  }
 }
 
 const cleanupPhysics = () => {
@@ -632,25 +735,17 @@ const handleFruitMerge = (fruitType, points) => {
 
   // Track merge statistics
   merges.value++
-  moves.value++
 
-  // Track created fruits
+  // Track created fruits (zentrale Zählung hier)
   if (!fruitsCreated.value[fruitType]) {
     fruitsCreated.value[fruitType] = 0
   }
   fruitsCreated.value[fruitType]++
 
-  // Check if game is complete
-  if (isGameComplete.value && !targetReached.value) {
-    targetReached.value = true
-    setTimeout(() => {
-      completeGame()
-    }, 1000) // Small delay to show the final merge
-  }
-}
+  console.log(`Created ${fruitType}, total: ${fruitsCreated.value[fruitType]}`)
 
-const handleMissedDrop = () => {
-  moves.value++
+  // Check if game is complete
+  checkLevelCompletion()
 }
 
 const completeGame = () => {
@@ -914,13 +1009,19 @@ onUnmounted(() => {
           Nächste: {{ dropFruit.emoji }} ({{ dropFruit.radius * 2 }}px)
         </p>
         <p v-else-if="dropCooldown" class="cooldown-text">
-          Cooldown: {{ Math.ceil((Date.now() % PHYSICS_CONFIG.dropCooldown) / 100) / 10 }}s
+          Cooldown aktiv...
         </p>
         <p v-else class="waiting-text">
           Bereit zum Droppen
         </p>
         <p class="game-info">
-          Spielfeld: 280×320px | Früchte: {{ fruits.length }}
+          Früchte: {{ fruits.length }} | Ziel: {{ targetFruit }}
+        </p>
+        <p class="fruits-created" v-if="Object.keys(fruitsCreated).length > 0">
+          Erstellt:
+          <span v-for="(count, type) in fruitsCreated" :key="type">
+            {{ type }}:{{ count }}
+          </span>
         </p>
       </div>
 
