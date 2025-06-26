@@ -4,7 +4,7 @@
 
 Create a comprehensive gaming platform featuring multiple mini-games with a modern, responsive interface that provides an engaging user experience across all devices.
 
-## 📊 Current Status (v0.2.7 - In Development)
+## 📊 Current Status (v0.2.8 - In Development)
 
 ✅ **Completed:**
 - Basic Vue 3 project structure with Vite
@@ -33,16 +33,15 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - **Internationalization & Language Support** - Complete English/German translation system
 - **About Page Implementation** - Comprehensive About/Über uns page with platform and developer information
 - **Extended Icon Library** - Additional SVG icons for enhanced UI (info, mail, document, shield, heart, code, globe, memory)
+- **FruitMerge Physics Foundation** - Complete Matter.js physics engine with drop mechanics
+- **FruitMerge Core Merge Logic** - Collision detection, fruit merging, and level completion system ✅ **NEW**
 
-🚧 **Currently In Development (v0.2.7):**
-- **FruitMerge Game Foundation** - Basic game structure and level selection
-- **Matter.js Physics Integration** - Physics engine setup with walls and gravity
-- **Drop Mechanism** - Mouse-controlled fruit dropping with cooldown system
-- **SVG Fruit Rendering** - Inline SVG display with physics synchronization
-- **Game Field Implementation** - Fixed 300x400px physics-enabled game field
+🚧 **Currently In Development (v0.2.8):**
+- **Visual Merge Effects** - Enhanced animations for fruit merging and level completion
+- **Merge Animation Polish** - Particle effects, smooth transitions, and visual feedback improvements
 
 ## 🎮 Phase 4: FruitMerge Game (v0.3.0) - Updated Priority
-*Status: 60% Complete - Physics Foundation Ready*
+*Status: 80% Complete - Core Mechanics Implemented*
 
 ### ✅ **Completed Components:**
 - **Game Configuration** - Complete fruit types with SVG graphics and physics properties
@@ -52,17 +51,21 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - **Game Field** - Fixed-size physics field with proper boundaries
 - **Fruit Rendering** - SVG-based fruit display with hardware-accelerated animations
 - **Game Structure** - Basic game loop, stats tracking, and UI framework
+- **Collision & Merging Logic** - ✅ Fruit combination mechanics when same types collide
+- **Level Completion Detection** - ✅ Target fruit achievement and level progression system
+- **Score Calculation** - ✅ Points for merges with combo multipliers and proper counting
 
-### 🔄 **In Progress:**
-- **Collision & Merging Logic** - Fruit combination mechanics when same types collide
-- **Game Over Detection** - Height-based game over when fruits reach warning zone
+### 🔄 **In Progress (v0.2.8):**
+- **Visual Merge Effects** - Enhanced animations and particle effects for merging
+- **Animation Polish** - Smooth fruit transitions, spawn effects, and completion celebrations
+- **Merge Feedback** - Visual and audio feedback for successful merges
 
-### 📋 **Remaining Tasks:**
-- [ ] **Fruit Merging System** - Complete merge logic with fruit type progression
-- [ ] **Score Calculation** - Points for merges with combo multipliers
-- [ ] **Level Objectives** - Target fruit achievement and level completion
+### 📋 **Remaining Tasks for v0.3.0:**
+- [ ] **Game Over Detection** - Height-based game over when fruits reach warning zone
 - [ ] **FruitMerge Achievements** - Game-specific achievements integration
 - [ ] **Performance Optimization** - Efficient physics and rendering for mobile
+- [ ] **Level Progression UI** - Enhanced level completion modal and next level flow
+- [ ] **Sound Integration** - Basic sound effects for drops, merges, and completions
 
 ## 👤 Phase 5: User Experience Enhancement (v0.4.0)
 *Priority: Medium - After FruitMerge Completion*
@@ -131,66 +134,77 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - **✅ v0.2.4** - Level Selection System and GameLevelTile components
 - **✅ v0.2.5** - Combo System implementation and PerformanceStats integration
 - **✅ v0.2.6** - About Page & Enhanced Icon System - COMPLETE ✅
-- **🚧 v0.2.7** - FruitMerge Physics Foundation - IN PROGRESS 🔄
-- **🎯 v0.3.0** - Complete FruitMerge Game with merging mechanics and level progression
+- **✅ v0.2.7** - FruitMerge Physics Foundation - COMPLETE ✅
+- **🚧 v0.2.8** - FruitMerge Core Mechanics & Visual Polish - IN PROGRESS 🔄
+- **🎯 v0.3.0** - Complete FruitMerge Game with enhanced animations and game over detection
 - **🎯 v0.4.0** - Enhanced user experience with notifications and advanced features
 - **🎯 v0.5.0** - Advanced features with sound, animations, and PWA capabilities
 - **🎯 v1.0.0** - Stable release with multiple games, full i18n, and comprehensive features
 
-## 🚀 Current Sprint Focus (v0.2.7)
+## 🚀 Current Sprint Focus (v0.2.8)
 
-**FruitMerge Core Mechanics** - The immediate next steps are:
+**Visual Polish & Animation Enhancement** - The immediate next steps are:
 
-1. **Merge Logic Implementation** (High Priority)
-    - Collision detection for same fruit types
-    - Fruit transformation to next type in chain
-    - Proper physics body cleanup and replacement
+1. **Visual Merge Effects** (High Priority)
+   - Particle effects when fruits merge successfully
+   - Smooth scaling and fade animations for disappearing fruits
+   - Pop-in animations for newly created fruits
+   - Screen shake or flash effects for big merges
 
-2. **Visual Merge Effects** (Medium Priority)
-    - Smooth animations for fruit merging
-    - Particle effects or visual feedback
-    - Score popup animations
+2. **Enhanced Feedback Systems** (High Priority)
+   - Visual feedback for combo achievements
+   - Level completion celebration animations
+   - Target progress indicators with smooth transitions
+   - Drop preview improvements with better guidelines
 
-3. **Game Completion Logic** (High Priority)
-    - Target fruit detection and level completion
-    - Star rating calculation based on moves/efficiency
-    - Integration with existing achievement system
+3. **Animation Polish** (Medium Priority)
+   - Fruit spawn animations with bounce effects
+   - Smooth physics body removal with fade-out
+   - Enhanced drop cooldown visual feedback
+   - Loading state improvements for game initialization
 
-4. **Level Progression System** (Medium Priority)
-    - Level unlock mechanics
-    - Difficulty scaling between levels
-    - Save/load progress integration
+4. **Game Flow Improvements** (Medium Priority)
+   - Better game over detection and animation
+   - Enhanced level completion modal with celebration effects
+   - Smooth transitions between game states
+   - Improved game reset animations
 
-## 📈 Platform Statistics (v0.2.7 Progress)
+## 📈 Platform Statistics (v0.2.8 Progress)
 
-- **Total Components**: 20+ Vue components
+- **Total Components**: 22+ Vue components
 - **Icon Library**: 30+ SVG icons including detailed fruit graphics
 - **Languages Supported**: 2 (English, German)
-- **Game Levels**: 6 Memory Game levels + 9 FruitMerge levels (in development)
+- **Game Levels**: 6 Memory Game levels + 9 FruitMerge levels
 - **Achievement Categories**: 4 categories with multiple rarities
-- **Physics Integration**: Matter.js engine with real-time collision detection
+- **Physics Integration**: Matter.js engine with real-time collision detection and merging
 - **Mobile Optimization**: 375px base width with touch-friendly UI and hardware acceleration
 - **Theme Support**: Dark/Light themes with smooth transitions
 - **Data Storage**: Complete localStorage management with export/import
+- **Core Game Mechanics**: ✅ Complete physics-based fruit merging system
 
-## 🔄 Recent Changes (v0.2.7)
+## 🔄 Recent Changes (v0.2.8)
 
 ### **Technical Improvements:**
-- **Physics Engine**: Integrated Matter.js for realistic fruit physics
-- **SVG Rendering**: Hardware-accelerated inline SVG display system
-- **Game Architecture**: Scalable game framework supporting multiple physics-based games
-- **Performance**: Optimized rendering loop with requestAnimationFrame
-- **Mobile Touch**: Enhanced touch controls for fruit dropping mechanism
+- **Merge Logic Implementation**: Complete collision detection and fruit combination system
+- **Level Completion System**: Target-based level progression with accurate counting
+- **Score Integration**: Combo system integration with merge events
+- **Bug Fixes**: Resolved double-counting issues in fruit creation tracking
 
 ### **Game Features:**
-- **Dynamic Fruit Generation**: Weighted random fruit selection system
-- **Interactive Controls**: Mouse-driven fruit positioning with visual feedback
-- **Physics Simulation**: Realistic gravity, collisions, and bouncing
-- **Visual Polish**: Drop guidelines, warning zones, and smooth animations
+- **Functional Merging**: Fruits now properly combine into next tier when matching types collide
+- **Level Objectives**: Players can now complete levels by creating target fruits
+- **Visual Feedback**: Enhanced merge animations and fruit creation effects
+- **Debug Information**: Improved console logging for development and testing
+
+### **Next Focus (v0.2.8 → v0.3.0):**
+- **Animation System**: Comprehensive visual effects for all game interactions
+- **Particle Effects**: Eye-catching merge celebrations and feedback
+- **Game Polish**: Professional-grade animations and transitions
+- **Performance**: Optimized rendering for smooth 60fps gameplay
 
 ---
 
-*This roadmap is a living document and will be updated as the project evolves. Last updated: v0.2.7 - FruitMerge Physics Foundation ⚡*
+*This roadmap is a living document and will be updated as the project evolves. Last updated: v0.2.8 - FruitMerge Core Mechanics Complete 🎮*
 
-**🎊 v0.2.7 Development Notes:**
-The FruitMerge game foundation is now established with a robust physics engine and interactive drop mechanics. The next major milestone focuses on completing the core merge gameplay mechanics to deliver a fully playable physics-based puzzle game. The architecture supports future expansion to additional physics-based games while maintaining the existing memory game and platform features.
+**🎊 v0.2.8 Development Notes:**
+The FruitMerge game now features complete core mechanics with working fruit merging, level completion, and score tracking. The foundation is solid and ready for visual enhancements. The next milestone focuses on polishing the user experience with professional-grade animations and visual effects to create an engaging and satisfying gameplay experience.
