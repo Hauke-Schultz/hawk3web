@@ -65,7 +65,6 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - [ ] **FruitMerge Achievements** - Game-specific achievements integration
 - [ ] **Performance Optimization** - Efficient physics and rendering for mobile
 - [ ] **Level Progression UI** - Enhanced level completion modal and next level flow
-- [ ] **Sound Integration** - Basic sound effects for drops, merges, and completions
 
 ## 👤 Phase 5: User Experience Enhancement (v0.4.0)
 *Priority: Medium - After FruitMerge Completion*
@@ -147,7 +146,6 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 
 1. **Visual Merge Effects** (High Priority)
    - Particle effects when fruits merge successfully
-   - Smooth scaling and fade animations for disappearing fruits
    - Pop-in animations for newly created fruits
    - Screen shake or flash effects for big merges
 
@@ -157,17 +155,9 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
    - Target progress indicators with smooth transitions
    - Drop preview improvements with better guidelines
 
-3. **Animation Polish** (Medium Priority)
-   - Fruit spawn animations with bounce effects
-   - Smooth physics body removal with fade-out
-   - Enhanced drop cooldown visual feedback
-   - Loading state improvements for game initialization
-
-4. **Game Flow Improvements** (Medium Priority)
+3. **Game Flow Improvements** (Medium Priority)
    - Better game over detection and animation
    - Enhanced level completion modal with celebration effects
-   - Smooth transitions between game states
-   - Improved game reset animations
 
 ## 📈 Platform Statistics (v0.2.8 Progress)
 
