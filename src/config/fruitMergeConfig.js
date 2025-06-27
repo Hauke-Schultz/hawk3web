@@ -52,6 +52,8 @@ export const PHYSICS_CONFIG = {
 		y: 0.1                     // Relative Position von oben
 	},
 
+	sparkleDelay: 2000,
+
 	// Game Over Erkennung
 	gameOverHeight: 100,         // Höhe bei der Game Over eintritt
 	warningZone: 80,             // Warnbereich Höhe
@@ -61,7 +63,7 @@ export const PHYSICS_CONFIG = {
 // Fruit Configuration System
 export const FRUIT_TYPES = {
 	BLUEBERRY: {
-		id: 1,
+		index: 1,
 		type: 'BLUEBERRY',
 		emoji: '🫐',
 		radius: 15,
@@ -71,7 +73,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#748ffc', '#4c6ef5', '#364fc7'],
 		shadow: '0 2px 8px rgba(54, 79, 199, 0.4)',
 		glowColor: 'rgba(76, 110, 245, 0.6)',
-		sparkleColor: '#c5dbff',
+		sparkleColor: '#9C27B0',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="blueberryGrad" cx="0.3" cy="0.3">
@@ -125,7 +127,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	STRAWBERRY: {
-		id: 2,
+		index: 2,
 		type: 'STRAWBERRY',
 		emoji: '🍓',
 		radius: 20,
@@ -135,7 +137,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#ffab91', '#ff8787', '#f4511e'],
 		shadow: '0 2px 8px rgba(244, 81, 30, 0.4)',
 		glowColor: 'rgba(255, 135, 135, 0.6)',
-		sparkleColor: '#ffccbc',
+		sparkleColor: '#E91E63',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="strawberryGrad" cx="0.3" cy="0.3">
@@ -186,7 +188,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	GRAPE: {
-		id: 3,
+		index: 3,
 		type: 'GRAPE',
 		emoji: '🍇',
 		radius: 24,
@@ -196,7 +198,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#b39ddb', '#845ec2', '#5e35b1'],
 		shadow: '0 2px 8px rgba(94, 53, 177, 0.4)',
 		glowColor: 'rgba(132, 94, 194, 0.6)',
-		sparkleColor: '#d1c4e9',
+		sparkleColor: '#FFEB3B',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="lemonGrad" cx="0.3" cy="0.3">
@@ -240,7 +242,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	ORANGE: {
-		id: 4,
+		index: 4,
 		type: 'ORANGE',
 		emoji: '🍊',
 		radius: 28,
@@ -250,7 +252,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#ffcc02', '#ffa726', '#ff9800'],
 		shadow: '0 2px 8px rgba(255, 152, 0, 0.4)',
 		glowColor: 'rgba(255, 167, 38, 0.6)',
-		sparkleColor: '#ffe0b2',
+		sparkleColor: '#FF9800',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="orangeGrad" cx="0.3" cy="0.3">
@@ -296,7 +298,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	APPLE: {
-		id: 5,
+		index: 5,
 		type: 'APPLE',
 		emoji: '🍎',
 		radius: 34,
@@ -306,7 +308,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#ef5350', '#e53e3e', '#c62828'],
 		shadow: '0 3px 12px rgba(198, 40, 40, 0.5)',
 		glowColor: 'rgba(229, 62, 62, 0.7)',
-		sparkleColor: '#ffcdd2',
+		sparkleColor: '#36c904',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="appleGrad" cx="0.3" cy="0.3">
@@ -355,7 +357,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	PEACH: {
-		id: 6,
+		index: 6,
 		type: 'PEACH',
 		emoji: '🍑',
 		radius: 40,
@@ -365,7 +367,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#ffab91', '#ff7043', '#d84315'],
 		shadow: '0 3px 12px rgba(216, 158, 46, 0.5)',
 		glowColor: 'rgba(255, 112, 67, 0.7)',
-		sparkleColor: '#ffccbc',
+		sparkleColor: '#FFAB91',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="peachGrad" cx="0.3" cy="0.3">
@@ -397,7 +399,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	PINEAPPLE: {
-		id: 7,
+		index: 7,
 		type: 'PINEAPPLE',
 		emoji: '🍍',
 		radius: 58,
@@ -407,7 +409,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#ffd54f', '#d69e2e', '#f57f17'],
 		shadow: '0 4px 16px rgba(245, 127, 23, 0.6)',
 		glowColor: 'rgba(214, 158, 46, 0.8)',
-		sparkleColor: '#fff9c4',
+		sparkleColor: '#FDD835',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="pineappleInnerGrad" cx="0.4" cy="0.4">
@@ -455,7 +457,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	COCONUT: {
-		id: 9,
+		index: 8,
 		type: 'COCONUT',
 		emoji: '🥥',
 		radius: 74,
@@ -465,7 +467,7 @@ export const FRUIT_TYPES = {
 		gradient: ['#a1887f', '#8b4513', '#5d4037'],
 		shadow: '0 5px 20px rgba(93, 64, 55, 0.7)',
 		glowColor: 'rgba(139, 69, 19, 0.9)',
-		sparkleColor: '#d7ccc8',
+		sparkleColor: '#8D6E63',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="coconutGrad" cx="0.3" cy="0.3">
@@ -497,7 +499,7 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
 	MELON: {
-		id: 8,
+		index: 9,
 		type: 'MELON',
 		emoji: '🍉',
 		radius: 88,
@@ -597,9 +599,9 @@ export const FRUIT_MERGE_LEVELS = {
 		title: 'Easy',
 		description: "Erstelle einen Apfel",
 		starThresholds: {
-			1: { targetFruit: 'APPLE', moves: 8 },
-			2: { targetFruit: 'APPLE', moves: 6 },
-			3: { targetFruit: 'APPLE', moves: 4 },
+			1: { targetFruit: 'APPLE', moves: 30 },
+			2: { targetFruit: 'APPLE', moves: 20 },
+			3: { targetFruit: 'APPLE', moves: 12 },
 		}
 	},
 	2: {
@@ -608,9 +610,9 @@ export const FRUIT_MERGE_LEVELS = {
 		title: 'Medium',
 		description: "Erstelle zwei Äpfel",
 		starThresholds: {
-			1: { targetFruit: 'APPLE', targetCount: 2, moves: 16 },
-			2: { targetFruit: 'APPLE', targetCount: 2, moves: 12 },
-			3: { targetFruit: 'APPLE', targetCount: 2, moves: 8 }
+			1: { targetFruit: 'APPLE', targetCount: 2, moves: 35 },
+			2: { targetFruit: 'APPLE', targetCount: 2, moves: 25 },
+			3: { targetFruit: 'APPLE', targetCount: 2, moves: 15 }
 		}
 	},
 	3: {

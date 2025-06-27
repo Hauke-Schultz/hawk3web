@@ -60,6 +60,9 @@ const dropCooldown = ref(false)
 const fruitsCreated = ref({}) // Track created fruits by type
 const targetReached = ref(false)
 
+const mergeEffects = ref([])
+const particles = ref([])
+
 // Computed properties
 const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
 const targetFruit = computed(() => currentLevelConfig.value?.targetFruit)
@@ -292,22 +295,6 @@ const createWalls = () => {
   Matter.World.add(world.value, walls.value)
 }
 
-const setupCollisionEvents = () => {
-  Matter.Events.on(engine.value, 'collisionStart', (event) => {
-    const pairs = event.pairs
-
-    pairs.forEach(pair => {
-      const bodyA = pair.bodyA
-      const bodyB = pair.bodyB
-
-      // Prüfen ob beide Körper Früchte sind
-      if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
-        handleFruitCollision(bodyA, bodyB)
-      }
-    })
-  })
-}
-
 const getRandomFruit = () => {
   const weights = FRUIT_SPAWN_WEIGHTS
   const random = Math.random()
@@ -397,6 +384,39 @@ const dropFruitIntoField = () => {
   moves.value++
 }
 
+const createMergeVisualEffects = (mergeX, mergeY, newFruitType) => {
+  createMergeParticles(mergeX, mergeY, newFruitType)
+}
+
+const createMergeParticles = (x, y, fruitType) => {
+  const particleCount = fruitType.index + 1
+
+  for (let i = 0; i < particleCount; i++) {
+    const angle = (i / particleCount) * Math.PI * 2
+    const distance = 60 + Math.random() * 20
+    const particleX = Math.cos(angle) * distance + Math.random() * 20
+    const particleY = Math.sin(angle) * distance
+
+    const particle = {
+      id: `particle-${Date.now()}-${i}`,
+      x: x,
+      y: y,
+      targetX: particleX,
+      targetY: particleY,
+      type: fruitType.type,
+      backgroundColor: fruitType.sparkleColor,
+      duration: PHYSICS_CONFIG.sparkleDelay
+    }
+
+    particles.value.push(particle)
+
+    // Remove particle after animation
+    setTimeout(() => {
+      particles.value = particles.value.filter(p => p.id !== particle.id)
+    }, PHYSICS_CONFIG.sparkleDelay)
+  }
+}
+
 const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
   if (!gameField.value || !world.value) return
 
@@ -418,7 +438,7 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
       friction: PHYSICS_CONFIG.fruit.friction,
       frictionAir: PHYSICS_CONFIG.fruit.frictionAir,
       density: PHYSICS_CONFIG.fruit.density,
-      sleepThreshold: 60, // Wichtig für Performance!
+      sleepThreshold: 60,
       collisionFilter: PHYSICS_CONFIG.fruit.collisionFilter,
       render: { fillStyle: fruitData.color },
       fruitType: fruitData.type,
@@ -455,7 +475,7 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
     container.appendChild(fruitElement)
   }
 
-  console.log('Optimized fruit dropped:', fruitData.emoji, 'at', absoluteX, absoluteY)
+  console.log('Optimized fruit created:', fruitData.emoji, 'at', absoluteX, absoluteY)
 }
 
 const createFruitElement = (fruitData) => {
@@ -476,20 +496,13 @@ const createFruitElement = (fruitData) => {
     backface-visibility: hidden;
     contain: layout style paint;
     transform-origin: center center;
-    transition: opacity 0.3s ease;
+    opacity: 1;
   `
 
   // Add merge animation class if this is a newly merged fruit
   if (fruitData.id.startsWith('merged-')) {
-    element.style.opacity = '0'
-    element.style.transform = 'translateZ(0) scale(0.5)'
-
-    // Animate in the new fruit
-    setTimeout(() => {
-      element.style.transition = 'opacity 0.4s ease, transform 0.4s ease'
-      element.style.opacity = '1'
-      element.style.transform = 'translateZ(0) scale(1)'
-    }, 50)
+    element.classList.add('fruit-merge-glow')
+    element.style.opacity = '1'
   }
 
   // SVG insertion with enhanced styling
@@ -509,48 +522,6 @@ const createFruitElement = (fruitData) => {
   }
 
   return element
-}
-
-const startRenderLoop = () => {
-  if (isRenderingActive.value) return
-
-  isRenderingActive.value = true
-
-  const render = () => {
-    if (!isRenderingActive.value) return
-
-    // Früchte-Positionen synchronisieren
-    syncFruitPositions()
-
-    // Game Over prüfen
-    checkGameOver()
-
-    renderLoop.value = requestAnimationFrame(render)
-  }
-
-  render()
-}
-
-const stopRenderLoop = () => {
-  isRenderingActive.value = false
-  if (renderLoop.value) {
-    cancelAnimationFrame(renderLoop.value)
-    renderLoop.value = null
-  }
-}
-
-const syncFruitPositions = () => {
-  fruits.value.forEach(fruit => {
-    if (fruit.element && fruit.body) {
-      const { x, y } = fruit.body.position
-      const rotation = fruit.body.angle
-
-      // Element Position aktualisieren
-      fruit.element.style.left = `${x - fruit.data.radius}px`
-      fruit.element.style.top = `${y - fruit.data.radius}px`
-      fruit.element.style.transform = `rotate(${rotation}rad)`
-    }
-  })
 }
 
 const checkGameOver = () => {
@@ -613,15 +584,27 @@ const performFruitMerge = (bodyA, bodyB, fruitDataA, fruitDataB, mergeX, mergeY)
     f.id !== fruitDataA.id && f.id !== fruitDataB.id
   )
 
-  // Remove DOM elements
+  // Remove DOM elements with fade effect
   const elementA = document.getElementById(`fruit-${fruitDataA.id}`)
   const elementB = document.getElementById(`fruit-${fruitDataB.id}`)
-  if (elementA) elementA.remove()
-  if (elementB) elementB.remove()
+
+  if (elementA) {
+    elementA.style.opacity = '0'
+    elementA.style.transform = 'scale(0.8)'
+    setTimeout(() => elementA.remove(), 150)
+  }
+  if (elementB) {
+    elementB.style.opacity = '0'
+    elementB.style.transform = 'scale(0.8)'
+    setTimeout(() => elementB.remove(), 150)
+  }
 
   // Get next fruit type from configuration
   const nextFruitType = FRUIT_TYPES[fruitDataA.nextType]
   if (!nextFruitType) return
+
+  // Create visual effects BEFORE creating new fruit
+  createMergeVisualEffects(mergeX, mergeY, nextFruitType)
 
   // Create new merged fruit
   const mergedFruit = {
@@ -965,7 +948,23 @@ onUnmounted(() => {
           <div class="fruits-container">
             <!-- Physik-Früchte werden hier dynamisch eingefügt -->
           </div>
-
+          <!-- Merge Particles Container -->
+          <div class="merge-particles-container">
+            <div
+              v-for="particle in particles"
+              :key="particle.id"
+              class="merge-particle"
+              :class="`particle--${particle.type.toLowerCase()}`"
+              :style="{
+                left: `${particle.x}px`,
+                top: `${particle.y}px`,
+                '--particle-x': `${particle.targetX}px`,
+                '--particle-y': `${particle.targetY}px`,
+                animationDuration: `${particle.duration}ms`,
+                backgroundColor: particle.backgroundColor
+              }"
+            ></div>
+          </div>
           <!-- Drop Frucht -->
           <div
             v-if="dropFruit && isDropReady"
@@ -1415,6 +1414,62 @@ onUnmounted(() => {
   border-bottom: 1px dashed var(--error-color);
   pointer-events: none;
   z-index: 5;
+}
+
+
+// Merge Animation Effects
+.merge-particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 45;
+  overflow: hidden;
+}
+
+.fruit-merge-effect {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.merge-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 45;
+  animation: particleFly 2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 1), 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+// Simple particle animation
+@keyframes particleFly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(2);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--particle-x), var(--particle-y)) scale(0.3);
+  }
+}
+
+// Merge glow effect for new fruits
+.fruit-merge-glow {
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.6);
+  animation: mergeGlow 0.8s ease-out;
+}
+
+@keyframes mergeGlow {
+  0% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(255, 193, 7, 0.2); }
 }
 
 
