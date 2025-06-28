@@ -57,7 +57,7 @@ const isPhysicsReady = ref(false)
 const dropCooldown = ref(false)
 
 // FruitMerge specific state
-const fruitsCreated = ref({}) // Track created fruits by type
+const fruitsCreated = ref({})
 const targetReached = ref(false)
 
 const mergeEffects = ref([])
@@ -139,9 +139,8 @@ const initializeGame = () => {
 const initializePhysics = () => {
   if (!gameField.value) return
 
-  // Matter.js Engine mit optimierten Einstellungen erstellen
   engine.value = Matter.Engine.create({
-    enableSleeping: true,
+    enableSleeping: false,
     timing: {
       timeScale: 1,
       isFixed: true
@@ -152,14 +151,12 @@ const initializePhysics = () => {
 
   world.value = engine.value.world
 
-  // Optimierte Schwerkraft
   engine.value.world.gravity.y = PHYSICS_CONFIG.engine.gravity.y
   engine.value.world.gravity.scale = PHYSICS_CONFIG.engine.gravity.scale
 
   createWalls()
   setupOptimizedCollisionEvents()
 
-  // Optimierter Runner mit fester Delta-Zeit
   runner.value = Matter.Runner.create({
     delta: 16.666,
     isFixed: true
@@ -179,10 +176,8 @@ const startOptimizedRenderLoop = () => {
   const render = () => {
     if (!isRenderingActive.value) return
 
-    // Effiziente Frucht-Position-Updates
     optimizedSyncFruitPositions()
 
-    // Kollisionen verarbeiten
     processCollisionBuffer()
 
     // Game Over prüfen (weniger häufig)
@@ -438,7 +433,7 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
       friction: PHYSICS_CONFIG.fruit.friction,
       frictionAir: PHYSICS_CONFIG.fruit.frictionAir,
       density: PHYSICS_CONFIG.fruit.density,
-      sleepThreshold: 60,
+      sleepThreshold: 300,
       collisionFilter: PHYSICS_CONFIG.fruit.collisionFilter,
       render: { fillStyle: fruitData.color },
       fruitType: fruitData.type,
@@ -1015,12 +1010,6 @@ onUnmounted(() => {
         </p>
         <p class="game-info">
           Früchte: {{ fruits.length }} | Ziel: {{ targetFruit }}
-        </p>
-        <p class="fruits-created" v-if="Object.keys(fruitsCreated).length > 0">
-          Erstellt:
-          <span v-for="(count, type) in fruitsCreated" :key="type">
-            {{ type }}:{{ count }}
-          </span>
         </p>
       </div>
 
