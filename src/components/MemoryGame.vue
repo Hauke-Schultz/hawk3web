@@ -2,7 +2,14 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
-import { memoryConfig, getMemoryLevel, calculateMaxPossibleScore, calculateStars, getGridConfig } from '../config/memoryConfig.js'
+import {
+  memoryConfig,
+  getMemoryLevel,
+  calculateMaxPossibleScore,
+  calculateStars,
+  getGridConfig,
+  MEMORY_LEVELS
+} from '../config/memoryConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
 import { useComboSystem } from '../composables/useComboSystem.js'
 import Icon from './Icon.vue'
@@ -10,6 +17,7 @@ import ProgressOverview from "./ProgressOverview.vue";
 import GameCompletedModal from "./GameCompletedModal.vue";
 import PerformanceStats from "./PerformanceStats.vue";
 import GameControls from "./GameControls.vue";
+import {FRUIT_MERGE_LEVELS} from "../config/fruitMergeConfig.js";
 
 const props = defineProps({
   level: {
@@ -27,7 +35,7 @@ const { t } = useI18n()
 
 // Game state
 const gameState = ref('playing') // 'playing', 'paused', 'completed'
-const currentLevel = computed(() => props.level)
+const currentLevel = ref(props.level || 1)
 const score = ref(0)
 const moves = ref(0)
 const matches = ref(0)
@@ -79,6 +87,10 @@ const gameProgress = computed(() => {
 })
 
 const initializeGame = () => {
+  startLevel(currentLevel.value)
+}
+
+const startLevel = (level) => {
   // Create pairs of cards
   const pairs = totalPairs.value
   const selectedSymbols = memoryConfig.cardSymbols.slice(0, pairs)
@@ -289,8 +301,11 @@ const resumeGame = () => {
 }
 
 const nextLevel = () => {
-  if (currentLevel.value < 6) {
-    emit('back-to-gaming') // Return to level selection
+  if (currentLevel.value <  Object.keys(MEMORY_LEVELS).length) {
+    currentLevel.value++
+    startLevel(currentLevel.value)
+  } else {
+    backToGaming()
   }
 }
 
@@ -421,9 +436,9 @@ onUnmounted(() => {
       :show-stars="true"
       :new-achievements="earnedAchievements"
       :show-achievements="true"
-      :next-level-label="t('memory.back_to_levels')"
+      :next-level-label="t('memory.next_level')"
       :play-again-label="t('memory.play_again')"
-      :back-to-games-label="t('gaming.back_to_games')"
+      :back-to-games-label="t('memory.back_to_levels')"
       @next-level="nextLevel"
       @play-again="resetGame"
       @back-to-games="backToGaming"

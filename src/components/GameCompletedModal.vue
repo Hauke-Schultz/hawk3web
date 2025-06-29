@@ -70,7 +70,7 @@ const props = defineProps({
   // Custom button labels
   nextLevelLabel: {
     type: String,
-    default: 'Back to Levels'
+    default: 'Next Level'
   },
   playAgainLabel: {
     type: String,
@@ -78,7 +78,7 @@ const props = defineProps({
   },
   backToGamesLabel: {
     type: String,
-    default: 'Back to Games'
+    default: 'Back to Levels'
   }
 })
 

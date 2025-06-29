@@ -698,7 +698,7 @@ export const fruitMergeConfig = {
 	gameId: 'fruitMerge',
 	gameTitle: 'Fruit Merge',
 	gameDescription: 'Merge fruits to create new combinations',
-	gameIcon: 'apple',
+	gameIcon: 'fruit-merge-game',
 	levels: Object.values(FRUIT_MERGE_LEVELS).map((level, index) => ({
 		level: index + 1,
 		...level

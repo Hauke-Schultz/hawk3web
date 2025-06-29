@@ -28,7 +28,7 @@ const { t } = useI18n()
 
 // Game state
 const gameState = ref('playing') // 'playing', 'paused', 'completed'
-const currentLevel = computed(() => props.level)
+const currentLevel = ref(props.level || 1)
 const score = ref(0)
 const moves = ref(0)
 const merges = ref(0)
@@ -104,36 +104,8 @@ const gameProgress = computed(() => {
 })
 
 const initializeGame = () => {
-  // Reset all game state
-  fruitsCreated.value = {}
-  targetReached.value = false
-  score.value = 0
-  moves.value = 0
-  merges.value = 0
-  timeElapsed.value = 0
-  gameState.value = 'playing'
-
-  // Reset combo system
-  comboSystem.resetCombo()
-
-  // Drop-Frucht initialisieren
-  dropFruit.value = null
-  isDragging.value = false
-  isDropReady.value = false
-  dropCooldown.value = false
-
-  startTimer()
-
-  // Physik nach kurzer Verzögerung initialisieren
-  nextTick(() => {
-    setTimeout(() => {
-      initializePhysics()
-      // Erste Drop-Frucht generieren
-      setTimeout(() => {
-        generateNewDropFruit()
-      }, 200)
-    }, 100)
-  })
+  console.log(`Initializing game for level ${currentLevel.value}`)
+  startLevel(currentLevel.value)
 }
 
 const initializePhysics = () => {
@@ -787,9 +759,7 @@ const checkLevelAchievements = () => {
 }
 
 const resetGame = () => {
-  stopTimer()
-  comboSystem.resetCombo()
-  initializeGame()
+  startLevel(currentLevel.value);
 }
 
 const pauseGame = () => {
@@ -808,8 +778,56 @@ const resumeGame = () => {
 
 const nextLevel = () => {
   if (currentLevel.value < Object.keys(FRUIT_MERGE_LEVELS).length) {
-    emit('back-to-gaming') // Return to level selection
+    currentLevel.value++
+    startLevel(currentLevel.value)
+  } else {
+    backToGaming()
   }
+}
+
+const startLevel = (levelNumber) => {
+  console.log(`Starting level ${levelNumber}`)
+
+  // Timer stoppen falls aktiv
+  stopTimer()
+  comboSystem.resetCombo()
+
+  // Physics cleanup
+  cleanupPhysics()
+
+  // Reset all game state
+  fruitsCreated.value = {}
+  targetReached.value = false
+  gameComplete.value = false
+  score.value = 0
+  moves.value = 0
+  merges.value = 0
+  timeElapsed.value = 0
+  gameState.value = 'playing'
+  earnedAchievements.value = []
+
+  // Reset visual effects
+  mergeEffects.value = []
+  particles.value = []
+
+  // Reset drop system
+  dropFruit.value = null
+  isDragging.value = false
+  isDropReady.value = false
+  dropCooldown.value = false
+
+  // Start timer
+  startTimer()
+
+  // Initialize physics for the level
+  nextTick(() => {
+    setTimeout(() => {
+      initializePhysics()
+      setTimeout(() => {
+        generateNewDropFruit()
+      }, 200)
+    }, 100)
+  })
 }
 
 const backToGaming = () => {
@@ -1036,9 +1054,9 @@ onUnmounted(() => {
       :show-stars="true"
       :new-achievements="earnedAchievements"
       :show-achievements="true"
-      :next-level-label="t('fruitMerge.back_to_levels')"
+      :next-level-label="t('fruitMerge.next_level')"
       :play-again-label="t('fruitMerge.play_again')"
-      :back-to-games-label="t('gaming.back_to_games')"
+      :back-to-games-label="t('fruitMerge.back_to_levels')"
       @next-level="nextLevel"
       @play-again="resetGame"
       @back-to-games="backToGaming"
