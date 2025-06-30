@@ -255,6 +255,7 @@ export function useLocalStorage() {
 				completed: false,
 				highScore: 0,
 				bestTime: null,
+				bestMoves: null,
 				stars: 0,
 				attempts: 0,
 				bestPerformance: null
@@ -262,28 +263,64 @@ export function useLocalStorage() {
 		}
 
 		const level = gameData.games[gameName].levels[levelNumber]
+		let hasImprovement = false
 
 		// Update attempts
 		level.attempts += 1
 
-		// Update completion status
+		// Update completion status (only if newly completed)
 		if (levelStats.completed && !level.completed) {
 			level.completed = true
+			hasImprovement = true
+			console.log(`Level ${levelNumber} completed for the first time!`)
 		}
 
-		// Update high score
-		if (levelStats.score > level.highScore) {
+		// Update high score (only if better)
+		if (levelStats.score && levelStats.score > level.highScore) {
+			const previousScore = level.highScore
 			level.highScore = levelStats.score
+			hasImprovement = true
+			console.log(`New high score for level ${levelNumber}: ${levelStats.score} (was: ${previousScore})`)
 		}
 
-		// Update best time (only if level was completed)
+		// Update best time (only if better and level completed)
 		if (levelStats.completed && levelStats.time) {
 			if (!level.bestTime || levelStats.time < level.bestTime) {
+				const previousTime = level.bestTime
 				level.bestTime = levelStats.time
+				hasImprovement = true
+				console.log(`New best time for level ${levelNumber}: ${levelStats.time}s (was: ${previousTime || 'none'})`)
 			}
 		}
 
-		// Update best performance (overall best combination of score, time, moves)
+		// Update best moves (only if better and level completed)
+		if (levelStats.completed && levelStats.moves) {
+			if (!level.bestMoves || levelStats.moves < level.bestMoves) {
+				const previousMoves = level.bestMoves
+				level.bestMoves = levelStats.moves
+				hasImprovement = true
+				console.log(`New best moves for level ${levelNumber}: ${levelStats.moves} (was: ${previousMoves || 'none'})`)
+			}
+		}
+
+		// Calculate stars based on current performance (using best stats)
+		const currentBestStats = {
+			score: level.highScore,
+			time: level.bestTime,
+			moves: level.bestMoves,
+			completed: level.completed
+		}
+
+		// Calculate new stars and update if better
+		const newStars = calculateLevelStars(currentBestStats, level)
+		if (newStars > level.stars) {
+			const previousStars = level.stars
+			level.stars = newStars
+			hasImprovement = true
+			console.log(`New star rating for level ${levelNumber}: ${newStars} stars (was: ${previousStars})`)
+		}
+
+		// Update best performance (comprehensive best combination)
 		if (levelStats.completed) {
 			const currentPerformance = calculatePerformanceScore(levelStats)
 			const bestPerformance = level.bestPerformance ?
@@ -294,35 +331,76 @@ export function useLocalStorage() {
 					score: levelStats.score,
 					time: levelStats.time,
 					moves: levelStats.moves,
-					performanceScore: currentPerformance
+					performanceScore: currentPerformance,
+					achievedAt: new Date().toISOString()
 				}
+				hasImprovement = true
+				console.log(`New best performance for level ${levelNumber}: ${currentPerformance.toFixed(2)}`)
 			}
 		}
 
-		// Calculate and update stars
-		level.stars = calculateLevelStars(levelStats, level)
+		// Save data only if there was an improvement
+		if (hasImprovement) {
+			saveData()
+			console.log(`Level ${levelNumber} stats updated with improvements:`, {
+				highScore: level.highScore,
+				bestTime: level.bestTime,
+				bestMoves: level.bestMoves,
+				stars: level.stars,
+				attempts: level.attempts
+			})
+		} else {
+			console.log(`No improvements for level ${levelNumber} this time`)
+		}
 
-		// Save data
-		saveData()
-
-		return true
+		return hasImprovement
 	}
 
-// Calculate performance score for star rating
+	// Calculate performance score for star rating
 	const calculatePerformanceScore = (stats) => {
-		if (!stats.score || !stats.time || !stats.moves) return 0
+		if (!stats.score || !stats.completed) return 0
 
-		// Higher score is better, lower time is better, fewer moves is better
-		// Normalize values to create a performance score
+		// Base score component (60% weight)
 		const scoreWeight = stats.score * 0.6
-		const timeWeight = (300 - Math.min(stats.time, 300)) * 0.3 // Max 5 minutes
-		const moveWeight = (50 - Math.min(stats.moves, 50)) * 0.1 // Max 50 moves penalty
+
+		// Time component (25% weight) - better time = higher score
+		let timeWeight = 0
+		if (stats.time) {
+			const timeBonus = Math.max(0, 600 - Math.min(stats.time, 600)) // Max 10 minutes
+			timeWeight = timeBonus * 0.25
+		}
+
+		// Moves component (15% weight) - fewer moves = higher score
+		let moveWeight = 0
+		if (stats.moves) {
+			const moveBonus = Math.max(0, 100 - Math.min(stats.moves, 100)) // Max 100 moves penalty
+			moveWeight = moveBonus * 0.15
+		}
 
 		return scoreWeight + timeWeight + moveWeight
 	}
 
 	const getLevelStats = (gameName, levelNumber) => {
-		return gameData.games[gameName]?.levels?.[levelNumber] || null
+		const levelStats = gameData.games[gameName]?.levels?.[levelNumber]
+
+		if (!levelStats) return null
+
+		// Return stats with computed improvements
+		return {
+			...levelStats,
+			hasPersonalBest: {
+				score: levelStats.highScore > 0,
+				time: levelStats.bestTime !== null,
+				moves: levelStats.bestMoves !== null,
+				stars: levelStats.stars > 0
+			},
+			improvementPotential: {
+				canImproveScore: true, // Always possible
+				canImproveTime: levelStats.completed,
+				canImproveMoves: levelStats.completed,
+				canImproveStars: levelStats.stars < 3
+			}
+		}
 	}
 
 	const isLevelUnlocked = (gameName, levelNumber) => {

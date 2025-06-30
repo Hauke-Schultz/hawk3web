@@ -356,13 +356,13 @@ const createMergeVisualEffects = (mergeX, mergeY, newFruitType) => {
 }
 
 const createMergeParticles = (x, y, fruitType) => {
-  const particleCount = fruitType.index + 1
+  const particleCount = Math.min(fruitType.index + 2, 8)
 
   for (let i = 0; i < particleCount; i++) {
     const angle = (i / particleCount) * Math.PI * 2
-    const distance = 60 + Math.random() * 20
-    const particleX = Math.cos(angle) * distance + Math.random() * 20
-    const particleY = Math.sin(angle) * distance
+    const distance = 40 + Math.random() * 30
+    const particleX = Math.cos(angle) * distance + (Math.random() - 0.5) * 20
+    const particleY = Math.sin(angle) * distance + (Math.random() - 0.5) * 20
 
     const particle = {
       id: `particle-${Date.now()}-${i}`,
@@ -372,7 +372,8 @@ const createMergeParticles = (x, y, fruitType) => {
       targetY: particleY,
       type: fruitType.type,
       backgroundColor: fruitType.sparkleColor,
-      duration: PHYSICS_CONFIG.sparkleDelay
+      duration: PHYSICS_CONFIG.sparkleDelay,
+      size: 4 + Math.random() * 4
     }
 
     particles.value.push(particle)
@@ -442,6 +443,19 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
     container.appendChild(fruitElement)
   }
 
+  // Apply pop effect for merged fruits
+  if (fruitData.id.startsWith('merged-')) {
+    setTimeout(() => {
+      if (body) {
+        // Kleine Aufwärtskraft für den Pop-Effekt
+        Matter.Body.setVelocity(body, {
+          x: (Math.random() - 0.5) * 2, // Kleine horizontale Variation
+          y: -3 // Aufwärts pop
+        })
+      }
+    }, 50) // Kurze Verzögerung für visuellen Effekt
+  }
+
   console.log('Optimized fruit created:', fruitData.emoji, 'at', absoluteX, absoluteY)
 }
 
@@ -450,7 +464,7 @@ const createFruitElement = (fruitData) => {
   element.className = 'physics-fruit'
   element.id = `fruit-${fruitData.id}`
 
-  // Enhanced CSS with merge animations
+  // Enhanced CSS with merge animations and pop effect
   const size = fruitData.radius * 2
   element.style.cssText = `
     position: absolute;
@@ -459,17 +473,33 @@ const createFruitElement = (fruitData) => {
     pointer-events: none;
     z-index: 10;
     will-change: transform, opacity;
-    transform: translateZ(0);
+    transform: translateZ(0) scale(0.8);
     backface-visibility: hidden;
     contain: layout style paint;
     transform-origin: center center;
-    opacity: 1;
+    opacity: 0.8;
   `
 
   // Add merge animation class if this is a newly merged fruit
   if (fruitData.id.startsWith('merged-')) {
-    element.classList.add('fruit-merge-glow')
-    element.style.opacity = '1'
+    element.classList.add('fruit-merge-spawn', 'fruit-merge-glow')
+
+    // Animate to full size with pop
+    setTimeout(() => {
+      element.style.transform = 'translateZ(0) scale(1.1)'
+      element.style.opacity = '1'
+    }, 10)
+
+    // Return to normal scale
+    setTimeout(() => {
+      element.style.transform = 'translateZ(0) scale(1)'
+    }, 200)
+  } else {
+    // Normal spawn animation
+    setTimeout(() => {
+      element.style.transform = 'translateZ(0) scale(1)'
+      element.style.opacity = '1'
+    }, 10)
   }
 
   // SVG insertion with enhanced styling
@@ -573,7 +603,7 @@ const performFruitMerge = (bodyA, bodyB, fruitDataA, fruitDataB, mergeX, mergeY)
   // Create visual effects BEFORE creating new fruit
   createMergeVisualEffects(mergeX, mergeY, nextFruitType)
 
-  // Create new merged fruit
+  // Create new merged fruit with pop effect
   const mergedFruit = {
     id: `merged-${Date.now()}-${Math.random()}`,
     type: nextFruitType.type,
@@ -586,8 +616,21 @@ const performFruitMerge = (bodyA, bodyB, fruitDataA, fruitDataB, mergeX, mergeY)
     merging: false
   }
 
-  // Add merged fruit to physics world
-  createPhysicalFruit(mergedFruit, mergeX, mergeY)
+  // Add merged fruit to physics world with pop effect
+  const spawnY = mergeY - PHYSICS_CONFIG.popEffect.spawnOffset
+  createPhysicalFruit(mergedFruit, mergeX, spawnY)
+
+  // Apply upward pop force after configurable delay
+  setTimeout(() => {
+    const newFruitBody = fruits.value.find(f => f.id === mergedFruit.id)?.body
+    if (newFruitBody) {
+      // Konfigurierbare Pop-Kraft
+      Matter.Body.setVelocity(newFruitBody, {
+        x: (Math.random() - 0.5) * PHYSICS_CONFIG.popEffect.horizontalVariation,
+        y: PHYSICS_CONFIG.popEffect.upwardForce
+      })
+    }
+  }, PHYSICS_CONFIG.popEffect.delay)
 
   // Update game statistics
   const baseScore = nextFruitType.scoreValue
@@ -973,11 +1016,15 @@ onUnmounted(() => {
                 top: `${particle.y}px`,
                 '--particle-x': `${particle.targetX}px`,
                 '--particle-y': `${particle.targetY}px`,
+                '--particle-color': particle.backgroundColor,
                 animationDuration: `${particle.duration}ms`,
-                backgroundColor: particle.backgroundColor
+                backgroundColor: particle.backgroundColor,
+                width: `${particle.size || 6}px`,
+                height: `${particle.size || 6}px`
               }"
             ></div>
           </div>
+
           <!-- Drop Frucht -->
           <div
             v-if="dropFruit && isDropReady"
@@ -1003,15 +1050,6 @@ onUnmounted(() => {
             class="warning-zone"
             :style="{ height: `${PHYSICS_CONFIG.warningZone}px` }"
           ></div>
-        </div>
-
-        <!-- Loading/Fallback wenn Physik nicht bereit -->
-        <div v-if="!isPhysicsReady" class="field-loading">
-          <div class="loading-content">
-            <Icon name="apple" size="64" />
-            <h3>{{ t('fruitMerge.title') }}</h3>
-            <p>{{ t('common.loading') }}</p>
-          </div>
         </div>
       </div>
     </div>
@@ -1199,6 +1237,7 @@ onUnmounted(() => {
   backface-visibility: hidden;
   contain: layout style paint;
   transform: translateZ(0);
+  transition: transform 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .fruit-svg-container {
@@ -1444,41 +1483,76 @@ onUnmounted(() => {
 
 .merge-particle {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 45;
-  animation: particleFly 2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 1), 0 0 8px rgba(255, 255, 255, 0.5);
+  animation: particlePop 2s cubic-bezier(0.02, 0.91, 1, 1.37) forwards;
+  box-shadow:
+    0 0 6px rgba(0, 0, 0, 1),
+    0 0 12px rgba(255, 255, 255, 0.5),
+    0 0 18px var(--particle-color, #FFD700);
 }
 
-// Simple particle animation
-@keyframes particleFly {
+@keyframes particlePop {
   0% {
     opacity: 0;
-    transform: translate(0, 0) scale(2);
+    transform: translate(0, 0) scale(3);
   }
-  50% {
+  25% {
     opacity: 1;
+    transform: translate(calc(var(--particle-x) * 0.4), calc(var(--particle-y) * 0.4)) scale(1.5);
   }
   100% {
     opacity: 0;
-    transform: translate(var(--particle-x), var(--particle-y)) scale(0.3);
+    transform: translate(var(--particle-x), var(--particle-y)) scale(0.2);
   }
 }
 
 // Merge glow effect for new fruits
 .fruit-merge-glow {
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.6);
+  box-shadow:
+    0 0 15px rgba(255, 193, 7, 0.6),
+    0 0 30px rgba(255, 193, 7, 0.3);
   animation: mergeGlow 0.8s ease-out;
 }
 
 @keyframes mergeGlow {
-  0% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.8); }
-  100% { box-shadow: 0 0 5px rgba(255, 193, 7, 0.2); }
+  0% {
+    box-shadow:
+      0 0 20px rgba(255, 193, 7, 0.8),
+      0 0 40px rgba(255, 193, 7, 0.4);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow:
+      0 0 5px rgba(255, 193, 7, 0.2),
+      0 0 10px rgba(255, 193, 7, 0.1);
+    transform: scale(1);
+  }
 }
 
+
+// Enhanced Merge Spawn Animation
+.fruit-merge-spawn {
+  animation: fruitMergeSpawn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes fruitMergeSpawn {
+  0% {
+    transform: translateZ(0) scale(0.6);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateZ(0) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateZ(0) scale(1);
+    opacity: 1;
+  }
+}
 
 // Demo Controls
 .demo-controls {

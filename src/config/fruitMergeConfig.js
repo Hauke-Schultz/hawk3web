@@ -54,6 +54,14 @@ export const PHYSICS_CONFIG = {
 
 	sparkleDelay: 2000,
 
+	// Pop Effect Configuration
+	popEffect: {
+		upwardForce: -1,
+		horizontalVariation: 1.5,
+		delay: 50,
+		spawnOffset: 6
+	},
+
 	// Game Over Erkennung
 	gameOverHeight: 100,         // Höhe bei der Game Over eintritt
 	warningZone: 80,             // Warnbereich Höhe
