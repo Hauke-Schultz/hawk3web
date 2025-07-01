@@ -16,20 +16,24 @@ export const PHYSICS_CONFIG = {
 		velocityIterations: 4,
 		positionIterations: 4,
 		enableSleeping: true,
+		broadphase: {
+			bucketWidth: 100,
+			bucketHeight: 100
+		},
 		timing: {
-			timeScale: 1
+			timeScale: 1,
+			isFixed: true,
+			delta: 16.666
 		}
 	},
 
-	// Optimierte Frucht Physik
 	fruit: {
-		restitution: 0.3,        // Sprungkraft (0-1)
-		friction: 0.4,           // Reibung (0-1)
-		frictionAir: 0.01,       // Luftwiderstand
-		density: 0.001,          // Dichte
-		sleepThreshold: 60,      // Ruhe-Schwellenwert
+		restitution: 0.3,
+		friction: 0.05,
+		frictionAir: 0.005,
+		density: 0.001,
+		sleepThreshold: 60,
 
-		// Kollisions-Filter
 		collisionFilter: {
 			group: 0,
 			category: 0x0001,
@@ -37,7 +41,6 @@ export const PHYSICS_CONFIG = {
 		}
 	},
 
-	// Wand Eigenschaften
 	walls: {
 		restitution: 0.3,
 		friction: 0.8,
@@ -45,11 +48,10 @@ export const PHYSICS_CONFIG = {
 		color: '#333'
 	},
 
-	// Drop Mechanik
-	dropCooldown: 600,           // Millisekunden zwischen Drops
+	dropCooldown: 600,
 	dropPosition: {
-		x: 0.5,                    // Relative Position (0-1)
-		y: 0.1                     // Relative Position von oben
+		x: 0.5,
+		y: 0.1
 	},
 
 	sparkleDelay: 2000,

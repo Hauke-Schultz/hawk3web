@@ -1,11 +1,10 @@
 <script setup>
-import {ref, computed, onMounted, onUnmounted, nextTick} from 'vue'
+import {ref, computed, onMounted, onUnmounted, nextTick, shallowRef, reactive} from 'vue'
 import Matter from 'matter-js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import {PHYSICS_CONFIG, FRUIT_TYPES, FRUIT_SPAWN_WEIGHTS, FRUIT_MERGE_LEVELS} from '../config/fruitMergeConfig.js'
 import { useComboSystem } from '../composables/useComboSystem.js'
-import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue"
 import GameCompletedModal from "./GameCompletedModal.vue"
 import PerformanceStats from "./PerformanceStats.vue"
@@ -22,7 +21,7 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // LocalStorage service
-const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, addAchievement, checkGameLevelAchievements } = useLocalStorage()
+const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, checkGameLevelAchievements } = useLocalStorage()
 
 const { t } = useI18n()
 
@@ -43,9 +42,8 @@ const world = ref(null)
 const render = ref(null)
 const runner = ref(null)
 const walls = ref([])
-const fruits = ref([])
+const fruits = shallowRef([])
 const dropFruit = ref(null)
-const dropPosition = ref({ x: 0, y: 0 })
 const isDragging = ref(false)
 const isDropReady = ref(false)
 const renderLoop = ref(null)
@@ -57,15 +55,50 @@ const collisionBuffer = ref([])
 const isPhysicsReady = ref(false)
 const dropCooldown = ref(false)
 
-// FruitMerge specific state
 const fruitsCreated = ref({})
 const targetReached = ref(false)
 
 const mergeEffects = ref([])
-const particles = ref([])
+const particles = shallowRef([])
 
 const gameOver = ref(false)
-const warningZoneFruits = ref(new Set())
+
+const performanceMonitor = reactive({
+  frameTimes: [],
+  lastFrameTime: 0,
+  fps: 0,
+  avgFrameTime: 0,
+
+  update() {
+    const now = performance.now()
+
+    if (this.lastFrameTime > 0) {
+      const frameTime = now - this.lastFrameTime
+
+      if (frameTime > 1 && frameTime < 100) {
+        this.frameTimes.push(frameTime)
+
+        if (this.frameTimes.length > 60) {
+          this.frameTimes.shift()
+        }
+
+        if (this.frameTimes.length >= 10) {
+          this.avgFrameTime = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length
+          this.fps = Math.round(1000 / this.avgFrameTime) // 1000ms / avg frame time
+        }
+      }
+    }
+
+    this.lastFrameTime = now
+  },
+
+  reset() {
+    this.frameTimes = []
+    this.lastFrameTime = 0
+    this.fps = 0
+    this.avgFrameTime = 0
+  }
+})
 
 // Computed properties
 const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
@@ -101,8 +134,6 @@ const gameProgress = computed(() => {
   return {
     completed: fruitsOfTargetType,
     total: targetCount.value,
-    totalStars: 0,
-    maxStars: 3,
     percentage: Math.round((fruitsOfTargetType / targetCount.value) * 100)
   }
 })
@@ -116,17 +147,11 @@ const initializePhysics = () => {
   if (!gameField.value) return
 
   engine.value = Matter.Engine.create({
-    timing: {
-      timeScale: 1,
-      isFixed: true,
-      delta: 16.666
-    },
-    velocityIterations: 2,
-    positionIterations: 2,
-    broadphase: {
-      bucketWidth: 80,
-      bucketHeight: 80
-    }
+    timing: PHYSICS_CONFIG.engine.timing,
+    velocityIterations: PHYSICS_CONFIG.engine.velocityIterations,
+    positionIterations: PHYSICS_CONFIG.engine.positionIterations,
+    enableSleeping: PHYSICS_CONFIG.engine.enableSleeping,
+    broadphase: PHYSICS_CONFIG.engine.broadphase
   })
 
   world.value = engine.value.world
@@ -138,8 +163,8 @@ const initializePhysics = () => {
   setupOptimizedCollisionEvents()
 
   runner.value = Matter.Runner.create({
-    delta: 16.666, // Fixed 60 FPS
-    isFixed: true
+    delta: PHYSICS_CONFIG.engine.timing.delta,
+    isFixed: PHYSICS_CONFIG.engine.timing.isFixed,
   })
   Matter.Runner.run(runner.value, engine.value)
 
@@ -157,8 +182,6 @@ const startOptimizedRenderLoop = () => {
     if (!isRenderingActive.value) return
 
     optimizedSyncFruitPositions()
-    // processCollisionBuffer()
-
     renderLoop.value = requestAnimationFrame(render)
   }
 
@@ -169,13 +192,17 @@ const lastRenderUpdate = ref(0)
 const optimizedSyncFruitPositions = () => {
   if (!isRenderingActive.value) return
 
+  performanceMonitor.update()
+
   const now = performance.now()
-  if (now - lastRenderUpdate.value < 16.666) { // 60 FPS cap
+  if (now - lastRenderUpdate.value < PHYSICS_CONFIG.engine.timing.delta) {
     renderLoop.value = requestAnimationFrame(optimizedSyncFruitPositions)
     return
   }
   lastRenderUpdate.value = now
-  console.log('Syncing fruit positions...')
+
+  // Batch DOM updates
+  const updates = []
 
   fruits.value.forEach(fruit => {
     if (fruit.element && fruit.body) {
@@ -183,10 +210,11 @@ const optimizedSyncFruitPositions = () => {
       const rotation = fruit.body.angle
 
       if (fruit.lastX !== x || fruit.lastY !== y || fruit.lastRotation !== rotation) {
-        const elementStyle = fruit.element.style
-        elementStyle.left = `${x - fruit.data.radius}px`
-        elementStyle.top = `${y - fruit.data.radius}px`
-        elementStyle.transform = `rotate(${rotation}rad)`
+        updates.push({
+          element: fruit.element,
+          x, y, rotation,
+          radius: fruit.data.radius
+        })
 
         fruit.lastX = x
         fruit.lastY = y
@@ -195,8 +223,19 @@ const optimizedSyncFruitPositions = () => {
     }
   })
 
-  processCollisionBuffer()
+  // Batch apply all DOM updates
+  if (updates.length > 0) {
+    requestAnimationFrame(() => {
+      updates.forEach(update => {
+        const style = update.element.style
+        style.left = `${update.x - update.radius}px`
+        style.top = `${update.y - update.radius}px`
+        style.transform = `rotate(${update.rotation}rad)`
+      })
+    })
+  }
 
+  processCollisionBuffer()
   renderLoop.value = requestAnimationFrame(optimizedSyncFruitPositions)
 }
 
@@ -217,25 +256,32 @@ const stopGameOverTimer = () => {
 
 const setupOptimizedCollisionEvents = () => {
   Matter.Events.on(engine.value, 'collisionStart', (event) => {
-    // Buffer Kollisionen für effiziente Verarbeitung
-    collisionBuffer.value.push(...event.pairs)
+    if (collisionBuffer.value.length > 20) {
+      processCollisionBuffer()
+    } else {
+      collisionBuffer.value.push(...event.pairs)
+    }
   })
 }
 
 const processCollisionBuffer = () => {
-  if (collisionBuffer.value.length > 0) {
-    const pairs = [...collisionBuffer.value]
-    collisionBuffer.value = []
+  if (collisionBuffer.value.length === 0) return
 
-    pairs.forEach(pair => {
-      const bodyA = pair.bodyA
-      const bodyB = pair.bodyB
+  const pairs = collisionBuffer.value.splice(0)
+  const processedPairs = new Set()
 
-      if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
-        handleFruitCollision(bodyA, bodyB)
-      }
-    })
-  }
+  pairs.forEach(pair => {
+    const pairId = `${pair.bodyA.id}-${pair.bodyB.id}`
+    if (processedPairs.has(pairId)) return
+    processedPairs.add(pairId)
+
+    const bodyA = pair.bodyA
+    const bodyB = pair.bodyB
+
+    if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
+      handleFruitCollision(bodyA, bodyB)
+    }
+  })
 }
 
 const createWalls = () => {
@@ -358,23 +404,17 @@ const continueDragging = (event) => {
 const dropFruitIntoField = () => {
   if (!isDragging.value || !isDropReady.value || !dropFruit.value) return
 
-  // Sofortiger State-Change
   isDragging.value = false
   isDropReady.value = false
   dropCooldown.value = true
 
-  // Frucht in Physik-Welt hinzufügen
   createPhysicalFruit(dropFruit.value)
 
-  // Drop-Frucht zurücksetzen
   dropFruit.value = null
-
-  // Drop-Cooldown aktivieren
   dropCooldown.value = true
 
   setTimeout(() => {
     dropCooldown.value = false
-    // Sofort neue Frucht generieren wenn Cooldown vorbei
     generateNewDropFruit()
   }, PHYSICS_CONFIG.dropCooldown)
 
@@ -424,7 +464,6 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
   const absoluteX = customX !== null ? customX : (fruitData.x / 100) * width
   const absoluteY = customY !== null ? customY : (fruitData.y / 100) * height
 
-  // Optimierter Matter.js Body mit reduzierten Properties
   const body = Matter.Bodies.circle(
     absoluteX,
     absoluteY,
@@ -464,7 +503,6 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
 
   fruits.value.push(fruitObject)
 
-  // Element zum DOM hinzufügen
   const container = gameField.value.querySelector('.fruits-container')
   if (container) {
     container.appendChild(fruitElement)
@@ -474,13 +512,12 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
   if (fruitData.id.startsWith('merged-')) {
     setTimeout(() => {
       if (body) {
-        // Kleine Aufwärtskraft für den Pop-Effekt
         Matter.Body.setVelocity(body, {
-          x: (Math.random() - 0.5) * 2, // Kleine horizontale Variation
-          y: -3 // Aufwärts pop
+          x: (Math.random() - 0.5) * 2,
+          y: -3
         })
       }
-    }, 50) // Kurze Verzögerung für visuellen Effekt
+    }, 50)
   }
 
   console.log('Optimized fruit created:', fruitData.emoji, 'at', absoluteX, absoluteY)
@@ -498,56 +535,18 @@ const createFruitElement = (fruitData) => {
     height: ${size}px;
     pointer-events: none;
     z-index: 10;
-    will-change: transform, opacity;
-    transform: translateZ(0) scale(0.8);
+    will-change: transform;
+    transform: translateZ(0);
     backface-visibility: hidden;
-    contain: layout style paint;
-    transform-origin: center center;
-    opacity: 0.8;
+    contain: layout style paint size;
+    transition: opacity 0.15s ease;
   `
 
-  // Add merge animation class if this is a newly merged fruit
-  if (fruitData.id.startsWith('merged-')) {
-    element.classList.add('fruit-merge-spawn', 'fruit-merge-glow')
-
-    // Animate to full size with pop
-    setTimeout(() => {
-      element.style.transform = 'translateZ(0) scale(1.1)'
-      element.style.opacity = '1'
-    }, 10)
-
-    // Return to normal scale
-    setTimeout(() => {
-      element.style.transform = 'translateZ(0) scale(1)'
-    }, 200)
-  } else {
-    // Normal spawn animation
-    setTimeout(() => {
-      element.style.transform = 'translateZ(0) scale(1)'
-      element.style.opacity = '1'
-    }, 10)
-  }
-
   element.innerHTML = fruitData.svg
-
-  // SVG styling
-  const svg = element.querySelector('svg')
-  if (svg) {
-    svg.style.cssText = `
-      width: 100%;
-      height: 100%;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-      shape-rendering: optimizeSpeed;
-      image-rendering: optimizeSpeed;
-      vector-effect: non-scaling-stroke;
-    `
-  }
-
   return element
 }
 
 const checkGameOver = () => {
-  // Early returns für Performance
   if (gameOver.value || gameState.value !== 'playing' || !isPhysicsReady.value) {
     return false
   }
@@ -555,7 +554,6 @@ const checkGameOver = () => {
   const warningHeight = PHYSICS_CONFIG.warningZone
   let fruitsInDanger = 0
 
-  // Nur lebende Früchte prüfen - optimierte Schleife
   for (let i = 0; i < fruits.value.length && fruitsInDanger < PHYSICS_CONFIG.fruitsInDanger; i++) {
     const fruit = fruits.value[i]
     if (!fruit.body) continue
@@ -563,18 +561,15 @@ const checkGameOver = () => {
     if (fruit.body.position.y < warningHeight) {
       fruitsInDanger++
 
-      // Visuelle Warnung hinzufügen (throttled)
       if (fruit.element && !fruit.element.classList.contains('fruit-warning')) {
         fruit.element.classList.add('fruit-warning')
       }
 
-      // Early exit wenn genug Früchte gefunden
       if (fruitsInDanger >= 3) {
         triggerGameOver()
         return true
       }
     } else {
-      // Warnung entfernen wenn Frucht wieder sicher ist
       if (fruit.element && fruit.element.classList.contains('fruit-warning')) {
         fruit.element.classList.remove('fruit-warning')
       }
@@ -596,11 +591,9 @@ const triggerGameOver = () => {
   stopGameOverTimer()
   comboSystem.cleanup()
 
-  // Drop-System deaktivieren
   canDropFruit.value = false
   showNextFruit.value = false
 
-  // Alle Früchte als "game over" markieren
   fruits.value.forEach(fruit => {
     if (fruit.element) {
       fruit.element.classList.add('fruit-game-over')
@@ -609,17 +602,14 @@ const triggerGameOver = () => {
 }
 
 const handleTryAgain = () => {
-  // Game Over State zurücksetzen
   gameOver.value = false
 
-  // Alle Warning-Klassen entfernen
   fruits.value.forEach(fruit => {
     if (fruit.element) {
       fruit.element.classList.remove('fruit-warning', 'fruit-game-over')
     }
   })
 
-  // Level neu starten
   startLevel(currentLevel.value)
 }
 
@@ -639,7 +629,6 @@ const handleMouseUp = () => {
 }
 
 const handleMouseLeave = () => {
-  // Dragging stoppen wenn Maus das Feld verlässt
   isDragging.value = false
 }
 
@@ -757,17 +746,14 @@ const checkLevelCompletion = () => {
 }
 
 const cleanupPhysics = () => {
-  // Render Loop stoppen
   isRenderingActive.value = false
   if (renderLoop.value) {
     cancelAnimationFrame(renderLoop.value)
     renderLoop.value = null
   }
 
-  // Alle Timer stoppen
-  stopGameOverTimer() // Game Over Timer stoppen
+  stopGameOverTimer()
 
-  // Collision Buffer leeren
   collisionBuffer.value = []
 
   if (runner.value) {
@@ -780,13 +766,11 @@ const cleanupPhysics = () => {
     Matter.Engine.clear(engine.value)
   }
 
-  // DOM Früchte entfernen
   const container = gameField.value?.querySelector('.fruits-container')
   if (container) {
     container.innerHTML = ''
   }
 
-  // Memory cleanup
   fruits.value.forEach(fruit => {
     fruit.element = null
     fruit.body = null
@@ -1174,6 +1158,16 @@ onUnmounted(() => {
         <p class="game-info">
           Früchte: {{ fruits.length }} | Ziel: {{ targetFruit }}
         </p>
+        <div class="performance-item">
+          <span class="performance-label">FPS: </span>
+          <span class="performance-value" :class="{
+            'performance-good': performanceMonitor.fps >= 50,
+            'performance-warning': performanceMonitor.fps >= 30 && performanceMonitor.fps < 50,
+            'performance-bad': performanceMonitor.fps < 30
+          }">
+            {{ performanceMonitor.fps || '—' }}
+          </span>
+        </div>
       </div>
 
       <div class="demo-buttons">
@@ -1341,16 +1335,19 @@ onUnmounted(() => {
   }
 }
 
-.physics-fruitx {
+.physics-fruit {
   position: absolute;
   pointer-events: none;
   z-index: 10;
-  transform-origin: center center;
   will-change: transform;
-  backface-visibility: hidden;
-  contain: layout style paint;
   transform: translateZ(0);
-  transition: transform 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  backface-visibility: hidden;
+  contain: layout style paint size;
+  transition: opacity 0.15s ease;
+
+  &.fruit-sleeping {
+    will-change: auto;
+  }
 }
 
 .fruit-svg-container {
@@ -1615,11 +1612,13 @@ onUnmounted(() => {
 }
 
 .merge-particle {
+  contain: strict;
+  pointer-events: none;
+  will-change: transform, opacity;
   position: absolute;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  pointer-events: none;
   z-index: 45;
   animation: particlePop 2s cubic-bezier(0.02, 0.91, 1, 1.37) forwards;
   box-shadow:
