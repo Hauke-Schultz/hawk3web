@@ -116,13 +116,17 @@ const initializePhysics = () => {
   if (!gameField.value) return
 
   engine.value = Matter.Engine.create({
-    enableSleeping: false,
     timing: {
       timeScale: 1,
-      isFixed: true
+      isFixed: true,
+      delta: 16.666
     },
-    velocityIterations: 4,
-    positionIterations: 4
+    velocityIterations: 2,
+    positionIterations: 2,
+    broadphase: {
+      bucketWidth: 80,
+      bucketHeight: 80
+    }
   })
 
   world.value = engine.value.world
@@ -134,7 +138,7 @@ const initializePhysics = () => {
   setupOptimizedCollisionEvents()
 
   runner.value = Matter.Runner.create({
-    delta: 16.666,
+    delta: 16.666, // Fixed 60 FPS
     isFixed: true
   })
   Matter.Runner.run(runner.value, engine.value)
@@ -161,7 +165,18 @@ const startOptimizedRenderLoop = () => {
   render()
 }
 
+const lastRenderUpdate = ref(0)
 const optimizedSyncFruitPositions = () => {
+  if (!isRenderingActive.value) return
+
+  const now = performance.now()
+  if (now - lastRenderUpdate.value < 16.666) { // 60 FPS cap
+    renderLoop.value = requestAnimationFrame(optimizedSyncFruitPositions)
+    return
+  }
+  lastRenderUpdate.value = now
+  console.log('Syncing fruit positions...')
+
   fruits.value.forEach(fruit => {
     if (fruit.element && fruit.body) {
       const { x, y } = fruit.body.position
@@ -406,11 +421,10 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
   const width = PHYSICS_CONFIG.board.width
   const height = PHYSICS_CONFIG.board.height
 
-  // Use custom position for merges, or calculate from percentage for drops
   const absoluteX = customX !== null ? customX : (fruitData.x / 100) * width
   const absoluteY = customY !== null ? customY : (fruitData.y / 100) * height
 
-  // Optimierter Matter.js Body
+  // Optimierter Matter.js Body mit reduzierten Properties
   const body = Matter.Bodies.circle(
     absoluteX,
     absoluteY,
@@ -436,10 +450,8 @@ const createPhysicalFruit = (fruitData, customX = null, customY = null) => {
   // HTML Element erstellen
   const fruitElement = createFruitElement(fruitData)
 
-  // Zur Physik-Welt hinzufügen
   Matter.World.add(world.value, body)
 
-  // Zur Früchte-Liste hinzufügen mit Cache-Werten
   const fruitObject = {
     body: body,
     data: fruitData,
@@ -479,7 +491,6 @@ const createFruitElement = (fruitData) => {
   element.className = 'physics-fruit'
   element.id = `fruit-${fruitData.id}`
 
-  // Enhanced CSS with merge animations and pop effect
   const size = fruitData.radius * 2
   element.style.cssText = `
     position: absolute;
@@ -517,10 +528,9 @@ const createFruitElement = (fruitData) => {
     }, 10)
   }
 
-  // SVG insertion with enhanced styling
   element.innerHTML = fruitData.svg
 
-  // Enhanced SVG styling
+  // SVG styling
   const svg = element.querySelector('svg')
   if (svg) {
     svg.style.cssText = `
@@ -545,14 +555,15 @@ const checkGameOver = () => {
   const warningHeight = PHYSICS_CONFIG.warningZone
   let fruitsInDanger = 0
 
-  // Effiziente Schleife - nur lebende Früchte prüfen
-  for (const fruit of fruits.value) {
+  // Nur lebende Früchte prüfen - optimierte Schleife
+  for (let i = 0; i < fruits.value.length && fruitsInDanger < PHYSICS_CONFIG.fruitsInDanger; i++) {
+    const fruit = fruits.value[i]
     if (!fruit.body) continue
 
     if (fruit.body.position.y < warningHeight) {
       fruitsInDanger++
 
-      // Visuelle Warnung hinzufügen (nur wenn noch nicht vorhanden)
+      // Visuelle Warnung hinzufügen (throttled)
       if (fruit.element && !fruit.element.classList.contains('fruit-warning')) {
         fruit.element.classList.add('fruit-warning')
       }
