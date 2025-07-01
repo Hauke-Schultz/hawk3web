@@ -66,27 +66,52 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 ### 🔄 **In Progress (v0.2.9):**
 - **Game Over Detection** - Height-based game over when fruits reach warning zone
 - **FruitMerge Achievements** - Game-specific achievements integration
+## 💰 Phase 5: Currency & Rewards System (v0.4.0)
+*Priority: High - After FruitMerge Completion*
 
-### 📋 **Remaining Tasks for v0.3.0:**
-- [ ] **Performance Optimization** - Efficient physics and rendering for mobile
-- [ ] **Level Progression UI** - Enhanced level completion modal and next level flow
-- [ ] **Final Polish** - Bug fixes and performance improvements
+### **Currency System:**
+- [ ] **Coins System** - Earned through gameplay, achievements, and level completion
+- [ ] **Diamonds System** - Premium currency earned through special achievements and perfect performances
+- [ ] **Currency Display** - Show current coins and diamonds in header and profile
+- [ ] **Currency Animation** - Satisfying collection animations when earning rewards
+- [ ] **Daily Rewards** - Login bonuses and daily challenges for additional currency
 
-## 👤 Phase 5: User Experience Enhancement (v0.4.0)
-*Priority: Medium - After FruitMerge Completion*
+### **Achievement Rewards:**
+- [ ] **Achievement Currency Rewards** - Each achievement grants coins and diamonds based on rarity
+- [ ] **Milestone Bonuses** - Large rewards for completing achievement categories
+- [ ] **Perfect Game Bonuses** - Extra diamonds for flawless level completions
+- [ ] **Combo Rewards** - Coins for maintaining combos in games
+- [ ] **Level Completion Rewards** - Graduated rewards based on star rating
 
-- [ ] **Notifications Page** - Activity feed and alerts system with multilingual support
-- [ ] **Navigation Enhancement** - Smooth transitions and improved UX flow
-- [ ] **Enhanced Profile** - Extended statistics, game history, preferences
-- [ ] **Trophy System Expansion** - Advanced achievement categories and rewards
-- [ ] **Notification System** - Game updates, achievements, tips with i18n
-- [ ] **User Customization** - Extended avatar options, custom themes
-- [ ] **Progress Tracking** - Visual progress indicators and milestone celebrations
-- [ ] **Local Leaderboards** - Personal high scores and competition tracking
-- [ ] **Game Settings** - Per-game configuration options and difficulty settings
-- [ ] **Advanced Statistics** - Detailed analytics and progress charts with visualization
+### **Reward Categories:**
+- [ ] **Common Achievements** - 10-25 coins
+- [ ] **Uncommon Achievements** - 25-50 coins + 1 diamond
+- [ ] **Rare Achievements** - 50-100 coins + 2-3 diamonds
+- [ ] **Epic Achievements** - 100-200 coins + 5-10 diamonds
+- [ ] **Legendary Achievements** - 250-500 coins + 15-25 diamonds
 
-## ⚡ Phase 6: Advanced Features (v0.5.0)
+### **Currency Usage (Future Phases):**
+- [ ] **Shop System** - Spend coins on themes, avatars, power-ups
+- [ ] **Game Enhancements** - Use diamonds for special abilities or continues
+- [ ] **Cosmetic Unlocks** - Purchase new avatar options and themes
+- [ ] **Boost Items** - Temporary game enhancements for difficult levels
+
+## ⚡ Phase 6: Shop & Customization System (v0.5.0)
+*Priority: Medium - Currency Integration*
+
+### **Shop System:**
+- [ ] **Avatar Shop** - Purchase new avatar options with coins
+- [ ] **Theme Shop** - Unlock premium themes and color schemes
+- [ ] **Game Boosts** - Temporary power-ups for challenging levels
+- [ ] **Cosmetic Items** - Profile frames, badges, and decorations
+
+### **Customization Features:**
+- [ ] **Profile Customization** - Backgrounds, borders, and special effects
+- [ ] **Achievement Showcases** - Display favorite achievements prominently
+- [ ] **Progress Celebrations** - Custom victory animations and effects
+- [ ] **Seasonal Content** - Limited-time themes and rewards
+
+## ⚡ Phase 7: Advanced Features (v0.6.0)
 *Priority: Low - Long-term Goals*
 
 - [ ] **Sound System** - Background music and sound effects with language-specific audio
@@ -98,7 +123,7 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - [ ] **Interactive Tutorials** - Step-by-step game tutorials in multiple languages
 - [ ] **Advanced Game Modes** - Time trials, endless modes, daily challenges
 - [ ] **Visual Enhancements** - Particle effects, smooth transitions, micro-animations
-
+- 
 ## 🌟 Future Ideas (v1.0.0+)
 *Priority: Future Considerations*
 
@@ -143,9 +168,10 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
 - **✅ v0.2.8** - FruitMerge Core Mechanics & Visual Polish - COMPLETE ✅
 - **🚧 v0.2.9** - Game Over Detection & FruitMerge Achievements - IN PROGRESS 🔄
 - **🎯 v0.3.0** - Complete FruitMerge Game
-- **🎯 v0.4.0** - Enhanced user experience with notifications and advanced features
-- **🎯 v0.5.0** - Advanced features with sound, animations, and PWA capabilities
-- **🎯 v1.0.0** - Stable release with multiple games, full i18n, and comprehensive features
+- **🎯 v0.4.0** - Currency & Rewards System with achievement integration
+- **🎯 v0.5.0** - Shop & Customization System
+- **🎯 v0.6.0** - Advanced Features with sound, animations, and PWA capabilities
+- **🎯 v1.0.0** - Stable release with multiple games, currency system, shop, and comprehensive features
 
 ## 🚀 Current Sprint Focus (v0.2.9)
 
@@ -163,6 +189,11 @@ Create a comprehensive gaming platform featuring multiple mini-games with a mode
    - Combo-based achievements
    - Special fruit creation achievements
    - Integration with existing achievement system
+
+3. **Currency System Foundation** (Medium Priority - Preparation for v0.4.0)
+   - Design currency data structure
+   - Plan achievement reward mapping
+   - Prototype currency display components
 
 ## 📈 Platform Statistics (v0.2.8 → v0.2.9)
 

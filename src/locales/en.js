@@ -265,6 +265,9 @@ export default {
 		back_to_levels: 'Back to Levels',
 		play_again: 'Play Again',
 		next_level: 'Next Level',
+		game_over: 'Game Over',
+		game_over_message: 'Fruits reached the danger zone! Try a different strategy.',
+		try_again: 'Try Again',
 		fruits: {
 			blueberry: 'Blueberry',
 			strawberry: 'Strawberry',

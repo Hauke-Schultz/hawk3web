@@ -34,6 +34,7 @@ const moves = ref(0)
 const merges = ref(0)
 const timeElapsed = ref(0)
 const timer = ref(null)
+const gameOverTimer = ref(null)
 const earnedAchievements = ref([])
 
 const gameField = ref(null)
@@ -62,6 +63,9 @@ const targetReached = ref(false)
 
 const mergeEffects = ref([])
 const particles = ref([])
+
+const gameOver = ref(false)
+const warningZoneFruits = ref(new Set())
 
 // Computed properties
 const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
@@ -149,13 +153,7 @@ const startOptimizedRenderLoop = () => {
     if (!isRenderingActive.value) return
 
     optimizedSyncFruitPositions()
-
-    processCollisionBuffer()
-
-    // Game Over prüfen (weniger häufig)
-    if (Date.now() % 500 < 16) { // Alle ~500ms prüfen
-      checkGameOver()
-    }
+    // processCollisionBuffer()
 
     renderLoop.value = requestAnimationFrame(render)
   }
@@ -169,20 +167,37 @@ const optimizedSyncFruitPositions = () => {
       const { x, y } = fruit.body.position
       const rotation = fruit.body.angle
 
-      // Nur bei tatsächlicher Änderung updaten
       if (fruit.lastX !== x || fruit.lastY !== y || fruit.lastRotation !== rotation) {
         const elementStyle = fruit.element.style
         elementStyle.left = `${x - fruit.data.radius}px`
         elementStyle.top = `${y - fruit.data.radius}px`
         elementStyle.transform = `rotate(${rotation}rad)`
 
-        // Cache für nächsten Frame
         fruit.lastX = x
         fruit.lastY = y
         fruit.lastRotation = rotation
       }
     }
   })
+
+  processCollisionBuffer()
+
+  renderLoop.value = requestAnimationFrame(optimizedSyncFruitPositions)
+}
+
+const startGameOverTimer = () => {
+  gameOverTimer.value = setInterval(() => {
+    if (gameState.value === 'playing' && !gameOver.value) {
+      checkGameOver()
+    }
+  }, 1000)
+}
+
+const stopGameOverTimer = () => {
+  if (gameOverTimer.value) {
+    clearInterval(gameOverTimer.value)
+    gameOverTimer.value = null
+  }
 }
 
 const setupOptimizedCollisionEvents = () => {
@@ -522,6 +537,79 @@ const createFruitElement = (fruitData) => {
 }
 
 const checkGameOver = () => {
+  // Early returns für Performance
+  if (gameOver.value || gameState.value !== 'playing' || !isPhysicsReady.value) {
+    return false
+  }
+
+  const warningHeight = PHYSICS_CONFIG.warningZone
+  let fruitsInDanger = 0
+
+  // Effiziente Schleife - nur lebende Früchte prüfen
+  for (const fruit of fruits.value) {
+    if (!fruit.body) continue
+
+    if (fruit.body.position.y < warningHeight) {
+      fruitsInDanger++
+
+      // Visuelle Warnung hinzufügen (nur wenn noch nicht vorhanden)
+      if (fruit.element && !fruit.element.classList.contains('fruit-warning')) {
+        fruit.element.classList.add('fruit-warning')
+      }
+
+      // Early exit wenn genug Früchte gefunden
+      if (fruitsInDanger >= 3) {
+        triggerGameOver()
+        return true
+      }
+    } else {
+      // Warnung entfernen wenn Frucht wieder sicher ist
+      if (fruit.element && fruit.element.classList.contains('fruit-warning')) {
+        fruit.element.classList.remove('fruit-warning')
+      }
+    }
+  }
+
+  return false
+}
+
+const triggerGameOver = () => {
+  if (gameOver.value) return
+
+  console.log('Game Over triggered!')
+  gameOver.value = true
+  gameState.value = 'gameOver'
+
+  // Alle Timer stoppen
+  stopTimer()
+  stopGameOverTimer()
+  comboSystem.cleanup()
+
+  // Drop-System deaktivieren
+  canDropFruit.value = false
+  showNextFruit.value = false
+
+  // Alle Früchte als "game over" markieren
+  fruits.value.forEach(fruit => {
+    if (fruit.element) {
+      fruit.element.classList.add('fruit-game-over')
+    }
+  })
+}
+
+const handleTryAgain = () => {
+  // Game Over State zurücksetzen
+  gameOver.value = false
+
+  // Alle Warning-Klassen entfernen
+  fruits.value.forEach(fruit => {
+    if (fruit.element) {
+      fruit.element.classList.remove('fruit-warning', 'fruit-game-over')
+    }
+  })
+
+  // Level neu starten
+  startLevel(currentLevel.value)
 }
 
 const handleMouseDown = (event) => {
@@ -665,6 +753,9 @@ const cleanupPhysics = () => {
     renderLoop.value = null
   }
 
+  // Alle Timer stoppen
+  stopGameOverTimer() // Game Over Timer stoppen
+
   // Collision Buffer leeren
   collisionBuffer.value = []
 
@@ -696,6 +787,7 @@ const cleanupPhysics = () => {
   isDragging.value = false
   isDropReady.value = false
   isPhysicsReady.value = false
+  gameOver.value = false
 }
 
 const dropFruitSvg = computed(() => {
@@ -831,8 +923,9 @@ const nextLevel = () => {
 const startLevel = (levelNumber) => {
   console.log(`Starting level ${levelNumber}`)
 
-  // Timer stoppen falls aktiv
+  // Alle Timer stoppen
   stopTimer()
+  stopGameOverTimer()
   comboSystem.resetCombo()
 
   // Physics cleanup
@@ -842,6 +935,7 @@ const startLevel = (levelNumber) => {
   fruitsCreated.value = {}
   targetReached.value = false
   gameComplete.value = false
+  gameOver.value = false // Game Over State zurücksetzen
   score.value = 0
   moves.value = 0
   merges.value = 0
@@ -859,8 +953,9 @@ const startLevel = (levelNumber) => {
   isDropReady.value = false
   dropCooldown.value = false
 
-  // Start timer
+  // Start both timers
   startTimer()
+  startGameOverTimer() // Game Over Timer starten
 
   // Initialize physics for the level
   nextTick(() => {
@@ -908,6 +1003,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopTimer()
+  stopGameOverTimer()
   comboSystem.cleanup()
   cleanupPhysics()
 })
@@ -1048,7 +1144,7 @@ onUnmounted(() => {
           <!-- Game Over Warning Zone -->
           <div
             class="warning-zone"
-            :style="{ height: `${PHYSICS_CONFIG.warningZone}px` }"
+            :style="{ height: `${currentLevelConfig.gameOverHeight}px` }"
           ></div>
         </div>
       </div>
@@ -1080,7 +1176,7 @@ onUnmounted(() => {
     </div>
     <!-- Game Completed State -->
     <GameCompletedModal
-      :visible="gameState === 'completed'"
+      :visible="gameState === 'completed' || gameState === 'gameOver'"
       :level="currentLevel"
       :game-title="t('fruitMerge.title')"
       :final-score="finalScore"
@@ -1089,21 +1185,27 @@ onUnmounted(() => {
       :matches="merges"
       :total-pairs="targetCount"
       :stars-earned="calculateCurrentStars()"
-      :show-stars="true"
+      :show-stars="gameState === 'completed'"
       :new-achievements="earnedAchievements"
-      :show-achievements="true"
+      :show-achievements="gameState === 'completed'"
+      :game-over-mode="gameState === 'gameOver'"
+      :game-over-title="t('fruitMerge.game_over')"
+      :game-over-message="t('fruitMerge.game_over_message')"
+      :game-over-icon="'💥'"
       :next-level-label="t('fruitMerge.next_level')"
       :play-again-label="t('fruitMerge.play_again')"
+      :try-again-label="t('fruitMerge.try_again')"
       :back-to-games-label="t('fruitMerge.back_to_levels')"
       @next-level="nextLevel"
       @play-again="resetGame"
+      @try-again="handleTryAgain"
       @back-to-games="backToGaming"
       @close="backToGaming"
     />
   </main>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .fruit-merge-game {
   display: flex;
   flex-direction: column;
@@ -1228,7 +1330,7 @@ onUnmounted(() => {
   }
 }
 
-.physics-fruit {
+.physics-fruitx {
   position: absolute;
   pointer-events: none;
   z-index: 10;
@@ -1462,6 +1564,26 @@ onUnmounted(() => {
   z-index: 5;
 }
 
+.fruit-warning {
+  animation: warningPulse 1s infinite;
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+}
+
+.fruit-game-over {
+  opacity: 0.6;
+  filter: grayscale(50%);
+}
+
+@keyframes warningPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1));
+  }
+}
 
 // Merge Animation Effects
 .merge-particles-container {
@@ -1507,50 +1629,6 @@ onUnmounted(() => {
   100% {
     opacity: 0;
     transform: translate(var(--particle-x), var(--particle-y)) scale(0.2);
-  }
-}
-
-// Merge glow effect for new fruits
-.fruit-merge-glow {
-  box-shadow:
-    0 0 15px rgba(255, 193, 7, 0.6),
-    0 0 30px rgba(255, 193, 7, 0.3);
-  animation: mergeGlow 0.8s ease-out;
-}
-
-@keyframes mergeGlow {
-  0% {
-    box-shadow:
-      0 0 20px rgba(255, 193, 7, 0.8),
-      0 0 40px rgba(255, 193, 7, 0.4);
-    transform: scale(1.05);
-  }
-  100% {
-    box-shadow:
-      0 0 5px rgba(255, 193, 7, 0.2),
-      0 0 10px rgba(255, 193, 7, 0.1);
-    transform: scale(1);
-  }
-}
-
-
-// Enhanced Merge Spawn Animation
-.fruit-merge-spawn {
-  animation: fruitMergeSpawn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-@keyframes fruitMergeSpawn {
-  0% {
-    transform: translateZ(0) scale(0.6);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateZ(0) scale(1.15);
-    opacity: 1;
-  }
-  100% {
-    transform: translateZ(0) scale(1);
-    opacity: 1;
   }
 }
 

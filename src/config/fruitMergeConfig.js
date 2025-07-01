@@ -62,10 +62,11 @@ export const PHYSICS_CONFIG = {
 		spawnOffset: 6
 	},
 
-	// Game Over Erkennung
-	gameOverHeight: 100,         // Höhe bei der Game Over eintritt
-	warningZone: 80,             // Warnbereich Höhe
-	gameOverCheckInterval: 1000  // Prüfung alle 1000ms
+	// Game Over
+	gameOverHeight: 100,
+	fruitsInDanger: 3,
+	warningZone: 80,
+	gameOverCheckInterval: 1000
 }
 
 // Fruit Configuration System

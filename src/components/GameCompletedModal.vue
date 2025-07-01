@@ -67,6 +67,32 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+
+  gameOverMode: {
+    type: Boolean,
+    default: false
+  },
+  gameOverTitle: {
+    type: String,
+    default: 'Game Over'
+  },
+  gameOverMessage: {
+    type: String,
+    default: 'Better luck next time!'
+  },
+  gameOverIcon: {
+    type: String,
+    default: '💥'
+  },
+  showTryAgain: {
+    type: Boolean,
+    default: true
+  },
+  tryAgainLabel: {
+    type: String,
+    default: 'Try Again'
+  },
+
   // Custom button labels
   nextLevelLabel: {
     type: String,
@@ -86,7 +112,8 @@ const emit = defineEmits([
   'next-level',
   'play-again',
   'back-to-games',
-  'close'
+  'close',
+  'try-again'
 ])
 
 const { t } = useI18n()
@@ -103,6 +130,27 @@ const getPerformanceMessage = () => {
       return t('memory.level_complete')
   }
 }
+
+const getModalTitle = computed(() => {
+  if (props.gameOverMode) {
+    return props.gameOverTitle
+  }
+  return `${props.gameTitle} - ${t('memory.level_title', { level: props.level })}`
+})
+
+const getModalMessage = computed(() => {
+  if (props.gameOverMode) {
+    return props.gameOverMessage
+  }
+  return getPerformanceMessage()
+})
+
+const getModalIcon = computed(() => {
+  if (props.gameOverMode) {
+    return props.gameOverIcon
+  }
+  return null // Für Erfolg verwenden wir Sterne
+})
 
 // Event handlers
 const handleNextLevel = () => {
@@ -121,6 +169,10 @@ const handleOverlayClick = () => {
   emit('close')
 }
 
+const handleTryAgain = () => {
+  emit('try-again')
+}
+
 const handleKeyDown = (event) => {
   if (event.key === 'Escape') {
     emit('close')
@@ -133,25 +185,32 @@ const handleKeyDown = (event) => {
     <div
       v-if="visible"
       class="game-completed-overlay"
+      :class="{ 'game-completed-overlay--game-over': gameOverMode }"
       @click="handleOverlayClick"
       @keydown="handleKeyDown"
       tabindex="-1"
     >
       <div
         class="game-completed-modal"
+        :class="{ 'game-completed-modal--game-over': gameOverMode }"
         @click.stop
         role="dialog"
         aria-modal="true"
-        aria-labelledby="completed-title"
+        :aria-labelledby="getModalTitle"
       >
         <div class="completed-content">
           <div class="completion-header">
-            <h3 id="completed-title" class="completed-title">
-              {{ gameTitle }} - {{ t('memory.level_title', { level: level }) }}
+            <!-- Game Over Icon (nur bei Game Over) -->
+            <div v-if="gameOverMode" class="game-over-icon">
+              {{ getModalIcon }}
+            </div>
+
+            <h3 id="completed-title" class="completed-title" :class="{ 'completed-title--game-over': gameOverMode }">
+              {{ getModalTitle }}
             </h3>
 
-            <!-- Stars Display -->
-            <div v-if="showStars" class="stars-display">
+            <!-- Stars Display (nur bei Erfolg) -->
+            <div v-if="showStars && !gameOverMode" class="stars-display">
               <Icon
                 v-for="starIndex in 3"
                 :key="starIndex"
@@ -165,26 +224,30 @@ const handleKeyDown = (event) => {
             </div>
 
             <!-- Performance message -->
-            <p class="performance-message">{{ getPerformanceMessage() }}</p>
+            <p class="performance-message" :class="{ 'performance-message--game-over': gameOverMode }">
+              {{ getModalMessage }}
+            </p>
           </div>
+
+          <!-- Performance Stats (immer anzeigen) -->
           <PerformanceStats
             :score="finalScore"
             :time-elapsed="timeElapsed"
             :moves="moves"
             :matches="matches"
             :total-pairs="totalPairs"
-            layout="grid"
-            theme="default"
-            size="large"
+            :layout="gameOverMode ? 'horizontal' : 'grid'"
+            :theme="gameOverMode ? 'compact' : 'default'"
+            :size="gameOverMode ? 'normal' : 'large'"
             :show-score="true"
             :show-time="true"
             :show-moves="true"
-            :show-matches="true"
-            score-label="Final Score"
+            :show-matches="!gameOverMode"
+            :score-label="gameOverMode ? 'Final Score' : 'Score'"
           />
 
-          <!-- Achievements Section -->
-          <div v-if="showAchievements && newAchievements.length > 0" class="achievements-section">
+          <!-- Achievements Section (nur bei Erfolg) -->
+          <div v-if="showAchievements && newAchievements.length > 0 && !gameOverMode" class="achievements-section">
             <h4 class="achievements-title">🏆 {{ t('achievements.new_achievements') }}</h4>
             <div class="achievements-list">
               <div
@@ -203,28 +266,50 @@ const handleKeyDown = (event) => {
             </div>
           </div>
 
+          <!-- Action Buttons (dynamisch basierend auf Modus) -->
           <div class="completed-actions">
-            <button
-              v-if="showNextLevel"
-              class="btn btn--primary"
-              @click="handleNextLevel"
-            >
-              {{ nextLevelLabel }}
-            </button>
-            <button
-              v-if="showPlayAgain"
-              class="btn btn--ghost"
-              @click="handlePlayAgain"
-            >
-              {{ playAgainLabel }}
-            </button>
-            <button
-              v-if="showBackToGames"
-              class="btn btn--ghost"
-              @click="handleBackToGames"
-            >
-              {{ backToGamesLabel }}
-            </button>
+            <!-- Game Over Actions -->
+            <template v-if="gameOverMode">
+              <button
+                v-if="showTryAgain"
+                class="btn btn--primary"
+                @click="handleTryAgain"
+              >
+                {{ tryAgainLabel }}
+              </button>
+              <button
+                v-if="showBackToGames"
+                class="btn btn--ghost"
+                @click="handleBackToGames"
+              >
+                {{ backToGamesLabel }}
+              </button>
+            </template>
+
+            <!-- Success Actions -->
+            <template v-else>
+              <button
+                v-if="showNextLevel"
+                class="btn btn--primary"
+                @click="handleNextLevel"
+              >
+                {{ nextLevelLabel }}
+              </button>
+              <button
+                v-if="showPlayAgain"
+                class="btn btn--ghost"
+                @click="handlePlayAgain"
+              >
+                {{ playAgainLabel }}
+              </button>
+              <button
+                v-if="showBackToGames"
+                class="btn btn--ghost"
+                @click="handleBackToGames"
+              >
+                {{ backToGamesLabel }}
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -386,6 +471,51 @@ const handleKeyDown = (event) => {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
   line-height: 1.2;
+}
+
+// Game Over Specific Styles
+.game-completed-overlay--game-over {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.game-completed-modal--game-over {
+  border-color: var(--error-color);
+  animation: gameOverSlide 0.5s ease;
+}
+
+.game-over-icon {
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--space-2);
+  animation: shake 0.6s ease-in-out;
+}
+
+.completed-title--game-over {
+  color: var(--error-color);
+}
+
+.performance-message--game-over {
+  color: var(--error-color);
+  font-weight: var(--font-weight-bold);
+}
+
+// Game Over Animation
+@keyframes gameOverSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+    filter: hue-rotate(0deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
 }
 
 @keyframes achievementSlide {
