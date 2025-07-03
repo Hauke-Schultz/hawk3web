@@ -167,7 +167,7 @@ const startSingleRenderLoop = () => {
     requestAnimationFrame(updateLoop)
   }
 
-  updateLoop()
+  requestAnimationFrame(updateLoop)
 }
 
 const setupCollisionEvents = () => {
@@ -1217,11 +1217,10 @@ onUnmounted(() => {
   position: absolute;
   pointer-events: none;
   z-index: 10;
-  will-change: transform;
   transform: translateZ(0);
-  backface-visibility: hidden;
+  will-change: transform;
   contain: layout style paint size;
-  transition: opacity 0.15s ease;
+  transition: none;
 
   &.fruit-sleeping {
     will-change: auto;
