@@ -41,10 +41,18 @@ const availableLevels = ref([
   { number: 8, name: "Level 8", unlocked: false },
   { number: 9, name: "Level 9", unlocked: false },
 ])
+const hammerCount = ref(0)
+const hammerActive = ref(false)
+const showHammerEffect = ref(false)
+const rocketCount = ref(0)
+const rocketActive = ref(false)
+const showRocketEffect = ref(false)
 const topBoundary = computed(() => {
   return Math.max(30, 200 - (level.value - 1) * 15);
 });
 const nextFruitFading = ref(false);
+const lastHammerThreshold = ref(0)
+const lastRocketThreshold = ref(0)
 
 let engine = null;
 let runner = null;
@@ -774,6 +782,16 @@ function startLevel(levelNumber) {
   // Generate new next fruit
   nextFruit.value = generateFruit()
 
+  // Reset all items
+  hammerCount.value = 0
+  hammerActive.value = false
+  showHammerEffect.value = false
+  rocketCount.value = 0
+  rocketActive.value = false
+  showRocketEffect.value = false
+  lastHammerThreshold.value = 0
+  lastRocketThreshold.value = 0
+
   // Hide start screen and start game
   showStartScreen.value = false
   gameActive.value = true
@@ -846,6 +864,7 @@ function handleCollision(event) {
 
             // Add score based on the level
             score.value += levelA * 10;
+            checkForItemReward();
 
             // Create new fruit of the next level if not already at max level
             if (levelA < fruitTypes.length) {
@@ -1172,6 +1191,157 @@ const toggleFruitList = () => {
   showFruitList.value = !showFruitList.value
 }
 
+function checkForItemReward() {
+  const currentHammerThreshold = Math.floor(score.value / 300)
+
+  if (currentHammerThreshold > lastHammerThreshold.value) {
+    const newHammers = currentHammerThreshold - lastHammerThreshold.value
+    hammerCount.value += newHammers
+    lastHammerThreshold.value = currentHammerThreshold
+
+    showHammerEffect.value = true
+    setTimeout(() => {
+      showHammerEffect.value = false
+    }, 2000)
+  }
+
+  const currentRocketThreshold = Math.floor(score.value / 800)
+
+  if (currentRocketThreshold > lastRocketThreshold.value) {
+    const newRockets = currentRocketThreshold - lastRocketThreshold.value
+    rocketCount.value += newRockets
+    lastRocketThreshold.value = currentRocketThreshold
+
+    showRocketEffect.value = true
+    setTimeout(() => {
+      showRocketEffect.value = false
+    }, 2000)
+  }
+}
+
+function activateHammer() {
+  if (hammerCount.value > 0 && !hammerActive.value) {
+    hammerActive.value = true
+  }
+}
+
+function deactivateHammer() {
+  hammerActive.value = false
+}
+
+function hammerFruit(fruit) {
+  if (hammerActive.value && hammerCount.value > 0) {
+    if (fruit.body) {
+      // Temporäre obere Wand erstellen
+      const topWall = Matter.Bodies.rectangle(
+        boardWidth.value / 2,
+        -wallThickness / 2,
+        boardWidth.value,
+        wallThickness,
+        { isStatic: true, label: 'wall-top-temp', restitution: 0.3 }
+      );
+      Matter.Composite.add(engine.world, topWall);
+
+      // Phase 1: Hammerschlag nach unten (sofort)
+      Matter.Body.setVelocity(fruit.body, { x: 0, y: 2 });
+      Matter.Body.applyForce(fruit.body, fruit.body.position, { x: 0, y: 0.01 });
+
+      // Phase 2: Nach kurzer Verzögerung - kontrollierter Rückprall
+      setTimeout(() => {
+        if (fruit.body) {
+          const sideForce = (Math.random() - 0.5) * 0.015;
+          const upwardForce = -0.02;
+          const sideVelocity = (Math.random() - 0.5) * 3;
+          const upwardVelocity = -7;
+
+          Matter.Body.setVelocity(fruit.body, {
+            x: sideVelocity,
+            y: upwardVelocity
+          });
+
+          Matter.Body.applyForce(fruit.body, fruit.body.position, {
+            x: sideForce,
+            y: upwardForce
+          });
+
+          const rotationForce = (Math.random() - 0.5) * 0.05;
+          Matter.Body.setAngularVelocity(fruit.body, rotationForce);
+        }
+      }, 150);
+
+      // Entferne die temporäre obere Wand nach 3 Sekunden
+      setTimeout(() => {
+        const tempWall = engine.world.bodies.find(body => body.label === 'wall-top-temp');
+        if (tempWall) {
+          Matter.Composite.remove(engine.world, tempWall);
+        }
+      }, 3000);
+    }
+    hammerCount.value -= 1;
+    hammerActive.value = false;
+  }
+}
+
+function activateRocket() {
+  if (rocketCount.value > 0 && !rocketActive.value) {
+    rocketActive.value = true
+  }
+}
+
+
+function deactivateRocket() {
+  rocketActive.value = false
+}
+
+function rocketFruit(fruit) {
+  if (rocketActive.value && rocketCount.value > 0) {
+    if (fruit.body) {
+      // Mark fruit as being rocketed to prevent physics interactions
+      fruit.rocketing = true
+      fruit.merging = true
+
+      // Make the fruit kinematic (not affected by gravity/collisions)
+      Matter.Body.setStatic(fruit.body, true)
+
+      const startY = fruit.body.position.y
+      const targetY = -100 // Target position above the game area
+      const animationDuration = 1500 // 1.5 seconds
+      const startTime = Date.now()
+
+      const animateRocket = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / animationDuration, 1)
+
+        // Ease-out animation curve for smooth deceleration
+        const easeOut = 1 - Math.pow(1 - progress, 3)
+        const currentY = startY + (targetY - startY) * easeOut
+
+        if (fruit.body) {
+          // Move fruit smoothly upward
+          Matter.Body.setPosition(fruit.body, {
+            x: fruit.body.position.x,
+            y: currentY
+          })
+
+          if (progress < 1) {
+            // Continue animation
+            requestAnimationFrame(animateRocket)
+          } else {
+            // Animation complete - remove fruit
+            Matter.Composite.remove(engine.world, fruit.body)
+            fruits.value = fruits.value.filter(f => f.id !== fruit.id)
+          }
+        }
+      }
+
+      // Start the rocket animation
+      requestAnimationFrame(animateRocket)
+    }
+    rocketCount.value -= 1
+    rocketActive.value = false
+  }
+}
+
 function backToStartScreen() {
   // Reset game state
   gameActive.value = false;
@@ -1345,6 +1515,32 @@ onBeforeUnmount(() => {
               <span>Score</span>
               <span>{{ score }}</span>
             </div>
+            <div class="item-container">
+              <div class="hammer-item">
+                <button
+                  class="hammer-btn item-btn"
+                  :class="{ 'active': hammerActive, 'has-items': hammerCount > 0, 'effect': showHammerEffect }"
+                  :disabled="hammerCount === 0"
+                  @click="hammerActive ? deactivateHammer() : activateHammer()"
+                  :title="hammerActive ? 'Hammer aktiv - Klicke auf eine Frucht' : `Hammer (${hammerCount}x)`"
+                >
+                  🔨
+                  <span class="item-count" v-if="hammerCount > 0">{{ hammerCount }}</span>
+                </button>
+              </div>
+              <div class="rocket-item">
+                <button
+                  class="rocket-btn item-btn"
+                  :class="{ 'active': rocketActive, 'has-items': rocketCount > 0, 'effect': showRocketEffect }"
+                  :disabled="rocketCount === 0"
+                  @click="rocketActive ? deactivateRocket() : activateRocket()"
+                  :title="rocketActive ? 'Rocket aktiv - Klicke auf eine Frucht' : `Rocket (${rocketCount}x)`"
+                >
+                  🚀
+                  <span class="item-count" v-if="rocketCount > 0">{{ rocketCount }}</span>
+                </button>
+              </div>
+            </div>
             <div class="level">
               <div
                 class="goal-fruit-svg"
@@ -1428,7 +1624,9 @@ onBeforeUnmount(() => {
               :key="fruit.id"
               class="fruit"
               :class="{
-                  'merging': fruit.merging
+                  'merging': fruit.merging,
+                  'hammer-target': hammerActive,
+                  'rocket-target': rocketActive
                 }"
               :style="{
                   left: `${fruit.x}px`,
@@ -1437,6 +1635,7 @@ onBeforeUnmount(() => {
                   height: `${fruit.size}px`,
                   transform: `rotate(${fruit.rotation}deg)`
                 }"
+              @click="hammerActive ? hammerFruit(fruit) : rocketActive ? rocketFruit(fruit) : null"
             >
               <div class="fruit-svg" v-html="fruit.svg"></div>
               <span class="fruit-level">{{ fruit.level }}</span>
@@ -2079,9 +2278,241 @@ onBeforeUnmount(() => {
   color: #FFEB3B;
 }
 
+.hammer-btn {
+  position: relative;
+  background-color: #795548;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &.has-items:not(:disabled) {
+    background-color: #8D6E63;
+
+    &:hover {
+      background-color: #6D4C41;
+      transform: scale(1.1);
+    }
+  }
+
+  &.active {
+    background-color: #FF5722;
+    animation: pulse 0.5s infinite;
+    box-shadow: 0 0 10px rgba(255, 87, 34, 0.6);
+  }
+
+  &.effect {
+    animation: hammerGlow 2s ease;
+  }
+}
+
+.hammer-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.fruit.hammer-target {
+  cursor: crosshair;
+
+  &:hover {
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 193, 7, 0.6));
+    transform: scale(1.05) rotate(var(--rotation, 0deg));
+    animation: hammerTargetPulse 0.5s ease-in-out infinite alternate;
+  }
+}
+
+.item-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 25%;
+}
 
 .next-fruit.fading {
   transform: translateX(-50%) translateY(100%);
   transition: transform 0.3s ease;
+}
+
+.hammer-item,
+.rocket-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2rem;
+}
+.item-btn {
+  position: relative;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3); // Weißer Rahmen für besseren Kontrast
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); // Textschatten für bessere Lesbarkeit
+
+  &:disabled {
+    background-color: #9E9E9E; // Helleres Grau
+    border-color: rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &.has-items:not(:disabled):hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.6); // Hellerer Rahmen beim Hover
+  }
+
+  &.active {
+    animation: pulse 0.5s infinite;
+    box-shadow: 0 0 15px rgba(255, 87, 34, 0.8); // Stärkerer Schatten
+    border-color: #FFFFFF; // Weißer Rahmen wenn aktiv
+  }
+
+  &.effect {
+    animation: itemGlow 2s ease;
+  }
+}
+
+.item-count {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background-color: #4CAF50;
+  color: white;
+  border: 2px solid white; // Weißer Rahmen um die Zahl
+  border-radius: 50%;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); // Schatten für bessere Sichtbarkeit
+}
+
+.hammer-btn {
+  background-color: #D32F2F; // Kräftiges Rot statt braun
+
+  &.has-items:not(:disabled) {
+    background-color: #F44336; // Helleres Rot
+
+    &:hover {
+      background-color: #C62828; // Dunkles Rot beim Hover
+    }
+  }
+
+  &.active {
+    background-color: #FF5722; // Orange wenn aktiv
+    color: #FFFFFF;
+  }
+}
+.rocket-btn {
+  background-color: #1976D2; // Kräftiges Blau
+
+  &.has-items:not(:disabled) {
+    background-color: #2196F3; // Helleres Blau
+
+    &:hover {
+      background-color: #1565C0; // Dunkles Blau beim Hover
+    }
+  }
+
+  &.active {
+    background-color: #FF5722; // Orange wenn aktiv
+    color: #FFFFFF;
+  }
+}
+
+.fruit.rocket-target {
+  cursor: crosshair;
+
+  &:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05) rotate(var(--rotation, 0deg));
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
+  }
+}
+
+@keyframes itemGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    transform: scale(1.2);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
+  }
+}
+
+@keyframes hammerTargetPulse {
+  0% {
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 193, 7, 0.6));
+  }
+  100% {
+    filter: brightness(1.4) drop-shadow(0 0 12px rgba(255, 193, 7, 0.8));
+  }
+}
+
+@keyframes hammerGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    transform: scale(1.2);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.6);
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 </style>
