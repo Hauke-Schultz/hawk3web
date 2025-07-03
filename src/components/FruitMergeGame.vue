@@ -39,18 +39,14 @@ const earnedAchievements = ref([])
 const gameField = ref(null)
 const engine = ref(null)
 const world = ref(null)
-const render = ref(null)
-const runner = ref(null)
 const walls = ref([])
 const fruits = shallowRef([])
 const dropFruit = ref(null)
 const isDragging = ref(false)
 const isDropReady = ref(false)
-const renderLoop = ref(null)
 const isRenderingActive = ref(false)
 const gameComplete = ref(false)
 const lastMouseUpdate = ref(0)
-const collisionBuffer = ref([])
 
 const isPhysicsReady = ref(false)
 const dropCooldown = ref(false)
@@ -62,43 +58,6 @@ const mergeEffects = ref([])
 const particles = shallowRef([])
 
 const gameOver = ref(false)
-
-const performanceMonitor = reactive({
-  frameTimes: [],
-  lastFrameTime: 0,
-  fps: 0,
-  avgFrameTime: 0,
-
-  update() {
-    const now = performance.now()
-
-    if (this.lastFrameTime > 0) {
-      const frameTime = now - this.lastFrameTime
-
-      if (frameTime > 1 && frameTime < 100) {
-        this.frameTimes.push(frameTime)
-
-        if (this.frameTimes.length > 60) {
-          this.frameTimes.shift()
-        }
-
-        if (this.frameTimes.length >= 10) {
-          this.avgFrameTime = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length
-          this.fps = Math.round(1000 / this.avgFrameTime) // 1000ms / avg frame time
-        }
-      }
-    }
-
-    this.lastFrameTime = now
-  },
-
-  reset() {
-    this.frameTimes = []
-    this.lastFrameTime = 0
-    this.fps = 0
-    this.avgFrameTime = 0
-  }
-})
 
 // Computed properties
 const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
@@ -147,96 +106,19 @@ const initializePhysics = () => {
   if (!gameField.value) return
 
   engine.value = Matter.Engine.create({
-    timing: PHYSICS_CONFIG.engine.timing,
-    velocityIterations: PHYSICS_CONFIG.engine.velocityIterations,
-    positionIterations: PHYSICS_CONFIG.engine.positionIterations,
-    enableSleeping: PHYSICS_CONFIG.engine.enableSleeping,
-    broadphase: PHYSICS_CONFIG.engine.broadphase
+    gravity: { x: 0, y: 0.5, scale: 0.001 }
   })
 
   world.value = engine.value.world
 
-  engine.value.world.gravity.y = PHYSICS_CONFIG.engine.gravity.y
-  engine.value.world.gravity.scale = PHYSICS_CONFIG.engine.gravity.scale
-
   createWalls()
-  setupOptimizedCollisionEvents()
+  setupCollisionEvents() // ← Neue einfache Version
 
-  runner.value = Matter.Runner.create({
-    delta: PHYSICS_CONFIG.engine.timing.delta,
-    isFixed: PHYSICS_CONFIG.engine.timing.isFixed,
-  })
-  Matter.Runner.run(runner.value, engine.value)
+  // Starte nur einen Loop
+  startSingleRenderLoop() // ← Neue einfache Version
 
-  startOptimizedRenderLoop()
   isPhysicsReady.value = true
-  console.log('Optimized physics initialized')
-}
-
-const startOptimizedRenderLoop = () => {
-  if (isRenderingActive.value) return
-
-  isRenderingActive.value = true
-
-  const render = () => {
-    if (!isRenderingActive.value) return
-
-    optimizedSyncFruitPositions()
-    renderLoop.value = requestAnimationFrame(render)
-  }
-
-  render()
-}
-
-const lastRenderUpdate = ref(0)
-const optimizedSyncFruitPositions = () => {
-  if (!isRenderingActive.value) return
-
-  performanceMonitor.update()
-
-  const now = performance.now()
-  if (now - lastRenderUpdate.value < PHYSICS_CONFIG.engine.timing.delta) {
-    renderLoop.value = requestAnimationFrame(optimizedSyncFruitPositions)
-    return
-  }
-  lastRenderUpdate.value = now
-
-  // Batch DOM updates
-  const updates = []
-
-  fruits.value.forEach(fruit => {
-    if (fruit.element && fruit.body) {
-      const { x, y } = fruit.body.position
-      const rotation = fruit.body.angle
-
-      if (fruit.lastX !== x || fruit.lastY !== y || fruit.lastRotation !== rotation) {
-        updates.push({
-          element: fruit.element,
-          x, y, rotation,
-          radius: fruit.data.radius
-        })
-
-        fruit.lastX = x
-        fruit.lastY = y
-        fruit.lastRotation = rotation
-      }
-    }
-  })
-
-  // Batch apply all DOM updates
-  if (updates.length > 0) {
-    requestAnimationFrame(() => {
-      updates.forEach(update => {
-        const style = update.element.style
-        style.left = `${update.x - update.radius}px`
-        style.top = `${update.y - update.radius}px`
-        style.transform = `rotate(${update.rotation}rad)`
-      })
-    })
-  }
-
-  processCollisionBuffer()
-  renderLoop.value = requestAnimationFrame(optimizedSyncFruitPositions)
+  console.log('Simple physics initialized')
 }
 
 const startGameOverTimer = () => {
@@ -254,33 +136,50 @@ const stopGameOverTimer = () => {
   }
 }
 
-const setupOptimizedCollisionEvents = () => {
-  Matter.Events.on(engine.value, 'collisionStart', (event) => {
-    if (collisionBuffer.value.length > 20) {
-      processCollisionBuffer()
-    } else {
-      collisionBuffer.value.push(...event.pairs)
+const startSingleRenderLoop = () => {
+  if (isRenderingActive.value) return
+  isRenderingActive.value = true
+
+  const updateLoop = () => {
+    if (!isRenderingActive.value) return
+
+    // Physics update (wie in alter Version)
+    Matter.Engine.update(engine.value, 1000/60)
+
+    // Einfache DOM-Updates
+    fruits.value.forEach(fruit => {
+      if (fruit.element && fruit.body) {
+        const { x, y } = fruit.body.position
+        const rotation = fruit.body.angle
+
+        // Direkte Style-Updates ohne Batching
+        fruit.element.style.left = `${x - fruit.data.radius}px`
+        fruit.element.style.top = `${y - fruit.data.radius}px`
+        fruit.element.style.transform = `rotate(${rotation}rad)`
+      }
+    })
+
+    // Game Over Check
+    if (!gameOver.value && !gameComplete.value) {
+      checkGameOver()
     }
-  })
+
+    requestAnimationFrame(updateLoop)
+  }
+
+  updateLoop()
 }
 
-const processCollisionBuffer = () => {
-  if (collisionBuffer.value.length === 0) return
+const setupCollisionEvents = () => {
+  Matter.Events.on(engine.value, 'collisionStart', (event) => {
+    event.pairs.forEach(pair => {
+      const bodyA = pair.bodyA
+      const bodyB = pair.bodyB
 
-  const pairs = collisionBuffer.value.splice(0)
-  const processedPairs = new Set()
-
-  pairs.forEach(pair => {
-    const pairId = `${pair.bodyA.id}-${pair.bodyB.id}`
-    if (processedPairs.has(pairId)) return
-    processedPairs.add(pairId)
-
-    const bodyA = pair.bodyA
-    const bodyB = pair.bodyB
-
-    if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
-      handleFruitCollision(bodyA, bodyB)
-    }
+      if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
+        handleFruitCollision(bodyA, bodyB)
+      }
+    })
   })
 }
 
@@ -747,37 +646,26 @@ const checkLevelCompletion = () => {
 
 const cleanupPhysics = () => {
   isRenderingActive.value = false
-  if (renderLoop.value) {
-    cancelAnimationFrame(renderLoop.value)
-    renderLoop.value = null
-  }
 
+  // Stoppe Timer
   stopGameOverTimer()
 
-  collisionBuffer.value = []
-
-  if (runner.value) {
-    Matter.Runner.stop(runner.value)
-  }
-  if (render.value) {
-    Matter.Render.stop(render.value)
-  }
+  // Cleanup Physics
   if (engine.value) {
+    Matter.Events.off(engine.value)
+    Matter.World.clear(engine.value.world)
     Matter.Engine.clear(engine.value)
   }
 
+  // DOM cleanup
   const container = gameField.value?.querySelector('.fruits-container')
   if (container) {
     container.innerHTML = ''
   }
 
-  fruits.value.forEach(fruit => {
-    fruit.element = null
-    fruit.body = null
-  })
-
-  walls.value = []
+  // Reset state
   fruits.value = []
+  walls.value = []
   dropFruit.value = null
   isDragging.value = false
   isDropReady.value = false
@@ -977,7 +865,7 @@ const calculateCurrentStars = () => {
 }
 
 const handleTouchStart = (event) => {
-  event.preventDefault() // Verhindert Scroll-Performance-Issues
+  event.preventDefault()
   startDragging(event.touches[0])
 }
 
@@ -1158,16 +1046,6 @@ onUnmounted(() => {
         <p class="game-info">
           Früchte: {{ fruits.length }} | Ziel: {{ targetFruit }}
         </p>
-        <div class="performance-item">
-          <span class="performance-label">FPS: </span>
-          <span class="performance-value" :class="{
-            'performance-good': performanceMonitor.fps >= 50,
-            'performance-warning': performanceMonitor.fps >= 30 && performanceMonitor.fps < 50,
-            'performance-bad': performanceMonitor.fps < 30
-          }">
-            {{ performanceMonitor.fps || '—' }}
-          </span>
-        </div>
       </div>
 
       <div class="demo-buttons">
