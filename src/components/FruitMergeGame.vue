@@ -34,9 +34,14 @@ let runner = null
 
 // DOM references
 const gameBoard = ref(null)
+const nextFruitContainer = ref(null)
 const nextFruitPosition = ref(PHYSICS_CONFIG.board.width / 2)
 const isDropping = ref(false)
 const dropCooldown = ref(false)
+
+// Mouse/Touch tracking
+const isDragging = ref(false)
+const isHoveringBoard = ref(false)
 
 // Next fruit system
 const nextFruit = ref(null)
@@ -114,6 +119,126 @@ const generateNextFruit = () => {
     merging: false
   }
 }
+
+// Update next fruit position based on mouse/touch coordinates
+const updateNextFruitPosition = (clientX) => {
+  if (!gameBoard.value || !nextFruit.value) return
+
+  const rect = gameBoard.value.getBoundingClientRect()
+  const relativeX = clientX - rect.left
+
+  // Constrain position within bounds (considering fruit radius)
+  const fruitRadius = nextFruit.value.size / 2
+  const minX = fruitRadius + boardConfig.value.thickness / 4
+  const maxX = boardConfig.value.width - fruitRadius - boardConfig.value.thickness / 4
+
+  // Direkte Position ohne Verzögerung
+  const newPosition = Math.max(minX, Math.min(maxX, relativeX))
+  nextFruitPosition.value = newPosition
+}
+
+// Mouse event handlers
+const handleMouseMove = (event) => {
+  if (!isHoveringBoard.value) return
+  updateNextFruitPosition(event.clientX)
+}
+
+const handleMouseEnter = () => {
+  isHoveringBoard.value = true
+}
+
+const handleMouseLeave = () => {
+  isHoveringBoard.value = false
+}
+
+// Touch event handlers
+const handleTouchMove = (event) => {
+  if (event.touches.length > 0) {
+    event.preventDefault() // Prevent scrolling
+    updateNextFruitPosition(event.touches[0].clientX)
+  }
+}
+
+const handleTouchStart = (event) => {
+  if (event.touches.length > 0) {
+    updateNextFruitPosition(event.touches[0].clientX)
+  }
+}
+
+// Drop fruit function (unified for click and touch)
+const dropFruit = (targetX = nextFruitPosition.value) => {
+  if (isDropping.value || dropCooldown.value || !nextFruit.value) return
+
+  console.log(`Dropping fruit at x: ${targetX}`)
+
+  isDropping.value = true
+  dropCooldown.value = true
+
+  // Create physics body for the fruit
+  const fruit = nextFruit.value
+  const body = Matter.Bodies.circle(
+      targetX,
+      -30, // Start above the board
+      fruit.size / 2,
+      {
+        restitution: 0.6,
+        friction: 0.05,
+        frictionAir: 0.008,
+        density: 0.001,
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`, // Correct label format
+        render: {
+          sprite: {
+            xScale: 1,
+            yScale: 1
+          }
+        }
+      }
+  )
+
+  fruit.body = body
+  fruit.x = targetX - fruit.size / 2
+  fruit.y = -30 - fruit.size / 2
+
+  // Add to physics world and fruits array
+  Matter.Composite.add(engine.world, body)
+  fruits.value = [...fruits.value, fruit]
+
+  // Increment moves counter
+  moves.value++
+
+  // Generate next fruit and reset states
+  setTimeout(() => {
+    nextFruit.value = generateNextFruit()
+    isDropping.value = false
+
+    setTimeout(() => {
+      dropCooldown.value = false
+    }, 600) // Drop cooldown like in original
+  }, 500)
+}
+
+// Handle board click/touch for dropping
+const handleBoardClick = (event) => {
+  if (dropCooldown.value || isDropping.value) return
+
+  // Get the correct clientX based on event type
+  let clientX
+  if (event.type === 'touchend' && event.changedTouches.length > 0) {
+    clientX = event.changedTouches[0].clientX
+  } else {
+    clientX = event.clientX
+  }
+
+  updateNextFruitPosition(clientX)
+  dropFruit(nextFruitPosition.value)
+}
+
+// Computed property to check if fruit can be dropped
+const canDropFruit = computed(() => {
+  return gameState.value === 'playing' && !isDropping.value && !dropCooldown.value && nextFruit.value
+})
+
+// ... rest of the physics and game logic remains the same ...
 
 // Initialize physics engine with performance optimizations
 const initPhysics = () => {
@@ -300,75 +425,6 @@ const addMergedFruit = (fruit, x, y) => {
   fruits.value = [...fruits.value, fruit]
 }
 
-// Drop next fruit
-const dropFruit = (targetX = nextFruitPosition.value) => {
-  if (isDropping.value || dropCooldown.value || !nextFruit.value) return
-
-  console.log(`Dropping fruit at x: ${targetX}`)
-
-  isDropping.value = true
-  dropCooldown.value = true
-
-  // Create physics body for the fruit
-  const fruit = nextFruit.value
-  const body = Matter.Bodies.circle(
-      targetX,
-      -30, // Start above the board
-      fruit.size / 2,
-      {
-        restitution: 0.6,
-        friction: 0.05,
-        frictionAir: 0.008,
-        density: 0.001,
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`, // Correct label format
-        render: {
-          sprite: {
-            xScale: 1,
-            yScale: 1
-          }
-        }
-      }
-  )
-
-  fruit.body = body
-  fruit.x = targetX - fruit.size / 2
-  fruit.y = -30 - fruit.size / 2
-
-  // Add to physics world and fruits array
-  Matter.Composite.add(engine.world, body)
-  fruits.value = [...fruits.value, fruit]
-
-  // Increment moves counter
-  moves.value++
-
-  // Generate next fruit and reset states
-  setTimeout(() => {
-    nextFruit.value = generateNextFruit()
-    isDropping.value = false
-
-    setTimeout(() => {
-      dropCooldown.value = false
-    }, 600) // Drop cooldown like in original
-  }, 500)
-}
-
-// Handle click/touch to drop fruit
-const handleBoardClick = (event) => {
-  if (dropCooldown.value || isDropping.value) return
-
-  const rect = gameBoard.value.getBoundingClientRect()
-  const x = event.clientX - rect.left
-
-  // Constrain drop position within bounds
-  const thickness = boardConfig.value.thickness
-  const fruitRadius = nextFruit.value ? nextFruit.value.size / 2 : 20
-  const minX = fruitRadius + thickness / 4
-  const maxX = boardConfig.value.width - fruitRadius - thickness / 4
-  const targetX = Math.max(minX, Math.min(maxX, x))
-
-  dropFruit(targetX)
-}
-
 // Update fruit visual positions based on physics bodies
 const updateFruitPositions = () => {
   if (!fruits.value.length) return
@@ -462,22 +518,29 @@ onUnmounted(() => {
     <!-- Game Board Container -->
     <div class="game-container">
       <!-- Next Fruit Preview -->
-      <div v-if="nextFruit && showNextFruit" class="next-fruit-preview">
+      <div
+          ref="nextFruitContainer"
+          class="next-fruit-preview"
+          @mousemove="handleMouseMove"
+          @mouseenter="handleMouseEnter"
+          @mouseleave="handleMouseLeave"
+          @touchmove.passive="handleTouchMove"
+          @touchstart.passive="handleTouchStart"
+      >
         <div
+            v-if="nextFruit && showNextFruit"
             class="next-fruit"
+            :class="{ 'next-fruit--disabled': !canDropFruit }"
             :style="{
-            width: `${nextFruit.size}px`,
-            height: `${nextFruit.size}px`,
-            left: `${nextFruitPosition - nextFruit.size / 2}px`
-          }"
+              width: `${nextFruit.size}px`,
+              height: `${nextFruit.size}px`,
+              left: `${nextFruitPosition - nextFruit.size / 2}px`,
+              transform: 'translateY(-50%)',
+              opacity: canDropFruit ? 1 : 0
+            }"
         >
           <div class="fruit-svg" v-html="nextFruit.svg"></div>
         </div>
-        <!-- Drop indicator line -->
-        <div
-            class="drop-line"
-            :style="{ left: `${nextFruitPosition}px` }"
-        ></div>
       </div>
 
       <!-- Physics Game Board -->
@@ -489,11 +552,25 @@ onUnmounted(() => {
           height: `${boardConfig.height}px`
         }"
           @click="handleBoardClick"
+          @touchend.prevent="handleBoardClick"
+          @mousemove="handleMouseMove"
+          @mouseenter="handleMouseEnter"
+          @mouseleave="handleMouseLeave"
+          @touchmove.passive="handleTouchMove"
       >
         <!-- Top boundary indicator -->
         <div
-            class="top-boundary-line"
-            :style="{ top: `${topBoundary}px` }"
+          class="top-boundary-line"
+          :style="{ top: `${topBoundary}px` }"
+        ></div>
+        <!-- Drop indicator line -->
+        <div
+          v-if="canDropFruit"
+          class="drop-line"
+          :style="{
+            left: `${nextFruitPosition}px`,
+            height: `${boardConfig.height}px`
+          }"
         ></div>
 
         <!-- Rendered Fruits -->
@@ -601,44 +678,41 @@ onUnmounted(() => {
 .next-fruit-preview {
   position: relative;
   width: 100%;
-  height: 60px;
-  border: 2px dashed var(--card-border);
-  border-radius: var(--border-radius-md);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  height: 50px;
 }
 
 .next-fruit {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
   border-radius: 50%;
-  cursor: grab;
-  transition: transform 0.2s ease;
+  pointer-events: none;
+  z-index: 2;
 
-  &:hover {
-    transform: translateY(-50%) scale(1.05);
+  &--disabled {
+    filter: grayscale(50%);
   }
 }
 
 .drop-line {
   position: absolute;
-  top: 100%;
+  top: 0;
   width: 2px;
-  height: 20px;
   background: var(--primary-color);
-  opacity: 0.6;
+  opacity: 0.8;
   transform: translateX(-50%);
+  z-index: 10;
 }
 
 // Game Board
 .game-board {
   position: relative;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(180deg, #00000000 0%, #000000aa 50%, #808080aa 100%);
   border: 3px solid var(--card-border);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   cursor: crosshair;
   box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s ease;
 
   &:hover {
     border-color: var(--primary-color);
@@ -709,6 +783,13 @@ onUnmounted(() => {
 
   .stat-value {
     font-size: var(--font-size-base);
+  }
+}
+
+// Touch-specific improvements
+@media (hover: none) {
+  .game-board {
+    border-color: var(--primary-color);
   }
 }
 </style>
