@@ -3,7 +3,9 @@ import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from
 import * as Matter from 'matter-js'
 import {useLocalStorage} from '../composables/useLocalStorage.js'
 import {useI18n} from '../composables/useI18n.js'
-import {FRUIT_TYPES, PHYSICS_CONFIG} from '../config/fruitMergeConfig.js'
+import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG} from '../config/fruitMergeConfig.js'
+import PerformanceStats from "./PerformanceStats.vue";
+import ProgressOverview from "./ProgressOverview.vue";
 
 // Props
 const props = defineProps({
@@ -27,6 +29,9 @@ const currentLevel = ref(props.level || 1)
 const score = ref(0)
 const moves = ref(0)
 const nextFruitId = ref(0)
+
+const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
+const targetFruit = computed(() => currentLevelConfig.value?.targetFruit)
 
 // Physics engine references
 let engine = null
@@ -183,11 +188,8 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
   setTimeout(() => {
     nextFruit.value = generateNextFruit()
     isDropping.value = false
-
-    setTimeout(() => {
-      dropCooldown.value = false
-    }, 600)
-  }, 500)
+    dropCooldown.value = false
+  }, PHYSICS_CONFIG.dropCooldown)
 }
 
 // Handle board click/touch for dropping
@@ -411,6 +413,16 @@ const updateFruitPositions = () => {
   }
 }
 
+// Game progress tracking
+const gameProgress = computed(() => {
+  return {
+    total: 0,
+    completed: 0,
+    totalStars: 0,
+    maxStars: 3
+  }
+})
+
 // Game loop for updating positions
 let animationFrame = null
 const gameLoop = () => {
@@ -476,15 +488,21 @@ onUnmounted(() => {
         <h2 class="game-title">{{ t('fruitMerge.title') }}</h2>
         <div class="level-indicator">{{ t('fruitMerge.level_title', { level: currentLevel }) }}</div>
       </div>
-      <div class="game-stats">
-        <div class="stat">
-          <span class="stat-label">{{ t('stats.score') }}</span>
-          <span class="stat-value">{{ score }}</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">{{ t('stats.moves') }}</span>
-          <span class="stat-value">{{ moves }}</span>
-        </div>
+
+      <div class="game-stats-container">
+        <!-- Progress Overview -->
+        <ProgressOverview
+          :completed="gameProgress.completed"
+          :total="gameProgress.total"
+          :total-stars="gameProgress.totalStars"
+          :max-stars="gameProgress.maxStars"
+          theme="warning"
+          size="small"
+          :levels-label="targetFruit"
+          :show-stars="false"
+          :show-percentage="true"
+          :complete-label="t('fruitMerge.target')"
+        />
       </div>
     </div>
 
@@ -610,32 +628,6 @@ onUnmounted(() => {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   align-self: center;
-}
-
-.game-stats {
-  display: flex;
-  gap: var(--space-4);
-  justify-content: center;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.stat-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-value {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
 }
 
 // Game Container
