@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, shallowRef, watch } from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
-import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useI18n } from '../composables/useI18n.js'
-import { PHYSICS_CONFIG, FRUIT_TYPES, FRUIT_SPAWN_WEIGHTS } from '../config/fruitMergeConfig.js'
+import {useLocalStorage} from '../composables/useLocalStorage.js'
+import {useI18n} from '../composables/useI18n.js'
+import {FRUIT_TYPES, PHYSICS_CONFIG} from '../config/fruitMergeConfig.js'
 
 // Props
 const props = defineProps({
@@ -40,52 +40,26 @@ const isDropping = ref(false)
 const dropCooldown = ref(false)
 
 // Mouse/Touch tracking
-const isDragging = ref(false)
 const isHoveringBoard = ref(false)
 
 // Next fruit system
 const nextFruit = ref(null)
 const showNextFruit = ref(true)
 
-// Convert FRUIT_TYPES object to array format like in OldFruitMergeGame
-const fruitTypes = [
-  {
-    size: 32, color: '#9C27B0', level: 1, name: 'Blueberry',
-    svg: FRUIT_TYPES.BLUEBERRY.svg
-  },
-  {
-    size: 38, color: '#E91E63', level: 2, name: 'Strawberry',
-    svg: FRUIT_TYPES.STRAWBERRY.svg
-  },
-  {
-    size: 42, color: '#FFEB3B', level: 3, name: 'Grape',
-    svg: FRUIT_TYPES.GRAPE.svg
-  },
-  {
-    size: 48, color: '#FF9800', level: 4, name: 'Orange',
-    svg: FRUIT_TYPES.ORANGE.svg
-  },
-  {
-    size: 56, color: '#8BC34A', level: 5, name: 'Apple',
-    svg: FRUIT_TYPES.APPLE.svg
-  },
-  {
-    size: 64, color: '#FFAB91', level: 6, name: 'Peach',
-    svg: FRUIT_TYPES.PEACH.svg
-  },
-  {
-    size: 72, color: '#FF9800', level: 7, name: 'Pineapple',
-    svg: FRUIT_TYPES.PINEAPPLE.svg
-  },
-  {
-    size: 80, color: '#8b4513', level: 8, name: 'Coconut',
-    svg: FRUIT_TYPES.COCONUT.svg
-  },
-  {
-    size: 88, color: '#F48FB1', level: 9, name: 'Melon',
-    svg: FRUIT_TYPES.MELON.svg
-  }
-]
+const fruitTypes = computed(() => {
+  return Object.values(FRUIT_TYPES)
+      .sort((a, b) => a.index - b.index)
+      .map(fruit => ({
+        size: fruit.radius * 2,
+        color: fruit.color,
+        level: fruit.index,
+        name: fruit.type,
+        svg: fruit.svg,
+        scoreValue: fruit.scoreValue,
+        nextType: fruit.nextType,
+        radius: fruit.radius
+      }))
+})
 
 // Game area dimensions - computed for reactivity
 const boardConfig = computed(() => ({
@@ -94,16 +68,19 @@ const boardConfig = computed(() => ({
   thickness: PHYSICS_CONFIG.board.thickness
 }))
 
-// Top boundary based on level (more challenging = lower boundary)
 const topBoundary = computed(() => {
   return Math.max(30, 100 - (currentLevel.value - 1) * 5)
 })
 
-// Generate new fruit for dropping (only levels 1-5 like in original)
 const generateNextFruit = () => {
-  const maxStartingLevel = 5
+  const maxStartingLevel = 4
   const randomIndex = Math.floor(Math.random() * maxStartingLevel)
-  const randomFruitType = fruitTypes[randomIndex]
+  const randomFruitType = fruitTypes.value[randomIndex]
+
+  if (!randomFruitType) {
+    console.error('Could not find fruit type at index:', randomIndex)
+    return null
+  }
 
   return {
     id: nextFruitId.value++,
@@ -131,10 +108,7 @@ const updateNextFruitPosition = (clientX) => {
   const fruitRadius = nextFruit.value.size / 2
   const minX = fruitRadius + boardConfig.value.thickness / 4
   const maxX = boardConfig.value.width - fruitRadius - boardConfig.value.thickness / 4
-
-  // Direkte Position ohne Verzögerung
-  const newPosition = Math.max(minX, Math.min(maxX, relativeX))
-  nextFruitPosition.value = newPosition
+  nextFruitPosition.value = Math.max(minX, Math.min(maxX, relativeX))
 }
 
 // Mouse event handlers
@@ -174,18 +148,20 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
   isDropping.value = true
   dropCooldown.value = true
 
-  // Create physics body for the fruit
   const fruit = nextFruit.value
+  const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruit.level)
+  const radius = fruitConfig ? fruitConfig.radius : fruit.size / 2
+
   const body = Matter.Bodies.circle(
       targetX,
-      -30, // Start above the board
-      fruit.size / 2,
+      -30,
+      radius,
       {
         restitution: 0.6,
         friction: 0.05,
         frictionAir: 0.008,
         density: 0.001,
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`, // Correct label format
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`,
         render: {
           sprite: {
             xScale: 1,
@@ -199,21 +175,18 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
   fruit.x = targetX - fruit.size / 2
   fruit.y = -30 - fruit.size / 2
 
-  // Add to physics world and fruits array
   Matter.Composite.add(engine.world, body)
   fruits.value = [...fruits.value, fruit]
 
-  // Increment moves counter
   moves.value++
 
-  // Generate next fruit and reset states
   setTimeout(() => {
     nextFruit.value = generateNextFruit()
     isDropping.value = false
 
     setTimeout(() => {
       dropCooldown.value = false
-    }, 600) // Drop cooldown like in original
+    }, 600)
   }, 500)
 }
 
@@ -233,12 +206,9 @@ const handleBoardClick = (event) => {
   dropFruit(nextFruitPosition.value)
 }
 
-// Computed property to check if fruit can be dropped
 const canDropFruit = computed(() => {
   return gameState.value === 'playing' && !isDropping.value && !dropCooldown.value && nextFruit.value
 })
-
-// ... rest of the physics and game logic remains the same ...
 
 // Initialize physics engine with performance optimizations
 const initPhysics = () => {
@@ -256,7 +226,6 @@ const initPhysics = () => {
   runner = Matter.Runner.create()
   Matter.Runner.run(runner, engine)
 
-  // Add collision event listener for fruit merging
   Matter.Events.on(engine, 'collisionStart', handleCollision)
 
   console.log('Physics engine initialized successfully')
@@ -320,7 +289,6 @@ const createWalls = (includeTopWall = false) => {
   Matter.Composite.add(engine.world, walls)
 }
 
-// Handle collisions for fruit merging - adapted from OldFruitMergeGame
 const handleCollision = (event) => {
   const pairs = event.pairs
 
@@ -341,7 +309,7 @@ const handleCollision = (event) => {
       const levelB = parseInt(labelPartsB[3])
 
       // If fruits have the same level, merge them
-      if (levelA === levelB && levelA < fruitTypes.length) {
+      if (levelA === levelB) {
         // Find the fruit objects
         const fruitA = fruits.value.find(f => f.id === idA)
         const fruitB = fruits.value.find(f => f.id === idB)
@@ -367,30 +335,33 @@ const handleCollision = (event) => {
             // Remove fruits from the array
             fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB)
 
-            // Add score based on the level
-            score.value += levelA * 10
+            // Find current fruit type in config
+            const currentFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA)
+            if (currentFruitType) {
+              // Add score based on the fruit's actual score value
+              score.value += currentFruitType.scoreValue
 
-            // Create new fruit of the next level if not already at max level
-            if (levelA < fruitTypes.length) {
-              const nextLevelIndex = levelA // Current level is 1-based, array is 0-based
-              const nextFruitType = fruitTypes[nextLevelIndex]
+              // Find next fruit type
+              const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
 
-              const newFruit = {
-                id: nextFruitId.value++,
-                color: nextFruitType.color,
-                size: nextFruitType.size,
-                level: levelA + 1, // Next level number
-                name: nextFruitType.name,
-                svg: nextFruitType.svg,
-                x: centerX,
-                y: centerY,
-                rotation: 0,
-                body: null,
-                merging: false
+              if (nextFruitType) {
+                const newFruit = {
+                  id: nextFruitId.value++,
+                  color: nextFruitType.color,
+                  size: nextFruitType.radius * 2,
+                  level: nextFruitType.index,
+                  name: nextFruitType.type,
+                  svg: nextFruitType.svg,
+                  x: centerX,
+                  y: centerY,
+                  rotation: 0,
+                  body: null,
+                  merging: false
+                }
+
+                // Add the new fruit to the world
+                addMergedFruit(newFruit, centerX, centerY)
               }
-
-              // Add the new fruit to the world
-              addMergedFruit(newFruit, centerX, centerY)
             }
           }, 100) // Small delay for better visual effect
         }
@@ -399,18 +370,20 @@ const handleCollision = (event) => {
   }
 }
 
-// Add a merged fruit to the world at a specific position
 const addMergedFruit = (fruit, x, y) => {
+  const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruit.level)
+  const radius = fruitConfig ? fruitConfig.radius : fruit.size / 2
+
   const fruitBody = Matter.Bodies.circle(
       x,
       y,
-      fruit.size / 2,
+      radius,
       {
-        restitution: 0.3, // Bounciness
-        friction: 0.05,   // Reduced friction
-        frictionAir: 0.005, // Reduced air friction
-        density: 0.001,    // Density for weight
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`, // Correct label format
+        restitution: 0.3,
+        friction: 0.05,
+        frictionAir: 0.005,
+        density: 0.001,
+        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`,
         render: {
           sprite: {
             xScale: 1,
@@ -519,25 +492,25 @@ onUnmounted(() => {
     <div class="game-container">
       <!-- Next Fruit Preview -->
       <div
-          ref="nextFruitContainer"
-          class="next-fruit-preview"
-          @mousemove="handleMouseMove"
-          @mouseenter="handleMouseEnter"
-          @mouseleave="handleMouseLeave"
-          @touchmove.passive="handleTouchMove"
-          @touchstart.passive="handleTouchStart"
+        ref="nextFruitContainer"
+        class="next-fruit-preview"
+        @mousemove="handleMouseMove"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
+        @touchmove.passive="handleTouchMove"
+        @touchstart.passive="handleTouchStart"
       >
         <div
-            v-if="nextFruit && showNextFruit"
-            class="next-fruit"
-            :class="{ 'next-fruit--disabled': !canDropFruit }"
-            :style="{
-              width: `${nextFruit.size}px`,
-              height: `${nextFruit.size}px`,
-              left: `${nextFruitPosition - nextFruit.size / 2}px`,
-              transform: 'translateY(-50%)',
-              opacity: canDropFruit ? 1 : 0
-            }"
+          v-if="nextFruit && showNextFruit"
+          class="next-fruit"
+          :class="{ 'next-fruit--disabled': !canDropFruit }"
+          :style="{
+            width: `${nextFruit.size}px`,
+            height: `${nextFruit.size}px`,
+            left: `${nextFruitPosition - nextFruit.size / 2}px`,
+            transform: 'translateY(-50%)',
+            opacity: canDropFruit ? 1 : 0
+          }"
         >
           <div class="fruit-svg" v-html="nextFruit.svg"></div>
         </div>
@@ -545,18 +518,18 @@ onUnmounted(() => {
 
       <!-- Physics Game Board -->
       <div
-          ref="gameBoard"
-          class="game-board"
-          :style="{
+        ref="gameBoard"
+        class="game-board"
+        :style="{
           width: `${boardConfig.width}px`,
           height: `${boardConfig.height}px`
         }"
-          @click="handleBoardClick"
-          @touchend.prevent="handleBoardClick"
-          @mousemove="handleMouseMove"
-          @mouseenter="handleMouseEnter"
-          @mouseleave="handleMouseLeave"
-          @touchmove.passive="handleTouchMove"
+        @click="handleBoardClick"
+        @touchend.prevent="handleBoardClick"
+        @mousemove="handleMouseMove"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
+        @touchmove.passive="handleTouchMove"
       >
         <!-- Top boundary indicator -->
         <div
@@ -579,8 +552,8 @@ onUnmounted(() => {
             :key="fruit.id"
             class="fruit"
             :class="{
-            'merging': fruit.merging
-          }"
+              'merging': fruit.merging
+            }"
             :style="{
             left: `${fruit.x}px`,
             top: `${fruit.y}px`,
@@ -768,21 +741,6 @@ onUnmounted(() => {
   100% {
     transform: scale(0) rotate(360deg);
     opacity: 0;
-  }
-}
-
-// Responsive Design
-@media (max-width: 480px) {
-  .fruit-merge-game {
-    padding: var(--space-2);
-  }
-
-  .game-stats {
-    gap: var(--space-2);
-  }
-
-  .stat-value {
-    font-size: var(--font-size-base);
   }
 }
 
