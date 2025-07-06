@@ -268,6 +268,11 @@ export default {
 		game_over: 'Game Over',
 		game_over_message: 'Fruits reached the danger zone! Try a different strategy.',
 		try_again: 'Try Again',
+		combo: 'Combo',
+		multiplier: 'Multiplier',
+		combo_break: 'Combo broken!',
+		amazing_combo: 'Amazing Combo!',
+		incredible_combo: 'Incredible Combo!',
 		fruits: {
 			blueberry: 'Blueberry',
 			strawberry: 'Strawberry',

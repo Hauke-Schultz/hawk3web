@@ -267,6 +267,11 @@ export default {
 		game_over: 'Spiel Vorbei',
 		game_over_message: 'Früchte haben die Gefahrenzone erreicht! Versuche eine andere Strategie.',
 		try_again: 'Nochmal versuchen',
+		combo: 'Combo',
+		multiplier: 'Multiplikator',
+		combo_break: 'Combo unterbrochen!',
+		amazing_combo: 'Fantastische Combo!',
+		incredible_combo: 'Unglaubliche Combo!',
 		fruits: {
 			blueberry: 'Blaubeere',
 			strawberry: 'Erdbeere',

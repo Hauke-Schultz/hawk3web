@@ -8,6 +8,7 @@ import PerformanceStats from "./PerformanceStats.vue";
 import ProgressOverview from "./ProgressOverview.vue";
 import {calculateLevelStars} from "../config/levelUtils.js";
 import GameCompletedModal from "./GameCompletedModal.vue";
+import {useComboSystem} from "../composables/useComboSystem.js";
 
 // Props
 const props = defineProps({
@@ -31,7 +32,6 @@ const currentLevel = ref(props.level || 1)
 const score = ref(0)
 const moves = ref(0)
 const nextFruitId = ref(0)
-const fruitsCreated = ref({})
 
 const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
 
@@ -52,6 +52,15 @@ const isHoveringBoard = ref(false)
 // Next fruit system
 const nextFruit = ref(null)
 const showNextFruit = ref(true)
+
+// Combo system setup
+const comboSystem = useComboSystem({
+  minComboLength: 2,        // FruitMerge: 2 consecutive merges = combo
+  maxComboLength: 10,       // Max 10 combo levels
+  comboTimeout: 5000,       // 5 seconds to maintain combo
+  baseMultiplier: 1.5,      // Higher base for fruit merge
+  multiplierIncrement: 0.4  // More aggressive increase
+})
 
 const fruitTypes = computed(() => {
   return Object.values(FRUIT_TYPES)
@@ -342,8 +351,16 @@ const handleCollision = (event) => {
             // Find current fruit type in config
             const currentFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA)
             if (currentFruitType) {
-              // Add score based on the fruit's actual score value
-              score.value += currentFruitType.scoreValue
+              // Add combo for successful merge
+              const comboResult = comboSystem.addCombo()
+              console.log('Combo added:', comboResult)
+
+              // Calculate score with combo multiplier
+              const baseScore = currentFruitType.scoreValue
+              const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
+              score.value += comboMultipliedScore
+
+              console.log(`Merge score: ${baseScore} × ${comboResult.multiplier.toFixed(1)} = ${comboMultipliedScore}`)
 
               // Find next fruit type
               const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
@@ -396,6 +413,17 @@ const addMergedFruit = (fruit, x, y) => {
         }
       }
   )
+
+  // Add visual combo effect if combo is active
+  if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 3) {
+    // Add combo sparkle effect
+    fruit.comboEffect = true
+    setTimeout(() => {
+      if (fruits.value.includes(fruit)) {
+        fruit.comboEffect = false
+      }
+    }, 1000)
+  }
 
   fruit.body = fruitBody
   Matter.Composite.add(engine.world, fruitBody)
@@ -496,12 +524,15 @@ const completeLevel = () => {
 
   updateLevelStats('fruitMerge', currentLevel.value, levelResult)
 
-  // Spiel-Statistiken aktualisieren
   const gameStats = {
     gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
     totalScore: gameData.games.fruitMerge.totalScore + score.value,
     highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
-    maxLevel: Math.max(gameData.games.fruitMerge.maxLevel, currentLevel.value)
+    maxLevel: Math.max(gameData.games.fruitMerge.maxLevel, currentLevel.value),
+    maxCombo: Math.max(
+        gameData.games.fruitMerge.maxCombo || 0,
+        comboSystem.comboCount.value
+    )
   }
 
   updateGameStats('fruitMerge', gameStats)
@@ -539,6 +570,7 @@ const startLevel = (level) => {
 
 const resetGame = () => {
   cleanup()
+  comboSystem.resetCombo()
   initGame()
   gameState.value = 'playing'
   score.value = 0
@@ -554,6 +586,14 @@ const handleTryAgain = () => {
 const backToGaming = () => {
   emit('back-to-gaming')
   cleanup()
+}
+
+const gameOver = () => {
+  gameState.value = 'gameOver'
+  comboSystem.cleanup()
+  setTimeout(() => {
+    backToGaming()
+  }, 2000)
 }
 
 // Watchers
@@ -577,6 +617,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   cleanup()
+  comboSystem.cleanup()
 })
 </script>
 
@@ -609,12 +650,12 @@ onUnmounted(() => {
           :moves="moves"
           :matches="fruits.length"
           :total-pairs="fruits.length"
-          :combo-count="0"
-          :combo-multiplier="0"
-          :max-combo="0"
-          :combo-time-remaining="0"
-          :combo-time-max="0"
-          :is-combo-active="false"
+          :combo-count="comboSystem.comboCount.value"
+          :combo-multiplier="comboSystem.comboMultiplier.value"
+          :max-combo="gameData.games.fruitMerge.maxCombo || 0"
+          :combo-time-remaining="comboSystem.timeRemaining.value"
+          :combo-time-max="comboSystem.config.comboTimeout"
+          :is-combo-active="comboSystem.isComboActive.value"
           layout="horizontal"
           theme="card"
           size="normal"
@@ -695,7 +736,8 @@ onUnmounted(() => {
             :key="fruit.id"
             class="fruit"
             :class="{
-              'merging': fruit.merging
+              'merging': fruit.merging,
+              'combo-effect': fruit.comboEffect
             }"
             :style="{
             left: `${fruit.x}px`,
@@ -862,6 +904,11 @@ onUnmounted(() => {
     transform-origin: center;
     animation: mergeAnimation 0.5s ease-out;
   }
+
+  &.combo-effect {
+    animation: comboSparkle 1s ease-out;
+    box-shadow: 0 0 20px var(--warning-color);
+  }
 }
 
 .fruit-svg {
@@ -875,6 +922,15 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     border-radius: 50%;
+  }
+}
+
+@keyframes comboSparkle {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
   }
 }
 
