@@ -285,37 +285,21 @@ export default {
 				description: 'Create an apple'
 			},
 			2: {
-				title: 'Double Trouble',
-				description: 'Create two apples'
+				title: 'Peach Master',
+				description: 'Create a peaches'
 			},
 			3: {
-				title: 'Peach Master',
-				description: 'Create two peaches'
-			},
-			4: {
 				title: 'Pineapple Challenge',
 				description: 'Create a pineapple'
 			},
-			5: {
-				title: 'Apple Collector',
-				description: 'Create ten apples'
-			},
-			6: {
+			4: {
 				title: 'Coconut Expert',
 				description: 'Create a coconut'
 			},
-			7: {
-				title: 'Double Coconut',
-				description: 'Create two coconuts'
-			},
-			8: {
+			5: {
 				title: 'Melon Master',
 				description: 'Create a melon'
 			},
-			9: {
-				title: 'Ultimate Challenge',
-				description: 'Create two melons'
-			}
 		}
 	},
 

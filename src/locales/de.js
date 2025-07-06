@@ -284,37 +284,21 @@ export default {
 				description: 'Erstelle einen Apfel'
 			},
 			2: {
-				title: 'Doppelt gut',
-				description: 'Erstelle zwei Äpfel'
+				title: 'Pfirsich-Meister',
+				description: 'Erstelle einen Pfirsich'
 			},
 			3: {
-				title: 'Pfirsich-Meister',
-				description: 'Erstelle zwei Pfirsiche'
-			},
-			4: {
 				title: 'Ananas-Challenge',
 				description: 'Erstelle eine Ananas'
 			},
-			5: {
-				title: 'Apfel-Sammler',
-				description: 'Erstelle zehn Äpfel'
-			},
-			6: {
+			4: {
 				title: 'Kokosnuss-Experte',
 				description: 'Erstelle eine Kokosnuss'
 			},
-			7: {
-				title: 'Doppelte Kokosnuss',
-				description: 'Erstelle zwei Kokosnüsse'
-			},
-			8: {
+			5: {
 				title: 'Melonen-Meister',
 				description: 'Erstelle eine Melone'
 			},
-			9: {
-				title: 'Ultimative Challenge',
-				description: 'Erstelle zwei Melonen'
-			}
 		}
 	},
 

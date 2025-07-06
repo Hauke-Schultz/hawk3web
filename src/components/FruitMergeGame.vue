@@ -6,6 +6,8 @@ import {useI18n} from '../composables/useI18n.js'
 import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG} from '../config/fruitMergeConfig.js'
 import PerformanceStats from "./PerformanceStats.vue";
 import ProgressOverview from "./ProgressOverview.vue";
+import {calculateLevelStars} from "../config/levelUtils.js";
+import GameCompletedModal from "./GameCompletedModal.vue";
 
 // Props
 const props = defineProps({
@@ -19,7 +21,7 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // Services
-const { } = useLocalStorage()
+const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements } = useLocalStorage()
 const { t } = useI18n()
 
 // Game state - using shallowRef for performance
@@ -29,9 +31,9 @@ const currentLevel = ref(props.level || 1)
 const score = ref(0)
 const moves = ref(0)
 const nextFruitId = ref(0)
+const fruitsCreated = ref({})
 
 const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
-const targetFruit = computed(() => currentLevelConfig.value?.targetFruit)
 
 // Physics engine references
 let engine = null
@@ -413,14 +415,32 @@ const updateFruitPositions = () => {
   }
 }
 
-// Game progress tracking
 const gameProgress = computed(() => {
+  const targetFruitType = currentLevelConfig.value.targetFruit
+  const targetCount = 1
+  const currentCount = fruits.value.filter(fruit =>
+      fruit.name === targetFruitType && !fruit.merging
+  ).length
   return {
-    total: 0,
-    completed: 0,
-    totalStars: 0,
-    maxStars: 3
+    completed: Math.min(currentCount, targetCount),
+    total: targetCount,
+    percentage: Math.round((Math.min(currentCount, targetCount) / targetCount) * 100)
   }
+})
+
+// Check if level is completed
+const isLevelComplete = computed(() => {
+  const levelConfig = currentLevelConfig.value
+  if (!levelConfig) return false
+
+  const targetFruitType = levelConfig.targetFruit
+  const targetCount = 1
+
+  const currentCount = fruits.value.filter(fruit =>
+      fruit.name === targetFruitType && !fruit.merging
+  ).length
+
+  return currentCount >= targetCount
 })
 
 // Game loop for updating positions
@@ -465,9 +485,89 @@ const initGame = async () => {
   console.log('Game initialized')
 }
 
+const completeLevel = () => {
+  gameState.value = 'completed'
+
+  const levelResult = {
+    completed: true,
+    score: score.value,
+    moves: moves.value
+  }
+
+  updateLevelStats('fruitMerge', currentLevel.value, levelResult)
+
+  // Spiel-Statistiken aktualisieren
+  const gameStats = {
+    gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
+    totalScore: gameData.games.fruitMerge.totalScore + score.value,
+    highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
+    maxLevel: Math.max(gameData.games.fruitMerge.maxLevel, currentLevel.value)
+  }
+
+  updateGameStats('fruitMerge', gameStats)
+  checkGameLevelAchievements('fruitMerge', currentLevel.value)
+  addScore(score.value)
+
+  emit('game-complete', {
+    level: currentLevel.value,
+    score: score.value,
+    moves: moves.value
+  })
+}
+
+const calculateCurrentStars = () => {
+  if (!isLevelComplete.value) return 0
+  return calculateLevelStars(
+      { score: score.value, moves: moves.value, completed: true },
+      currentLevelConfig.value
+  )
+}
+
+const nextLevel = () => {
+  if (currentLevel.value < Object.keys(FRUIT_MERGE_LEVELS).length) {
+    currentLevel.value++
+    startLevel(currentLevel.value)
+  } else {
+    backToGaming()
+  }
+}
+
+const startLevel = (level) => {
+  currentLevel.value = level
+  resetGame()
+}
+
+const resetGame = () => {
+  cleanup()
+  initGame()
+  gameState.value = 'playing'
+  score.value = 0
+  moves.value = 0
+  nextFruitId.value = 0
+}
+
+const handleTryAgain = () => {
+  resetGame()
+  gameState.value = 'playing'
+}
+
+const backToGaming = () => {
+  emit('back-to-gaming')
+  cleanup()
+}
+
 // Watchers
 watch(() => props.level, (newLevel) => {
   currentLevel.value = newLevel
+})
+
+// Watch for level completion
+watch(isLevelComplete, (newValue) => {
+  if (newValue && gameState.value === 'playing') {
+    setTimeout(() => {
+      completeLevel()
+    }, 1000)
+  }
 })
 
 // Lifecycle
@@ -494,14 +594,39 @@ onUnmounted(() => {
         <ProgressOverview
           :completed="gameProgress.completed"
           :total="gameProgress.total"
-          :total-stars="gameProgress.totalStars"
-          :max-stars="gameProgress.maxStars"
           theme="warning"
           size="small"
-          :levels-label="targetFruit"
+          :levels-label="currentLevelConfig.targetFruit"
           :show-stars="false"
           :show-percentage="true"
           :complete-label="t('fruitMerge.target')"
+        />
+
+        <!-- Game Performance Stats -->
+        <PerformanceStats
+          :score="score"
+          :time-elapsed="0"
+          :moves="moves"
+          :matches="fruits.length"
+          :total-pairs="fruits.length"
+          :combo-count="0"
+          :combo-multiplier="0"
+          :max-combo="0"
+          :combo-time-remaining="0"
+          :combo-time-max="0"
+          :is-combo-active="false"
+          layout="horizontal"
+          theme="card"
+          size="normal"
+          :show-score="true"
+          :show-time="false"
+          :show-moves="true"
+          :show-matches="false"
+          :show-combo="true"
+          :score-label="t('stats.score')"
+          :time-label="t('stats.time')"
+          :moves-label="t('stats.moves')"
+          :combo-label="t('stats.combo')"
         />
       </div>
     </div>
@@ -585,6 +710,32 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <!-- Game Completed State -->
+    <GameCompletedModal
+      :visible="gameState === 'completed' || gameState === 'gameOver'"
+      :level="currentLevel"
+      :game-title="t('fruitMerge.title')"
+      :final-score="score"
+      :time-elapsed="0"
+      :moves="moves"
+      :matches="fruits.length"
+      :total-pairs="fruits.length"
+      :stars-earned="calculateCurrentStars()"
+      :show-stars="gameState === 'completed'"
+      :game-over-mode="gameState === 'gameOver'"
+      :game-over-title="t('fruitMerge.game_over')"
+      :game-over-message="t('fruitMerge.game_over_message')"
+      :game-over-icon="'💥'"
+      :next-level-label="t('fruitMerge.next_level')"
+      :play-again-label="t('fruitMerge.play_again')"
+      :try-again-label="t('fruitMerge.try_again')"
+      :back-to-games-label="t('fruitMerge.back_to_levels')"
+      @next-level="nextLevel"
+      @play-again="resetGame"
+      @try-again="handleTryAgain"
+      @back-to-games="backToGaming"
+      @close="backToGaming"
+    />
   </main>
 </template>
 
@@ -604,13 +755,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  text-align: center;
 }
 
 .game-info {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
 }
 
 .game-title {
@@ -628,6 +778,12 @@ onUnmounted(() => {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   align-self: center;
+}
+
+.game-stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 // Game Container

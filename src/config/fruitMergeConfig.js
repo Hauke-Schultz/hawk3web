@@ -610,34 +610,23 @@ export const FRUIT_MERGE_LEVELS = {
 		title: 'Easy',
 		description: "Erstelle einen Apfel",
 		starThresholds: {
-			1: { targetFruit: 'APPLE', moves: 30 },
-			2: { targetFruit: 'APPLE', moves: 20 },
-			3: { targetFruit: 'APPLE', moves: 12 },
+			1: { targetFruit: 'APPLE', moves: 14 },
+			2: { targetFruit: 'APPLE', moves: 10 },
+			3: { targetFruit: 'APPLE', moves: 6 },
 		}
 	},
 	2: {
-		targetFruit: 'APPLE',
+		targetFruit: 'PEACH',
 		gameOverHeight: 100,
 		title: 'Medium',
-		description: "Erstelle zwei Äpfel",
+		description: "Erstelle einen Pfirsiche",
 		starThresholds: {
-			1: { targetFruit: 'APPLE', targetCount: 2, moves: 35 },
-			2: { targetFruit: 'APPLE', targetCount: 2, moves: 25 },
-			3: { targetFruit: 'APPLE', targetCount: 2, moves: 15 }
+			1: { targetFruit: 'PEACH', moves: 26 },
+			2: { targetFruit: 'PEACH', moves: 20 },
+			3: { targetFruit: 'PEACH', moves: 16 }
 		}
 	},
 	3: {
-		targetFruit: 'PEACH',
-		gameOverHeight: 100,
-		title: 'Hard',
-		description: "Erstelle zwei Pfirsiche",
-		starThresholds: {
-			1: { targetFruit: 'PEACH', targetCount: 2, moves: 50 },
-			2: { targetFruit: 'PEACH', targetCount: 2, moves: 40 },
-			3: { targetFruit: 'PEACH', targetCount: 2, moves: 30 }
-		}
-	},
-	4: {
 		targetFruit: 'PINEAPPLE',
 		gameOverHeight: 100,
 		title: 'Expert',
@@ -648,18 +637,7 @@ export const FRUIT_MERGE_LEVELS = {
 			3: { targetFruit: 'PINEAPPLE', moves: 40 }
 		}
 	},
-	5: {
-		targetFruit: 'APPLE',
-		gameOverHeight: 100,
-		title: 'Master',
-		description: "Erstelle zehn Äpfel",
-		starThresholds: {
-			1: { targetFruit: 'APPLE', targetCount: 10, moves: 80 },
-			2: { targetFruit: 'APPLE', targetCount: 10, moves: 70 },
-			3: { targetFruit: 'APPLE', targetCount: 10, moves: 60 }
-		}
-	},
-	6: {
+	4: {
 		targetFruit: 'COCONUT',
 		gameOverHeight: 30,
 		title: 'Legend',
@@ -670,18 +648,7 @@ export const FRUIT_MERGE_LEVELS = {
 			3: { targetFruit: 'COCONUT', moves: 80 }
 		}
 	},
-	7: {
-		targetFruit: 'COCONUT',
-		gameOverHeight: 30,
-		title: 'Ultimate',
-		description: "Erstelle zwei Kokosnüsse",
-		starThresholds: {
-			1: { targetFruit: 'COCONUT', targetCount: 2, moves: 120 },
-			2: { targetFruit: 'COCONUT', targetCount: 2, moves: 110 },
-			3: { targetFruit: 'COCONUT', targetCount: 2, moves: 100 }
-		}
-	},
-	8: {
+	5: {
 		targetFruit: 'MELON',
 		gameOverHeight: 30,
 		title: 'Epic',
@@ -690,17 +657,6 @@ export const FRUIT_MERGE_LEVELS = {
 			1: { targetFruit: 'MELON', moves: 150 },
 			2: { targetFruit: 'MELON', moves: 140 },
 			3: { targetFruit: 'MELON', moves: 130 }
-		}
-	},
-	9: {
-		targetFruit: 'MELON',
-		gameOverHeight: 30,
-		title: 'Legendary',
-		description: "Erstelle zwei Melonen",
-		starThresholds: {
-			1: { targetFruit: 'MELON', targetCount: 2, moves: 200 },
-			2: { targetFruit: 'MELON', targetCount: 2, moves: 180 },
-			3: { targetFruit: 'MELON', targetCount: 2, moves: 160 }
 		}
 	},
 }
