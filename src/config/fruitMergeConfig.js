@@ -606,7 +606,6 @@ export const COMBO_CONFIG = {
 export const FRUIT_MERGE_LEVELS = {
 	1: {
 		targetFruit: 'APPLE',
-		gameOverHeight: 100,
 		title: 'Easy',
 		description: "Erstelle einen Apfel",
 		starThresholds: {
@@ -617,7 +616,6 @@ export const FRUIT_MERGE_LEVELS = {
 	},
 	2: {
 		targetFruit: 'PEACH',
-		gameOverHeight: 100,
 		title: 'Medium',
 		description: "Erstelle einen Pfirsiche",
 		starThresholds: {
@@ -628,7 +626,6 @@ export const FRUIT_MERGE_LEVELS = {
 	},
 	3: {
 		targetFruit: 'PINEAPPLE',
-		gameOverHeight: 100,
 		title: 'Expert',
 		description: "Erstelle eine Ananas",
 		starThresholds: {
@@ -639,7 +636,6 @@ export const FRUIT_MERGE_LEVELS = {
 	},
 	4: {
 		targetFruit: 'COCONUT',
-		gameOverHeight: 30,
 		title: 'Legend',
 		description: "Erstelle eine Kokosnuss",
 		starThresholds: {
@@ -650,7 +646,6 @@ export const FRUIT_MERGE_LEVELS = {
 	},
 	5: {
 		targetFruit: 'MELON',
-		gameOverHeight: 30,
 		title: 'Epic',
 		description: "Erstelle eine Melone",
 		starThresholds: {

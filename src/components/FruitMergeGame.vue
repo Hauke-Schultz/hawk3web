@@ -84,8 +84,9 @@ const boardConfig = computed(() => ({
   thickness: PHYSICS_CONFIG.board.thickness
 }))
 
-const topBoundary = computed(() => {
-  return Math.max(30, 100 - (currentLevel.value - 1) * 5)
+const gameOverTimer = ref(null)
+const gameOverHeight = computed(() => {
+  return PHYSICS_CONFIG.board.height - PHYSICS_CONFIG.gameOverHeight
 })
 
 const generateNextFruit = () => {
@@ -109,7 +110,8 @@ const generateNextFruit = () => {
     y: 0,
     rotation: 0,
     body: null,
-    merging: false
+    merging: false,
+    inDanger: false
   }
 }
 
@@ -416,7 +418,6 @@ const addMergedFruit = (fruit, x, y) => {
 
   // Add visual combo effect if combo is active
   if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 3) {
-    // Add combo sparkle effect
     fruit.comboEffect = true
     setTimeout(() => {
       if (fruits.value.includes(fruit)) {
@@ -426,6 +427,7 @@ const addMergedFruit = (fruit, x, y) => {
   }
 
   fruit.body = fruitBody
+  fruit.inDanger = false
   Matter.Composite.add(engine.world, fruitBody)
   fruits.value = [...fruits.value, fruit]
 }
@@ -475,6 +477,7 @@ const isLevelComplete = computed(() => {
 let animationFrame = null
 const gameLoop = () => {
   updateFruitPositions()
+  updateFruitDangerStatus()
   animationFrame = requestAnimationFrame(gameLoop)
 }
 
@@ -486,6 +489,8 @@ const cleanup = () => {
     cancelAnimationFrame(animationFrame)
     animationFrame = null
   }
+
+  stopGameOverChecking()
 
   if (runner) {
     Matter.Runner.stop(runner)
@@ -509,6 +514,7 @@ const initGame = async () => {
   initPhysics()
   nextFruit.value = generateNextFruit()
   gameLoop()
+  startGameOverChecking()
 
   console.log('Game initialized')
 }
@@ -543,6 +549,46 @@ const completeLevel = () => {
     level: currentLevel.value,
     score: score.value,
     moves: moves.value
+  })
+}
+
+const checkGameOver = () => {
+  if (gameState.value !== 'playing') return false
+
+  const fruitsInDangerZone = fruits.value.filter(fruit =>
+      fruit.body && fruit.body.position.y <= gameOverHeight.value && !fruit.merging
+  ).length
+
+  if (fruitsInDangerZone >= PHYSICS_CONFIG.fruitsInDanger) {
+    gameOver()
+    return true
+  }
+
+  return false
+}
+
+const startGameOverChecking = () => {
+  if (gameOverTimer.value) clearInterval(gameOverTimer.value)
+
+  gameOverTimer.value = setInterval(() => {
+    checkGameOver()
+  }, PHYSICS_CONFIG.gameOverCheckInterval)
+}
+
+const stopGameOverChecking = () => {
+  if (gameOverTimer.value) {
+    clearInterval(gameOverTimer.value)
+    gameOverTimer.value = null
+  }
+}
+
+const updateFruitDangerStatus = () => {
+  fruits.value.forEach(fruit => {
+    if (fruit.body && fruit.body.position.y <= gameOverHeight.value) {
+      fruit.inDanger = true
+    } else {
+      fruit.inDanger = false
+    }
   })
 }
 
@@ -590,10 +636,19 @@ const backToGaming = () => {
 
 const gameOver = () => {
   gameState.value = 'gameOver'
+  stopGameOverChecking()
   comboSystem.cleanup()
-  setTimeout(() => {
-    backToGaming()
-  }, 2000)
+
+  console.log('Game Over! Fruits reached the danger zone.')
+
+  const gameStats = {
+    gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
+    totalScore: gameData.games.fruitMerge.totalScore + score.value,
+    highScore: Math.max(gameData.games.fruitMerge.highScore, score.value)
+  }
+
+  updateGameStats('fruitMerge', gameStats)
+  addScore(score.value)
 }
 
 // Watchers
@@ -715,10 +770,12 @@ onUnmounted(() => {
         @mouseleave="handleMouseLeave"
         @touchmove.passive="handleTouchMove"
       >
-        <!-- Top boundary indicator -->
         <div
-          class="top-boundary-line"
-          :style="{ top: `${topBoundary}px` }"
+          class="danger-zone"
+          :style="{
+            height: `${gameOverHeight}px`,
+            top: '0px'
+          }"
         ></div>
         <!-- Drop indicator line -->
         <div
@@ -730,22 +787,23 @@ onUnmounted(() => {
           }"
         ></div>
 
-        <!-- Rendered Fruits -->
+        <!-- Fruits -->
         <div
-            v-for="fruit in fruits"
-            :key="fruit.id"
-            class="fruit"
-            :class="{
-              'merging': fruit.merging,
-              'combo-effect': fruit.comboEffect
-            }"
-            :style="{
+          v-for="fruit in fruits"
+          :key="fruit.id"
+          class="fruit"
+          :class="{
+            'merging': fruit.merging,
+            'combo-effect': fruit.comboEffect,
+            'fruit--danger': fruit.inDanger
+          }"
+          :style="{
             left: `${fruit.x}px`,
             top: `${fruit.y}px`,
             width: `${fruit.size}px`,
             height: `${fruit.size}px`,
             transform: `rotate(${fruit.rotation}deg)`,
-            zIndex: fruit.merging ? 10 : 1
+            zIndex: fruit.merging ? 10 : (fruit.inDanger ? 5 : 1)
           }"
         >
           <div class="fruit-svg" v-html="fruit.svg"></div>
@@ -866,6 +924,21 @@ onUnmounted(() => {
   z-index: 10;
 }
 
+.danger-zone {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%);
+  border-bottom: 2px dashed var(--error-color);
+  z-index: 3;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
 // Game Board
 .game-board {
   position: relative;
@@ -880,16 +953,6 @@ onUnmounted(() => {
   &:hover {
     border-color: var(--primary-color);
   }
-}
-
-.top-boundary-line {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, #ff4757, #ff6348);
-  z-index: 5;
-  box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
 }
 
 // Fruits
@@ -908,6 +971,14 @@ onUnmounted(() => {
   &.combo-effect {
     animation: comboSparkle 1s ease-out;
     box-shadow: 0 0 20px var(--warning-color);
+  }
+
+  &--danger {
+    animation: dangerPulse 1s ease-in-out infinite alternate;
+    box-shadow: 0 0 15px var(--error-color);
+    filter: brightness(1.2) saturate(1.3);
+    border: 2px solid var(--error-color);
+    border-radius: 50%;
   }
 }
 
@@ -945,6 +1016,17 @@ onUnmounted(() => {
   100% {
     transform: scale(0) rotate(360deg);
     opacity: 0;
+  }
+}
+
+@keyframes dangerPulse {
+  0% {
+    box-shadow: 0 0 15px var(--error-color);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 25px var(--error-color);
+    transform: scale(1.05);
   }
 }
 
