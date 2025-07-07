@@ -566,47 +566,6 @@ export const POINTS_CONFIG = {
 	MAX_DISTANCE: 100,
 }
 
-// Combo configuration
-export const COMBO_CONFIG = {
-	resetDelay: 3000,
-	minComboLength: 2,
-	maxComboLength: 15,
-	scoreMultipliers: {
-		1: 1.0,   // Single merge
-		2: 1.2,   // 2x combo = 20% bonus
-		3: 1.5,   // 3x combo = 50% bonus
-		4: 1.8,   // 4x combo = 80% bonus
-		5: 2.0,   // 5x combo = 100% bonus
-		6: 2.2,   // 6x combo = 120% bonus
-		7: 2.5,   // 7x combo = 150% bonus
-		8: 2.8,   // 8x combo = 180% bonus
-		9: 3.0,   // 9x combo = 200% bonus
-		10: 3.5,  // 10+ combo = 250% bonus
-		11: 4.0,  // 11x combo = 300% bonus
-		12: 4.5,  // 12x combo = 350% bonus
-		13: 5.0,  // 13x combo = 400% bonus
-		14: 5.5,  // 14x combo = 450% bonus
-		15: 6.0   // 15x combo = 500% bonus
-	},
-	comboMessage: {
-		2: 'GO GO COMBO!',
-		5: 'AMAZING COMBO!',
-		10: 'INCREDIBLE COMBO!',
-		15: 'LEGENDARY COMBO!'
-	},
-	comboColor: {
-		2: '#fdcb6e',  // Yellow
-		3: '#e17055',  // Orange
-		4: '#e84393',  // Pink
-		5: '#a29bfe',  // Purple
-		6: '#6c5ce7',  // Deep purple
-		7: '#fd79a8',  // Hot pink
-		8: '#e84393',  // Magenta
-		9: '#9b59b6',  // Royal purple
-		10: '#8e44ad' // Deep purple
-	}
-}
-
 // Level Goal Configuration
 export const FRUIT_MERGE_LEVELS = {
 	1: {

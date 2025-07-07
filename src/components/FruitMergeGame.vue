@@ -55,11 +55,11 @@ const showNextFruit = ref(true)
 
 // Combo system setup
 const comboSystem = useComboSystem({
-  minComboLength: 2,        // FruitMerge: 2 consecutive merges = combo
-  maxComboLength: 10,       // Max 10 combo levels
-  comboTimeout: 5000,       // 5 seconds to maintain combo
-  baseMultiplier: 1.5,      // Higher base for fruit merge
-  multiplierIncrement: 0.4  // More aggressive increase
+  minComboLength: 2,
+  maxComboLength: 5,
+  comboTimeout: 5000,
+  baseMultiplier: 1.5,
+  multiplierIncrement: 0.4
 })
 
 const fruitTypes = computed(() => {
@@ -337,58 +337,53 @@ const handleCollision = (event) => {
 
           // Mark fruits as merging to prevent multiple merges
           fruitA.merging = true
-          fruitB.merging = true
 
           // Calculate center position for the new fruit
           const centerX = (bodyA.position.x + bodyB.position.x) / 2
           const centerY = (bodyA.position.y + bodyB.position.y) / 2
+          // Remove bodies from the physics world
+          Matter.Composite.remove(engine.world, bodyA)
+          Matter.Composite.remove(engine.world, bodyB)
 
-          // Remove the old fruits after delay
-          setTimeout(() => {
-            // Remove bodies from the physics world
-            Matter.Composite.remove(engine.world, bodyA)
-            Matter.Composite.remove(engine.world, bodyB)
+          // Remove fruits from the array
+          fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB)
 
-            // Remove fruits from the array
-            fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB)
+          // Find current fruit type in config
+          const currentFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA)
+          if (currentFruitType) {
+            // Add combo for successful merge
+            const comboResult = comboSystem.addCombo()
+            console.log('Combo added:', comboResult)
 
-            // Find current fruit type in config
-            const currentFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA)
-            if (currentFruitType) {
-              // Add combo for successful merge
-              const comboResult = comboSystem.addCombo()
-              console.log('Combo added:', comboResult)
+            // Calculate score with combo multiplier
+            const baseScore = currentFruitType.scoreValue
+            const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
+            score.value += comboMultipliedScore
 
-              // Calculate score with combo multiplier
-              const baseScore = currentFruitType.scoreValue
-              const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
-              score.value += comboMultipliedScore
+            console.log(`Merge score: ${baseScore} × ${comboResult.multiplier.toFixed(1)} = ${comboMultipliedScore}`)
 
-              console.log(`Merge score: ${baseScore} × ${comboResult.multiplier.toFixed(1)} = ${comboMultipliedScore}`)
+            // Find next fruit type
+            const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
 
-              // Find next fruit type
-              const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
-
-              if (nextFruitType) {
-                const newFruit = {
-                  id: nextFruitId.value++,
-                  color: nextFruitType.color,
-                  size: nextFruitType.radius * 2,
-                  level: nextFruitType.index,
-                  name: nextFruitType.type,
-                  svg: nextFruitType.svg,
-                  x: centerX,
-                  y: centerY,
-                  rotation: 0,
-                  body: null,
-                  merging: false
-                }
-
-                // Add the new fruit to the world
-                addMergedFruit(newFruit, centerX, centerY)
+            if (nextFruitType) {
+              const newFruit = {
+                id: nextFruitId.value++,
+                color: nextFruitType.color,
+                size: nextFruitType.radius * 2,
+                level: nextFruitType.index,
+                name: nextFruitType.type,
+                svg: nextFruitType.svg,
+                x: centerX,
+                y: centerY,
+                rotation: 0,
+                body: null,
+                merging: false
               }
+
+              // Add the new fruit to the world
+              addMergedFruit(newFruit, centerX, centerY)
             }
-          }, 100) // Small delay for better visual effect
+          }
         }
       }
     }
@@ -419,7 +414,7 @@ const addMergedFruit = (fruit, x, y) => {
   )
 
   // Combo-Effekt hinzufügen
-  if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 3) {
+  if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 2) {
     fruit.comboEffect = true
     setTimeout(() => {
       if (fruits.value.includes(fruit)) {
@@ -824,8 +819,7 @@ onUnmounted(() => {
           :key="fruit.id"
           class="fruit"
           :class="{
-            'merging': fruit.merging,
-            'combo-effect': fruit.comboEffect,
+            'fruit--combo': fruit.comboEffect,
             'fruit--danger': fruit.inDanger
           }"
           :style="{
@@ -834,7 +828,7 @@ onUnmounted(() => {
             width: `${fruit.size}px`,
             height: `${fruit.size}px`,
             transform: `rotate(${fruit.rotation}deg)`,
-            zIndex: fruit.merging ? 10 : (fruit.inDanger ? 5 : 1)
+            zIndex: fruit.inDanger ? 5 : 1
           }"
         >
           <div class="fruit-svg" v-html="fruit.svg"></div>
@@ -992,13 +986,7 @@ onUnmounted(() => {
   pointer-events: none;
   transition: opacity 0.3s ease;
 
-  &.merging {
-    opacity: 0.8;
-    transform-origin: center;
-    animation: mergeAnimation 0.5s ease-out;
-  }
-
-  &.combo-effect {
+  &--combo {
     animation: comboSparkle 1s ease-out;
     box-shadow: 0 0 20px var(--warning-color);
   }
@@ -1032,20 +1020,6 @@ onUnmounted(() => {
   }
   50% {
     filter: brightness(1.3);
-  }
-}
-
-// Animations
-@keyframes mergeAnimation {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  50% {
-    transform: scale(1.2) rotate(180deg);
-  }
-  100% {
-    transform: scale(0) rotate(360deg);
-    opacity: 0;
   }
 }
 
