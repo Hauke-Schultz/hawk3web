@@ -65,9 +65,8 @@ export const PHYSICS_CONFIG = {
 	},
 
 	// Game Over
-	gameOverHeight: 100,
+	gameOverHeight: 260,
 	fruitsInDanger: 3,
-	warningZone: 80,
 	gameOverCheckInterval: 1000
 }
 
@@ -570,7 +569,8 @@ export const POINTS_CONFIG = {
 // Combo configuration
 export const COMBO_CONFIG = {
 	resetDelay: 3000,
-	minComboForDisplay: 2,
+	minComboLength: 2,
+	maxComboLength: 15,
 	scoreMultipliers: {
 		1: 1.0,   // Single merge
 		2: 1.2,   // 2x combo = 20% bonus
@@ -581,12 +581,17 @@ export const COMBO_CONFIG = {
 		7: 2.5,   // 7x combo = 150% bonus
 		8: 2.8,   // 8x combo = 180% bonus
 		9: 3.0,   // 9x combo = 200% bonus
-		10: 3.5   // 10+ combo = 250% bonus
+		10: 3.5,  // 10+ combo = 250% bonus
+		11: 4.0,  // 11x combo = 300% bonus
+		12: 4.5,  // 12x combo = 350% bonus
+		13: 5.0,  // 13x combo = 400% bonus
+		14: 5.5,  // 14x combo = 450% bonus
+		15: 6.0   // 15x combo = 500% bonus
 	},
 	comboMessage: {
-		2: 'GO GO Combo!',
-		5: 'Amazing Combo!',
-		10: 'Incredible Combo!',
+		2: 'GO GO COMBO!',
+		5: 'AMAZING COMBO!',
+		10: 'INCREDIBLE COMBO!',
 		15: 'LEGENDARY COMBO!'
 	},
 	comboColor: {

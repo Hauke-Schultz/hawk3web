@@ -111,7 +111,9 @@ const generateNextFruit = () => {
     rotation: 0,
     body: null,
     merging: false,
-    inDanger: false
+    inDanger: false,
+    dangerZoneStartTime: null,
+    dangerZoneTime: 0
   }
 }
 
@@ -157,7 +159,7 @@ const handleTouchStart = (event) => {
   }
 }
 
-// Drop fruit function (unified for click and touch)
+// Drop fruit
 const dropFruit = (targetX = nextFruitPosition.value) => {
   if (isDropping.value || dropCooldown.value || !nextFruit.value) return
 
@@ -416,7 +418,7 @@ const addMergedFruit = (fruit, x, y) => {
       }
   )
 
-  // Add visual combo effect if combo is active
+  // Combo-Effekt hinzufügen
   if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 3) {
     fruit.comboEffect = true
     setTimeout(() => {
@@ -428,6 +430,9 @@ const addMergedFruit = (fruit, x, y) => {
 
   fruit.body = fruitBody
   fruit.inDanger = false
+  fruit.dangerZoneStartTime = null
+  fruit.dangerZoneTime = 0
+
   Matter.Composite.add(engine.world, fruitBody)
   fruits.value = [...fruits.value, fruit]
 }
@@ -555,11 +560,23 @@ const completeLevel = () => {
 const checkGameOver = () => {
   if (gameState.value !== 'playing') return false
 
-  const fruitsInDangerZone = fruits.value.filter(fruit =>
-      fruit.body && fruit.body.position.y <= gameOverHeight.value && !fruit.merging
-  ).length
+  const restingFruitsInDangerZone = fruits.value.filter(fruit => {
+    if (!fruit.body || fruit.merging) return false
 
-  if (fruitsInDangerZone >= PHYSICS_CONFIG.fruitsInDanger) {
+    const inDangerZone = fruit.body.position.y <= gameOverHeight.value
+    const velocity = Math.sqrt(
+        fruit.body.velocity.x * fruit.body.velocity.x +
+        fruit.body.velocity.y * fruit.body.velocity.y
+    )
+    const isResting = velocity < 0.5
+    const hasBeenInDangerLongEnough = fruit.dangerZoneTime > 1000 // 1 Sekunde
+
+    return inDangerZone && isResting && hasBeenInDangerLongEnough
+  }).length
+
+  console.log(`Resting fruits in danger zone: ${restingFruitsInDangerZone}/${PHYSICS_CONFIG.fruitsInDanger}`)
+
+  if (restingFruitsInDangerZone >= PHYSICS_CONFIG.fruitsInDanger) {
     gameOver()
     return true
   }
@@ -583,11 +600,25 @@ const stopGameOverChecking = () => {
 }
 
 const updateFruitDangerStatus = () => {
+  const currentTime = Date.now()
+
   fruits.value.forEach(fruit => {
-    if (fruit.body && fruit.body.position.y <= gameOverHeight.value) {
+    if (!fruit.body) return
+
+    const inDangerZone = fruit.body.position.y <= gameOverHeight.value
+
+    if (inDangerZone) {
+      if (!fruit.inDanger) {
+        fruit.dangerZoneStartTime = currentTime
+        fruit.dangerZoneTime = 0
+      } else {
+        fruit.dangerZoneTime = currentTime - fruit.dangerZoneStartTime
+      }
       fruit.inDanger = true
     } else {
       fruit.inDanger = false
+      fruit.dangerZoneStartTime = null
+      fruit.dangerZoneTime = 0
     }
   })
 }
@@ -917,10 +948,10 @@ onUnmounted(() => {
 .drop-line {
   position: absolute;
   top: 0;
-  width: 2px;
+  width: 1px;
   background: var(--primary-color);
   opacity: 0.8;
-  transform: translateX(-50%);
+  transform: translateX(-3px);
   z-index: 10;
 }
 
@@ -943,15 +974,14 @@ onUnmounted(() => {
 .game-board {
   position: relative;
   background: linear-gradient(180deg, #00000000 0%, #000000aa 50%, #808080aa 100%);
-  border: 3px solid var(--card-border);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   cursor: crosshair;
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 2px 2px var(--card-border);
   transition: border-color 0.2s ease;
 
   &:hover {
-    border-color: var(--primary-color);
+    box-shadow: 0 0 2px 2px var(--primary-color);
   }
 }
 

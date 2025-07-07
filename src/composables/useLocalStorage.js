@@ -40,7 +40,8 @@ const getDefaultData = () => ({
 			totalScore: 0,
 			maxLevel: 1,
 			totalMerges: 0,
-			levels: {}
+			levels: {},
+			maxCombo: 0
 		}
 	},
 	cardStates: {
@@ -108,6 +109,7 @@ const validateGameData = (games) => {
 			gamesPlayed: typeof games?.fruitMerge?.gamesPlayed === 'number' ? games.fruitMerge.gamesPlayed : defaultGames.fruitMerge.gamesPlayed,
 			maxLevel: typeof games?.fruitMerge?.maxLevel === 'number' ? games.fruitMerge.maxLevel : defaultGames.fruitMerge.maxLevel,
 			totalMerges: typeof games?.fruitMerge?.totalMerges === 'number' ? games.fruitMerge.totalMerges : defaultGames.fruitMerge.totalMerges,
+			maxCombo: typeof games?.fruitMerge?.maxCombo === 'number' ? games.fruitMerge.maxCombo : defaultGames.fruitMerge.maxCombo,
 			levels: typeof games?.fruitMerge?.levels === 'object' ? games.fruitMerge.levels : {}
 		}
 	}

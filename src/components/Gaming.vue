@@ -8,7 +8,6 @@ import Icon from './Icon.vue'
 import MemoryGame from './MemoryGame.vue'
 import LevelSelection from "./LevelSelection.vue";
 import FruitMergeGame from "./FruitMergeGame.vue";
-import OldFruitMergeGame from "./OldFruitMergeGame.vue";
 
 // LocalStorage service
 const { gameData } = useLocalStorage()
@@ -25,8 +24,6 @@ const startGame = (gameId) => {
     currentView.value = 'memory-levels'
   } else if (gameId === 'fruitMerge') {
     currentView.value = 'fruitmerge-levels'
-  } else if (gameId === 'oldFruitMerge') {
-    currentView.value = 'old-fruitmerge'
   }
 }
 
@@ -108,20 +105,6 @@ const handleGameComplete = (gameResult) => {
           {{ t('common.play') }}
         </button>
       </div>
-
-      <!-- Old FruitMerge Game Card (Coming Soon) -->
-      <div class="game-card">
-        <div class="game-icon">
-
-        </div>
-        <div class="game-info">
-          <h3 class="game-title">Old Fruit</h3>
-        </div>
-        <button class="btn" @click="startGame('oldFruitMerge')">
-          <Icon name="play" size="20" />
-          {{ t('common.play') }}
-        </button>
-      </div>
     </div>
   </main>
 
@@ -159,13 +142,6 @@ const handleGameComplete = (gameResult) => {
     v-else-if="currentView === 'fruitmerge-game'"
     :level="selectedLevel"
     @back-to-gaming="backToFruitMergeLevels"
-    @game-complete="handleGameComplete"
-  />
-
-  <!-- Old FruitMerge Game View -->
-  <OldFruitMergeGame
-    v-else-if="currentView === 'old-fruitmerge'"
-    @back-to-gaming="backToHub"
     @game-complete="handleGameComplete"
   />
 </template>
