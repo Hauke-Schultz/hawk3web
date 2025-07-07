@@ -52,13 +52,14 @@ const isHoveringBoard = ref(false)
 // Next fruit system
 const nextFruit = ref(null)
 const showNextFruit = ref(true)
+const particles = shallowRef([])
 
 // Combo system setup
 const comboSystem = useComboSystem({
   minComboLength: 2,
-  maxComboLength: 5,
-  comboTimeout: 5000,
-  baseMultiplier: 1.5,
+  maxComboLength: 15,
+  comboTimeout: 3000,
+  baseMultiplier: 1.4,
   multiplierIncrement: 0.4
 })
 
@@ -380,6 +381,8 @@ const handleCollision = (event) => {
                 merging: false
               }
 
+              createMergeVisualEffects(centerX, centerY, nextFruitType);
+
               // Add the new fruit to the world
               addMergedFruit(newFruit, centerX, centerY)
             }
@@ -430,6 +433,40 @@ const addMergedFruit = (fruit, x, y) => {
 
   Matter.Composite.add(engine.world, fruitBody)
   fruits.value = [...fruits.value, fruit]
+}
+
+const createMergeVisualEffects = (mergeX, mergeY, newFruitType) => {
+  createMergeParticles(mergeX, mergeY, newFruitType)
+}
+
+const createMergeParticles = (x, y, fruitType) => {
+  const particleCount = Math.min(fruitType.index + 2, 10)
+
+  for (let i = 0; i < particleCount; i++) {
+    const angle = (i / particleCount) * Math.PI * 2
+    const distance = 40 + Math.random() * 30
+    const particleX = Math.cos(angle) * distance + (Math.random() - 0.5) * 20
+    const particleY = Math.sin(angle) * distance + (Math.random() - 0.5) * 20
+
+    const particle = {
+      id: `particle-${Date.now()}-${i}`,
+      x: x,
+      y: y,
+      targetX: particleX,
+      targetY: particleY,
+      type: fruitType.type,
+      backgroundColor: fruitType.sparkleColor,
+      duration: PHYSICS_CONFIG.sparkleDelay,
+      size: 2 + Math.random() * 4
+    }
+
+    particles.value.push(particle)
+
+    // Remove particle after animation
+    setTimeout(() => {
+      particles.value = particles.value.filter(p => p.id !== particle.id)
+    }, PHYSICS_CONFIG.sparkleDelay)
+  }
 }
 
 // Update fruit visual positions based on physics bodies
@@ -648,6 +685,7 @@ const resetGame = () => {
   score.value = 0
   moves.value = 0
   nextFruitId.value = 0
+  particles.value = []
 }
 
 const handleTryAgain = () => {
@@ -731,7 +769,7 @@ onUnmounted(() => {
           :moves="moves"
           :matches="fruits.length"
           :total-pairs="fruits.length"
-          :combo-count="comboSystem.comboCount.value"
+          :combo-count="comboSystem.comboLevel.value"
           :combo-multiplier="comboSystem.comboMultiplier.value"
           :max-combo="gameData.games.fruitMerge.maxCombo || 0"
           :combo-time-remaining="comboSystem.timeRemaining.value"
@@ -832,6 +870,26 @@ onUnmounted(() => {
           }"
         >
           <div class="fruit-svg" v-html="fruit.svg"></div>
+        </div>
+        <!-- Merge Particles Container -->
+        <div class="merge-particles-container">
+          <div
+            v-for="particle in particles"
+            :key="particle.id"
+            class="merge-particle"
+            :class="`particle--${particle.type.toLowerCase()}`"
+            :style="{
+              left: `${particle.x}px`,
+              top: `${particle.y}px`,
+              '--particle-x': `${particle.targetX}px`,
+              '--particle-y': `${particle.targetY}px`,
+              '--particle-color': particle.backgroundColor,
+              animationDuration: `${particle.duration}ms`,
+              backgroundColor: particle.backgroundColor,
+              width: `${particle.size || 6}px`,
+              height: `${particle.size || 6}px`
+            }"
+          ></div>
         </div>
       </div>
     </div>
@@ -1011,6 +1069,59 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     border-radius: 50%;
+  }
+}
+
+
+// Merge Animation Effects
+.merge-particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 45;
+  overflow: hidden;
+}
+
+.fruit-merge-effect {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.merge-particle {
+  contain: strict;
+  pointer-events: none;
+  will-change: transform, opacity;
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  z-index: 45;
+  animation: particlePop 1400ms linear forwards;
+  box-shadow:
+      0 0 6px rgba(0, 0, 0, 1),
+      0 0 8px rgba(255, 255, 255, 0.5),
+      0 0 12px var(--particle-color, #FFD700);
+}
+
+@keyframes particlePop {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(2);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(calc(var(--particle-x) * 0.4), calc(var(--particle-y) * 0.4)) scale(1.5);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--particle-x), var(--particle-y)) scale(0.4);
   }
 }
 
