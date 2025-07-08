@@ -386,6 +386,24 @@ export default {
 				name: 'Memory-Meister',
 				description: 'Das schwerste Level abgeschlossen'
 			},
+
+			fruitMerge_beginner: {
+				name: 'Frucht-Anfänger',
+				description: 'Erstes FruitMerge Level abgeschlossen'
+			},
+			fruitMerge_intermediate: {
+				name: 'Frucht-Zusammenfüger',
+				description: 'FruitMerge Level 3 abgeschlossen'
+			},
+			fruitMerge_expert: {
+				name: 'Zusammenfüge-Experte',
+				description: 'FruitMerge Level 5 abgeschlossen'
+			},
+			fruitMerge_master: {
+				name: 'Zusammenfüge-Meister',
+				description: 'Die ultimative FruitMerge Herausforderung abgeschlossen'
+			},
+
 			perfectionist: {
 				name: 'Perfektionist',
 				description: 'Ein Spiel mit perfekter Punktzahl abgeschlossen'

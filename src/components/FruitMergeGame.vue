@@ -22,7 +22,7 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // Services
-const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements } = useLocalStorage()
+const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, addAchievement } = useLocalStorage()
 const { t } = useI18n()
 
 // Game state - using shallowRef for performance
@@ -53,6 +53,7 @@ const isHoveringBoard = ref(false)
 const nextFruit = ref(null)
 const showNextFruit = ref(true)
 const particles = shallowRef([])
+const earnedAchievements = ref([])
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -583,7 +584,18 @@ const completeLevel = () => {
   }
 
   updateGameStats('fruitMerge', gameStats)
+
+  // Achievement Checking - Track achievements before and after
+  const achievementsBefore = [...gameData.achievements]
+
   checkGameLevelAchievements('fruitMerge', currentLevel.value)
+
+  // Find newly earned achievements
+  const achievementsAfter = [...gameData.achievements]
+  earnedAchievements.value = achievementsAfter.filter(after =>
+      !achievementsBefore.some(before => before.id === after.id && before.earned)
+  )
+
   addScore(score.value)
 
   emit('game-complete', {
@@ -907,6 +919,8 @@ onUnmounted(() => {
       :total-pairs="fruits.length"
       :stars-earned="calculateCurrentStars()"
       :show-stars="gameState === 'completed'"
+      :new-achievements="earnedAchievements"
+      :show-achievements="true"
       :game-over-mode="gameState === 'gameOver'"
       :game-over-title="t('fruitMerge.game_over')"
       :game-over-message="t('fruitMerge.game_over_message')"

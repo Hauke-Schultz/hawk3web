@@ -387,6 +387,24 @@ export default {
 				name: 'Memory Master',
 				description: 'Completed the hardest level'
 			},
+
+			fruitMerge_beginner: {
+				name: 'Fruit Beginner',
+				description: 'Completed first FruitMerge level'
+			},
+			fruitMerge_intermediate: {
+				name: 'Fruit Merger',
+				description: 'Completed FruitMerge Level 3'
+			},
+			fruitMerge_expert: {
+				name: 'Merge Expert',
+				description: 'Completed FruitMerge Level 5'
+			},
+			fruitMerge_master: {
+				name: 'Merge Master',
+				description: 'Completed the ultimate FruitMerge challenge'
+			},
+
 			perfectionist: {
 				name: 'Perfectionist',
 				description: 'Complete a game with perfect score'

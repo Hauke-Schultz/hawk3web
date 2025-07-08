@@ -102,6 +102,44 @@ export const achievementsConfig = {
 			trigger: { type: 'level_complete', game: 'memory', level: 6 }
 		},
 
+		// FruitMerge specific achievements
+		{
+			id: 'fruitMerge_beginner',
+			name: 'Fruit Beginner',
+			description: 'Completed first fruitMerge level',
+			category: 'gaming',
+			icon: 'fruit-merge-game',
+			rarity: 'common',
+			trigger: { type: 'level_complete', game: 'fruitMerge', level: 1 }
+		},
+		{
+			id: 'fruitMerge_intermediate',
+			name: 'Fruit Merger',
+			description: 'Completed FruitMerge Level 3',
+			category: 'gaming',
+			icon: 'fruit-merge-game',
+			rarity: 'uncommon',
+			trigger: { type: 'level_complete', game: 'fruitMerge', level: 3 }
+		},
+		{
+			id: 'fruitMerge_expert',
+			name: 'Merge Expert',
+			description: 'Completed FruitMerge Level 5',
+			category: 'gaming',
+			icon: 'fruit-merge-game',
+			rarity: 'epic',
+			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
+		},
+		{
+			id: 'fruitMerge_master',
+			name: 'Merge Master',
+			description: 'Completed the ultimate FruitMerge challenge',
+			category: 'special',
+			icon: 'fruit-merge-game',
+			rarity: 'legendary',
+			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
+		},
+
 		// Special achievements
 		{
 			id: 'perfectionist',
