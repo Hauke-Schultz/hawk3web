@@ -342,6 +342,8 @@ const handleCollision = (event) => {
           // Calculate center position for the new fruit
           const centerX = (bodyA.position.x + bodyB.position.x) / 2
           const centerY = (bodyA.position.y + bodyB.position.y) / 2
+
+          console.log(`Merging fruits at center: (${centerX}, ${centerY}) bodyA: ${bodyA.position.x}, ${bodyA.position.y} bodyB: ${bodyB.position.x}, ${bodyB.position.y}`)
           // Remove bodies from the physics world
           Matter.Composite.remove(engine.world, bodyA)
           Matter.Composite.remove(engine.world, bodyB)
@@ -354,17 +356,16 @@ const handleCollision = (event) => {
           if (currentFruitType) {
             // Add combo for successful merge
             const comboResult = comboSystem.addCombo()
-            console.log('Combo added:', comboResult)
 
             // Calculate score with combo multiplier
             const baseScore = currentFruitType.scoreValue
             const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
             score.value += comboMultipliedScore
 
-            console.log(`Merge score: ${baseScore} × ${comboResult.multiplier.toFixed(1)} = ${comboMultipliedScore}`)
-
             // Find next fruit type
             const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
+
+            createMergeVisualEffects(centerX, centerY, nextFruitType);
 
             if (nextFruitType) {
               const newFruit = {
@@ -374,14 +375,12 @@ const handleCollision = (event) => {
                 level: nextFruitType.index,
                 name: nextFruitType.type,
                 svg: nextFruitType.svg,
-                x: centerX,
-                y: centerY,
+                x: centerX - nextFruitType.radius,
+                y: centerY - nextFruitType.radius,
                 rotation: 0,
                 body: null,
                 merging: false
               }
-
-              createMergeVisualEffects(centerX, centerY, nextFruitType);
 
               // Add the new fruit to the world
               addMergedFruit(newFruit, centerX, centerY)
@@ -431,7 +430,12 @@ const addMergedFruit = (fruit, x, y) => {
   fruit.dangerZoneStartTime = null
   fruit.dangerZoneTime = 0
 
+  Matter.Body.setVelocity(fruitBody, {
+    x: (Math.random() - 0.5) * 2,
+    y: -1
+  })
   Matter.Composite.add(engine.world, fruitBody)
+
   fruits.value = [...fruits.value, fruit]
 }
 
@@ -605,8 +609,6 @@ const checkGameOver = () => {
 
     return inDangerZone && isResting && hasBeenInDangerLongEnough
   }).length
-
-  console.log(`Resting fruits in danger zone: ${restingFruitsInDangerZone}/${PHYSICS_CONFIG.fruitsInDanger}`)
 
   if (restingFruitsInDangerZone >= PHYSICS_CONFIG.fruitsInDanger) {
     gameOver()
