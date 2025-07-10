@@ -15,6 +15,11 @@ const getDefaultData = () => ({
 		experience: 0,
 		totalScore: 0,
 		gamesPlayed: 0,
+		// NEU: Currency System
+		coins: 0,
+		diamonds: 0,
+		totalCoinsEarned: 0,
+		totalDiamondsEarned: 0,
 		createdAt: new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0]
 	},
@@ -44,17 +49,42 @@ const getDefaultData = () => ({
 			maxCombo: 0
 		}
 	},
+	currency: {
+		transactions: [],
+		dailyRewards: {
+			lastClaimed: null,
+			streak: 0,
+			nextRewardCoins: 50,
+			nextRewardDiamonds: 1
+		},
+		milestones: {
+			achievementCategories: {
+				general: { completed: 0, total: 0, rewardClaimed: false },
+				gaming: { completed: 0, total: 0, rewardClaimed: false },
+				progress: { completed: 0, total: 0, rewardClaimed: false },
+				special: { completed: 0, total: 0, rewardClaimed: false }
+			}
+		},
+		statistics: {
+			totalEarned: { coins: 0, diamonds: 0 },
+			totalSpent: { coins: 0, diamonds: 0 },
+			largestSingleReward: { coins: 0, diamonds: 0, source: '' },
+			favoriteEarningMethod: '',
+			earningMethods: {
+				achievements: { coins: 0, diamonds: 0 },
+				levelCompletion: { coins: 0, diamonds: 0 },
+				dailyRewards: { coins: 0, diamonds: 0 },
+				perfectGames: { coins: 0, diamonds: 0 },
+				combos: { coins: 0, diamonds: 0 }
+			}
+		}
+	},
 	cardStates: {
 		welcomeCard: {
 			read: false,
 			lastShown: null,
 			readAt: null
-		},
-
-		// Future card types can be added here
-		// trophyCard: { read: false, lastShown: null, readAt: null},
-		// notificationCard: { read: false, lastShown: null, readAt: null },
-		// promotionCard: { read: false, lastShown: null, readAt: null }
+		}
 	},
 	achievements: [
 		{
@@ -77,6 +107,10 @@ const validatePlayerData = (player) => {
 		experience: typeof player?.experience === 'number' ? player.experience : 0,
 		totalScore: typeof player?.totalScore === 'number' ? player.totalScore : 0,
 		gamesPlayed: typeof player?.gamesPlayed === 'number' ? player.gamesPlayed : 0,
+		coins: typeof player?.coins === 'number' ? player.coins : 0,
+		diamonds: typeof player?.diamonds === 'number' ? player.diamonds : 0,
+		totalCoinsEarned: typeof player?.totalCoinsEarned === 'number' ? player.totalCoinsEarned : 0,
+		totalDiamondsEarned: typeof player?.totalDiamondsEarned === 'number' ? player.totalDiamondsEarned : 0,
 		createdAt: player?.createdAt || new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0]
 	}
@@ -131,6 +165,22 @@ const validateCardStates = (cardStates) => {
 	return validated
 }
 
+const validateCurrencyData = (currency) => {
+	const defaultCurrency = getDefaultData().currency
+
+	return {
+		transactions: Array.isArray(currency?.transactions) ? currency.transactions : [],
+		dailyRewards: {
+			lastClaimed: currency?.dailyRewards?.lastClaimed || null,
+			streak: typeof currency?.dailyRewards?.streak === 'number' ? currency.dailyRewards.streak : 0,
+			nextRewardCoins: typeof currency?.dailyRewards?.nextRewardCoins === 'number' ? currency.dailyRewards.nextRewardCoins : 50,
+			nextRewardDiamonds: typeof currency?.dailyRewards?.nextRewardDiamonds === 'number' ? currency.dailyRewards.nextRewardDiamonds : 1
+		},
+		milestones: currency?.milestones || defaultCurrency.milestones,
+		statistics: currency?.statistics || defaultCurrency.statistics
+	}
+}
+
 // Data migration function
 const migrateData = (data) => {
 	// Handle version migrations here
@@ -140,6 +190,17 @@ const migrateData = (data) => {
 		if (!data.settings?.language) {
 			data.settings = data.settings || {}
 			data.settings.language = 'en'
+		}
+
+		if (!data.currency) {
+			data.currency = getDefaultData().currency
+		}
+
+		if (!data.player?.coins && data.player?.coins !== 0) {
+			data.player.coins = 0
+			data.player.diamonds = 0
+			data.player.totalCoinsEarned = 0
+			data.player.totalDiamondsEarned = 0
 		}
 
 		data.version = CURRENT_VERSION
