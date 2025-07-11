@@ -1,12 +1,21 @@
 <script setup>
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useCurrencySystem } from '../composables/useCurrencySystem.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 
 // LocalStorage service
 const { gameData, updatePlayer } = useLocalStorage()
 const { t } = useI18n()
+const {
+  coins,
+  diamonds,
+  totalCoinsEarned,
+  totalDiamondsEarned,
+  recentTransactions,
+  formatCurrency
+} = useCurrencySystem()
 
 // Available avatar options
 const avatarOptions = [
@@ -37,7 +46,16 @@ const selectedAvatar = computed({
     updatePlayer({ avatar: value })
   }
 })
-
+// Format date helper
+const formatTransactionDate = (timestamp) => {
+  const date = new Date(timestamp)
+  return date.toLocaleDateString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 // Methods
 const selectAvatar = (avatar) => {
   selectedAvatar.value = avatar
@@ -77,8 +95,54 @@ const updatePlayerName = () => {
             </div>
           </div>
         </div>
+        <!-- Currency Stats Section -->
+        <div class="currency-stats">
+          <div class="currency-item">
+            <span class="currency-icon">💰</span>
+            <div class="currency-info">
+              <span class="currency-current">{{ formatCurrency(coins) }}</span>
+              <span class="currency-total">{{ t('profile.currency.total_earned', { amount: formatCurrency(totalCoinsEarned) }) }}</span>
+            </div>
+          </div>
+          <div v-if="diamonds > 0" class="currency-item currency-item--premium">
+            <span class="currency-icon">💎</span>
+            <div class="currency-info">
+              <span class="currency-current">{{ formatCurrency(diamonds) }}</span>
+              <span class="currency-total">{{ t('profile.currency.total_earned', { amount: formatCurrency(totalDiamondsEarned) }) }}</span>
+            </div>
+          </div>
+        </div>
       </div>
-
+      <!-- Currency Transaction History -->
+      <div v-if="recentTransactions.length > 0" class="currency-section">
+        <h3 class="section-subtitle">{{ t('profile.currency.recent_earnings') }}</h3>
+        <div class="transaction-list">
+          <div
+              v-for="transaction in recentTransactions"
+              :key="transaction.id"
+              class="transaction-item"
+          >
+            <div class="transaction-icon">
+              <span v-if="transaction.source === 'achievement'">🏆</span>
+              <span v-else-if="transaction.source === 'levelCompletion'">⭐</span>
+              <span v-else-if="transaction.source === 'combo'">🔥</span>
+              <span v-else>💰</span>
+            </div>
+            <div class="transaction-info">
+              <span class="transaction-description">{{ transaction.description }}</span>
+              <span class="transaction-date">{{ formatTransactionDate(transaction.timestamp) }}</span>
+            </div>
+            <div class="transaction-amount">
+            <span v-if="transaction.amounts.coins > 0" class="amount-coins">
+              +{{ formatCurrency(transaction.amounts.coins) }} 💰
+            </span>
+              <span v-if="transaction.amounts.diamonds > 0" class="amount-diamonds">
+              +{{ formatCurrency(transaction.amounts.diamonds) }} 💎
+            </span>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Player Settings -->
       <div class="player-settings">
         <!-- Player Name Input -->
@@ -193,6 +257,136 @@ const updatePlayerName = () => {
   font-size: var(--font-size-lg);
   color: var(--text-color);
   font-weight: var(--font-weight-bold);
+}
+
+.currency-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--card-border);
+}
+
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-3);
+
+  &--premium {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1));
+    border: 1px solid var(--primary-color);
+
+    .currency-icon {
+      filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
+    }
+
+    .currency-current {
+      color: var(--primary-color);
+    }
+  }
+}
+
+.currency-icon {
+  font-size: var(--font-size-xl);
+  flex-shrink: 0;
+}
+
+.currency-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.currency-current {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+}
+
+.currency-total {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+// Currency Transaction Section
+.currency-section {
+  margin-top: var(--space-6);
+}
+
+.section-subtitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-3);
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+}
+
+.transaction-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.transaction-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.transaction-description {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+}
+
+.transaction-date {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.transaction-amount {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.amount-coins,
+.amount-diamonds {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.amount-coins {
+  color: var(--warning-color);
+}
+
+.amount-diamonds {
+  color: var(--primary-color);
 }
 
 // Player Settings Section

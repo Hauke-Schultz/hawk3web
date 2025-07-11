@@ -41,7 +41,7 @@ const props = defineProps({
 // Emits for parent component communication
 const emit = defineEmits([
   'click',
-  'package-click', // Keep existing naming for compatibility
+  'package-click',
   'mark-as-read'
 ])
 
@@ -66,6 +66,11 @@ const handleCheckboxChange = (event) => {
   if (event.target.checked) {
     // Emit read event when checkbox is checked
     emit('mark-as-read', props.cardType)
+
+    // Optional: Show feedback that achievement was earned
+    setTimeout(() => {
+      console.log('💰 Welcome bonus earned!')
+    }, 500)
   }
 }
 

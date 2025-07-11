@@ -46,6 +46,20 @@ export default {
 		mark_as_read: 'Mark as read',
 	},
 
+	currency: {
+		coins: 'Coins',
+		diamonds: 'Diamonds',
+		earned: 'Earned',
+		spent: 'Spent',
+		balance: 'Balance',
+		transaction: 'Transaction',
+		reward: 'Reward',
+		achievement_reward: 'Achievement Reward',
+		level_reward: 'Level Completion Reward',
+		combo_reward: 'Combo Reward',
+		daily_reward: 'Daily Reward'
+	},
+
 	// App/Header
 	app: {
 		title: 'Hawk3',
@@ -95,6 +109,14 @@ export default {
 			level: 'Level',
 			score: 'Score',
 			played: 'Played'
+		},
+		currency: {
+			coins: 'Coins',
+			diamonds: 'Diamonds',
+			total_earned: 'Total: {amount}',
+			recent_earnings: 'Recent Earnings',
+			transaction_history: 'Transaction History',
+			no_transactions: 'No recent transactions'
 		},
 		avatars: {
 			default_user: 'Default User',
@@ -408,7 +430,12 @@ export default {
 			perfectionist: {
 				name: 'Perfectionist',
 				description: 'Complete a game with perfect score'
-			}
+			},
+
+			welcome_card_read: {
+				name: 'Getting Started',
+				description: 'Read the welcome message'
+			},
 		}
 	},
 

@@ -1,6 +1,7 @@
 import { ref, reactive, watch } from 'vue'
-import { achievementsConfig, getAchievementById, checkAchievementCondition } from '../config/achievementsConfig.js'
+import { achievementsConfig, getAchievementById, checkAchievementCondition, checkCardReadAchievement } from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
+import { getAchievementReward } from '../config/achievementsConfig.js'
 
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'
@@ -491,11 +492,49 @@ export function useLocalStorage() {
 	const addAchievement = (achievement) => {
 		const exists = gameData.achievements.some(a => a.id === achievement.id)
 		if (!exists) {
+			// Achievement zur Liste hinzufügen
 			gameData.achievements.push({
 				...achievement,
 				earned: true,
 				earnedAt: new Date().toISOString()
 			})
+
+			// Direkte Coin-Belohnung ohne useCurrencySystem
+			const reward = getAchievementReward(achievement)
+			if (reward && (reward.coins > 0 || reward.diamonds > 0)) {
+				// Direkte Player-Update
+				gameData.player.coins = (gameData.player.coins || 0) + reward.coins
+				gameData.player.diamonds = (gameData.player.diamonds || 0) + reward.diamonds
+				gameData.player.totalCoinsEarned = (gameData.player.totalCoinsEarned || 0) + reward.coins
+				gameData.player.totalDiamondsEarned = (gameData.player.totalDiamondsEarned || 0) + reward.diamonds
+
+				// Currency Transaction hinzufügen
+				if (!gameData.currency) {
+					gameData.currency = getDefaultData().currency
+				}
+
+				const transaction = {
+					id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+					timestamp: new Date().toISOString(),
+					type: 'earn',
+					source: 'achievement',
+					description: `Achievement: ${achievement.name || achievement.id}`,
+					amounts: {
+						coins: reward.coins,
+						diamonds: reward.diamonds
+					},
+					balanceAfter: {
+						coins: gameData.player.coins,
+						diamonds: gameData.player.diamonds
+					},
+					metadata: { achievementId: achievement.id, rarity: achievement.rarity }
+				}
+
+				gameData.currency.transactions.push(transaction)
+
+				console.log(`🏆 Achievement unlocked: ${achievement.name} (+${reward.coins} coins, +${reward.diamonds} diamonds)`)
+			}
+
 			return true // New achievement
 		}
 		return false
@@ -510,9 +549,19 @@ export function useLocalStorage() {
 		if (gameData.cardStates[cardType]) {
 			gameData.cardStates[cardType].read = true
 			gameData.cardStates[cardType].readAt = new Date().toISOString()
+
+			// Check for card-related achievements
+			const cardAchievements = checkCardReadAchievement(cardType, gameData)
+
+			cardAchievements.forEach(achievement => {
+				const wasAdded = addAchievement(achievement)
+				if (wasAdded) {
+					console.log(`🎉 Card read achievement unlocked: ${achievement.name}`)
+				}
+			})
 		}
 	}
-
+	
 	const markCardAsShown = (cardType) => {
 		if (gameData.cardStates[cardType]) {
 			gameData.cardStates[cardType].lastShown = new Date().toISOString()
@@ -570,6 +619,7 @@ export function useLocalStorage() {
 			achievement => achievement.trigger.type === 'auto'
 		)
 
+		let newAchievements = 0
 		autoAchievements.forEach(achievement => {
 			// Check if already earned
 			const alreadyEarned = gameData.achievements.some(a => a.id === achievement.id && a.earned)
@@ -577,15 +627,16 @@ export function useLocalStorage() {
 
 			// Check if condition is met
 			if (checkAchievementCondition(achievement, gameData.player)) {
-				gameData.achievements.push({
-					id: achievement.id,
-					name: achievement.name,
-					description: achievement.description,
-					earned: true,
-					earnedAt: new Date().toISOString()
-				})
+				const wasAdded = addAchievement(achievement)
+				if (wasAdded) {
+					newAchievements++
+				}
 			}
 		})
+
+		if (newAchievements > 0) {
+			console.log(`🎉 ${newAchievements} new achievements unlocked with rewards!`)
+		}
 	}
 
 	const checkGameLevelAchievements = (gameName, levelNumber) => {
@@ -596,12 +647,20 @@ export function useLocalStorage() {
 				achievement.trigger.level === levelNumber
 		)
 
+		let newAchievements = 0
 		levelAchievements.forEach(achievement => {
 			const alreadyEarned = gameData.achievements.some(a => a.id === achievement.id && a.earned)
 			if (!alreadyEarned) {
-				addAchievement(achievement)
+				const wasAdded = addAchievement(achievement)
+				if (wasAdded) {
+					newAchievements++
+				}
 			}
 		})
+
+		if (newAchievements > 0) {
+			console.log(`🏆 Level ${levelNumber} completion: ${newAchievements} achievements unlocked!`)
+		}
 	}
 
 	// Language methods

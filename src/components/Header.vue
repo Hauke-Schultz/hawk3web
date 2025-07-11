@@ -1,6 +1,7 @@
 <script setup>
 import {ref, computed, watch} from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useCurrencySystem } from '../composables/useCurrencySystem.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue";
 
@@ -9,6 +10,7 @@ const { gameData } = useLocalStorage()
 
 // Internationalization
 const { t } = useI18n()
+const { coins, diamonds, formatCurrency } = useCurrencySystem()
 
 // Props for the header component
 const props = defineProps({
@@ -111,6 +113,17 @@ watch(() => gameData.player, (newPlayer) => {
 
       <!-- Center section -->
       <div class="header-center">
+        <!-- Currency Display -->
+        <div class="currency-display">
+          <div class="currency-item">
+            <span class="currency-icon">💰</span>
+            <span class="currency-amount">{{ formatCurrency(coins) }}</span>
+          </div>
+          <div v-if="diamonds > 0" class="currency-item currency-item--premium">
+            <span class="currency-icon">💎</span>
+            <span class="currency-amount">{{ formatCurrency(diamonds) }}</span>
+          </div>
+        </div>
         <!-- Player Profile -->
         <div
           v-if="showProfile"
@@ -195,7 +208,51 @@ watch(() => gameData.player, (newPlayer) => {
 .header-center {
   display: flex;
   justify-content: center;
+  align-items: center;
   flex: 1;
+  gap: var(--space-3);
+}
+
+.currency-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-2) var(--space-3);
+  min-width: 120px;
+}
+
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+
+  &--premium {
+    .currency-icon {
+      filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
+    }
+
+    .currency-amount {
+      color: var(--primary-color);
+      font-weight: var(--font-weight-bold);
+    }
+  }
+}
+
+.currency-icon {
+  font-size: var(--font-size-base);
+  line-height: 1;
+}
+
+.currency-amount {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  line-height: 1;
+  min-width: 35px;
+  text-align: right;
 }
 
 .player-profile {
@@ -206,7 +263,7 @@ watch(() => gameData.player, (newPlayer) => {
   border: 1px solid var(--card-border);
   border-radius: 2rem;
   padding: var(--space-2);
-  min-width: 180px;
+  min-width: 160px; // Reduziert von 180px
   cursor: pointer;
   transition: all 0.2s ease;
 

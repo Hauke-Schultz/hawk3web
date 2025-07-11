@@ -4,13 +4,14 @@ export const achievementsConfig = {
 	definitions: [
 		// General achievements
 		{
-			id: 'welcome',
+			id: 'welcome_card_read',
 			name: 'Welcome to Hawk3',
 			description: 'Started your gaming journey',
 			category: 'general',
 			icon: 'user',
 			rarity: 'common',
-			trigger: { type: 'auto', condition: 'default' }
+			rewards: { coins: 15, diamonds: 0 },
+			trigger: { type: 'card_read', cardType: 'welcomeCard' }
 		},
 		{
 			id: 'first_game',
@@ -19,6 +20,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'play',
 			rarity: 'common',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'gamesPlayed >= 1' }
 		},
 
@@ -30,6 +32,7 @@ export const achievementsConfig = {
 			category: 'progress',
 			icon: 'trophy',
 			rarity: 'common',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'level >= 5' }
 		},
 		{
@@ -39,6 +42,7 @@ export const achievementsConfig = {
 			category: 'progress',
 			icon: 'trophy',
 			rarity: 'uncommon',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'level >= 10' }
 		},
 		{
@@ -48,6 +52,7 @@ export const achievementsConfig = {
 			category: 'progress',
 			icon: 'trophy',
 			rarity: 'rare',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'level >= 15' }
 		},
 
@@ -59,6 +64,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'trophy',
 			rarity: 'uncommon',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'totalScore >= 1000' }
 		},
 
@@ -70,6 +76,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'play',
 			rarity: 'uncommon',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'gamesPlayed >= 10' }
 		},
 
@@ -81,6 +88,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'brain',
 			rarity: 'common',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'memory', level: 1 }
 		},
 		{
@@ -90,6 +98,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'brain',
 			rarity: 'uncommon',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'memory', level: 3 }
 		},
 		{
@@ -99,6 +108,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'brain',
 			rarity: 'rare',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'memory', level: 6 }
 		},
 
@@ -110,6 +120,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 1 }
 		},
 		{
@@ -119,6 +130,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'fruit-merge-game',
 			rarity: 'uncommon',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 3 }
 		},
 		{
@@ -128,6 +140,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'fruit-merge-game',
 			rarity: 'epic',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
 		},
 		{
@@ -137,6 +150,7 @@ export const achievementsConfig = {
 			category: 'special',
 			icon: 'fruit-merge-game',
 			rarity: 'legendary',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
 		},
 
@@ -148,8 +162,9 @@ export const achievementsConfig = {
 			category: 'special',
 			icon: 'trophy',
 			rarity: 'legendary',
+			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'perfect_game' }
-		}
+		},
 	],
 
 	// Achievement categories
@@ -257,4 +272,51 @@ export const checkAchievementCondition = (achievement, playerData) => {
 	}
 
 	return false
+}
+
+export const getAchievementReward = (achievement) => {
+	if (achievement.rewards) {
+		return achievement.rewards
+	}
+
+	const rarityRewards = {
+		common: { coins: 15, diamonds: 0 },
+		uncommon: { coins: 35, diamonds: 1 },
+		rare: { coins: 75, diamonds: 3 },
+		epic: { coins: 150, diamonds: 8 },
+		legendary: { coins: 300, diamonds: 20 }
+	}
+
+	return rarityRewards[achievement.rarity] || rarityRewards.common
+}
+
+export const calculateTotalAchievementValue = (achievements) => {
+	return achievements.reduce((total, achievement) => {
+		const reward = getAchievementReward(achievement)
+		total.coins += reward.coins
+		total.diamonds += reward.diamonds
+		return total
+	}, { coins: 0, diamonds: 0 })
+}
+
+export const getAchievementsByValue = (achievements, sortBy = 'coins') => {
+	return [...achievements].sort((a, b) => {
+		const rewardA = getAchievementReward(a)
+		const rewardB = getAchievementReward(b)
+		return rewardB[sortBy] - rewardA[sortBy]
+	})
+}
+
+export const checkCardReadAchievement = (cardType, gameData) => {
+	const cardAchievements = achievementsConfig.definitions.filter(
+		achievement =>
+			achievement.trigger.type === 'card_read' &&
+			achievement.trigger.cardType === cardType
+	)
+
+	return cardAchievements.filter(achievement => {
+		// Check if already earned
+		const alreadyEarned = gameData.achievements.some(a => a.id === achievement.id && a.earned)
+		return !alreadyEarned
+	})
 }
