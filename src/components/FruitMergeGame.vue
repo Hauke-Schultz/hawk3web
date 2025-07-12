@@ -1,15 +1,15 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
-import {useLocalStorage} from '../composables/useLocalStorage.js'
-import {useI18n} from '../composables/useI18n.js'
 import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG} from '../config/fruitMergeConfig.js'
 import PerformanceStats from "./PerformanceStats.vue";
 import ProgressOverview from "./ProgressOverview.vue";
 import {calculateLevelStars} from "../config/levelUtils.js";
 import GameCompletedModal from "./GameCompletedModal.vue";
 import {useComboSystem} from "../composables/useComboSystem.js";
+import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useCurrencySystem } from '../composables/useCurrencySystem.js'
+import { useI18n } from '../composables/useI18n.js'
 
 // Props
 const props = defineProps({
@@ -25,6 +25,7 @@ const emit = defineEmits(['back-to-gaming', 'game-complete'])
 // Services
 const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, getLevelStats } = useLocalStorage()
 const { t } = useI18n()
+const { addCurrency } = useCurrencySystem()
 
 // Game state - using shallowRef for performance
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
@@ -600,11 +601,28 @@ const completeLevel = () => {
       diamonds: currencyReward.amounts.diamonds || 0
     }
 
-    console.log(`🍎 FruitMerge Level ${currentLevel.value} completed! Earned:`, {
+    // Actually add currency to player account
+    const transaction = addCurrency(
+        currencyReward.amounts.coins,
+        currencyReward.amounts.diamonds,
+        'levelCompletion',
+        `FruitMerge Level ${currentLevel.value} - ${starsEarned} star${starsEarned !== 1 ? 's' : ''}${isFirstTimeCompletion ? ' (First Time!)' : ''}`,
+        {
+          gameId: 'fruitMerge',
+          level: currentLevel.value,
+          stars: starsEarned,
+          firstTime: isFirstTimeCompletion,
+          score: score.value,
+          moves: moves.value
+        }
+    )
+
+    console.log(`🍎 FruitMerge Level ${currentLevel.value} completed!`, {
       coins: currencyReward.amounts.coins,
       diamonds: currencyReward.amounts.diamonds,
       stars: starsEarned,
-      firstTime: isFirstTimeCompletion
+      firstTime: isFirstTimeCompletion,
+      transaction: transaction?.id
     })
   }
 
