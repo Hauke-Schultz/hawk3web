@@ -10,7 +10,7 @@ export const achievementsConfig = {
 			category: 'general',
 			icon: 'user',
 			rarity: 'common',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 100, diamonds: 1 },
 			trigger: { type: 'card_read', cardType: 'welcomeCard' }
 		},
 		{

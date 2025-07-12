@@ -424,12 +424,6 @@ const containerClass = computed(() => {
   transition: color 0.3s ease, transform 0.2s ease;
 }
 
-.stat-item--number .stat-value {
-  &:hover {
-    transform: scale(1.05);
-  }
-}
-
 // Combo Timer
 .combo-timer {
   width: 100%;

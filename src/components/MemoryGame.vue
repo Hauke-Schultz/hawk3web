@@ -29,8 +29,7 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // LocalStorage service
-const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, addAchievement, checkGameLevelAchievements } = useLocalStorage()
-
+const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, checkGameLevelAchievements } = useLocalStorage()
 const { t } = useI18n()
 
 // Game state
@@ -215,7 +214,7 @@ const calculateCurrentStars = () => {
 
 const completeGame = () => {
   stopTimer()
-  comboSystem.cleanup() // Cleanup combo system
+  comboSystem.cleanup()
   gameState.value = 'completed'
 
   // Calculate final score

@@ -105,6 +105,14 @@ const props = defineProps({
   backToGamesLabel: {
     type: String,
     default: 'Back to Levels'
+  },
+  currencyEarned: {
+    type: Object,
+    default: () => ({ coins: 0, diamonds: 0 })
+  },
+  showCurrencyReward: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -240,12 +248,28 @@ const handleKeyDown = (event) => {
             :theme="gameOverMode ? 'compact' : 'default'"
             :size="gameOverMode ? 'normal' : 'large'"
             :show-score="true"
-            :show-time="true"
+            :show-time="false"
             :show-moves="true"
-            :show-matches="!gameOverMode"
+            :show-matches="false"
             :score-label="gameOverMode ? 'Final Score' : 'Score'"
           />
-
+          <div
+            v-if="showCurrencyReward && (currencyEarned.coins > 0 || currencyEarned.diamonds > 0)"
+            class="currency-rewards-section"
+          >
+            <div class="currency-rewards-display">
+              <div v-if="currencyEarned.coins > 0" class="currency-reward-item">
+                <span class="currency-icon">💰</span>
+                <span class="currency-amount">+{{ currencyEarned.coins }}</span>
+                <span class="currency-label">{{ t('currency.coins') }}</span>
+              </div>
+              <div v-if="currencyEarned.diamonds > 0" class="currency-reward-item currency-reward-item--premium">
+                <span class="currency-icon">💎</span>
+                <span class="currency-amount">+{{ currencyEarned.diamonds }}</span>
+                <span class="currency-label">{{ t('currency.diamonds') }}</span>
+              </div>
+            </div>
+          </div>
           <!-- Achievements Section (nur bei Erfolg) -->
           <div v-if="showAchievements && newAchievements.length > 0 && !gameOverMode" class="achievements-section">
             <h4 class="achievements-title">🏆 {{ t('achievements.new_achievements') }}</h4>
@@ -414,7 +438,6 @@ const handleKeyDown = (event) => {
   border: 1px solid var(--success-color);
   border-radius: var(--border-radius-lg);
   padding: var(--space-4);
-  margin-top: var(--space-3);
 }
 
 .achievements-title {
@@ -471,6 +494,57 @@ const handleKeyDown = (event) => {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
   line-height: 1.2;
+}
+
+.currency-rewards-section {
+  text-align: center;
+}
+
+.currency-rewards-display {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  align-items: center;
+}
+
+.currency-reward-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-md);
+  min-width: 80px;
+
+  &--premium {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1));
+    border: 1px solid var(--primary-color);
+
+    .currency-icon {
+      filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
+    }
+
+    .currency-amount {
+      color: var(--primary-color);
+    }
+  }
+}
+
+.currency-icon {
+  font-size: var(--font-size-lg);
+}
+
+.currency-amount {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--warning-color);
+}
+
+.currency-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
 // Game Over Specific Styles

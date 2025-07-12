@@ -239,7 +239,7 @@ export function useLocalStorage() {
 	// Reactive data
 	const gameData = reactive({})
 	Object.assign(gameData, loadData())
-	checkAutoAchievements()
+	//checkAutoAchievements()
 
 	// Save data to localStorage
 	const saveData = () => {

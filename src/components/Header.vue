@@ -113,17 +113,7 @@ watch(() => gameData.player, (newPlayer) => {
 
       <!-- Center section -->
       <div class="header-center">
-        <!-- Currency Display -->
-        <div class="currency-display">
-          <div class="currency-item">
-            <span class="currency-icon">💰</span>
-            <span class="currency-amount">{{ formatCurrency(coins) }}</span>
-          </div>
-          <div v-if="diamonds > 0" class="currency-item currency-item--premium">
-            <span class="currency-icon">💎</span>
-            <span class="currency-amount">{{ formatCurrency(diamonds) }}</span>
-          </div>
-        </div>
+
         <!-- Player Profile -->
         <div
           v-if="showProfile"
@@ -140,6 +130,17 @@ watch(() => gameData.player, (newPlayer) => {
           <div class="player-info">
             <span class="player-name">{{ playerInfo.name }}</span>
             <span class="player-status">{{ t('common.level') }} {{ levelDisplay }}</span>
+          </div>
+          <!-- Currency Display -->
+          <div class="currency-display">
+            <div class="currency-item">
+              <span class="currency-amount">{{ formatCurrency(coins) }}</span>
+              <span class="currency-icon">💰</span>
+            </div>
+            <div v-if="diamonds > 0" class="currency-item currency-item--premium">
+              <span class="currency-amount">{{ formatCurrency(diamonds) }}</span>
+              <span class="currency-icon">💎</span>
+            </div>
           </div>
         </div>
       </div>
@@ -215,13 +216,9 @@ watch(() => gameData.player, (newPlayer) => {
 
 .currency-display {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-2) var(--space-3);
-  min-width: 120px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
 }
 
 .currency-item {
@@ -251,19 +248,19 @@ watch(() => gameData.player, (newPlayer) => {
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   line-height: 1;
-  min-width: 35px;
   text-align: right;
 }
 
 .player-profile {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: var(--space-2);
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 2rem;
   padding: var(--space-2);
-  min-width: 160px; // Reduziert von 180px
+  min-width: 190px;
   cursor: pointer;
   transition: all 0.2s ease;
 

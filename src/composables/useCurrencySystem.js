@@ -12,11 +12,18 @@ const CURRENCY_REWARDS = {
         legendary: { coins: 300, diamonds: 20 }
     },
     levelCompletion: {
-        firstTime: { coins: 25, diamonds: 1 },
+        base: { coins: 20, diamonds: 0 },      // Base reward for any completion
+        firstTime: { coins: 50, diamonds: 2 }, // Bonus for first-time completion
         stars: {
-            1: { coins: 10, diamonds: 0 },
-            2: { coins: 20, diamonds: 1 },
-            3: { coins: 40, diamonds: 2 }
+            1: { coins: 10, diamonds: 0 },      // 1 star bonus
+            2: { coins: 30, diamonds: 1 },      // 2 star bonus
+            3: { coins: 75, diamonds: 3 }       // 3 star bonus (perfect)
+        },
+        perfectBonus: 0.5,  // 50% extra coins for 3-star performance
+        levelMultiplier: {   // Multiplier based on level difficulty
+            easy: 1,      // Levels 1-3
+            medium: 1.5,  // Levels 4-6
+            hard: 2       // Levels 7+
         }
     },
     combos: {
@@ -241,14 +248,21 @@ export function useCurrencySystem() {
 
     /**
      * Reward currency for level completion
-     * @param {string} gameId - The game identifier
+     * @param {string} gameId - The game identifier ('memory' or 'fruitMerge')
      * @param {number} level - The level number
      * @param {number} stars - Stars earned (1-3)
      * @param {boolean} firstTime - Whether this is the first time completing the level
+     * @param {number} score - Final score achieved
+     * @param {number} moves - Moves used
      */
-    const rewardLevelCompletion = (gameId, level, stars = 1, firstTime = false) => {
+    const rewardLevelCompletion = (gameId, level, stars = 1, firstTime = false, score = 0, moves = 0) => {
         let totalCoins = 0
         let totalDiamonds = 0
+
+        // Base completion reward
+        const baseReward = CURRENCY_REWARDS.levelCompletion.base || { coins: 20, diamonds: 0 }
+        totalCoins += baseReward.coins
+        totalDiamonds += baseReward.diamonds
 
         // First time completion bonus
         if (firstTime) {
@@ -263,12 +277,22 @@ export function useCurrencySystem() {
             totalDiamonds += starReward.diamonds
         }
 
+        // Level difficulty multiplier
+        const levelMultiplier = Math.max(1, Math.floor(level / 3))
+        totalCoins = Math.round(totalCoins * levelMultiplier)
+
+        // Perfect performance bonus (3 stars)
+        if (stars === 3) {
+            totalCoins += Math.round(totalCoins * 0.5) // 50% bonus for perfect
+            totalDiamonds += 1
+        }
+
         return addCurrency(
             totalCoins,
             totalDiamonds,
             'levelCompletion',
-            `${gameId} Level ${level} - ${stars} star${stars !== 1 ? 's' : ''}`,
-            { gameId, level, stars, firstTime }
+            `${gameId} Level ${level} - ${stars} star${stars !== 1 ? 's' : ''}${firstTime ? ' (First Time!)' : ''}`,
+            { gameId, level, stars, firstTime, score, moves, baseReward: baseReward.coins }
         )
     }
 
