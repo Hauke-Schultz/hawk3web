@@ -631,6 +631,8 @@ const completeLevel = () => {
     gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
     totalScore: gameData.games.fruitMerge.totalScore + score.value,
     highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
+    starsEarned: gameData.games.fruitMerge.starsEarned + starsEarned,
+    completedLevels: gameData.games.fruitMerge.completedLevels + (isFirstTimeCompletion ? 1 : 0),
     maxLevel: Math.max(gameData.games.fruitMerge.maxLevel, currentLevel.value),
     maxCombo: Math.max(
         gameData.games.fruitMerge.maxCombo || 0,
@@ -655,7 +657,9 @@ const completeLevel = () => {
   emit('game-complete', {
     level: currentLevel.value,
     score: score.value,
-    moves: moves.value
+    moves: moves.value,
+    completed: true,
+    firstTime: isFirstTimeCompletion
   })
 }
 
