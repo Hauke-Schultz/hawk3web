@@ -25,7 +25,7 @@ const emit = defineEmits(['back-to-gaming', 'game-complete'])
 // Services
 const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, getLevelStats } = useLocalStorage()
 const { t } = useI18n()
-const { addCurrency } = useCurrencySystem()
+const { rewardLevelCompletion } = useCurrencySystem()
 
 // Game state - using shallowRef for performance
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
@@ -567,24 +567,22 @@ const initGame = async () => {
 const completeLevel = () => {
   gameState.value = 'completed'
 
+  // Check if this is first time completion
+  const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
+  const isFirstTimeCompletion = !previousLevelStats?.completed
+
+  // Calculate stars after updating stats
+  const starsEarned = calculateCurrentStars()
+
+  // Update level statistics
   const levelResult = {
     completed: true,
     score: score.value,
     moves: moves.value
   }
-
-  // Check if this is first time completion
-  const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
-  const isFirstTimeCompletion = !previousLevelStats?.completed
-
-  // Update level statistics
   updateLevelStats('fruitMerge', currentLevel.value, levelResult)
 
-  // Calculate stars after updating stats
-  const starsEarned = calculateCurrentStars()
-
   // Reward level completion with currency
-  const { rewardLevelCompletion } = useCurrencySystem()
   const currencyReward = rewardLevelCompletion(
       'fruitMerge',
       currentLevel.value,
@@ -601,29 +599,7 @@ const completeLevel = () => {
       diamonds: currencyReward.amounts.diamonds || 0
     }
 
-    // Actually add currency to player account
-    const transaction = addCurrency(
-        currencyReward.amounts.coins,
-        currencyReward.amounts.diamonds,
-        'levelCompletion',
-        `FruitMerge Level ${currentLevel.value} - ${starsEarned} star${starsEarned !== 1 ? 's' : ''}${isFirstTimeCompletion ? ' (First Time!)' : ''}`,
-        {
-          gameId: 'fruitMerge',
-          level: currentLevel.value,
-          stars: starsEarned,
-          firstTime: isFirstTimeCompletion,
-          score: score.value,
-          moves: moves.value
-        }
-    )
-
-    console.log(`🍎 FruitMerge Level ${currentLevel.value} completed!`, {
-      coins: currencyReward.amounts.coins,
-      diamonds: currencyReward.amounts.diamonds,
-      stars: starsEarned,
-      firstTime: isFirstTimeCompletion,
-      transaction: transaction?.id
-    })
+    console.log(`🍎 FruitMerge Level ${currentLevel.value} completed!`)
   }
 
   // Update game statistics
@@ -658,6 +634,8 @@ const completeLevel = () => {
     level: currentLevel.value,
     score: score.value,
     moves: moves.value,
+    coins: finalCurrencyReward.value?.coins || 0,
+    diamonds: finalCurrencyReward.value?.diamonds || 0,
     completed: true,
     firstTime: isFirstTimeCompletion
   })

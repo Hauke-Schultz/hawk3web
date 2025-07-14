@@ -308,6 +308,7 @@ export function useLocalStorage() {
 	const updateLevelStats = (gameName, levelNumber, levelStats) => {
 		if (!gameData.games[gameName]) return false
 
+		console.log(`XXX Updating stats for ${gameName} level ${levelNumber}`, gameData.games[gameName].levels)
 		// Initialize levels object if it doesn't exist
 		if (!gameData.games[gameName].levels) {
 			gameData.games[gameName].levels = {}
@@ -336,7 +337,7 @@ export function useLocalStorage() {
 		if (levelStats.completed && !level.completed) {
 			level.completed = true
 			hasImprovement = true
-			console.log(`Level ${levelNumber} completed for the first time!`)
+			console.log(`XXX Level ${levelNumber} completed for the first time!`)
 		}
 
 		// Update high score (only if better)
@@ -344,7 +345,7 @@ export function useLocalStorage() {
 			const previousScore = level.highScore
 			level.highScore = levelStats.score
 			hasImprovement = true
-			console.log(`New high score for level ${levelNumber}: ${levelStats.score} (was: ${previousScore})`)
+			console.log(`XXX New high score for level ${levelNumber}: ${levelStats.score} (was: ${previousScore})`)
 		}
 
 		// Update best time (only if better and level completed)
@@ -353,7 +354,7 @@ export function useLocalStorage() {
 				const previousTime = level.bestTime
 				level.bestTime = levelStats.time
 				hasImprovement = true
-				console.log(`New best time for level ${levelNumber}: ${levelStats.time}s (was: ${previousTime || 'none'})`)
+				console.log(`XXX New best time for level ${levelNumber}: ${levelStats.time}s (was: ${previousTime || 'none'})`)
 			}
 		}
 
@@ -363,7 +364,7 @@ export function useLocalStorage() {
 				const previousMoves = level.bestMoves
 				level.bestMoves = levelStats.moves
 				hasImprovement = true
-				console.log(`New best moves for level ${levelNumber}: ${levelStats.moves} (was: ${previousMoves || 'none'})`)
+				console.log(`XXX New best moves for level ${levelNumber}: ${levelStats.moves} (was: ${previousMoves || 'none'})`)
 			}
 		}
 
@@ -381,7 +382,7 @@ export function useLocalStorage() {
 			const previousStars = level.stars
 			level.stars = newStars
 			hasImprovement = true
-			console.log(`New star rating for level ${levelNumber}: ${newStars} stars (was: ${previousStars})`)
+			console.log(`XXX New star rating for level ${levelNumber}: ${newStars} stars (was: ${previousStars})`)
 		}
 
 		// Update best performance (comprehensive best combination)
@@ -399,14 +400,14 @@ export function useLocalStorage() {
 					achievedAt: new Date().toISOString()
 				}
 				hasImprovement = true
-				console.log(`New best performance for level ${levelNumber}: ${currentPerformance.toFixed(2)}`)
+				console.log(`XXX New best performance for level ${levelNumber}: ${currentPerformance.toFixed(2)}`)
 			}
 		}
 
 		// Save data only if there was an improvement
 		if (hasImprovement) {
 			saveData()
-			console.log(`Level ${levelNumber} stats updated with improvements:`, {
+			console.log(`XXX Level ${levelNumber} stats updated with improvements:`, {
 				highScore: level.highScore,
 				bestTime: level.bestTime,
 				bestMoves: level.bestMoves,
@@ -414,7 +415,7 @@ export function useLocalStorage() {
 				attempts: level.attempts
 			})
 		} else {
-			console.log(`No improvements for level ${levelNumber} this time`)
+			console.log(`XXX No improvements for level ${levelNumber} this time`)
 		}
 
 		return hasImprovement

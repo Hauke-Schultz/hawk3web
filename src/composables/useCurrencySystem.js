@@ -87,12 +87,10 @@ export function useCurrencySystem() {
         const newTotalCoinsEarned = totalCoinsEarned.value + coinAmount
         const newTotalDiamondsEarned = totalDiamondsEarned.value + diamondAmount
 
-        updatePlayer({
-            coins: newCoins,
-            diamonds: newDiamonds,
-            totalCoinsEarned: newTotalCoinsEarned,
-            totalDiamondsEarned: newTotalDiamondsEarned
-        })
+        gameData.player.coins = newCoins
+        gameData.player.diamonds = newDiamonds
+        gameData.player.totalCoinsEarned = newTotalCoinsEarned
+        gameData.player.totalDiamondsEarned = newTotalDiamondsEarned
 
         // Create transaction record
         const transaction = {
