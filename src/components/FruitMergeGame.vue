@@ -8,7 +8,6 @@ import {calculateLevelStars} from "../config/levelUtils.js";
 import GameCompletedModal from "./GameCompletedModal.vue";
 import {useComboSystem} from "../composables/useComboSystem.js";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useCurrencySystem } from '../composables/useCurrencySystem.js'
 import { useI18n } from '../composables/useI18n.js'
 
 // Props
@@ -25,7 +24,6 @@ const emit = defineEmits(['back-to-gaming', 'game-complete'])
 // Services
 const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, getLevelStats } = useLocalStorage()
 const { t } = useI18n()
-const { rewardLevelCompletion } = useCurrencySystem()
 
 // Game state - using shallowRef for performance
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
@@ -56,7 +54,7 @@ const nextFruit = ref(null)
 const showNextFruit = ref(true)
 const particles = shallowRef([])
 const earnedAchievements = ref([])
-const finalCurrencyReward = ref(null)
+const levelReward = ref(null)
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -96,7 +94,7 @@ const gameOverHeight = computed(() => {
 
 const generateNextFruit = () => {
   const maxStartingLevel = 4
-  const randomIndex = Math.floor(Math.random() * maxStartingLevel)
+  const randomIndex = 3;//Math.floor(Math.random() * maxStartingLevel)
   const randomFruitType = fruitTypes.value[randomIndex]
 
   if (!randomFruitType) {
@@ -567,6 +565,13 @@ const initGame = async () => {
 const completeLevel = () => {
   gameState.value = 'completed'
 
+  // Update level statistics
+  const levelResult = {
+    completed: true,
+    score: score.value,
+    moves: moves.value
+  }
+
   // Check if this is first time completion
   const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
   const isFirstTimeCompletion = !previousLevelStats?.completed
@@ -574,33 +579,7 @@ const completeLevel = () => {
   // Calculate stars after updating stats
   const starsEarned = calculateCurrentStars()
 
-  // Update level statistics
-  const levelResult = {
-    completed: true,
-    score: score.value,
-    moves: moves.value
-  }
   updateLevelStats('fruitMerge', currentLevel.value, levelResult)
-
-  // Reward level completion with currency
-  const currencyReward = rewardLevelCompletion(
-      'fruitMerge',
-      currentLevel.value,
-      starsEarned,
-      isFirstTimeCompletion,
-      score.value,
-      moves.value
-  )
-
-  // Log the reward for debugging
-  if (currencyReward) {
-    finalCurrencyReward.value = {
-      coins: currencyReward.amounts.coins || 0,
-      diamonds: currencyReward.amounts.diamonds || 0
-    }
-
-    console.log(`🍎 FruitMerge Level ${currentLevel.value} completed!`)
-  }
 
   // Update game statistics
   const gameStats = {
@@ -618,6 +597,11 @@ const completeLevel = () => {
 
   updateGameStats('fruitMerge', gameStats)
 
+  levelReward.value = {
+    coins: 50,
+    diamonds: 1
+  }
+
   // Check for achievements and track new ones
   const achievementsBefore = [...gameData.achievements]
   checkGameLevelAchievements('fruitMerge', currentLevel.value)
@@ -634,8 +618,8 @@ const completeLevel = () => {
     level: currentLevel.value,
     score: score.value,
     moves: moves.value,
-    coins: finalCurrencyReward.value?.coins || 0,
-    diamonds: finalCurrencyReward.value?.diamonds || 0,
+    coins: levelReward.value?.coins || 0,
+    diamonds: levelReward.value?.diamonds || 0,
     completed: true,
     firstTime: isFirstTimeCompletion
   })
@@ -736,7 +720,7 @@ const resetGame = () => {
   moves.value = 0
   nextFruitId.value = 0
   particles.value = []
-  finalCurrencyReward.value = null
+  levelReward.value = null
 }
 
 const handleTryAgain = () => {
@@ -958,8 +942,8 @@ onUnmounted(() => {
       :show-stars="gameState === 'completed'"
       :new-achievements="earnedAchievements"
       :show-achievements="true"
-      :show-currency-reward="gameState === 'completed'"
-      :currency-earned="finalCurrencyReward"
+      :show-reward="gameState === 'completed'"
+      :reward="levelReward"
       :game-over-mode="gameState === 'gameOver'"
       :game-over-title="t('fruitMerge.game_over')"
       :game-over-message="t('fruitMerge.game_over_message')"

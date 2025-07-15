@@ -106,11 +106,11 @@ const props = defineProps({
     type: String,
     default: 'Back to Levels'
   },
-  currencyEarned: {
+  reward: {
     type: Object,
     default: () => ({ coins: 0, diamonds: 0 })
   },
-  showCurrencyReward: {
+  showReward: {
     type: Boolean,
     default: true
   }
@@ -253,23 +253,6 @@ const handleKeyDown = (event) => {
             :show-matches="false"
             :score-label="gameOverMode ? 'Final Score' : 'Score'"
           />
-          <div
-            v-if="showCurrencyReward && (currencyEarned.coins > 0 || currencyEarned.diamonds > 0)"
-            class="currency-rewards-section"
-          >
-            <div class="currency-rewards-display">
-              <div v-if="currencyEarned.coins > 0" class="currency-reward-item">
-                <span class="currency-icon">💰</span>
-                <span class="currency-amount">+{{ currencyEarned.coins }}</span>
-                <span class="currency-label">{{ t('currency.coins') }}</span>
-              </div>
-              <div v-if="currencyEarned.diamonds > 0" class="currency-reward-item currency-reward-item--premium">
-                <span class="currency-icon">💎</span>
-                <span class="currency-amount">+{{ currencyEarned.diamonds }}</span>
-                <span class="currency-label">{{ t('currency.diamonds') }}</span>
-              </div>
-            </div>
-          </div>
           <!-- Achievements Section (nur bei Erfolg) -->
           <div v-if="showAchievements && newAchievements.length > 0 && !gameOverMode" class="achievements-section">
             <h4 class="achievements-title">🏆 {{ t('achievements.new_achievements') }}</h4>
@@ -286,10 +269,31 @@ const handleKeyDown = (event) => {
                   <span class="achievement-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</span>
                   <span class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</span>
                 </div>
+                <div class="achievement-reward">
+                  <span class="currency-icon">💰</span>
+                  <span class="currency-amount">{{ achievement.rewards.coins }}</span>
+                  <span v-if="achievement.rewards.diamonds > 0" class="currency-icon">💎</span>
+                  <span v-if="achievement.rewards.iamonds > 0" class="currency-amount">{{ achievement.rewards.diamonds }}</span>
+                </div>
               </div>
             </div>
           </div>
 
+          <div
+            v-if="showReward && (reward.coins > 0 || reward.diamonds > 0)"
+            class="level-rewards-section"
+          >
+            <div class="level-rewards-display">
+              <div v-if="reward.coins > 0" class="reward-item">
+                <span class="currency-icon">💰</span>
+                <span class="currency-amount">+{{ reward.coins }}</span>
+              </div>
+              <div v-if="reward.diamonds > 0" class="reward-item reward-item--premium">
+                <span class="currency-icon">💎</span>
+                <span class="currency-amount">+{{ reward.diamonds }}</span>
+              </div>
+            </div>
+          </div>
           <!-- Action Buttons (dynamisch basierend auf Modus) -->
           <div class="completed-actions">
             <!-- Game Over Actions -->
@@ -496,21 +500,22 @@ const handleKeyDown = (event) => {
   line-height: 1.2;
 }
 
-.currency-rewards-section {
+.level-rewards-section {
   text-align: center;
 }
 
-.currency-rewards-display {
+.level-rewards-display {
   display: flex;
   gap: var(--space-4);
   justify-content: center;
   align-items: center;
 }
 
-.currency-reward-item {
+.reward-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
   gap: var(--space-1);
   padding: var(--space-2);
   background-color: var(--card-bg);

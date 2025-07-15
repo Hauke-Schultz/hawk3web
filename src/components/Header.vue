@@ -1,7 +1,7 @@
 <script setup>
 import {ref, computed, watch} from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useCurrencySystem } from '../composables/useCurrencySystem.js'
+import { useRewardSystem } from "../composables/useRewardSystem.js";
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue";
 
@@ -10,7 +10,7 @@ const { gameData } = useLocalStorage()
 
 // Internationalization
 const { t } = useI18n()
-const { coins, diamonds, formatCurrency } = useCurrencySystem()
+const { coins, diamonds, formatCurrency } = useRewardSystem()
 
 // Props for the header component
 const props = defineProps({

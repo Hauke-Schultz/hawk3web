@@ -23,6 +23,8 @@ const achievementsWithStatus = computed(() => {
 
     return {
       ...achievement,
+      coins: achievement.rewards.coins || 0,
+      diamonds: achievement.rewards.diamonds || 0,
       earned: !!earned,
       earnedAt: earned?.earnedAt || null,
       progress: getAchievementProgress(achievement)
@@ -152,13 +154,23 @@ const formatDate = (dateString) => {
           <div class="achievement-content">
             <div class="achievement-header">
               <h4 class="achievement-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</h4>
+              <!-- Currency Display -->
+              <div v-if="!achievement.earned" class="currency-display">
+                <div class="currency-item">
+                  <span class="currency-amount">{{ achievement.coins }}</span>
+                  <span class="currency-icon">💰</span>
+                </div>
+                <div v-if="achievement.diamonds > 0" class="currency-item currency-item--premium">
+                  <span class="currency-amount">{{ achievement.diamonds }}</span>
+                  <span class="currency-icon">💎</span>
+                </div>
+              </div>
               <div class="rarity-badge" :class="getRarityClass(achievement.rarity)">
                 {{ t(`achievements.rarities.${achievement.rarity}`) }}
               </div>
             </div>
 
             <p class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</p>
-
 
             <!-- Progress Bar (for unearned achievements) -->
             <div

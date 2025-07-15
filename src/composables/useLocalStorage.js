@@ -19,8 +19,6 @@ const getDefaultData = () => ({
 		// NEU: Currency System
 		coins: 0,
 		diamonds: 0,
-		totalCoinsEarned: 0,
-		totalDiamondsEarned: 0,
 		createdAt: new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0]
 	},
@@ -110,8 +108,6 @@ const validatePlayerData = (player) => {
 		gamesPlayed: typeof player?.gamesPlayed === 'number' ? player.gamesPlayed : 0,
 		coins: typeof player?.coins === 'number' ? player.coins : 0,
 		diamonds: typeof player?.diamonds === 'number' ? player.diamonds : 0,
-		totalCoinsEarned: typeof player?.totalCoinsEarned === 'number' ? player.totalCoinsEarned : 0,
-		totalDiamondsEarned: typeof player?.totalDiamondsEarned === 'number' ? player.totalDiamondsEarned : 0,
 		createdAt: player?.createdAt || new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0]
 	}
@@ -200,8 +196,6 @@ const migrateData = (data) => {
 		if (!data.player?.coins && data.player?.coins !== 0) {
 			data.player.coins = 0
 			data.player.diamonds = 0
-			data.player.totalCoinsEarned = 0
-			data.player.totalDiamondsEarned = 0
 		}
 
 		data.version = CURRENT_VERSION
@@ -263,6 +257,7 @@ export function useLocalStorage() {
 	// Player methods
 	const updatePlayer = (updates) => {
 		const newPlayerData = { ...gameData.player, ...updates }
+		console.log('XXXX Updating player data:', updates, gameData.player, newPlayerData)
 		Object.assign(gameData.player, validatePlayerData(newPlayerData))
 		saveData()
 	}
@@ -493,21 +488,18 @@ export function useLocalStorage() {
 	const addAchievement = (achievement) => {
 		const exists = gameData.achievements.some(a => a.id === achievement.id)
 		if (!exists) {
-			// Achievement zur Liste hinzufügen
+
 			gameData.achievements.push({
 				...achievement,
 				earned: true,
 				earnedAt: new Date().toISOString()
 			})
 
-			// Direkte Coin-Belohnung ohne useCurrencySystem
 			const reward = getAchievementReward(achievement)
 			if (reward && (reward.coins > 0 || reward.diamonds > 0)) {
 				// Direkte Player-Update
 				gameData.player.coins = (gameData.player.coins || 0) + reward.coins
 				gameData.player.diamonds = (gameData.player.diamonds || 0) + reward.diamonds
-				gameData.player.totalCoinsEarned = (gameData.player.totalCoinsEarned || 0) + reward.coins
-				gameData.player.totalDiamondsEarned = (gameData.player.totalDiamondsEarned || 0) + reward.diamonds
 
 				// Currency Transaction hinzufügen
 				if (!gameData.currency) {

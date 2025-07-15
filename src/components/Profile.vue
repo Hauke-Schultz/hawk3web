@@ -1,21 +1,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useCurrencySystem } from '../composables/useCurrencySystem.js'
+import { useRewardSystem } from "../composables/useRewardSystem.js";
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 
 // LocalStorage service
 const { gameData, updatePlayer } = useLocalStorage()
 const { t } = useI18n()
-const {
-  coins,
-  diamonds,
-  totalCoinsEarned,
-  totalDiamondsEarned,
-  recentTransactions,
-  formatCurrency
-} = useCurrencySystem()
+const { coins, diamonds, formatCurrency } = useRewardSystem()
 
 // Available avatar options
 const avatarOptions = [
@@ -101,44 +94,12 @@ const updatePlayerName = () => {
             <span class="currency-icon">💰</span>
             <div class="currency-info">
               <span class="currency-current">{{ formatCurrency(coins) }}</span>
-              <span class="currency-total">{{ t('profile.currency.total_earned', { amount: formatCurrency(totalCoinsEarned) }) }}</span>
             </div>
           </div>
           <div v-if="diamonds > 0" class="currency-item currency-item--premium">
             <span class="currency-icon">💎</span>
             <div class="currency-info">
               <span class="currency-current">{{ formatCurrency(diamonds) }}</span>
-              <span class="currency-total">{{ t('profile.currency.total_earned', { amount: formatCurrency(totalDiamondsEarned) }) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Currency Transaction History -->
-      <div v-if="recentTransactions.length > 0" class="currency-section">
-        <h3 class="section-subtitle">{{ t('profile.currency.recent_earnings') }}</h3>
-        <div class="transaction-list">
-          <div
-              v-for="transaction in recentTransactions"
-              :key="transaction.id"
-              class="transaction-item"
-          >
-            <div class="transaction-icon">
-              <span v-if="transaction.source === 'achievement'">🏆</span>
-              <span v-else-if="transaction.source === 'levelCompletion'">⭐</span>
-              <span v-else-if="transaction.source === 'combo'">🔥</span>
-              <span v-else>💰</span>
-            </div>
-            <div class="transaction-info">
-              <span class="transaction-description">{{ transaction.description }}</span>
-              <span class="transaction-date">{{ formatTransactionDate(transaction.timestamp) }}</span>
-            </div>
-            <div class="transaction-amount">
-            <span v-if="transaction.amounts.coins > 0" class="amount-coins">
-              +{{ formatCurrency(transaction.amounts.coins) }} 💰
-            </span>
-              <span v-if="transaction.amounts.diamonds > 0" class="amount-diamonds">
-              +{{ formatCurrency(transaction.amounts.diamonds) }} 💎
-            </span>
             </div>
           </div>
         </div>
@@ -261,11 +222,8 @@ const updatePlayerName = () => {
 
 .currency-stats {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--space-3);
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--card-border);
 }
 
 .currency-item {
@@ -311,82 +269,6 @@ const updatePlayerName = () => {
 .currency-total {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-}
-
-// Currency Transaction Section
-.currency-section {
-  margin-top: var(--space-6);
-}
-
-.section-subtitle {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  margin: 0 0 var(--space-4) 0;
-}
-
-.transaction-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-xl);
-  padding: var(--space-3);
-}
-
-.transaction-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
-  background-color: var(--bg-secondary);
-  border-radius: var(--border-radius-md);
-}
-
-.transaction-icon {
-  font-size: var(--font-size-lg);
-  flex-shrink: 0;
-}
-
-.transaction-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  flex: 1;
-}
-
-.transaction-description {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-}
-
-.transaction-date {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
-.transaction-amount {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.amount-coins,
-.amount-diamonds {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-}
-
-.amount-coins {
-  color: var(--warning-color);
-}
-
-.amount-diamonds {
-  color: var(--primary-color);
 }
 
 // Player Settings Section
