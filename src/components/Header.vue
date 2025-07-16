@@ -1,16 +1,14 @@
 <script setup>
 import {ref, computed, watch} from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useRewardSystem } from "../composables/useRewardSystem.js";
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue";
 
 // LocalStorage service
-const { gameData } = useLocalStorage()
+const { gameData, coins, diamonds, formatCurrency } = useLocalStorage()
 
 // Internationalization
 const { t } = useI18n()
-const { coins, diamonds, formatCurrency } = useRewardSystem()
 
 // Props for the header component
 const props = defineProps({
@@ -85,7 +83,7 @@ const handleProfileClick = () => {
 }
 
 watch(() => gameData.player, (newPlayer) => {
-  console.log('Player data changed in Header:', newPlayer)
+  console.log('HHH Player data changed in Header:', newPlayer)
 }, { deep: true })
 </script>
 

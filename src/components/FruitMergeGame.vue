@@ -22,7 +22,7 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete'])
 
 // Services
-const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, getLevelStats } = useLocalStorage()
+const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, checkAutoAchievements, getLevelStats } = useLocalStorage()
 const { t } = useI18n()
 
 // Game state - using shallowRef for performance
@@ -605,6 +605,7 @@ const completeLevel = () => {
   // Check for achievements and track new ones
   const achievementsBefore = [...gameData.achievements]
   checkGameLevelAchievements('fruitMerge', currentLevel.value)
+	checkAutoAchievements()
   const achievementsAfter = [...gameData.achievements]
 
   // Find newly earned achievements

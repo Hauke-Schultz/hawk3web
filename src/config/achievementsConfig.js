@@ -1,5 +1,5 @@
 // Central achievement configuration
-export const achievementsConfig = {
+export const ACHIEVEMENTS = {
 	// All possible achievements with their definitions
 	definitions: [
 		// General achievements
@@ -20,7 +20,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'play',
 			rarity: 'common',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 17, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'gamesPlayed >= 1' }
 		},
 
@@ -120,7 +120,7 @@ export const achievementsConfig = {
 			category: 'gaming',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 20, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 1 }
 		},
 		{
@@ -225,31 +225,35 @@ export const achievementsConfig = {
 	}
 }
 
-// Helper functions
-export const getAchievementById = (id) => {
-	return achievementsConfig.definitions.find(achievement => achievement.id === id)
-}
-
-export const getAchievementsByCategory = (category) => {
-	return achievementsConfig.definitions.filter(achievement => achievement.category === category)
-}
-
-export const getAchievementsByRarity = (rarity) => {
-	return achievementsConfig.definitions.filter(achievement => achievement.rarity === rarity)
-}
-
-export const getAchievementsByTrigger = (triggerType) => {
-	return achievementsConfig.definitions.filter(achievement => achievement.trigger.type === triggerType)
-}
-
-export const getTranslatedAchievement = (achievement, t) => {
-	return {
-		...achievement,
-		name: t(`achievements.definitions.${achievement.id}.name`),
-		description: t(`achievements.definitions.${achievement.id}.description`)
+export const REWARDS = {
+	levelCompletion: {
+		base: { coins: 20, diamonds: 0 },      // Base reward for any completion
+		firstTime: { coins: 50, diamonds: 2 }, // Bonus for first-time completion
+		stars: {
+			1: { coins: 10, diamonds: 0 },      // 1 star bonus
+			2: { coins: 30, diamonds: 1 },      // 2 star bonus
+			3: { coins: 75, diamonds: 3 }       // 3 star bonus (perfect)
+		},
+		perfectBonus: 0.5,  // 50% extra coins for 3-star performance
+		levelMultiplier: {   // Multiplier based on level difficulty
+			easy: 1,      // Levels 1-3
+			medium: 1.5,  // Levels 4-6
+			hard: 2       // Levels 7+
+		}
+	},
+	combos: {
+		base: 5, // coins per combo hit
+		multiplier: 1.2, // increases per combo level
+		diamondThreshold: 10 // diamonds earned at combo 10+
+	},
+	dailyRewards: {
+		base: { coins: 50, diamonds: 1 },
+		streakMultiplier: 1.1, // increases with streak
+		maxStreak: 7
 	}
 }
 
+// Helper functions
 export const checkAchievementCondition = (achievement, playerData) => {
 	if (achievement.trigger.type === 'auto') {
 		const condition = achievement.trigger.condition
@@ -274,41 +278,8 @@ export const checkAchievementCondition = (achievement, playerData) => {
 	return false
 }
 
-export const getAchievementReward = (achievement) => {
-	if (achievement.rewards) {
-		return achievement.rewards
-	}
-
-	const rarityRewards = {
-		common: { coins: 15, diamonds: 0 },
-		uncommon: { coins: 35, diamonds: 1 },
-		rare: { coins: 75, diamonds: 3 },
-		epic: { coins: 150, diamonds: 8 },
-		legendary: { coins: 300, diamonds: 20 }
-	}
-
-	return rarityRewards[achievement.rarity] || rarityRewards.common
-}
-
-export const calculateTotalAchievementValue = (achievements) => {
-	return achievements.reduce((total, achievement) => {
-		const reward = getAchievementReward(achievement)
-		total.coins += reward.coins
-		total.diamonds += reward.diamonds
-		return total
-	}, { coins: 0, diamonds: 0 })
-}
-
-export const getAchievementsByValue = (achievements, sortBy = 'coins') => {
-	return [...achievements].sort((a, b) => {
-		const rewardA = getAchievementReward(a)
-		const rewardB = getAchievementReward(b)
-		return rewardB[sortBy] - rewardA[sortBy]
-	})
-}
-
 export const checkCardReadAchievement = (cardType, gameData) => {
-	const cardAchievements = achievementsConfig.definitions.filter(
+	const cardAchievements = ACHIEVEMENTS.definitions.filter(
 		achievement =>
 			achievement.trigger.type === 'card_read' &&
 			achievement.trigger.cardType === cardType

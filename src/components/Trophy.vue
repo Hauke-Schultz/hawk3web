@@ -4,17 +4,17 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 import ProgressOverview from "./ProgressOverview.vue";
-import { achievementsConfig } from '../config/achievementsConfig.js'
+import { ACHIEVEMENTS } from '../config/achievementsConfig.js'
 
 // LocalStorage service for achievements
 const { gameData } = useLocalStorage()
 const { t, currentLanguage } = useI18n()
 
 // Achievement categories for organization
-const achievementCategories = achievementsConfig.categories
+const achievementCategories = ACHIEVEMENTS.categories
 
 // All possible achievements (earned and unearned)
-const allAchievements = achievementsConfig.definitions
+const allAchievements = ACHIEVEMENTS.definitions
 
 // Computed achievements with earned status
 const achievementsWithStatus = computed(() => {

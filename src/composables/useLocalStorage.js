@@ -1,7 +1,6 @@
 import { ref, reactive, watch } from 'vue'
-import { achievementsConfig, getAchievementById, checkAchievementCondition, checkCardReadAchievement } from '../config/achievementsConfig.js'
+import { ACHIEVEMENTS, checkAchievementCondition, checkCardReadAchievement } from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
-import { getAchievementReward } from '../config/achievementsConfig.js'
 
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'
@@ -16,7 +15,6 @@ const getDefaultData = () => ({
 		experience: 0,
 		totalScore: 0,
 		gamesPlayed: 0,
-		// NEU: Currency System
 		coins: 0,
 		diamonds: 0,
 		createdAt: new Date().toISOString().split('T')[0],
@@ -162,22 +160,6 @@ const validateCardStates = (cardStates) => {
 	return validated
 }
 
-const validateCurrencyData = (currency) => {
-	const defaultCurrency = getDefaultData().currency
-
-	return {
-		transactions: Array.isArray(currency?.transactions) ? currency.transactions : [],
-		dailyRewards: {
-			lastClaimed: currency?.dailyRewards?.lastClaimed || null,
-			streak: typeof currency?.dailyRewards?.streak === 'number' ? currency.dailyRewards.streak : 0,
-			nextRewardCoins: typeof currency?.dailyRewards?.nextRewardCoins === 'number' ? currency.dailyRewards.nextRewardCoins : 50,
-			nextRewardDiamonds: typeof currency?.dailyRewards?.nextRewardDiamonds === 'number' ? currency.dailyRewards.nextRewardDiamonds : 1
-		},
-		milestones: currency?.milestones || defaultCurrency.milestones,
-		statistics: currency?.statistics || defaultCurrency.statistics
-	}
-}
-
 // Data migration function
 const migrateData = (data) => {
 	// Handle version migrations here
@@ -233,7 +215,7 @@ export function useLocalStorage() {
 	// Reactive data
 	const gameData = reactive({})
 	Object.assign(gameData, loadData())
-	// checkAutoAchievements()
+	//checkAutoAchievements()
 
 	// Save data to localStorage
 	const saveData = () => {
@@ -495,13 +477,11 @@ export function useLocalStorage() {
 				earnedAt: new Date().toISOString()
 			})
 
-			const reward = getAchievementReward(achievement)
+			const reward = achievement.rewards
 			if (reward && (reward.coins > 0 || reward.diamonds > 0)) {
-				// Direkte Player-Update
 				gameData.player.coins = (gameData.player.coins || 0) + reward.coins
 				gameData.player.diamonds = (gameData.player.diamonds || 0) + reward.diamonds
 
-				// Currency Transaction hinzufügen
 				if (!gameData.currency) {
 					gameData.currency = getDefaultData().currency
 				}
@@ -528,7 +508,7 @@ export function useLocalStorage() {
 				console.log(`🏆 Achievement unlocked: ${achievement.name} (+${reward.coins} coins, +${reward.diamonds} diamonds)`)
 			}
 
-			return true // New achievement
+			return true
 		}
 		return false
 	}
@@ -608,7 +588,7 @@ export function useLocalStorage() {
 	}
 
 	function checkAutoAchievements() {
-		const autoAchievements = achievementsConfig.definitions.filter(
+		const autoAchievements = ACHIEVEMENTS.definitions.filter(
 			achievement => achievement.trigger.type === 'auto'
 		)
 
@@ -633,7 +613,7 @@ export function useLocalStorage() {
 	}
 
 	const checkGameLevelAchievements = (gameName, levelNumber) => {
-		const levelAchievements = achievementsConfig.definitions.filter(
+		const levelAchievements = ACHIEVEMENTS.definitions.filter(
 			achievement =>
 				achievement.trigger.type === 'level_complete' &&
 				achievement.trigger.game === gameName &&
@@ -675,10 +655,28 @@ export function useLocalStorage() {
 		Object.assign(gameData, defaultData)
 	}
 
+	const formatCurrency = (amount, type = 'coins') => {
+		if (amount >= 1000000) {
+			return `${(amount / 1000000).toFixed(1)}M`
+		} else if (amount >= 1000) {
+			return `${(amount / 1000).toFixed(1)}K`
+		}
+		return amount.toString()
+	}
+
+	const coins = ref(gameData.player.coins || 0)
+	const diamonds = ref(gameData.player.diamonds || 0)
+
 	// Return all reactive data and methods
 	return {
 		// Reactive data
 		gameData,
+
+		coins,
+		diamonds,
+
+		// Utility functions
+		formatCurrency,
 
 		// Player methods
 		updatePlayer,

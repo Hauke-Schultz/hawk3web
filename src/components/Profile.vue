@@ -1,14 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useRewardSystem } from "../composables/useRewardSystem.js";
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 
 // LocalStorage service
-const { gameData, updatePlayer } = useLocalStorage()
+const { gameData, updatePlayer, coins, diamonds, formatCurrency } = useLocalStorage()
 const { t } = useI18n()
-const { coins, diamonds, formatCurrency } = useRewardSystem()
 
 // Available avatar options
 const avatarOptions = [
