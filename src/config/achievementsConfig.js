@@ -227,24 +227,25 @@ export const ACHIEVEMENTS = {
 
 export const REWARDS = {
 	levelCompletion: {
-		base: { coins: 20, diamonds: 0 },      // Base reward for any completion
-		firstTime: { coins: 50, diamonds: 2 }, // Bonus for first-time completion
+		base: { coins: 25, diamonds: 0 },      // Base reward for any completion
+		firstTime: { coins: 75, diamonds: 2 }, // Bonus for first-time completion
 		stars: {
-			1: { coins: 10, diamonds: 0 },      // 1 star bonus
-			2: { coins: 30, diamonds: 1 },      // 2 star bonus
-			3: { coins: 75, diamonds: 3 }       // 3 star bonus (perfect)
+			1: { coins: 15, diamonds: 0 },      // 1 star bonus
+			2: { coins: 35, diamonds: 1 },      // 2 star bonus
+			3: { coins: 60, diamonds: 2 }       // 3 star bonus (perfect)
 		},
 		perfectBonus: 0.5,  // 50% extra coins for 3-star performance
 		levelMultiplier: {   // Multiplier based on level difficulty
-			easy: 1,      // Levels 1-3
-			medium: 1.5,  // Levels 4-6
-			hard: 2       // Levels 7+
+			easy: 1,      // Levels 1-2
+			medium: 1.5,  // Levels 3-4
+			hard: 2.5     // Levels 5+
 		}
 	},
 	combos: {
-		base: 5, // coins per combo hit
-		multiplier: 1.2, // increases per combo level
-		diamondThreshold: 10 // diamonds earned at combo 10+
+		base: 8, // coins per combo hit
+		multiplier: 1.3, // increases per combo level
+		diamondThreshold: 8, // diamonds earned at combo 8+
+		maxReward: 50 // maximum coins per combo
 	},
 	dailyRewards: {
 		base: { coins: 50, diamonds: 1 },

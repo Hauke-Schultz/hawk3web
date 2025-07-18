@@ -11,7 +11,7 @@ import Trophy from "./components/Trophy.vue";
 import About from "./components/About.vue";
 
 // LocalStorage service
-const { gameData, updateSettings, checkAutoAchievements, getCurrentLanguage, coins } = useLocalStorage()
+const { gameData, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
 
 // i18n system initialisieren
 const { t, setLanguage } = useI18n()
@@ -113,59 +113,33 @@ onMounted(async () => {
 
     <!-- Trophy View -->
     <template v-else-if="currentView === 'trophy'">
-	    <Header
-		    :game-data="gameData"
-				:show-profile="true"
-				:show-menu-button="true"
-				:page-title="t('nav.trophies')"
+			<Trophy
 				@menu-click="handleBackToHome"
 			/>
-
-			<Trophy />
 		</template>
 
 		<!-- Profile View -->
     <template v-else-if="currentView === 'profile'">
-	   	<Header
-		    :game-data="gameData"
-				:show-profile="true"
-				:show-menu-button="true"
-				:page-title="t('nav.profile')"
+			<Profile
 				@menu-click="handleBackToHome"
 			/>
-
-			<Profile />
 		</template>
 
 		<!-- Settings View -->
     <template v-else-if="currentView === 'settings'">
-			<Header
-				:game-data="gameData"
-				:show-profile="true"
-				:show-menu-button="true"
-				:page-title="t('nav.settings')"
-				@menu-click="handleBackToHome"
-			/>
-
 			<Settings
 				:current-theme="gameData.settings.theme"
 				@theme-change="handleThemeChange"
 				@language-change="handleLanguageChange"
-				@back="handleBackToHome"
+				@menu-click="handleBackToHome"
 			/>
 		</template>
 
 		<!-- About View -->
     <template v-else-if="currentView === 'about'">
-			<Header
-				:game-data="gameData"
-				:show-profile="true"
-				:show-menu-button="true"
-				:page-title="t('nav.about')"
+			<About
 				@menu-click="handleBackToHome"
 			/>
-
-			<About />
 		</template>
 	</div>
 </template>

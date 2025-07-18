@@ -10,6 +10,7 @@ import {useComboSystem} from "../composables/useComboSystem.js";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Header from "./Header.vue";
+import {REWARDS} from "../config/achievementsConfig.js";
 
 // Props
 const props = defineProps({
@@ -564,67 +565,129 @@ const initGame = async () => {
 }
 
 const completeLevel = () => {
-  gameState.value = 'completed'
+	gameState.value = 'completed'
 
-  // Update level statistics
-  const levelResult = {
-    completed: true,
-    score: score.value,
-    moves: moves.value
-  }
+	// Calculate level rewards
+	const rewardCalculation = calculateLevelReward()
+	levelReward.value = rewardCalculation
 
-  // Check if this is first time completion
-  const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
-  const isFirstTimeCompletion = !previousLevelStats?.completed
+	// Update level statistics
+	const levelResult = {
+		completed: true,
+		score: score.value,
+		moves: moves.value
+	}
 
-  // Calculate stars after updating stats
-  const starsEarned = calculateCurrentStars()
+	// Check if this is first time completion
+	const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
+	const isFirstTimeCompletion = !previousLevelStats?.completed
 
-  updateLevelStats('fruitMerge', currentLevel.value, levelResult)
+	// Calculate stars after updating stats
+	const starsEarned = calculateCurrentStars()
 
-  // Update game statistics
-  const gameStats = {
-    gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
-    totalScore: gameData.games.fruitMerge.totalScore + score.value,
-    highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
-    starsEarned: gameData.games.fruitMerge.starsEarned + starsEarned,
-    completedLevels: gameData.games.fruitMerge.completedLevels + (isFirstTimeCompletion ? 1 : 0),
-    maxLevel: Math.max(gameData.games.fruitMerge.maxLevel, currentLevel.value),
-    maxCombo: Math.max(
-        gameData.games.fruitMerge.maxCombo || 0,
-        comboSystem.comboCount.value
-    )
-  }
+	updateLevelStats('fruitMerge', currentLevel.value, levelResult)
 
-  updateGameStats('fruitMerge', gameStats)
+	// Update game statistics
+	const gameStats = {
+		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
+		totalScore: gameData.games.fruitMerge.totalScore + score.value,
+		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
+		starsEarned: gameData.games.fruitMerge.starsEarned + starsEarned,
+		completedLevels: gameData.games.fruitMerge.completedLevels + (isFirstTimeCompletion ? 1 : 0),
+		maxLevel: Math.max(gameData.games.fruitMerge.maxLevel, currentLevel.value),
+		maxCombo: Math.max(
+				gameData.games.fruitMerge.maxCombo || 0,
+				comboSystem.comboCount.value
+		)
+	}
 
-  levelReward.value = {
-    coins: 50,
-    diamonds: 1
-  }
+	updateGameStats('fruitMerge', gameStats)
 
-  // Check for achievements and track new ones
-  const achievementsBefore = [...gameData.achievements]
-  checkGameLevelAchievements('fruitMerge', currentLevel.value)
+	// Add currency rewards to player
+	if (levelReward.value.coins > 0 || levelReward.value.diamonds > 0) {
+		gameData.player.coins = (gameData.player.coins || 0) + levelReward.value.coins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + levelReward.value.diamonds
+
+		console.log(`💰 Level reward earned: +${levelReward.value.coins} coins, +${levelReward.value.diamonds} diamonds`)
+	}
+
+	// Check for achievements and track new ones
+	const achievementsBefore = [...gameData.achievements]
+	checkGameLevelAchievements('fruitMerge', currentLevel.value)
 	checkAutoAchievements()
-  const achievementsAfter = [...gameData.achievements]
+	const achievementsAfter = [...gameData.achievements]
 
-  // Find newly earned achievements
-  earnedAchievements.value = achievementsAfter.filter(after =>
-      !achievementsBefore.some(before => before.id === after.id && before.earned)
-  )
+	// Find newly earned achievements
+	earnedAchievements.value = achievementsAfter.filter(after =>
+			!achievementsBefore.some(before => before.id === after.id && before.earned)
+	)
 
-  addScore(score.value)
+	addScore(score.value)
 
-  emit('game-complete', {
-    level: currentLevel.value,
-    score: score.value,
-    moves: moves.value,
-    coins: levelReward.value?.coins || 0,
-    diamonds: levelReward.value?.diamonds || 0,
-    completed: true,
-    firstTime: isFirstTimeCompletion
-  })
+	emit('game-complete', {
+		level: currentLevel.value,
+		score: score.value,
+		moves: moves.value,
+		coins: levelReward.value?.coins || 0,
+		diamonds: levelReward.value?.diamonds || 0,
+		completed: true,
+		firstTime: isFirstTimeCompletion
+	})
+}
+
+const calculateLevelReward = () => {
+	if (!isLevelComplete.value) return { coins: 0, diamonds: 0 }
+
+	const levelConfig = currentLevelConfig.value
+	const levelNumber = currentLevel.value
+
+	// Determine difficulty tier
+	let difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.easy
+	if (levelNumber >= 4) {
+		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.hard
+	} else if (levelNumber >= 2) {
+		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.medium
+	}
+
+	// Base reward
+	let totalCoins = Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier)
+	let totalDiamonds = REWARDS.levelCompletion.base.diamonds
+
+	// Check if this is first time completion
+	const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
+	const isFirstTimeCompletion = !previousLevelStats?.completed
+
+	if (isFirstTimeCompletion) {
+		totalCoins += Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier)
+		totalDiamonds += REWARDS.levelCompletion.firstTime.diamonds
+	}
+
+	// Star-based bonus
+	const starsEarned = calculateCurrentStars()
+	if (starsEarned > 0) {
+		const starBonus = REWARDS.levelCompletion.stars[starsEarned]
+		if (starBonus) {
+			totalCoins += Math.round(starBonus.coins * difficultyMultiplier)
+			totalDiamonds += starBonus.diamonds
+		}
+	}
+
+	// Perfect bonus (3 stars)
+	if (starsEarned === 3) {
+		totalCoins = Math.round(totalCoins * (1 + REWARDS.levelCompletion.perfectBonus))
+	}
+
+	return {
+		coins: totalCoins,
+		diamonds: totalDiamonds,
+		breakdown: {
+			base: Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier),
+			firstTime: isFirstTimeCompletion ? Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier) : 0,
+			stars: starsEarned > 0 ? Math.round(REWARDS.levelCompletion.stars[starsEarned]?.coins * difficultyMultiplier || 0) : 0,
+			perfect: starsEarned === 3 ? Math.round(totalCoins * REWARDS.levelCompletion.perfectBonus) : 0,
+			difficulty: difficultyMultiplier
+		}
+	}
 }
 
 const checkGameOver = () => {

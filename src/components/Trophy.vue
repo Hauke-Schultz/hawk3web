@@ -6,6 +6,9 @@ import Icon from "./Icon.vue"
 import ProgressOverview from "./ProgressOverview.vue";
 import { ACHIEVEMENTS } from '../config/achievementsConfig.js'
 import CurrencyDisplay from "./CurrencyDisplay.vue";
+import Header from "./Header.vue";
+
+const emit = defineEmits(['menu-click'])
 
 // LocalStorage service for achievements
 const { gameData } = useLocalStorage()
@@ -103,9 +106,18 @@ const formatDate = (dateString) => {
     day: 'numeric'
   })
 }
+const handleMenuClick = () => {
+	emit('menu-click')
+}
 </script>
 
 <template>
+	<Header
+		:game-data="gameData"
+		:show-profile="true"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+	/>
   <main class="content">
     <!-- Trophy Header -->
     <section class="trophy-header">
@@ -158,16 +170,6 @@ const formatDate = (dateString) => {
               <div class="rarity-badge" :class="getRarityClass(achievement.rarity)">
                 {{ t(`achievements.rarities.${achievement.rarity}`) }}
               </div>
-	            <CurrencyDisplay
-		            v-if="!achievement.earned"
-		            :coins="achievement.coins"
-		            :diamonds="achievement.diamonds"
-		            layout="horizontal"
-		            size="small"
-		            variant="compact"
-		            :format-numbers="true"
-		            :show-zero-values="false"
-	            />
             </div>
 
             <p class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</p>
@@ -191,6 +193,16 @@ const formatDate = (dateString) => {
               <Icon name="trophy" size="14" />
               <span>{{ t('achievements.earned', { date: formatDate(achievement.earnedAt) }) }}</span>
             </div>
+	          <CurrencyDisplay
+		          v-if="!achievement.earned"
+		          :coins="achievement.coins"
+		          :diamonds="achievement.diamonds"
+		          layout="horizontal"
+		          size="small"
+		          variant="compact"
+		          :format-numbers="true"
+		          :show-zero-values="false"
+	          />
           </div>
         </div>
       </div>

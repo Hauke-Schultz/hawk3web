@@ -43,7 +43,11 @@ const getDefaultData = () => ({
 			maxLevel: 1,
 			totalMerges: 0,
 			levels: {},
-			maxCombo: 0
+			maxCombo: 0,
+			starsEarned: 0,
+			completedLevels: 0,
+			totalCoinsEarned: 0,
+			totalDiamondsEarned: 0
 		}
 	},
 	currency: {
@@ -139,6 +143,10 @@ const validateGameData = (games) => {
 			maxLevel: typeof games?.fruitMerge?.maxLevel === 'number' ? games.fruitMerge.maxLevel : defaultGames.fruitMerge.maxLevel,
 			totalMerges: typeof games?.fruitMerge?.totalMerges === 'number' ? games.fruitMerge.totalMerges : defaultGames.fruitMerge.totalMerges,
 			maxCombo: typeof games?.fruitMerge?.maxCombo === 'number' ? games.fruitMerge.maxCombo : defaultGames.fruitMerge.maxCombo,
+			starsEarned: typeof games?.fruitMerge?.starsEarned === 'number' ? games.fruitMerge.starsEarned : 0,
+			completedLevels: typeof games?.fruitMerge?.completedLevels === 'number' ? games.fruitMerge.completedLevels : 0,
+			totalCoinsEarned: typeof games?.fruitMerge?.totalCoinsEarned === 'number' ? games.fruitMerge.totalCoinsEarned : 0,
+			totalDiamondsEarned: typeof games?.fruitMerge?.totalDiamondsEarned === 'number' ? games.fruitMerge.totalDiamondsEarned : 0,
 			levels: typeof games?.fruitMerge?.levels === 'object' ? games.fruitMerge.levels : {}
 		}
 	}

@@ -4,6 +4,9 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue";
+import Header from "./Header.vue";
+
+const emit = defineEmits(['menu-click'])
 
 // LocalStorage service
 const { gameData, updatePlayer, formatCurrency } = useLocalStorage()
@@ -48,9 +51,19 @@ const updatePlayerName = () => {
   // Trigger validation through computed setter
   playerName.value = playerName.value
 }
+
+const handleMenuClick = () => {
+	emit('menu-click')
+}
 </script>
 
 <template>
+	<Header
+		:game-data="gameData"
+		:show-profile="true"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+	/>
   <main class="content">
     <!-- Player Profile Section -->
     <section class="profile-section">

@@ -4,6 +4,7 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
+import Header from "./Header.vue";
 
 // Props
 const props = defineProps({
@@ -14,10 +15,10 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['theme-change', 'language-change', 'back'])
+const emit = defineEmits(['theme-change', 'language-change', 'back', 'menu-click'])
 
 // LocalStorage service
-const { clearStorage } = useLocalStorage()
+const { gameData, clearStorage } = useLocalStorage()
 
 // Internationalization
 const { t, currentLanguage, availableLanguages, setLanguage } = useI18n()
@@ -92,10 +93,20 @@ const cancelDelete = () => {
   showDeleteConfirmation.value = false
   isDeleteUnlocked.value = false
 }
+
+const handleMenuClick = () => {
+	emit('menu-click')
+}
 </script>
 
 <template>
-  <main class="content">
+	<Header
+		:game-data="gameData"
+		:show-profile="true"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+	/>
+	<main class="content">
     <!-- Theme Section -->
     <section class="theme-section">
       <h2 class="section-title">{{ t('settings.theme') }}</h2>
