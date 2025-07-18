@@ -664,16 +664,10 @@ export function useLocalStorage() {
 		return amount.toString()
 	}
 
-	const coins = computed(() => gameData.player.coins || 0)
-	const diamonds = computed(() => gameData.player.diamonds || 0)
-
 	// Return all reactive data and methods
 	return {
 		// Reactive data
 		gameData,
-
-		coins,
-		diamonds,
 
 		// Utility functions
 		formatCurrency,

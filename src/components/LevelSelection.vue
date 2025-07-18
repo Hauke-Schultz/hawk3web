@@ -6,6 +6,7 @@ import GameLevelTile from './GameLevelTile.vue'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
 import { calculateLevelStars, getLevelTitle, getLevelDescription } from "../config/levelUtils.js"
+import Header from "./Header.vue";
 
 // Props for the level selection component
 const props = defineProps({

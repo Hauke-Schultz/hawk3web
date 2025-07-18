@@ -17,7 +17,7 @@ import ProgressOverview from "./ProgressOverview.vue";
 import GameCompletedModal from "./GameCompletedModal.vue";
 import PerformanceStats from "./PerformanceStats.vue";
 import GameControls from "./GameControls.vue";
-import {FRUIT_MERGE_LEVELS} from "../config/fruitMergeConfig.js";
+import Header from "./Header.vue";
 
 const props = defineProps({
   level: {
@@ -26,7 +26,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['back-to-gaming', 'game-complete'])
+const emit = defineEmits(['back-to-gaming', 'game-complete', 'menu-click'])
 
 // LocalStorage service
 const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, checkGameLevelAchievements } = useLocalStorage()
@@ -313,6 +313,10 @@ const backToGaming = () => {
   emit('back-to-gaming')
 }
 
+const handleMenuClick = () => {
+	emit('menu-click')
+}
+
 // Lifecycle hooks
 onMounted(() => {
   initializeGame()
@@ -325,6 +329,12 @@ onUnmounted(() => {
 </script>
 
 <template>
+	<Header
+		:game-data="gameData"
+		:show-profile="true"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+	/>
   <main class="memory-game">
     <!-- Game Header -->
     <div class="game-header">

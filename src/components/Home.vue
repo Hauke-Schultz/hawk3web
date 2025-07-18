@@ -4,9 +4,10 @@ import Icon from "./Icon.vue";
 import WelcomeCard from "./WelcomeCard.vue";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
+import Header from "./Header.vue";
 
 // LocalStorage service for achievements
-const { markCardAsRead, isCardRead } = useLocalStorage()
+const { gameData, markCardAsRead, isCardRead } = useLocalStorage()
 
 // Emits for parent component communication
 const emit = defineEmits([
@@ -58,6 +59,11 @@ const handleCardRead = (cardType) => {
 </script>
 
 <template>
+	<Header
+		:game-data="gameData"
+		:show-profile="true"
+		@profile-click="handleProfileClick"
+	/>
   <!-- Main Content Area -->
   <main class="content">
 

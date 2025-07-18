@@ -8,10 +8,15 @@ import Icon from './Icon.vue'
 import MemoryGame from './MemoryGame.vue'
 import LevelSelection from "./LevelSelection.vue";
 import FruitMergeGame from "./FruitMergeGame.vue";
+import Header from "./Header.vue";
 
 // LocalStorage service
 const { gameData } = useLocalStorage()
 const { t } = useI18n()
+
+const emit = defineEmits([
+	'menu-click'
+])
 
 // View management
 const currentView = ref('hub') // 'hub', 'memory-levels', 'memory-game', 'fruitmerge-levels', 'fruitmerge-game'
@@ -27,7 +32,6 @@ const startGame = (gameId) => {
   }
 }
 
-// Neue Funktionen hinzufügen:
 const handlePlayLevel = (levelNumber) => {
   selectedLevel.value = levelNumber
   currentView.value = 'memory-game'
@@ -58,9 +62,21 @@ const backToFruitMergeLevels = () => {
 const handleGameComplete = (gameResult) => {
   console.log('Game completed:', gameResult)
 }
+
+const handleMenuClick = () => {
+	emit('menu-click')
+}
 </script>
 
 <template>
+	<Header
+		v-if="currentView === 'hub' || currentView === 'memory-levels' || currentView === 'fruitmerge-levels'"
+		:game-data="gameData"
+		:show-profile="true"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+	/>
+
   <main v-if="currentView === 'hub'" class="gaming-hub">
     <div class="hero-section">
       <h2 class="hero-title">{{ t('gaming.title') }}</h2>
@@ -135,6 +151,7 @@ const handleGameComplete = (gameResult) => {
     :level="selectedLevel"
     @back-to-gaming="backToLevels"
     @game-complete="handleGameComplete"
+    @menu-click="handleMenuClick"
   />
 
   <!-- FruitMerge Game View -->
@@ -143,6 +160,7 @@ const handleGameComplete = (gameResult) => {
     :level="selectedLevel"
     @back-to-gaming="backToFruitMergeLevels"
     @game-complete="handleGameComplete"
+    @menu-click="handleMenuClick"
   />
 </template>
 

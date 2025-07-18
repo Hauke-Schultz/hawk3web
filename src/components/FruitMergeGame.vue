@@ -9,6 +9,7 @@ import GameCompletedModal from "./GameCompletedModal.vue";
 import {useComboSystem} from "../composables/useComboSystem.js";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
+import Header from "./Header.vue";
 
 // Props
 const props = defineProps({
@@ -19,7 +20,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['back-to-gaming', 'game-complete'])
+const emit = defineEmits(['back-to-gaming', 'game-complete', 'menu-click'])
 
 // Services
 const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, checkAutoAchievements, getLevelStats } = useLocalStorage()
@@ -751,6 +752,10 @@ const gameOver = () => {
   addScore(score.value)
 }
 
+const handleMenuClick = () => {
+	emit('menu-click')
+}
+
 // Watchers
 watch(() => props.level, (newLevel) => {
   currentLevel.value = newLevel
@@ -777,6 +782,12 @@ onUnmounted(() => {
 </script>
 
 <template>
+	<Header
+		:game-data="gameData"
+		:show-profile="true"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+	/>
   <main class="fruit-merge-game">
     <!-- Game Header -->
     <div class="game-header">

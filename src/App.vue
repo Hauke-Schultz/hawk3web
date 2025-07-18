@@ -11,10 +11,10 @@ import Trophy from "./components/Trophy.vue";
 import About from "./components/About.vue";
 
 // LocalStorage service
-const { gameData, updatePlayer, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
+const { gameData, updateSettings, checkAutoAchievements, getCurrentLanguage, coins } = useLocalStorage()
 
 // i18n system initialisieren
-const { t, setLanguage, initLanguage, currentLanguage } = useI18n()
+const { t, setLanguage } = useI18n()
 
 // Reactive data
 const currentView = ref('home')
@@ -93,12 +93,6 @@ onMounted(async () => {
   <div class="container" :class="gameData.settings.theme" role="application">
     <!-- Home View -->
     <template v-if="currentView === 'home'">
-      <Header
-        :show-profile="true"
-        @profile-click="handleProfileClick"
-        @notification-click="handleNotificationClick"
-      />
-
       <Home
         :player-profile="gameData.player"
         @start-game="handleStartGame"
@@ -112,106 +106,102 @@ onMounted(async () => {
 
     <!-- Gaming View -->
     <template v-else-if="currentView === 'gaming'">
-      <Header
-        :show-profile="true"
-        :show-menu-button="true"
-        :page-title="t('nav.gaming')"
-        @menu-click="handleBackToHome"
-      />
-
       <Gaming
-        @start-game="handleGameStart"
-        @back-to-home="handleBackToHome"
+        @menu-click="handleBackToHome"
       />
     </template>
 
     <!-- Trophy View -->
     <template v-else-if="currentView === 'trophy'">
-      <Header
-        :show-profile="true"
-        :show-menu-button="true"
-        :page-title="t('nav.trophies')"
-        @menu-click="handleBackToHome"
-      />
+	    <Header
+		    :game-data="gameData"
+				:show-profile="true"
+				:show-menu-button="true"
+				:page-title="t('nav.trophies')"
+				@menu-click="handleBackToHome"
+			/>
 
-      <Trophy />
-    </template>
+			<Trophy />
+		</template>
 
-    <!-- Profile View -->
+		<!-- Profile View -->
     <template v-else-if="currentView === 'profile'">
-      <Header
-        :show-profile="true"
-        :show-menu-button="true"
-        :page-title="t('nav.profile')"
-        @menu-click="handleBackToHome"
-      />
+	   	<Header
+		    :game-data="gameData"
+				:show-profile="true"
+				:show-menu-button="true"
+				:page-title="t('nav.profile')"
+				@menu-click="handleBackToHome"
+			/>
 
-      <Profile />
-    </template>
+			<Profile />
+		</template>
 
-    <!-- Settings View -->
+		<!-- Settings View -->
     <template v-else-if="currentView === 'settings'">
-      <Header
-        :show-profile="true"
-        :show-menu-button="true"
-        :page-title="t('nav.settings')"
-        @menu-click="handleBackToHome"
-      />
+			<Header
+				:game-data="gameData"
+				:show-profile="true"
+				:show-menu-button="true"
+				:page-title="t('nav.settings')"
+				@menu-click="handleBackToHome"
+			/>
 
-      <Settings
-        :current-theme="gameData.settings.theme"
-        @theme-change="handleThemeChange"
-        @language-change="handleLanguageChange"
-        @back="handleBackToHome"
-      />
-    </template>
+			<Settings
+				:current-theme="gameData.settings.theme"
+				@theme-change="handleThemeChange"
+				@language-change="handleLanguageChange"
+				@back="handleBackToHome"
+			/>
+		</template>
 
-    <!-- About View -->
+		<!-- About View -->
     <template v-else-if="currentView === 'about'">
-      <Header
-        :show-profile="true"
-        :show-menu-button="true"
-        :page-title="t('nav.about')"
-        @menu-click="handleBackToHome"
-      />
+			<Header
+				:game-data="gameData"
+				:show-profile="true"
+				:show-menu-button="true"
+				:page-title="t('nav.about')"
+				@menu-click="handleBackToHome"
+			/>
 
-      <About />
-    </template>
-  </div>
+			<About />
+		</template>
+	</div>
 </template>
 
 <style lang="scss">
 #app {
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
+	margin: 0 auto;
+	display: flex;
+	justify-content: center;
 }
 
 .container {
-  min-height: 100vh;
-  font-family: var(--font-family-base), sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  transition: background-color 0.3s, color 0.3s;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  width: var(--content-width);
+	min-height: 100vh;
+	font-family: var(--font-family-base), sans-serif;
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	transition: background-color 0.3s, color 0.3s;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	width: var(--content-width);
 }
 
 .content {
-  padding: var(--space-4) 0;
-  max-width: var(--content-width);
-  margin: 0 auto;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: var(--space-4);
+	padding: var(--space-4) 0;
+	max-width: var(--content-width);
+	margin: 0 auto;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: var(--space-4);
 
-  &:focus {
-    outline: none;
-  }
+	&:focus {
+		outline: none;
+	}
 }
 </style>

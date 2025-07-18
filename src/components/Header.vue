@@ -5,7 +5,7 @@ import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue";
 
 // LocalStorage service
-const { gameData, coins, diamonds, formatCurrency } = useLocalStorage()
+const { formatCurrency } = useLocalStorage()
 
 // Internationalization
 const { t } = useI18n()
@@ -26,16 +26,32 @@ const props = defineProps({
   },
   showNotifications: {
     type: Boolean,
-    default: true
+    default: false
   },
   showMenuButton: {
     type: Boolean,
     default: false
   },
+	showStatus: {
+		type: Boolean,
+		default: false
+	},
   pageTitle: {
     type: String,
     default: ''
-  }
+  },
+	gameData: {
+		type: Object,
+		default: () => ({
+			player: {
+				name: 'Player',
+				avatar: 'avatar/user',
+				level: 1,
+				coins: 0,
+				diamonds: 0
+			}
+		})
+	}
 })
 
 // Emits for parent component communication
@@ -50,14 +66,16 @@ const notificationCount = ref(3)
 
 // Computed properties for player data from store
 const levelDisplay = computed(() => {
-  const level = gameData.player.level
+  const level = props.gameData.player.level
   return level < 10 ? `0${level}` : level.toString()
 })
 
 const playerInfo = computed(() => ({
-  name: gameData.player.name,
-  avatar: gameData.player.avatar,
-  level: gameData.player.level
+  name: props.gameData.player.name,
+  avatar: props.gameData.player.avatar,
+  level: props.gameData.player.level,
+	coins: props.gameData.player.coins || 0,
+	diamonds: props.gameData.player.diamonds || 0
 }))
 
 // Computed title and subtitle with i18n fallback
@@ -81,14 +99,6 @@ const handleMenuClick = () => {
 const handleProfileClick = () => {
   emit('profile-click')
 }
-
-watch(() => gameData.player, (newPlayer) => {
-  console.log('HHH Player data changed in Header:', newPlayer)
-}, { deep: true })
-
-watch(() => coins, (newCoins) => {
-  console.log('CCC 2:', newCoins)
-}, { deep: true })
 </script>
 
 <template>
@@ -129,21 +139,21 @@ watch(() => coins, (newCoins) => {
           <div class="player-avatar">
             <Icon :name="playerInfo.avatar" size="34" />
           </div>
-          <div class="player-info">
-            <span class="player-name">{{ playerInfo.name }}</span>
-            <span class="player-status">{{ t('common.level') }} {{ levelDisplay }}</span>
-          </div>
-
-          <!-- Currency Display -->
-          <div class="currency-display">
-            <div class="currency-item">
-              <span class="currency-amount">{{ formatCurrency(coins) }}</span>
-              <span class="currency-icon">💰</span>
-            </div>
-            <div v-if="diamonds > 0" class="currency-item currency-item--premium">
-              <span class="currency-amount">{{ formatCurrency(diamonds) }}</span>
-              <span class="currency-icon">💎</span>
-            </div>
+          <div class="player-display">
+	          <div class="player-info">
+	            <span class="player-name">{{ playerInfo.name }}</span>
+	            <span v-if="showStatus" class="player-status">{{ t('common.level') }} {{ levelDisplay }}</span>
+	          </div>
+	          <div class="currency-display">
+	            <div class="currency-item">
+		            <span class="currency-icon">💰</span>
+	              <span class="currency-amount">{{ formatCurrency(playerInfo.coins) }}</span>
+	            </div>
+	            <div class="currency-item currency-item--premium">
+		            <span class="currency-icon">💎</span>
+	              <span class="currency-amount">{{ formatCurrency(playerInfo.diamonds) }}</span>
+	            </div>
+	          </div>
           </div>
         </div>
       </div>
@@ -186,6 +196,7 @@ watch(() => coins, (newCoins) => {
   align-items: center;
   gap: var(--space-4);
   flex: 1;
+	min-width: 65px;
 }
 
 .header-title {
@@ -217,17 +228,27 @@ watch(() => coins, (newCoins) => {
   gap: var(--space-3);
 }
 
+.player-display {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: var(--space-1);
+	flex: 1;
+}
+
 .currency-display {
   display: flex;
-  flex-direction: column;
   align-items: flex-end;
   gap: var(--space-1);
+	width: 100%;
 }
 
 .currency-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
+	display: flex;
+	align-items: flex-end;
+	gap: var(--space-1);
+	width: 50%;
 
   &--premium {
     .currency-icon {

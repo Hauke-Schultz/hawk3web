@@ -154,20 +154,20 @@ const formatDate = (dateString) => {
           <div class="achievement-content">
             <div class="achievement-header">
               <h4 class="achievement-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</h4>
-              <!-- Currency Display -->
-              <div v-if="!achievement.earned" class="currency-display">
-                <div class="currency-item">
-                  <span class="currency-amount">{{ achievement.coins }}</span>
-                  <span class="currency-icon">💰</span>
-                </div>
-                <div v-if="achievement.diamonds > 0" class="currency-item currency-item--premium">
-                  <span class="currency-amount">{{ achievement.diamonds }}</span>
-                  <span class="currency-icon">💎</span>
-                </div>
-              </div>
               <div class="rarity-badge" :class="getRarityClass(achievement.rarity)">
                 {{ t(`achievements.rarities.${achievement.rarity}`) }}
               </div>
+	            <!-- Currency Display -->
+	            <div v-if="!achievement.earned" class="currency-display">
+		            <div class="currency-item">
+			            <span class="currency-amount">{{ achievement.coins }}</span>
+			            <span class="currency-icon">💰</span>
+		            </div>
+		            <div v-if="achievement.diamonds > 0" class="currency-item currency-item--premium">
+			            <span class="currency-amount">{{ achievement.diamonds }}</span>
+			            <span class="currency-icon">💎</span>
+		            </div>
+	            </div>
             </div>
 
             <p class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</p>
@@ -282,6 +282,7 @@ const formatDate = (dateString) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+	flex-wrap: wrap;
   gap: var(--space-2);
 }
 
@@ -289,6 +290,7 @@ const formatDate = (dateString) => {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
+	width: 60%;
   margin: 0;
 }
 

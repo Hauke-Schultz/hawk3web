@@ -64,7 +64,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'trophy',
 			rarity: 'uncommon',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 150, diamonds: 1 },
 			trigger: { type: 'auto', condition: 'totalScore >= 1000' }
 		},
 
@@ -76,7 +76,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'play',
 			rarity: 'uncommon',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 10, diamonds: 10 },
 			trigger: { type: 'auto', condition: 'gamesPlayed >= 10' }
 		},
 
@@ -98,7 +98,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'brain',
 			rarity: 'uncommon',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 150, diamonds: 1 },
 			trigger: { type: 'level_complete', game: 'memory', level: 3 }
 		},
 		{
@@ -108,7 +108,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'brain',
 			rarity: 'rare',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 1500, diamonds: 10 },
 			trigger: { type: 'level_complete', game: 'memory', level: 6 }
 		},
 
@@ -130,7 +130,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'fruit-merge-game',
 			rarity: 'uncommon',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 200, diamonds: 2 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 3 }
 		},
 		{
@@ -140,7 +140,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'fruit-merge-game',
 			rarity: 'epic',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 2000, diamonds: 10 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
 		},
 		{

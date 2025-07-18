@@ -5,7 +5,7 @@ import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 
 // LocalStorage service
-const { gameData, updatePlayer, coins, diamonds, formatCurrency } = useLocalStorage()
+const { gameData, updatePlayer, formatCurrency } = useLocalStorage()
 const { t } = useI18n()
 
 // Available avatar options
@@ -37,16 +37,7 @@ const selectedAvatar = computed({
     updatePlayer({ avatar: value })
   }
 })
-// Format date helper
-const formatTransactionDate = (timestamp) => {
-  const date = new Date(timestamp)
-  return date.toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+
 // Methods
 const selectAvatar = (avatar) => {
   selectedAvatar.value = avatar
@@ -91,13 +82,13 @@ const updatePlayerName = () => {
           <div class="currency-item">
             <span class="currency-icon">💰</span>
             <div class="currency-info">
-              <span class="currency-current">{{ formatCurrency(coins) }}</span>
+              <span class="currency-current">{{ formatCurrency(gameData.player.coins) }}</span>
             </div>
           </div>
-          <div v-if="diamonds > 0" class="currency-item currency-item--premium">
+          <div class="currency-item currency-item--premium">
             <span class="currency-icon">💎</span>
             <div class="currency-info">
-              <span class="currency-current">{{ formatCurrency(diamonds) }}</span>
+              <span class="currency-current">{{ formatCurrency(gameData.player.diamonds) }}</span>
             </div>
           </div>
         </div>
