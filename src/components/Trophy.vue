@@ -5,6 +5,7 @@ import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 import ProgressOverview from "./ProgressOverview.vue";
 import { ACHIEVEMENTS } from '../config/achievementsConfig.js'
+import CurrencyDisplay from "./CurrencyDisplay.vue";
 
 // LocalStorage service for achievements
 const { gameData } = useLocalStorage()
@@ -157,17 +158,16 @@ const formatDate = (dateString) => {
               <div class="rarity-badge" :class="getRarityClass(achievement.rarity)">
                 {{ t(`achievements.rarities.${achievement.rarity}`) }}
               </div>
-	            <!-- Currency Display -->
-	            <div v-if="!achievement.earned" class="currency-display">
-		            <div class="currency-item">
-			            <span class="currency-amount">{{ achievement.coins }}</span>
-			            <span class="currency-icon">💰</span>
-		            </div>
-		            <div v-if="achievement.diamonds > 0" class="currency-item currency-item--premium">
-			            <span class="currency-amount">{{ achievement.diamonds }}</span>
-			            <span class="currency-icon">💎</span>
-		            </div>
-	            </div>
+	            <CurrencyDisplay
+		            v-if="!achievement.earned"
+		            :coins="achievement.coins"
+		            :diamonds="achievement.diamonds"
+		            layout="horizontal"
+		            size="small"
+		            variant="compact"
+		            :format-numbers="true"
+		            :show-zero-values="false"
+	            />
             </div>
 
             <p class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</p>

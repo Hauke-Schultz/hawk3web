@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
 import PerformanceStats from "./PerformanceStats.vue";
+import CurrencyDisplay from "./CurrencyDisplay.vue";
 
 const props = defineProps({
   visible: {
@@ -237,23 +238,7 @@ const handleKeyDown = (event) => {
             </p>
           </div>
 
-          <!-- Performance Stats (immer anzeigen) -->
-          <PerformanceStats
-            :score="finalScore"
-            :time-elapsed="timeElapsed"
-            :moves="moves"
-            :matches="matches"
-            :total-pairs="totalPairs"
-            :layout="gameOverMode ? 'horizontal' : 'grid'"
-            :theme="gameOverMode ? 'compact' : 'default'"
-            :size="gameOverMode ? 'normal' : 'large'"
-            :show-score="true"
-            :show-time="false"
-            :show-moves="true"
-            :show-matches="false"
-            :score-label="gameOverMode ? 'Final Score' : 'Score'"
-          />
-          <!-- Achievements Section (nur bei Erfolg) -->
+          <!-- Achievements Section -->
           <div v-if="showAchievements && newAchievements.length > 0 && !gameOverMode" class="achievements-section">
             <h4 class="achievements-title">🏆 {{ t('achievements.new_achievements') }}</h4>
             <div class="achievements-list">
@@ -269,30 +254,48 @@ const handleKeyDown = (event) => {
                   <span class="achievement-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</span>
                   <span class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</span>
                 </div>
-                <div class="achievement-reward">
-                  <span class="currency-icon">💰</span>
-                  <span class="currency-amount">{{ achievement.rewards.coins }}</span>
-                  <span v-if="achievement.rewards.diamonds > 0" class="currency-icon">💎</span>
-                  <span v-if="achievement.rewards.iamonds > 0" class="currency-amount">{{ achievement.rewards.diamonds }}</span>
-                </div>
+	              <CurrencyDisplay
+		              class="achievement-reward"
+		              :coins="achievement.rewards.coins"
+		              :diamonds="achievement.rewards.diamonds"
+		              layout="vertical"
+		              size="small"
+		              variant="compact"
+		              :format-numbers="true"
+		              :show-zero-values="false"
+	              />
               </div>
             </div>
           </div>
 
+	        <PerformanceStats
+		        :score="finalScore"
+		        :time-elapsed="timeElapsed"
+		        :moves="moves"
+		        :matches="matches"
+		        :total-pairs="totalPairs"
+		        :layout="gameOverMode ? 'horizontal' : 'grid'"
+		        :theme="gameOverMode ? 'compact' : 'default'"
+		        :size="gameOverMode ? 'normal' : 'large'"
+		        :show-score="true"
+		        :show-time="false"
+		        :show-moves="true"
+		        :show-matches="false"
+		        :score-label="gameOverMode ? 'Final Score' : 'Score'"
+	        />
           <div
             v-if="showReward && (reward.coins > 0 || reward.diamonds > 0)"
             class="level-rewards-section"
           >
-            <div class="level-rewards-display">
-              <div v-if="reward.coins > 0" class="reward-item">
-                <span class="currency-icon">💰</span>
-                <span class="currency-amount">+{{ reward.coins }}</span>
-              </div>
-              <div v-if="reward.diamonds > 0" class="reward-item reward-item--premium">
-                <span class="currency-icon">💎</span>
-                <span class="currency-amount">+{{ reward.diamonds }}</span>
-              </div>
-            </div>
+	          <CurrencyDisplay
+		          :coins="reward.coins"
+		          :diamonds="reward.diamonds"
+		          layout="horizontal"
+		          size="large"
+		          variant="card"
+		          :format-numbers="true"
+		          :show-zero-values="false"
+	          />
           </div>
           <!-- Action Buttons (dynamisch basierend auf Modus) -->
           <div class="completed-actions">
@@ -366,7 +369,7 @@ const handleKeyDown = (event) => {
   background-color: var(--card-bg);
   border-radius: var(--border-radius-xl);
   border: 1px solid var(--card-border);
-  width: calc(var(--content-width) - var(--space-16));
+  width: calc(var(--content-width) - var(--space-2));
   max-width: var(--content-width);
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
   animation: slideInScale 0.4s ease;
@@ -485,6 +488,7 @@ const handleKeyDown = (event) => {
   flex-direction: column;
   gap: var(--space-1);
   flex: 1;
+	align-items: flex-start;
 }
 
 .achievement-name {
@@ -498,6 +502,7 @@ const handleKeyDown = (event) => {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
   line-height: 1.2;
+	text-align: left;
 }
 
 .level-rewards-section {
@@ -509,47 +514,6 @@ const handleKeyDown = (event) => {
   gap: var(--space-4);
   justify-content: center;
   align-items: center;
-}
-
-.reward-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  padding: var(--space-2);
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius-md);
-  min-width: 80px;
-
-  &--premium {
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1));
-    border: 1px solid var(--primary-color);
-
-    .currency-icon {
-      filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
-    }
-
-    .currency-amount {
-      color: var(--primary-color);
-    }
-  }
-}
-
-.currency-icon {
-  font-size: var(--font-size-lg);
-}
-
-.currency-amount {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--warning-color);
-}
-
-.currency-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  text-transform: uppercase;
 }
 
 // Game Over Specific Styles

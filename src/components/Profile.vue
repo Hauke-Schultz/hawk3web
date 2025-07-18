@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
+import CurrencyDisplay from "./CurrencyDisplay.vue";
 
 // LocalStorage service
 const { gameData, updatePlayer, formatCurrency } = useLocalStorage()
@@ -77,21 +78,14 @@ const updatePlayerName = () => {
             </div>
           </div>
         </div>
-        <!-- Currency Stats Section -->
-        <div class="currency-stats">
-          <div class="currency-item">
-            <span class="currency-icon">💰</span>
-            <div class="currency-info">
-              <span class="currency-current">{{ formatCurrency(gameData.player.coins) }}</span>
-            </div>
-          </div>
-          <div class="currency-item currency-item--premium">
-            <span class="currency-icon">💎</span>
-            <div class="currency-info">
-              <span class="currency-current">{{ formatCurrency(gameData.player.diamonds) }}</span>
-            </div>
-          </div>
-        </div>
+	      <CurrencyDisplay
+		      :coins="gameData.player.coins"
+		      :diamonds="gameData.player.diamonds"
+		      layout="horizontal"
+		      size="large"
+		      variant="card"
+		      :format-numbers="true"
+	      />
       </div>
       <!-- Player Settings -->
       <div class="player-settings">
@@ -207,52 +201,6 @@ const updatePlayerName = () => {
   font-size: var(--font-size-lg);
   color: var(--text-color);
   font-weight: var(--font-weight-bold);
-}
-
-.currency-stats {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-3);
-}
-
-.currency-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  background-color: var(--bg-secondary);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-3);
-
-  &--premium {
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1));
-    border: 1px solid var(--primary-color);
-
-    .currency-icon {
-      filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
-    }
-
-    .currency-current {
-      color: var(--primary-color);
-    }
-  }
-}
-
-.currency-icon {
-  font-size: var(--font-size-xl);
-  flex-shrink: 0;
-}
-
-.currency-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  flex: 1;
-}
-
-.currency-current {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
 }
 
 .currency-total {

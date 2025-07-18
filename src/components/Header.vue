@@ -3,6 +3,7 @@ import {ref, computed, watch} from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue";
+import CurrencyDisplay from "./CurrencyDisplay.vue";
 
 // LocalStorage service
 const { formatCurrency } = useLocalStorage()
@@ -144,16 +145,14 @@ const handleProfileClick = () => {
 	            <span class="player-name">{{ playerInfo.name }}</span>
 	            <span v-if="showStatus" class="player-status">{{ t('common.level') }} {{ levelDisplay }}</span>
 	          </div>
-	          <div class="currency-display">
-	            <div class="currency-item">
-		            <span class="currency-icon">💰</span>
-	              <span class="currency-amount">{{ formatCurrency(playerInfo.coins) }}</span>
-	            </div>
-	            <div class="currency-item currency-item--premium">
-		            <span class="currency-icon">💎</span>
-	              <span class="currency-amount">{{ formatCurrency(playerInfo.diamonds) }}</span>
-	            </div>
-	          </div>
+	          <CurrencyDisplay
+		          :coins="playerInfo.coins"
+		          :diamonds="playerInfo.diamonds"
+		          layout="horizontal"
+		          size="small"
+		          variant="compact"
+		          :format-numbers="true"
+	          />
           </div>
         </div>
       </div>
@@ -237,44 +236,6 @@ const handleProfileClick = () => {
 	flex: 1;
 }
 
-.currency-display {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--space-1);
-	width: 100%;
-}
-
-.currency-item {
-	display: flex;
-	align-items: flex-end;
-	gap: var(--space-1);
-	width: 50%;
-
-  &--premium {
-    .currency-icon {
-      filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
-    }
-
-    .currency-amount {
-      color: var(--primary-color);
-      font-weight: var(--font-weight-bold);
-    }
-  }
-}
-
-.currency-icon {
-  font-size: var(--font-size-base);
-  line-height: 1;
-}
-
-.currency-amount {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  line-height: 1;
-  text-align: right;
-}
-
 .player-profile {
   display: flex;
   justify-content: space-between;
@@ -315,6 +276,7 @@ const handleProfileClick = () => {
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
+	width: 100%;
 
   .player-name {
     font-size: var(--font-size-base);

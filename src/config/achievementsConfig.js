@@ -120,7 +120,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
-			rewards: { coins: 20, diamonds: 0 },
+			rewards: { coins: 20, diamonds: 1 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 1 }
 		},
 		{
