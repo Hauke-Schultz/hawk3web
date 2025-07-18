@@ -85,6 +85,10 @@ const handleProfileClick = () => {
 watch(() => gameData.player, (newPlayer) => {
   console.log('HHH Player data changed in Header:', newPlayer)
 }, { deep: true })
+
+watch(() => coins, (newCoins) => {
+  console.log('CCC 2:', newCoins)
+}, { deep: true })
 </script>
 
 <template>
@@ -129,6 +133,7 @@ watch(() => gameData.player, (newPlayer) => {
             <span class="player-name">{{ playerInfo.name }}</span>
             <span class="player-status">{{ t('common.level') }} {{ levelDisplay }}</span>
           </div>
+
           <!-- Currency Display -->
           <div class="currency-display">
             <div class="currency-item">

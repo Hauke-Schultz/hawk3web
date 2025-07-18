@@ -1,4 +1,4 @@
-import { ref, reactive, watch } from 'vue'
+import {ref, reactive, watch, computed} from 'vue'
 import { ACHIEVEMENTS, checkAchievementCondition, checkCardReadAchievement } from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
 
@@ -664,8 +664,8 @@ export function useLocalStorage() {
 		return amount.toString()
 	}
 
-	const coins = ref(gameData.player.coins || 0)
-	const diamonds = ref(gameData.player.diamonds || 0)
+	const coins = computed(() => gameData.player.coins || 0)
+	const diamonds = computed(() => gameData.player.diamonds || 0)
 
 	// Return all reactive data and methods
 	return {
