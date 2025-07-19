@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
+import { COMBO_CONFIG } from '../config/comboConfig.js'
 
 const props = defineProps({
   // Current game performance data
@@ -152,6 +153,10 @@ const formatCombo = computed(() => {
   return `${props.comboCount} (x${props.comboMultiplier.toFixed(1)})`
 })
 
+const getComboColor = computed(() => {
+	return COMBO_CONFIG.comboColor[props.comboCount]
+})
+
 // Combo timer percentage
 const comboTimePercentage = computed(() => {
   if (props.comboTimeMax === 0) return 0
@@ -246,22 +251,27 @@ const containerClass = computed(() => {
       ]"
     >
       <span class="stat-label">{{ stat.label }}</span>
-      <span class="stat-value">{{ stat.value }}</span>
+	    <span
+		    class="stat-value"
+		    :style="stat.type === 'combo' ? { color: getComboColor } : {}"
+	    >
+        {{ stat.value }}
+      </span>
 
       <!-- Combo Timer Bar -->
-      <div
-        v-if="stat.type === 'combo'"
-        class="combo-timer"
-        :class="{ 'combo-timer--inactive': !stat.isActive }"
-      >
-        <div
-          class="combo-timer-bar"
-          :style="{
+	    <div
+		    v-if="stat.type === 'combo'"
+		    class="combo-timer"
+		    :class="{ 'combo-timer--inactive': !stat.isActive }"
+	    >
+		    <div
+			    class="combo-timer-bar"
+			    :style="{
           width: `${stat.timePercentage}%`,
-          backgroundColor: stat.isActive ? 'var(--warning-color)' : 'var(--text-muted)'
+          backgroundColor: stat.isActive ? getComboColor : 'var(--card-border)'
         }"
-        ></div>
-      </div>
+		    ></div>
+	    </div>
     </div>
   </div>
 </template>
