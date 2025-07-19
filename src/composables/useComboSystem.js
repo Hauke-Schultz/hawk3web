@@ -175,16 +175,6 @@ export function useComboSystem(options = {}) {
 		}, config.animationDuration * 0.5)
 	}
 
-	// Get combo color based on level and activity
-	const getComboColor = (forceActive = false) => {
-		if (!isComboActive.value && !forceActive) return '#6B7280' // Gray when inactive
-		if (comboLevel.value === 0) return '#6B7280' // Gray
-		if (comboLevel.value < 3) return '#10B981'   // Green
-		if (comboLevel.value < 6) return '#F59E0B'   // Orange
-		if (comboLevel.value < 9) return '#EF4444'   // Red
-		return '#8B5CF6' // Purple for max combo
-	}
-
 	// Get time remaining percentage
 	const getTimePercentage = () => {
 		return (timeRemaining.value / config.comboTimeout) * 100
@@ -220,7 +210,6 @@ export function useComboSystem(options = {}) {
 		addCombo,
 		breakCombo,
 		resetCombo,
-		getComboColor,
 		getTimePercentage,
 		cleanup,
 

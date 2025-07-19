@@ -1,7 +1,7 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
-import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG} from '../config/fruitMergeConfig.js'
+import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG, POINTS_CONFIG} from '../config/fruitMergeConfig.js'
 import PerformanceStats from "./PerformanceStats.vue";
 import ProgressOverview from "./ProgressOverview.vue";
 import {calculateLevelStars} from "../config/levelUtils.js";
@@ -11,6 +11,7 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Header from "./Header.vue";
 import {REWARDS} from "../config/achievementsConfig.js";
+import {COMBO_CONFIG} from "../config/comboConfig.js";
 
 // Props
 const props = defineProps({
@@ -57,6 +58,7 @@ const showNextFruit = ref(true)
 const particles = shallowRef([])
 const earnedAchievements = ref([])
 const levelReward = ref(null)
+const scorePoints = shallowRef([])
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -370,6 +372,7 @@ const handleCollision = (event) => {
             const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
 
             createMergeVisualEffects(centerX, centerY, nextFruitType);
+	          createScorePoint(centerX, centerY, comboMultipliedScore, comboResult.multiplier, comboResult.comboLevel)
 
             if (nextFruitType) {
               const newFruit = {
@@ -394,6 +397,47 @@ const handleCollision = (event) => {
       }
     }
   }
+}
+
+const createScorePoint = (x, y, points, multiplier, level) => {
+	const scorePoint = {
+		id: `score-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+		x: x,
+		y: y + POINTS_CONFIG.START_OFFSET_Y,
+		points: points,
+		multiplier: multiplier,
+		opacity: 1,
+		translateY: 0,
+		scale: 1,
+		comboColor: COMBO_CONFIG.comboColor[level] || COMBO_CONFIG.comboColor[0],
+		duration: POINTS_CONFIG.DURATION
+	}
+
+	scorePoints.value.push(scorePoint)
+
+	const startTime = Date.now()
+	const animate = () => {
+		const elapsed = Date.now() - startTime
+		const progress = Math.min(elapsed / POINTS_CONFIG.DURATION, 1)
+
+		if (scorePoints.value.includes(scorePoint)) {
+			// Ease-out animation
+			const easeOut = 1 - Math.pow(1 - progress, 3)
+
+			scorePoint.translateY = -POINTS_CONFIG.MAX_DISTANCE * easeOut
+			scorePoint.opacity = Math.max(0, 1 - progress)
+			scorePoint.scale = 1 + (progress * 0.2) // Slight scale up
+
+			if (progress < 1) {
+				requestAnimationFrame(animate)
+			} else {
+				// Remove score point after animation
+				scorePoints.value = scorePoints.value.filter(p => p.id !== scorePoint.id)
+			}
+		}
+	}
+
+	requestAnimationFrame(animate)
 }
 
 const addMergedFruit = (fruit, x, y) => {
@@ -785,6 +829,7 @@ const resetGame = () => {
   moves.value = 0
   nextFruitId.value = 0
   particles.value = []
+	scorePoints.value = []
   levelReward.value = null
 }
 
@@ -1001,6 +1046,25 @@ onUnmounted(() => {
             }"
           ></div>
         </div>
+	      <!-- Score Points Container -->
+	      <div class="score-points-container">
+		      <div
+			      v-for="scorePoint in scorePoints"
+			      :key="scorePoint.id"
+			      class="score-point"
+			      :style="{
+	            left: `${scorePoint.x}px`,
+	            top: `${scorePoint.y}px`,
+	            transform: `translate(-50%, ${scorePoint.translateY}px) scale(${scorePoint.scale})`,
+	            opacity: scorePoint.opacity,
+	            color: scorePoint.comboColor,
+	            pointerEvents: 'none',
+	            zIndex: 50
+	          }"
+		      >
+			      +{{ scorePoint.points }}
+		      </div>
+	      </div>
       </div>
     </div>
     <!-- Game Completed State -->
@@ -1096,7 +1160,7 @@ onUnmounted(() => {
 // Next Fruit Preview
 .next-fruit-preview {
   position: relative;
-  width: 100%;
+  width: 320px;
   height: 76px;
 }
 
@@ -1220,6 +1284,47 @@ onUnmounted(() => {
       0 0 6px rgba(0, 0, 0, 1),
       0 0 8px rgba(255, 255, 255, 0.5),
       0 0 12px var(--particle-color, #FFD700);
+}
+
+// Score Points System
+.score-points-container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 50;
+	overflow: hidden;
+}
+
+.score-point {
+	position: absolute;
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	text-shadow:
+			0 0 4px rgba(0, 0, 0, 0.8),
+			0 0 8px rgba(0, 0, 0, 0.6),
+			0 2px 4px rgba(0, 0, 0, 0.4);
+	white-space: nowrap;
+	pointer-events: none;
+	will-change: transform, opacity;
+	user-select: none;
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+
+	// Glow effect based on combo color
+	filter: drop-shadow(0 0 6px currentColor);
+}
+
+.score-multiplier {
+	font-size: var(--font-size-sm);
+	opacity: 0.8;
+	background: rgba(0, 0, 0, 0.3);
+	padding: var(--space-0) var(--space-1);
+	border-radius: var(--border-radius-sm);
+	margin-left: var(--space-1);
 }
 
 @keyframes particlePop {

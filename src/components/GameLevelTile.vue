@@ -162,11 +162,11 @@ const handleKeyDown = (event) => {
 
     <!-- Level Stats -->
     <div class="level-tile__stats">
-      <div class="stat-item">
-        <span class="stat-label">{{ t('stats.score') }}</span>
+      <div v-if="highScore" class="stat-item">
+        <span class="stat-label">{{ t('stats.high_score') }}</span>
         <span class="stat-value">{{ highScore || 0 }}</span>
       </div>
-      <div class="stat-item">
+      <div v-if="bestTime" class="stat-item">
         <span class="stat-label">{{ t('stats.time') }}</span>
         <span class="stat-value">{{ formatTime(bestTime) }}</span>
       </div>
@@ -420,7 +420,8 @@ const handleKeyDown = (event) => {
 }
 
 .stat-value {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-s);
+	font-weight: var(--font-weight-bold);
   color: var(--text-color);
   line-height: 1;
 }

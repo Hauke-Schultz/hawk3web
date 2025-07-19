@@ -33,6 +33,7 @@ export default {
 		unlocked: 'Entsperrt',
 		level: 'Level',
 		score: 'Punkte',
+		high_score: 'Höchstpunktzahl',
 		time: 'Zeit',
 		moves: 'Züge',
 		combo: 'Combo',

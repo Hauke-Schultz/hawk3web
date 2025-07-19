@@ -33,6 +33,7 @@ export default {
 		unlocked: 'Unlocked',
 		level: 'Level',
 		score: 'Score',
+		high_score: 'High Score',
 		time: 'Time',
 		moves: 'Moves',
 		combo: 'Combo',

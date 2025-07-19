@@ -564,6 +564,7 @@ export const FRUIT_SPAWN_WEIGHTS = {
 export const POINTS_CONFIG = {
 	DURATION: 2000,
 	MAX_DISTANCE: 100,
+	START_OFFSET_Y: -40,
 }
 
 // Level Goal Configuration
