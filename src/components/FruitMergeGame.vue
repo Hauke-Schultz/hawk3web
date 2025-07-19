@@ -691,14 +691,13 @@ const completeLevel = () => {
 		)
 	}
 
+	console.log('gameStats', gameStats)
 	updateGameStats('fruitMerge', gameStats)
 
 	// Add currency rewards to player
 	if (levelReward.value.coins > 0 || levelReward.value.diamonds > 0) {
 		gameData.player.coins = (gameData.player.coins || 0) + levelReward.value.coins
 		gameData.player.diamonds = (gameData.player.diamonds || 0) + levelReward.value.diamonds
-
-		console.log(`💰 Level reward earned: +${levelReward.value.coins} coins, +${levelReward.value.diamonds} diamonds`)
 	}
 
 	// Check for achievements and track new ones

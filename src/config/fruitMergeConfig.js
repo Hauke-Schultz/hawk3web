@@ -70,7 +70,7 @@ export const PHYSICS_CONFIG = {
 	gameOverCheckInterval: 1000,
 
 	stopPhysicsDelay: 200,
-	showCompletionDelay: 6000,
+	showCompletionDelay: 200,
 }
 
 // Fruit Configuration System

@@ -278,9 +278,9 @@ export function useLocalStorage() {
 	const updateGameStats = (gameName, stats) => {
 		if (gameData.games[gameName]) {
 			// Track max combo if provided
-			if (stats.maxCombo && (!gameData.games[gameName].maxCombo || stats.maxCombo > gameData.games[gameName].maxCombo)) {
-				gameData.games[gameName].maxCombo = stats.maxCombo
-			}
+			// if (stats.maxCombo && (!gameData.games[gameName].maxCombo || stats.maxCombo > gameData.games[gameName].maxCombo)) {
+			// 	gameData.games[gameName].maxCombo = stats.maxCombo
+			// }
 
 			Object.assign(gameData.games[gameName], stats)
 			gameData.player.gamesPlayed += 1
@@ -324,24 +324,19 @@ export function useLocalStorage() {
 		if (levelStats.completed && !level.completed) {
 			level.completed = true
 			hasImprovement = true
-			console.log(`XXX Level ${levelNumber} completed for the first time!`)
 		}
 
 		// Update high score (only if better)
 		if (levelStats.score && levelStats.score > level.highScore) {
-			const previousScore = level.highScore
 			level.highScore = levelStats.score
 			hasImprovement = true
-			console.log(`XXX New high score for level ${levelNumber}: ${levelStats.score} (was: ${previousScore})`)
 		}
 
 		// Update best time (only if better and level completed)
 		if (levelStats.completed && levelStats.time) {
 			if (!level.bestTime || levelStats.time < level.bestTime) {
-				const previousTime = level.bestTime
 				level.bestTime = levelStats.time
 				hasImprovement = true
-				console.log(`XXX New best time for level ${levelNumber}: ${levelStats.time}s (was: ${previousTime || 'none'})`)
 			}
 		}
 
@@ -351,7 +346,6 @@ export function useLocalStorage() {
 				const previousMoves = level.bestMoves
 				level.bestMoves = levelStats.moves
 				hasImprovement = true
-				console.log(`XXX New best moves for level ${levelNumber}: ${levelStats.moves} (was: ${previousMoves || 'none'})`)
 			}
 		}
 
@@ -366,11 +360,10 @@ export function useLocalStorage() {
 		// Calculate new stars and update if better
 		const newStars = calculateLevelStars(currentBestStats, level)
 		if (newStars > level.stars) {
-			const previousStars = level.stars
 			level.stars = newStars
 			hasImprovement = true
-			console.log(`XXX New star rating for level ${levelNumber}: ${newStars} stars (was: ${previousStars})`)
 		}
+		console.log(`XXX star for level ${levelNumber}: level.stars: ${level.stars}, newStars: ${newStars}`)
 
 		// Update best performance (comprehensive best combination)
 		if (levelStats.completed) {
