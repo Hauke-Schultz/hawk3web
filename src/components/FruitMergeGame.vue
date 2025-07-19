@@ -59,6 +59,7 @@ const particles = shallowRef([])
 const earnedAchievements = ref([])
 const levelReward = ref(null)
 const scorePoints = shallowRef([])
+const isPhysicsPaused = ref(false)
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -374,24 +375,39 @@ const handleCollision = (event) => {
             createMergeVisualEffects(centerX, centerY, nextFruitType);
 	          createScorePoint(centerX, centerY, comboMultipliedScore, comboResult.multiplier, comboResult.comboLevel)
 
-            if (nextFruitType) {
-              const newFruit = {
-                id: nextFruitId.value++,
-                color: nextFruitType.color,
-                size: nextFruitType.radius * 2,
-                level: nextFruitType.index,
-                name: nextFruitType.type,
-                svg: nextFruitType.svg,
-                x: centerX - nextFruitType.radius,
-                y: centerY - nextFruitType.radius,
-                rotation: 0,
-                body: null,
-                merging: false
-              }
+	          if (nextFruitType) {
+		          const newFruit = {
+			          id: nextFruitId.value++,
+			          color: nextFruitType.color,
+			          size: nextFruitType.radius * 2,
+			          level: nextFruitType.index,
+			          name: nextFruitType.type,
+			          svg: nextFruitType.svg,
+			          x: centerX - nextFruitType.radius,
+			          y: centerY - nextFruitType.radius,
+			          rotation: 0,
+			          body: null,
+			          merging: false
+		          }
 
-              // Add the new fruit to the world
-              addMergedFruit(newFruit, centerX, centerY)
-            }
+		          // Add the new fruit to the world
+		          addMergedFruit(newFruit, centerX, centerY)
+
+		          // Check if this merge completes the level goal
+		          if (newFruit.name === currentLevelConfig.value.targetFruit) {
+			          console.log(`🎯 Level goal reached! Created ${newFruit.name}`)
+
+			          // Stop physics
+			          setTimeout(() => {
+				          showNextFruit.value = false
+				          nextFruit.value = null
+				          pausePhysics()
+				          stopAllFruits()
+			          }, PHYSICS_CONFIG.stopPhysicsDelay)
+
+			          return
+		          }
+	          }
           }
         }
       }
@@ -487,6 +503,33 @@ const addMergedFruit = (fruit, x, y) => {
   fruits.value = [...fruits.value, fruit]
 }
 
+const pausePhysics = () => {
+	if (engine && runner) {
+		Matter.Runner.stop(runner)
+		isPhysicsPaused.value = true
+		console.log('Physics paused')
+	}
+}
+
+const resumePhysics = () => {
+	if (engine && runner && isPhysicsPaused.value) {
+		Matter.Runner.run(runner, engine)
+		isPhysicsPaused.value = false
+		console.log('Physics resumed')
+	}
+}
+
+const stopAllFruits = () => {
+	// Stop all fruit bodies immediately
+	fruits.value.forEach(fruit => {
+		if (fruit.body) {
+			Matter.Body.setVelocity(fruit.body, { x: 0, y: 0 })
+			Matter.Body.setAngularVelocity(fruit.body, 0)
+			Matter.Sleeping.set(fruit.body, true)
+		}
+	})
+}
+
 const createMergeVisualEffects = (mergeX, mergeY, newFruitType) => {
   createMergeParticles(mergeX, mergeY, newFruitType)
 }
@@ -572,28 +615,29 @@ const gameLoop = () => {
 
 // Cleanup function
 const cleanup = () => {
-  console.log('Cleaning up physics engine...')
+	console.log('Cleaning up physics engine...')
 
-  if (animationFrame) {
-    cancelAnimationFrame(animationFrame)
-    animationFrame = null
-  }
+	if (animationFrame) {
+		cancelAnimationFrame(animationFrame)
+		animationFrame = null
+	}
 
-  stopGameOverChecking()
+	stopGameOverChecking()
 
-  if (runner) {
-    Matter.Runner.stop(runner)
-    runner = null
-  }
+	if (runner) {
+		Matter.Runner.stop(runner)
+		runner = null
+	}
 
-  if (engine) {
-    Matter.Events.off(engine, 'collisionStart', handleCollision)
-    Matter.World.clear(engine.world, false)
-    Matter.Engine.clear(engine)
-    engine = null
-  }
+	if (engine) {
+		Matter.Events.off(engine, 'collisionStart', handleCollision)
+		Matter.World.clear(engine.world, false)
+		Matter.Engine.clear(engine)
+		engine = null
+	}
 
-  fruits.value = []
+	fruits.value = []
+	isPhysicsPaused.value = false
 }
 
 // Initialize game
@@ -609,6 +653,8 @@ const initGame = async () => {
 }
 
 const completeLevel = () => {
+	if (gameState.value !== 'playing') return
+
 	gameState.value = 'completed'
 
 	// Calculate level rewards
@@ -821,16 +867,17 @@ const startLevel = (level) => {
 }
 
 const resetGame = () => {
-  cleanup()
-  comboSystem.resetCombo()
-  initGame()
-  gameState.value = 'playing'
-  score.value = 0
-  moves.value = 0
-  nextFruitId.value = 0
-  particles.value = []
+	cleanup()
+	comboSystem.resetCombo()
+	isPhysicsPaused.value = false
+	initGame()
+	gameState.value = 'playing'
+	score.value = 0
+	moves.value = 0
+	nextFruitId.value = 0
+	particles.value = []
 	scorePoints.value = []
-  levelReward.value = null
+	levelReward.value = null
 }
 
 const handleTryAgain = () => {
@@ -844,11 +891,13 @@ const backToGaming = () => {
 }
 
 const gameOver = () => {
-  gameState.value = 'gameOver'
-  stopGameOverChecking()
-  comboSystem.cleanup()
+	pausePhysics()
+	stopAllFruits()
+	gameState.value = 'gameOver'
+	stopGameOverChecking()
+	comboSystem.cleanup()
 
-  console.log('Game Over! Fruits reached the danger zone.')
+	console.log('Game Over! Fruits reached the danger zone.')
 
   const gameStats = {
     gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
@@ -871,11 +920,11 @@ watch(() => props.level, (newLevel) => {
 
 // Watch for level completion
 watch(isLevelComplete, (newValue) => {
-  if (newValue && gameState.value === 'playing') {
-    setTimeout(() => {
-      completeLevel()
-    }, 1000)
-  }
+	if (newValue && gameState.value === 'playing') {
+		setTimeout(() => {
+			completeLevel()
+		}, PHYSICS_CONFIG.showCompletionDelay)
+	}
 })
 
 // Lifecycle

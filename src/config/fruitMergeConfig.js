@@ -67,7 +67,10 @@ export const PHYSICS_CONFIG = {
 	// Game Over
 	gameOverHeight: 320,
 	fruitsInDanger: 3,
-	gameOverCheckInterval: 1000
+	gameOverCheckInterval: 1000,
+
+	stopPhysicsDelay: 200,
+	showCompletionDelay: 6000,
 }
 
 // Fruit Configuration System

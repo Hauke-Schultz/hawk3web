@@ -29,27 +29,14 @@
 - **Extended Icon Library** - Additional SVG icons for enhanced UI (info, mail, document, shield, heart, code, globe, memory)
 - **FruitMerge Physics Foundation** - Complete Matter.js physics engine with drop mechanics
 - **FruitMerge Core Merge Logic** - Collision detection, fruit merging, and level completion system
-- **Visual Merge Effects** - Enhanced animations for fruit merging and level completion ✅ **COMPLETE v0.2.8**
-- **Merge Animation Polish** - Particle effects, smooth transitions, and visual feedback improvements ✅ **COMPLETE v0.2.8**
-- **Enhanced LocalStorage Stats** - Improved level statistics with best score/time/moves tracking ✅ **COMPLETE v0.2.8**
-- **Game Over Detection** - Height-based game over when fruits reach warning zone ✅ **COMPLETE v0.2.9**
-- **FruitMerge Achievements** - Game-specific achievements integration ✅ **COMPLETE v0.2.9**
-- **Achievement Rewards Integration** - Automatic coin rewards for achievements ✅ **COMPLETE v0.3.0**
-- **Welcome Card Achievement** - Coin reward for reading welcome message ✅ **COMPLETE v0.3.0**
+- **Visual Merge Effects** - Enhanced animations for fruit merging and level completion
+- **Merge Animation Polish** - Particle effects, smooth transitions, and visual feedback improvements
+- **Enhanced LocalStorage Stats** - Improved level statistics with best score/time/moves tracking
+- **Game Over Detection** - Height-based game over when fruits reach warning zone
+- **FruitMerge Achievements** - Game-specific achievements integration
+- **Achievement Rewards Integration** - Automatic coin rewards for achievements
+- **Welcome Card Achievement** - Coin reward for reading welcome message
 
-🚧 **Currently In Development (v0.3.0):**
+🚧 **Currently In Development (v0.2.9):**
 - **Level Completion Rewards** - Star-based coin calculation and first-time bonuses
 - **Combo Rewards** - Coin rewards for combo achievements in games
-- **Currency Reward Animations** - Visual feedback for earning coins
-
-## 💰 Phase 3: Currency & Rewards System (v0.3.0) - Current Focus
-
-### ✅ **Completed Components:**
-- **Achievement Rewards Configuration** - All achievements now have coin/diamond rewards based on rarity
-- **Achievement Rewards Integration** - Automatic coin distribution when achievements are unlocked
-- **Welcome Card Achievement** - First interactive achievement with coin reward
-
-### 🎯 **Next Sprint (Remaining v0.3.0):**
-- **Level Completion Rewards** - Star-based coin rewards for Memory Game and FruitMerge
-- **Combo Rewards** - Coin rewards for combo achievements in game
-
