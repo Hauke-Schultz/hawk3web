@@ -268,7 +268,7 @@ export default {
 		perfect_performance: 'Perfekte Leistung!',
 		great_job: 'Großartige Arbeit!',
 		well_done: 'Gut gemacht!',
-		back_to_levels: 'Zurück zu Leveln',
+		back_to_levels: 'Zurück',
 		play_again: 'Nochmal spielen',
 		next_level: 'Nächstes Level',
 		levels: {
@@ -290,7 +290,7 @@ export default {
 		game_paused: 'Spiel pausiert',
 		level_complete: 'Level abgeschlossen!',
 		game_complete: 'Spiel abgeschlossen!',
-		back_to_levels: 'Zurück zu Leveln',
+		back_to_levels: 'Zurück',
 		play_again: 'Nochmal spielen',
 		next_level: 'Nächstes Level',
 		game_over: 'Spiel Vorbei',

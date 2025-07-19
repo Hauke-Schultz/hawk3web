@@ -105,7 +105,7 @@ const props = defineProps({
   },
   backToGamesLabel: {
     type: String,
-    default: 'Back to Levels'
+    default: 'Back'
   },
   reward: {
     type: Object,
@@ -395,7 +395,7 @@ const handleKeyDown = (event) => {
 
 .completed-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--space-2);
 }
 

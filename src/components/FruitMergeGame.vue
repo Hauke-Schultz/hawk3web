@@ -479,7 +479,7 @@ const addMergedFruit = (fruit, x, y) => {
       }
   )
 
-  // Combo-Effekt hinzufügen
+  // Combo-Effekt
   if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 2) {
     fruit.comboEffect = true
     setTimeout(() => {
@@ -494,7 +494,7 @@ const addMergedFruit = (fruit, x, y) => {
   fruit.dangerZoneStartTime = null
   fruit.dangerZoneTime = 0
 
-  Matter.Body.setVelocity(fruitBody, {
+	Matter.Body.setVelocity(fruitBody, {
     x: (Math.random() - 0.5) * 2,
     y: -1
   })
@@ -1061,7 +1061,8 @@ onUnmounted(() => {
           class="fruit"
           :class="{
             'fruit--combo': fruit.comboEffect,
-            'fruit--danger': fruit.inDanger
+            'fruit--danger': fruit.inDanger,
+            'fruit--goal': fruit.name === currentLevelConfig.targetFruit
           }"
           :style="{
             left: `${fruit.x}px`,
@@ -1283,6 +1284,10 @@ onUnmounted(() => {
     border: 2px solid var(--error-color);
     border-radius: 50%;
   }
+
+	&--goal {
+		box-shadow: 0 0 2px 6px var(--success-color);
+	}
 }
 
 .fruit-svg {
