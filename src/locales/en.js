@@ -225,6 +225,12 @@ export default {
 			light: 'Light',
 			system: 'System'
 		},
+		font_size: 'Font Size',
+		font_sizes: {
+			small: 'Small',
+			medium: 'Medium',
+			large: 'Large'
+		},
 		languages: {
 			english: 'English',
 			german: 'Deutsch'

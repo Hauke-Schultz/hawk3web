@@ -210,11 +210,6 @@ const containerClass = computed(() => {
 			border: 1px solid var(--card-border);
 			border-radius: var(--border-radius-md);
 		}
-
-		.currency-item--premium {
-			background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1));
-			border-color: var(--primary-color);
-		}
 	}
 
 	// With labels layout
@@ -241,13 +236,10 @@ const containerClass = computed(() => {
 	}
 
 	&--premium {
+		background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+
 		.currency-icon {
 			filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
-		}
-
-		.currency-amount {
-			color: var(--primary-color);
-			font-weight: var(--font-weight-bold);
 		}
 	}
 

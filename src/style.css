@@ -1,14 +1,17 @@
 :root {
-  /* Typography Scale */
-  --font-size-xxs: 0.625rem;   /* 10px */
-  --font-size-xs: 0.75rem;     /* 12px */
-  --font-size-sm: 0.875rem;    /* 14px */
-  --font-size-base: 1rem;      /* 16px */
-  --font-size-lg: 1.125rem;    /* 18px */
-  --font-size-xl: 1.25rem;     /* 20px */
-  --font-size-2xl: 1.5rem;     /* 24px */
-  --font-size-3xl: 1.875rem;   /* 30px */
-  --font-size-4xl: 2.25rem;    /* 36px */
+  /* Font Size Scale - Default (Small) */
+  --font-scale: 1;
+
+  /* Typography Scale - wird durch font-scale multipliziert */
+  --font-size-xxs: calc(0.625rem * var(--font-scale));
+  --font-size-xs: calc(0.75rem * var(--font-scale));
+  --font-size-sm: calc(0.875rem * var(--font-scale));
+  --font-size-base: calc(1rem * var(--font-scale));
+  --font-size-lg: calc(1.125rem * var(--font-scale));
+  --font-size-xl: calc(1.25rem * var(--font-scale));
+  --font-size-2xl: calc(1.5rem * var(--font-scale));
+  --font-size-3xl: calc(1.875rem * var(--font-scale));
+  --font-size-4xl: calc(2.25rem * var(--font-scale));
 
   /* Spacing System */
   --space-0: 0.125rem;         /* 2px */
@@ -114,6 +117,19 @@
   --level-bg: var(--card-bg);
   --level-border: var(--card-border);
   --level-text: var(--text-color);
+}
+
+/* Font Size Variants */
+[data-font-size="small"] {
+  --font-scale: 1; /* 100% - Default */
+}
+
+[data-font-size="medium"] {
+  --font-scale: 1.125; /* 112.5% */
+}
+
+[data-font-size="large"] {
+  --font-scale: 1.25; /* 125% */
 }
 
 [data-theme="dark"] {

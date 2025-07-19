@@ -77,13 +77,20 @@ const handleNotificationClick = () => {
   console.log('Notifications clicked')
 }
 
+const handleFontSizeChange = (newFontSize) => {
+	updateSettings({ fontSize: newFontSize })
+	document.documentElement.setAttribute('data-font-size', newFontSize)
+}
+
 // Lifecycle
 onMounted(async () => {
   document.documentElement.setAttribute('data-theme', gameData.settings.theme)
 
   const storedLanguage = getCurrentLanguage()
   await setLanguage(storedLanguage)
+	const storedFontSize = gameData.settings.fontSize || 'medium'
   document.documentElement.setAttribute('lang', storedLanguage)
+	document.documentElement.setAttribute('data-font-size', storedFontSize)
 
   checkAutoAchievements()
 })
@@ -127,12 +134,13 @@ onMounted(async () => {
 
 		<!-- Settings View -->
     <template v-else-if="currentView === 'settings'">
-			<Settings
-				:current-theme="gameData.settings.theme"
-				@theme-change="handleThemeChange"
-				@language-change="handleLanguageChange"
-				@menu-click="handleBackToHome"
-			/>
+	    <Settings
+		    :current-theme="gameData.settings.theme"
+		    @theme-change="handleThemeChange"
+		    @language-change="handleLanguageChange"
+		    @font-size-change="handleFontSizeChange"
+		    @menu-click="handleBackToHome"
+	    />
 		</template>
 
 		<!-- About View -->

@@ -24,7 +24,8 @@ const getDefaultData = () => ({
 		theme: 'dark',
 		soundEnabled: true,
 		musicEnabled: true,
-		language: 'en'
+		language: 'en',
+		fontSize: 'medium'
 	},
 	games: {
 		memory: {
@@ -120,7 +121,8 @@ const validateSettingsData = (settings) => {
 		theme: ['dark', 'light', 'system'].includes(settings?.theme) ? settings.theme : 'dark',
 		soundEnabled: typeof settings?.soundEnabled === 'boolean' ? settings.soundEnabled : true,
 		musicEnabled: typeof settings?.musicEnabled === 'boolean' ? settings.musicEnabled : true,
-		language: ['en', 'de'].includes(settings?.language) ? settings.language : 'en'
+		language: ['en', 'de'].includes(settings?.language) ? settings.language : 'en',
+		fontSize: ['small', 'medium', 'large'].includes(settings?.fontSize) ? settings.fontSize : 'small'
 	}
 }
 

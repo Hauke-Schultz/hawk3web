@@ -96,7 +96,7 @@ const gameOverHeight = computed(() => {
 
 const generateNextFruit = () => {
   const maxStartingLevel = 4
-  const randomIndex = 3;//Math.floor(Math.random() * maxStartingLevel)
+  const randomIndex = Math.floor(Math.random() * maxStartingLevel)
   const randomFruitType = fruitTypes.value[randomIndex]
 
   if (!randomFruitType) {
@@ -1043,7 +1043,7 @@ onUnmounted(() => {
   gap: var(--space-4);
   padding: var(--space-4);
   min-height: calc(100vh - 80px);
-  max-width: 400px;
+  max-width: 440px;
   margin: 0 auto;
 }
 
@@ -1078,9 +1078,10 @@ onUnmounted(() => {
 }
 
 .game-stats-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-2);
+	justify-content: space-between;
 }
 
 // Game Container
@@ -1096,7 +1097,7 @@ onUnmounted(() => {
 .next-fruit-preview {
   position: relative;
   width: 100%;
-  height: 50px;
+  height: 76px;
 }
 
 .next-fruit {

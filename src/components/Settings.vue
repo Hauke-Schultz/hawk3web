@@ -15,10 +15,10 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['theme-change', 'language-change', 'back', 'menu-click'])
+const emit = defineEmits(['theme-change', 'font-size-change', 'language-change', 'back', 'menu-click'])
 
 // LocalStorage service
-const { gameData, clearStorage } = useLocalStorage()
+const { gameData, clearStorage, updateSettings } = useLocalStorage()
 
 // Internationalization
 const { t, currentLanguage, availableLanguages, setLanguage } = useI18n()
@@ -26,6 +26,7 @@ const { t, currentLanguage, availableLanguages, setLanguage } = useI18n()
 // State
 const selectedTheme = ref(props.currentTheme)
 const selectedLanguage = ref(currentLanguage.value)
+const selectedFontSize = ref(gameData.settings.fontSize || 'small')
 const isDeleteUnlocked = ref(false)
 const showDeleteConfirmation = ref(false)
 
@@ -36,6 +37,12 @@ const themeOptions = [
   { value: 'system', label: () => t('settings.themes.system') }
 ]
 
+const fontSizeOptions = [
+	{ value: 'small', label: () => t('settings.font_sizes.small') },
+	{ value: 'medium', label: () => t('settings.font_sizes.medium') },
+	{ value: 'large', label: () => t('settings.font_sizes.large') }
+]
+
 // Watch for prop changes
 watch(() => props.currentTheme, (newTheme) => {
   selectedTheme.value = newTheme
@@ -44,6 +51,10 @@ watch(() => props.currentTheme, (newTheme) => {
 // Watch for language changes
 watch(currentLanguage, (newLang) => {
   selectedLanguage.value = newLang
+})
+
+watch(() => gameData.settings.fontSize, (newSize) => {
+	selectedFontSize.value = newSize || 'medium'
 })
 
 // Methods
@@ -58,6 +69,13 @@ const selectLanguage = async (languageCode) => {
     selectedLanguage.value = languageCode
     emit('language-change', languageCode)
   }
+}
+
+const selectFontSize = (fontSize) => {
+	selectedFontSize.value = fontSize
+	updateSettings({ fontSize })
+	document.documentElement.setAttribute('data-font-size', fontSize)
+	emit('font-size-change', fontSize)
 }
 
 const handleBack = () => {
@@ -124,7 +142,26 @@ const handleMenuClick = () => {
         </button>
       </div>
     </section>
+		<!-- Font Size Section -->
+		<section class="font-size-section">
+			<h2 class="section-title">{{ t('settings.font_size') }}</h2>
 
+			<div class="font-size-selector">
+				<button
+						v-for="option in fontSizeOptions"
+						:key="option.value"
+						class="font-size-option"
+						:class="{ 'font-size-option--active': selectedFontSize === option.value }"
+						@click="selectFontSize(option.value)"
+						:aria-pressed="selectedFontSize === option.value"
+				>
+					<span class="font-size-label">{{ option.label() }}</span>
+					<span class="font-size-preview" :class="`font-size-preview--${option.value}`">
+            Aa
+          </span>
+				</button>
+			</div>
+		</section>
     <!-- Language Section -->
     <section class="language-section">
       <h2 class="section-title">{{ t('settings.language') }}</h2>
@@ -310,6 +347,83 @@ const handleMenuClick = () => {
 
 .language-name {
   font-weight: var(--font-weight-bold);
+}
+
+.font-size-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+// Font Size Selector
+.font-size-selector {
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-xl);
+	padding: var(--space-2);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+}
+
+.font-size-option {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-3) var(--space-4);
+	border-radius: var(--border-radius-lg);
+	border: none;
+	background-color: transparent;
+	color: var(--text-color);
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-base);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: var(--font-family-base), serif;
+	text-align: left;
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+	}
+
+	&:focus-visible {
+		outline: var(--focus-outline);
+		outline-offset: 2px;
+	}
+
+	&--active {
+		background-color: var(--primary-color);
+		color: white;
+
+		&:hover {
+			background-color: var(--primary-hover);
+		}
+
+		.font-size-preview {
+			color: white;
+		}
+	}
+}
+
+.font-size-label {
+	font-weight: var(--font-weight-bold);
+}
+
+.font-size-preview {
+	font-weight: var(--font-weight-bold);
+	color: var(--text-secondary);
+	transition: color 0.2s ease;
+
+	&--small {
+		font-size: var(--font-size-sm);
+	}
+
+	&--medium {
+		font-size: var(--font-size-base);
+	}
+
+	&--large {
+		font-size: var(--font-size-lg);
+	}
 }
 
 // Profile Reset Section

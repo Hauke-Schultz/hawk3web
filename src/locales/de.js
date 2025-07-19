@@ -224,6 +224,12 @@ export default {
 			light: 'Hell',
 			system: 'System'
 		},
+		font_size: 'Schriftgröße',
+		font_sizes: {
+			small: 'Klein',
+			medium: 'Normal',
+			large: 'Groß'
+		},
 		languages: {
 			english: 'English',
 			german: 'Deutsch'
