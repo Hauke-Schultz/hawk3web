@@ -27,11 +27,7 @@ const playerName = computed({
   set: (value) => {
     // Validate name (remove extra spaces, ensure minimum length)
     const trimmedName = value.trim()
-    if (trimmedName.length < 1) {
-      updatePlayer({ name: 'Player' }) // Reset to default if empty
-    } else {
-      updatePlayer({ name: trimmedName })
-    }
+	  updatePlayer({ name: trimmedName })
   }
 })
 

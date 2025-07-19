@@ -913,7 +913,7 @@ onUnmounted(() => {
           size="small"
           :levels-label="currentLevelConfig.targetFruit"
           :show-stars="false"
-          :show-percentage="true"
+          :show-percentage="false"
           :complete-label="t('fruitMerge.target')"
         />
 

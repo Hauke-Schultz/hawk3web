@@ -369,6 +369,7 @@ const containerClass = computed(() => {
   gap: var(--space-1);
   flex: 1;
   min-width: 0; // Allow flex items to shrink
+	font-size: var(--font-size-sm);
 
   .performance-stats--vertical & {
     flex-direction: row;
@@ -376,29 +377,9 @@ const containerClass = computed(() => {
     align-items: center;
   }
 
-  // Type-specific styling
-  &--number {
-    .stat-value {
-      font-weight: var(--font-weight-bold);
-    }
-  }
-
-  &--time {
-    .stat-value {
-      font-weight: var(--font-weight-bold);
-    }
-  }
-
-  &--progress {
-    .stat-value {
-      font-weight: var(--font-weight-bold);
-    }
-  }
-
   &--combo {
     .stat-value {
       color: var(--warning-color);
-      font-weight: var(--font-weight-bold);
     }
   }
 }
@@ -417,9 +398,8 @@ const containerClass = computed(() => {
 }
 
 .stat-value {
-  font-size: var(--font-size-base);
-  color: var(--text-color);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+	color: var(--text-color);
   text-align: center;
   line-height: 1;
   white-space: nowrap;
