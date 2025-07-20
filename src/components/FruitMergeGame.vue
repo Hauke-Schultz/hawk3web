@@ -61,8 +61,6 @@ const earnedAchievements = ref([])
 const levelReward = ref(null)
 const scorePoints = shallowRef([])
 const isPhysicsPaused = ref(false)
-const showFirstPhase = ref(false)
-const showSecondPhase = ref(false)
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -716,9 +714,6 @@ const completeLevel = () => {
 
 	addScore(score.value)
 
-	// Show first phase immediately
-	showFirstPhase.value = true
-
 	emit('game-complete', {
 		level: currentLevel.value,
 		score: score.value,
@@ -728,16 +723,6 @@ const completeLevel = () => {
 		completed: true,
 		firstTime: isFirstTimeCompletion
 	})
-}
-
-const handleFirstPhaseClick = () => {
-	showFirstPhase.value = false
-	showSecondPhase.value = true
-}
-
-const handleSecondPhaseClose = () => {
-	showFirstPhase.value = false
-	showSecondPhase.value = false
 }
 
 const calculateLevelReward = () => {
@@ -868,10 +853,6 @@ const calculateCurrentStars = () => {
 }
 
 const nextLevel = () => {
-	// Close modals first
-	showFirstPhase.value = false
-	showSecondPhase.value = false
-
 	if (currentLevel.value < Object.keys(FRUIT_MERGE_LEVELS).length) {
 		currentLevel.value++
 		startLevel(currentLevel.value)
@@ -889,11 +870,6 @@ const resetGame = () => {
 	cleanup()
 	comboSystem.resetCombo()
 	isPhysicsPaused.value = false
-
-	// Reset modal states
-	showFirstPhase.value = false
-	showSecondPhase.value = false
-
 	initGame()
 	gameState.value = 'playing'
 	score.value = 0
@@ -911,8 +887,6 @@ const handleTryAgain = () => {
 }
 
 const backToGaming = () => {
-	showFirstPhase.value = false
-	showSecondPhase.value = false
 	emit('back-to-gaming')
 	cleanup()
 }
@@ -1144,44 +1118,9 @@ onUnmounted(() => {
 	      </div>
       </div>
     </div>
-	  <Teleport to="body">
-		  <div
-				  v-if="showFirstPhase"
-				  class="completion-first-phase"
-				  @click="handleFirstPhaseClick"
-				  @keydown.enter="handleFirstPhaseClick"
-				  @keydown.escape="handleFirstPhaseClick"
-				  tabindex="0"
-		  >
-			  <div class="completion-overlay">
-				  <div class="completion-content">
-					  <!-- Stars Display -->
-					  <div class="stars-display">
-						  <Icon
-							  v-for="starIndex in 3"
-							  :key="starIndex"
-							  :name="starIndex <= calculateCurrentStars() ? 'star-filled' : 'star'"
-							  size="48"
-							  :class="{
-		              'star--earned': starIndex <= calculateCurrentStars(),
-		              'star--empty': starIndex > calculateCurrentStars()
-		            }"
-						  />
-					  </div>
-
-					  <!-- Score Display -->
-					  <div class="score-display">
-						  <div class="score-label">{{ t('stats.final_score') }}</div>
-						  <div class="score-value">{{ score }}</div>
-					  </div>
-				  </div>
-			  </div>
-		  </div>
-	  </Teleport>
-
     <!-- Game Completed State -->
 	  <GameCompletedModal
-		  :visible="showSecondPhase"
+		  :visible="gameState === 'completed'"
 		  :level="currentLevel"
 		  :game-title="t('fruitMerge.title')"
 		  :final-score="score"
@@ -1196,13 +1135,15 @@ onUnmounted(() => {
 		  :show-reward="true"
 		  :reward="levelReward"
 		  :game-over-mode="false"
+		  :show-completion-phases="true"
+		  :enable-phase-transition="true"
 		  :next-level-label="t('fruitMerge.next_level')"
 		  :play-again-label="t('fruitMerge.play_again')"
 		  :back-to-games-label="t('fruitMerge.back_to_levels')"
 		  @next-level="nextLevel"
 		  @play-again="resetGame"
 		  @back-to-games="backToGaming"
-		  @close="handleSecondPhaseClose"
+		  @close="backToGaming"
 	  />
   </main>
 </template>
@@ -1482,122 +1423,4 @@ onUnmounted(() => {
     border-color: var(--primary-color);
   }
 }
-
-.completion-first-phase {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 999;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	animation: fadeInOverlay 0.5s ease;
-
-	&:focus-visible {
-		outline: none;
-	}
-}
-
-.completion-overlay {
-	background: rgba(0, 0, 0, 0.4);
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-}
-
-.completion-content {
-	position: relative;
-	z-index: 1000;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--space-6);
-	text-align: center;
-	pointer-events: none;
-	justify-content: center;
-	height: 100vh;
-}
-
-.stars-display {
-	display: flex;
-	gap: var(--space-3);
-	align-items: center;
-	justify-content: center;
-
-	.star--earned {
-		color: var(--warning-color);
-		animation: starPopIn 4s ease-in-out infinite 2s;
-		filter: drop-shadow(0 0 8px var(--warning-color));
-	}
-
-	.star--empty {
-		color: var(--text-muted);
-		opacity: 0.4;
-	}
-}
-
-.score-display {
-	background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
-	border: 2px solid var(--primary-color);
-	border-radius: var(--border-radius-xl);
-	padding: var(--space-6) var(--space-8);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-	animation: scoreSlideIn 0.8s ease-out 0.3s both;
-}
-
-.score-label {
-	font-size: var(--font-size-sm);
-	color: var(--text-secondary);
-	text-transform: uppercase;
-	font-weight: var(--font-weight-bold);
-	margin-bottom: var(--space-2);
-}
-
-.score-value {
-	font-size: var(--font-size-4xl);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-secondary);
-	line-height: 1;
-}
-
-// Animations
-@keyframes fadeInOverlay {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-@keyframes starPopIn {
-	0% {
-		transform: scale(0.3) rotate(-180deg);
-		opacity: 1;
-	}
-	10% {
-		transform: scale(1.2) rotate(0deg);
-	}
-	20% {
-		transform: scale(1) rotate(0deg);
-		opacity: 1;
-	}
-}
-
-@keyframes scoreSlideIn {
-	from {
-		transform: translateY(30px) scale(0.8);
-		opacity: 0;
-	}
-	to {
-		transform: translateY(0) scale(1);
-		opacity: 1;
-	}
-}
-
 </style>

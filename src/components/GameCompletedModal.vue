@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import {computed, ref, watch} from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
 import PerformanceStats from "./PerformanceStats.vue";
@@ -94,6 +94,15 @@ const props = defineProps({
     default: 'Try Again'
   },
 
+	showCompletionPhases: {
+		type: Boolean,
+		default: false
+	},
+	enablePhaseTransition: {
+		type: Boolean,
+		default: true
+	},
+
   // Custom button labels
   nextLevelLabel: {
     type: String,
@@ -127,6 +136,10 @@ const emit = defineEmits([
 
 const { t } = useI18n()
 
+const showFirstPhase = ref(false)
+const showSecondPhase = ref(false)
+const modalContent = ref(null)
+
 const getPerformanceMessage = () => {
   switch (props.starsEarned) {
     case 3:
@@ -158,7 +171,14 @@ const getModalIcon = computed(() => {
   if (props.gameOverMode) {
     return props.gameOverIcon
   }
-  return null // Für Erfolg verwenden wir Sterne
+  return null
+})
+
+const shouldShowModal = computed(() => {
+	if (props.showCompletionPhases) {
+		return showFirstPhase.value || showSecondPhase.value
+	}
+	return props.visible
 })
 
 // Event handlers
@@ -175,7 +195,16 @@ const handleBackToGames = () => {
 }
 
 const handleOverlayClick = () => {
-  emit('close')
+	if (showSecondPhase.value || !props.showCompletionPhases) {
+		emit('close')
+	}
+	if (showFirstPhase.value && props.enablePhaseTransition) {
+		handleFirstPhaseClick()
+	} else if (showSecondPhase.value) {
+		emit('close')
+	} else {
+		emit('close')
+	}
 }
 
 const handleTryAgain = () => {
@@ -187,26 +216,92 @@ const handleKeyDown = (event) => {
     emit('close')
   }
 }
+
+const handleFirstPhaseClick = (event) => {
+	if (!props.enablePhaseTransition) return
+	if (event) {
+		event.stopPropagation()
+	}
+
+	showFirstPhase.value = false
+	showSecondPhase.value = true
+}
+
+const handleFirstPhaseKeyDown = (event) => {
+	if (event.key === 'Enter' || event.key === 'Escape') {
+		handleFirstPhaseClick()
+	}
+}
+
+watch(() => props.visible, (newVisible) => {
+	if (newVisible && props.showCompletionPhases) {
+		// Start with first phase
+		showFirstPhase.value = true
+		showSecondPhase.value = false
+	} else if (!newVisible) {
+		// Reset phases when hidden
+		showFirstPhase.value = false
+		showSecondPhase.value = false
+	}
+})
 </script>
 
 <template>
   <Teleport to="body">
-    <div
-      v-if="visible"
-      class="game-completed-overlay"
-      :class="{ 'game-completed-overlay--game-over': gameOverMode }"
-      @click="handleOverlayClick"
-      @keydown="handleKeyDown"
-      tabindex="-1"
-    >
-      <div
-        class="game-completed-modal"
-        :class="{ 'game-completed-modal--game-over': gameOverMode }"
-        @click.stop
-        role="dialog"
-        aria-modal="true"
-        :aria-labelledby="getModalTitle"
-      >
+	  <div
+		  v-if="shouldShowModal"
+		  class="game-completed-overlay"
+		  :class="{
+	      'game-completed-overlay--game-over': gameOverMode,
+	      'game-completed-overlay--first-phase': showFirstPhase,
+	      'game-completed-overlay--second-phase': showSecondPhase
+	    }"
+		  @click="handleOverlayClick"
+		  @keydown="handleKeyDown"
+		  tabindex="-1"
+	  >
+		  <div
+			  v-if="showFirstPhase"
+			  class="completion-first-phase"
+			  @click="handleFirstPhaseClick"
+			  @keydown="handleFirstPhaseKeyDown"
+			  tabindex="0"
+		  >
+			  <div class="completion-overlay">
+				  <div class="completion-content">
+					  <!-- Stars Display -->
+					  <div v-if="showStars && !gameOverMode" class="stars-display">
+						  <Icon
+								  v-for="starIndex in 3"
+								  :key="starIndex"
+								  :name="starIndex <= starsEarned ? 'star-filled' : 'star'"
+								  size="48"
+								  :class="{
+                'star--earned': starIndex <= starsEarned,
+                'star--empty': starIndex > starsEarned
+              }"
+						  />
+					  </div>
+
+					  <!-- Score Display -->
+					  <div class="score-display">
+						  <div class="score-label">{{ t('stats.final_score') }}</div>
+						  <div class="score-value">{{ finalScore }}</div>
+					  </div>
+				  </div>
+			  </div>
+		  </div>
+
+		  <div
+			  v-if="showSecondPhase || (!showCompletionPhases && visible)"
+			  ref="modalContent"
+			  class="game-completed-modal"
+			  :class="{ 'game-completed-modal--game-over': gameOverMode }"
+			  @click.stop
+			  role="dialog"
+			  aria-modal="true"
+			  :aria-labelledby="getModalTitle"
+		  >
         <div class="completed-content">
           <div class="completion-header">
             <!-- Game Over Icon (nur bei Game Over) -->
@@ -356,7 +451,7 @@ const handleKeyDown = (event) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -615,5 +710,139 @@ const handleKeyDown = (event) => {
     transform: translateY(0) scale(1);
   }
 }
+.game-completed-overlay--first-phase {
+	.completion-first-phase {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 999;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		animation: fadeInOverlay 0.5s ease;
 
+		&:focus-visible {
+			outline: none;
+		}
+	}
+
+	.completion-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+
+	.completion-content {
+		position: relative;
+		z-index: 1000;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-6);
+		text-align: center;
+		pointer-events: none;
+		justify-content: center;
+		height: 100vh;
+	}
+
+	.stars-display {
+		display: flex;
+		gap: var(--space-3);
+		align-items: center;
+		justify-content: center;
+
+		.star--earned {
+			color: var(--warning-color);
+			animation: starPopIn 4s ease-in-out infinite 2s;
+			filter: drop-shadow(0 0 8px var(--warning-color));
+		}
+
+		.star--empty {
+			color: var(--text-muted);
+			opacity: 0.4;
+		}
+	}
+
+	.score-display {
+		background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+		border: 2px solid var(--primary-color);
+		border-radius: var(--border-radius-xl);
+		padding: var(--space-6) var(--space-8);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		animation: scoreSlideIn 0.8s ease-out 0.3s both;
+	}
+
+	.score-label {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		text-transform: uppercase;
+		font-weight: var(--font-weight-bold);
+		margin-bottom: var(--space-2);
+	}
+
+	.score-value {
+		font-size: var(--font-size-4xl);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-secondary);
+		line-height: 1;
+	}
+}
+
+// Second Phase Specific Styles
+.game-completed-overlay--second-phase {
+	.game-completed-modal {
+		animation: modalSlideIn 0.4s ease;
+	}
+}
+
+// Animations
+@keyframes fadeInOverlay {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes starPopIn {
+	0% {
+		transform: scale(0.3) rotate(-180deg);
+		opacity: 1;
+	}
+	10% {
+		transform: scale(1.2) rotate(0deg);
+	}
+	20% {
+		transform: scale(1) rotate(0deg);
+		opacity: 1;
+	}
+}
+
+@keyframes scoreSlideIn {
+	from {
+		transform: translateY(30px) scale(0.8);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+	}
+}
+
+@keyframes modalSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-30px) scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
 </style>
