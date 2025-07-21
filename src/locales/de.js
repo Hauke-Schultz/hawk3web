@@ -60,6 +60,15 @@ export default {
 		daily_reward: 'Tägliche Belohnung'
 	},
 
+	rewards: {
+		earned_rewards: 'Verdiente Belohnungen',
+		level_completion: 'Level Abschluss',
+		combo_bonus: 'Combo Bonus',
+		perfect_bonus: 'Perfekt Bonus',
+		total_earned: 'Gesamt verdient',
+		achievement_reward: 'Erfolgs-Belohnung'
+	},
+
 	// App/Header
 	app: {
 		title: 'Hawk3',

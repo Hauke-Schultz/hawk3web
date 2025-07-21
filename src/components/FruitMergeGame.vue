@@ -12,7 +12,6 @@ import { useI18n } from '../composables/useI18n.js'
 import Header from "./Header.vue";
 import {REWARDS} from "../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../config/comboConfig.js";
-import Icon from "./Icon.vue";
 
 // Props
 const props = defineProps({
@@ -59,6 +58,7 @@ const showNextFruit = ref(true)
 const particles = shallowRef([])
 const earnedAchievements = ref([])
 const levelReward = ref(null)
+const rewardBreakdown = ref(null)
 const scorePoints = shallowRef([])
 const isPhysicsPaused = ref(false)
 
@@ -100,7 +100,7 @@ const gameOverHeight = computed(() => {
 
 const generateNextFruit = () => {
   const maxStartingLevel = 4
-  const randomIndex = Math.floor(Math.random() * maxStartingLevel)
+  const randomIndex = 3// Math.floor(Math.random() * maxStartingLevel)
   const randomFruitType = fruitTypes.value[randomIndex]
 
   if (!randomFruitType) {
@@ -706,6 +706,29 @@ const completeLevel = () => {
 	checkGameLevelAchievements('fruitMerge', currentLevel.value)
 	checkAutoAchievements()
 	const achievementsAfter = [...gameData.achievements]
+	rewardBreakdown.value = {
+		levelReward: {
+			coins: rewardCalculation.coins - (earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0)),
+			diamonds: rewardCalculation.diamonds - (earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)),
+			source: 'Level Completion'
+		},
+		achievementRewards: earnedAchievements.value.map(a => ({
+			id: a.id,
+			icon: a.icon,
+			coins: a.rewards.coins,
+			diamonds: a.rewards.diamonds
+		})),
+		comboRewards: {
+			coins: 0,
+			diamonds: 0,
+			source: 'Combo Bonus'
+		},
+		perfectBonus: {
+			coins: 0,
+			diamonds: 0,
+			source: 'Perfect Score'
+		}
+	}
 
 	// Find newly earned achievements
 	earnedAchievements.value = achievementsAfter.filter(after =>
@@ -1134,6 +1157,8 @@ onUnmounted(() => {
 		  :show-achievements="true"
 		  :show-reward="true"
 		  :reward="levelReward"
+		  :show-reward-breakdown="true"
+		  :reward-breakdown="rewardBreakdown"
 		  :game-over-mode="false"
 		  :show-completion-phases="true"
 		  :enable-phase-transition="true"

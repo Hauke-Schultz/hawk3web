@@ -93,7 +93,19 @@ const props = defineProps({
     type: String,
     default: 'Try Again'
   },
-
+	rewardBreakdown: {
+		type: Object,
+		default: () => ({
+			levelReward: { coins: 0, diamonds: 0, source: 'Level Completion' },
+			achievementRewards: [],
+			comboRewards: { coins: 0, diamonds: 0, source: 'Combo Bonus' },
+			perfectBonus: { coins: 0, diamonds: 0, source: 'Perfect Score' }
+		})
+	},
+	showRewardBreakdown: {
+		type: Boolean,
+		default: false
+	},
 	showCompletionPhases: {
 		type: Boolean,
 		default: false
@@ -303,95 +315,98 @@ watch(() => props.visible, (newVisible) => {
 			  :aria-labelledby="getModalTitle"
 		  >
         <div class="completed-content">
-          <div class="completion-header">
-            <!-- Game Over Icon (nur bei Game Over) -->
-            <div v-if="gameOverMode" class="game-over-icon">
-              {{ getModalIcon }}
-            </div>
-
-            <h3 id="completed-title" class="completed-title" :class="{ 'completed-title--game-over': gameOverMode }">
-              {{ getModalTitle }}
-            </h3>
-
-            <!-- Stars Display (nur bei Erfolg) -->
-            <div v-if="showStars && !gameOverMode" class="stars-display">
-              <Icon
-                v-for="starIndex in 3"
-                :key="starIndex"
-                :name="starIndex <= starsEarned ? 'star-filled' : 'star'"
-                size="32"
-                :class="{
-                  'star--earned': starIndex <= starsEarned,
-                  'star--empty': starIndex > starsEarned
-                }"
-              />
-            </div>
-
-            <!-- Performance message -->
-            <p class="performance-message" :class="{ 'performance-message--game-over': gameOverMode }">
-              {{ getModalMessage }}
-            </p>
-          </div>
-
+	        <h3 id="completed-title" class="completed-title" :class="{ 'completed-title--game-over': gameOverMode }">
+		        {{ getModalTitle }}
+	        </h3>
           <!-- Achievements Section -->
-          <div v-if="showAchievements && newAchievements.length > 0 && !gameOverMode" class="achievements-section">
-            <h4 class="achievements-title">🏆 {{ t('achievements.new_achievements') }}</h4>
-            <div class="achievements-list">
-              <div
-                v-for="achievement in newAchievements"
-                :key="achievement.id"
-                class="achievement-item"
-              >
-                <div class="achievement-icon">
-                  <Icon :name="achievement.icon" size="20" />
-                </div>
-                <div class="achievement-info">
-                  <span class="achievement-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</span>
-                  <span class="achievement-description">{{ t(`achievements.definitions.${achievement.id}.description`) }}</span>
-                </div>
-	              <CurrencyDisplay
-		              class="achievement-reward"
-		              :coins="achievement.rewards.coins"
-		              :diamonds="achievement.rewards.diamonds"
-		              layout="vertical"
-		              size="small"
-		              variant="compact"
-		              :format-numbers="true"
-		              :show-zero-values="false"
-	              />
-              </div>
-            </div>
-          </div>
+	        <div v-if="showAchievements && newAchievements.length > 0 && !gameOverMode" class="achievements-compact">
+		        <div class="achievements-compact-list">
+			        <div v-for="achievement in newAchievements" :key="achievement.id" class="achievement-compact-item">
+				        <Icon :name="achievement.icon" size="20" />
+				        <span class="achievement-compact-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</span>
+				        <div class="achievement-compact-reward">
+                  <span v-if="achievement.rewards.coins > 0" class="reward-amount reward-amount--coins">
+                    +{{ achievement.rewards.coins }} 💰
+                  </span>
+					        <span v-if="achievement.rewards.diamonds > 0" class="reward-amount reward-amount--diamonds">
+                    +{{ achievement.rewards.diamonds }} 💎
+                  </span>
+				        </div>
+			        </div>
+		        </div>
+	        </div>
 
-	        <PerformanceStats
-		        :score="finalScore"
-		        :time-elapsed="timeElapsed"
-		        :moves="moves"
-		        :matches="matches"
-		        :total-pairs="totalPairs"
-		        :layout="gameOverMode ? 'horizontal' : 'grid'"
-		        :theme="gameOverMode ? 'compact' : 'default'"
-		        :size="gameOverMode ? 'normal' : 'large'"
-		        :show-score="true"
-		        :show-time="false"
-		        :show-moves="true"
-		        :show-matches="false"
-		        :score-label="gameOverMode ? 'Final Score' : 'Score'"
-	        />
-          <div
-            v-if="showReward && (reward.coins > 0 || reward.diamonds > 0)"
-            class="level-rewards-section"
-          >
-	          <CurrencyDisplay
-		          :coins="reward.coins"
-		          :diamonds="reward.diamonds"
-		          layout="horizontal"
-		          size="large"
-		          variant="card"
-		          :format-numbers="true"
-		          :show-zero-values="false"
-	          />
-          </div>
+	        <!-- Compact Rewards Breakdown -->
+	        <div v-if="showRewardBreakdown && !gameOverMode" class="rewards-breakdown">
+		        <div v-if="rewardBreakdown.levelReward.coins > 0 || rewardBreakdown.levelReward.diamonds > 0"
+		             class="reward-item">
+			        <span class="reward-source">{{ t('rewards.level_completion') }}</span>
+			        <div class="reward-amounts">
+                <span v-if="rewardBreakdown.levelReward.coins > 0" class="reward-amount reward-amount--coins">
+                  +{{ rewardBreakdown.levelReward.coins }} 💰
+                </span>
+				        <span v-if="rewardBreakdown.levelReward.diamonds > 0" class="reward-amount reward-amount--diamonds">
+                  +{{ rewardBreakdown.levelReward.diamonds }} 💎
+                </span>
+			        </div>
+		        </div>
+
+		        <!-- Achievement Rewards -->
+		        <div v-for="achievement in rewardBreakdown.achievementRewards"
+		             :key="achievement.id"
+		             class="reward-item">
+              <span class="reward-source">
+                <Icon :name="achievement.icon" size="16" />
+                {{ t(`achievements.definitions.${achievement.id}.name`) }}
+              </span>
+			        <div class="reward-amounts">
+                <span v-if="achievement.coins > 0" class="reward-amount reward-amount--coins">
+                  +{{ achievement.coins }} 💰
+                </span>
+				        <span v-if="achievement.diamonds > 0" class="reward-amount reward-amount--diamonds">
+                  +{{ achievement.diamonds }} 💎
+                </span>
+			        </div>
+		        </div>
+
+		        <!-- Combo Rewards -->
+		        <div v-if="rewardBreakdown.comboRewards.coins > 0" class="reward-item">
+			        <span class="reward-source">{{ t('rewards.combo_bonus') }}</span>
+			        <div class="reward-amounts">
+                <span class="reward-amount reward-amount--coins">
+                  +{{ rewardBreakdown.comboRewards.coins }} 💰
+                </span>
+			        </div>
+		        </div>
+
+		        <!-- Perfect Bonus -->
+		        <div v-if="rewardBreakdown.perfectBonus.coins > 0 || rewardBreakdown.perfectBonus.diamonds > 0"
+		             class="reward-item">
+			        <span class="reward-source">{{ t('rewards.perfect_bonus') }}</span>
+			        <div class="reward-amounts">
+                <span v-if="rewardBreakdown.perfectBonus.coins > 0" class="reward-amount reward-amount--coins">
+                  +{{ rewardBreakdown.perfectBonus.coins }} 💰
+                </span>
+				        <span v-if="rewardBreakdown.perfectBonus.diamonds > 0" class="reward-amount reward-amount--diamonds">
+                  +{{ rewardBreakdown.perfectBonus.diamonds }} 💎
+                </span>
+			        </div>
+		        </div>
+	        </div>
+
+	        <!-- Total Summary -->
+	        <div class="reward-summary">
+		        <span class="reward-summary-label">{{ t('rewards.total_earned') }}</span>
+		        <div class="reward-summary-amounts">
+              <span v-if="reward.coins > 0" class="reward-total reward-total--coins">
+                {{ reward.coins }} 💰
+              </span>
+			        <span v-if="reward.diamonds > 0" class="reward-total reward-total--diamonds">
+                {{ reward.diamonds }} 💎
+              </span>
+		        </div>
+	        </div>
+
           <!-- Action Buttons (dynamisch basierend auf Modus) -->
           <div class="completed-actions">
             <!-- Game Over Actions -->
@@ -635,6 +650,141 @@ watch(() => props.visible, (newVisible) => {
   color: var(--error-color);
   font-weight: var(--font-weight-bold);
 }
+// Rewards Breakdown
+.rewards-breakdown {
+	background-color: var(--card-bg-hover);
+	border: 1px solid var(--success-color);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-2);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.rewards-title {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--success-color);
+	margin: 0 0 var(--space-2) 0;
+	text-align: center;
+}
+
+.reward-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--space-2);
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-md);
+	border-left: 3px solid var(--success-color);
+}
+
+.reward-source {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	font-size: var(--font-size-sm);
+	color: var(--text-color);
+	flex: 1;
+}
+
+.reward-amounts {
+	display: flex;
+	gap: var(--space-2);
+	align-items: center;
+}
+
+.reward-amount {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	padding: var(--space-0) var(--space-2);
+	border-radius: var(--border-radius-sm);
+
+	&--coins {
+		background-color: var(--card-bg);
+		color: var(--white);
+	}
+
+	&--diamonds {
+		background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+		color: var(--white);
+	}
+}
+
+.reward-summary {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--space-3);
+	background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+	border-radius: var(--border-radius-md);
+	color: white;
+}
+
+.reward-summary-label {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+}
+
+.reward-summary-amounts {
+	display: flex;
+	gap: var(--space-3);
+	align-items: center;
+}
+
+.reward-total {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+
+	&--coins {
+		color: #FFF8DC;
+	}
+
+	&--diamonds {
+		color: #E6E6FA;
+	}
+}
+
+
+// Compact Achievements
+.achievements-compact {
+	background-color: var(--card-bg-hover);
+	border: 1px solid var(--warning-color);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-2);
+}
+
+.achievements-compact-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.achievement-compact-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-2);
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-md);
+	border-left: 3px solid var(--warning-color);
+}
+
+.achievement-compact-name {
+	flex: 1;
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	text-align: left;
+}
+
+.achievement-compact-reward {
+	display: flex;
+	gap: var(--space-1);
+}
 
 // Game Over Animation
 @keyframes gameOverSlide {
@@ -710,6 +860,7 @@ watch(() => props.visible, (newVisible) => {
     transform: translateY(0) scale(1);
   }
 }
+
 .game-completed-overlay--first-phase {
 	.completion-first-phase {
 		position: fixed;
