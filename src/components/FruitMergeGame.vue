@@ -707,33 +707,37 @@ const completeLevel = () => {
 	checkAutoAchievements()
 	const achievementsAfter = [...gameData.achievements]
 
-	// Find newly earned achievements
+	// Find newly earned achievements and add to breakdown
 	earnedAchievements.value = achievementsAfter.filter(after =>
 			!achievementsBefore.some(before => before.id === after.id && before.earned)
 	)
 
+	// Add achievement rewards to breakdown
+	const achievementBreakdown = earnedAchievements.value.map(achievement => ({
+		type: 'achievement',
+		source: t('rewards.breakdown.achievement_reward', { name: achievement.name }),
+		coins: achievement.rewards.coins,
+		diamonds: achievement.rewards.diamonds,
+		icon: achievement.icon,
+		style: 'achievement'
+	}))
+
+	// Create final breakdown with all rewards
 	rewardBreakdown.value = {
-		levelReward: {
-			coins: rewardCalculation.coins - (earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0)),
-			diamonds: rewardCalculation.diamonds - (earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)),
-			source: 'Level Completion'
-		},
-		achievementRewards: earnedAchievements.value.map(a => ({
-			id: a.id,
-			icon: a.icon,
-			coins: a.rewards.coins,
-			diamonds: a.rewards.diamonds
-		})),
-		comboRewards: {
-			coins: 0,
-			diamonds: 0,
-			source: 'Combo Bonus'
-		},
-		perfectBonus: {
-			coins: 0,
-			diamonds: 0,
-			source: 'Perfect Score'
+		items: [
+			...rewardCalculation.breakdown,
+			...achievementBreakdown
+		],
+		total: {
+			coins: rewardCalculation.coins + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0),
+			diamonds: rewardCalculation.diamonds + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
 		}
+	}
+
+	// Add currency rewards to player
+	if (rewardBreakdown.value.total.coins > 0 || rewardBreakdown.value.total.diamonds > 0) {
+		gameData.player.coins = (gameData.player.coins || 0) + rewardBreakdown.value.total.coins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + rewardBreakdown.value.total.diamonds
 	}
 
 	addScore(score.value)
@@ -750,57 +754,115 @@ const completeLevel = () => {
 }
 
 const calculateLevelReward = () => {
-	if (!isLevelComplete.value) return { coins: 0, diamonds: 0 }
+	if (!isLevelComplete.value) return { coins: 0, diamonds: 0, breakdown: [] }
 
 	const levelConfig = currentLevelConfig.value
 	const levelNumber = currentLevel.value
+	const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
+	const isFirstTimeCompletion = !previousLevelStats?.completed
+	const starsEarned = calculateCurrentStars()
 
 	// Determine difficulty tier
 	let difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.easy
+	let difficultyName = 'Easy Level'
 	if (levelNumber >= 4) {
 		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.hard
+		difficultyName = 'Hard Level'
 	} else if (levelNumber >= 2) {
 		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.medium
+		difficultyName = 'Medium Level'
 	}
 
-	// Base reward
-	let totalCoins = Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier)
-	let totalDiamonds = REWARDS.levelCompletion.base.diamonds
+	// Detailed breakdown array
+	const breakdown = []
+	let totalCoins = 0
+	let totalDiamonds = 0
 
-	// Check if this is first time completion
-	const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
-	const isFirstTimeCompletion = !previousLevelStats?.completed
+	// 1. Base reward
+	const baseCoins = Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier)
+	const baseDiamonds = REWARDS.levelCompletion.base.diamonds
+	if (baseCoins > 0 || baseDiamonds > 0) {
+		breakdown.push({
+			type: 'base',
+			source: t('rewards.breakdown.base_completion'),
+			coins: baseCoins,
+			diamonds: baseDiamonds,
+			icon: 'trophy',
+			style: 'default'
+		})
+		totalCoins += baseCoins
+		totalDiamonds += baseDiamonds
+	}
 
+	// 2. First time completion bonus
 	if (isFirstTimeCompletion) {
-		totalCoins += Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier)
-		totalDiamonds += REWARDS.levelCompletion.firstTime.diamonds
+		const firstTimeCoins = Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier)
+		const firstTimeDiamonds = REWARDS.levelCompletion.firstTime.diamonds
+		breakdown.push({
+			type: 'firstTime',
+			source: t('rewards.breakdown.first_time_completion'),
+			coins: firstTimeCoins,
+			diamonds: firstTimeDiamonds,
+			icon: 'star-filled',
+			style: 'special'
+		})
+		totalCoins += firstTimeCoins
+		totalDiamonds += firstTimeDiamonds
 	}
 
-	// Star-based bonus
-	const starsEarned = calculateCurrentStars()
+	// 3. Star-based bonus
 	if (starsEarned > 0) {
 		const starBonus = REWARDS.levelCompletion.stars[starsEarned]
 		if (starBonus) {
-			totalCoins += Math.round(starBonus.coins * difficultyMultiplier)
-			totalDiamonds += starBonus.diamonds
+			const starCoins = Math.round(starBonus.coins * difficultyMultiplier)
+			const starDiamonds = starBonus.diamonds
+			breakdown.push({
+				type: 'stars',
+				source: t('rewards.breakdown.star_performance', { stars: starsEarned }),
+				coins: starCoins,
+				diamonds: starDiamonds,
+				icon: 'star-filled',
+				style: 'performance'
+			})
+			totalCoins += starCoins
+			totalDiamonds += starDiamonds
 		}
 	}
 
-	// Perfect bonus (3 stars)
+	// 4. Perfect bonus (3 stars)
 	if (starsEarned === 3) {
-		totalCoins = Math.round(totalCoins * (1 + REWARDS.levelCompletion.perfectBonus))
+		const perfectBonusCoins = Math.round(totalCoins * REWARDS.levelCompletion.perfectBonus)
+		breakdown.push({
+			type: 'perfect',
+			source: t('rewards.breakdown.perfect_performance'),
+			coins: perfectBonusCoins,
+			diamonds: 0,
+			icon: 'trophy',
+			style: 'perfect'
+		})
+		totalCoins += perfectBonusCoins
+	}
+
+	// 5. Difficulty multiplier info (informational only)
+	if (difficultyMultiplier > 1) {
+		breakdown.push({
+			type: 'multiplier',
+			source: t('rewards.breakdown.difficulty_multiplier', {
+				difficulty: difficultyName,
+				multiplier: difficultyMultiplier
+			}),
+			coins: 0,
+			diamonds: 0,
+			icon: 'star',
+			style: 'info',
+			isInfo: true
+		})
 	}
 
 	return {
 		coins: totalCoins,
 		diamonds: totalDiamonds,
-		breakdown: {
-			base: Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier),
-			firstTime: isFirstTimeCompletion ? Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier) : 0,
-			stars: starsEarned > 0 ? Math.round(REWARDS.levelCompletion.stars[starsEarned]?.coins * difficultyMultiplier || 0) : 0,
-			perfect: starsEarned === 3 ? Math.round(totalCoins * REWARDS.levelCompletion.perfectBonus) : 0,
-			difficulty: difficultyMultiplier
-		}
+		breakdown: breakdown
 	}
 }
 

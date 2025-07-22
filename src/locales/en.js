@@ -67,7 +67,16 @@ export default {
 		combo_bonus: 'Combo Bonus',
 		perfect_bonus: 'Perfect Bonus',
 		total_earned: 'Total Earned',
-		achievement_reward: 'Achievement Reward'
+		achievement_reward: 'Achievement Reward',
+		breakdown: {
+			title: 'Reward Breakdown',
+			base_completion: 'Level Completion',
+			first_time_completion: 'First Time Bonus',
+			star_performance: '{stars}-Star Performance',
+			perfect_performance: 'Perfect Performance Bonus (+50%)',
+			difficulty_multiplier: '{difficulty}: {multiplier}x Multiplier',
+			achievement_reward: 'Achievement: {name}'
+		}
 	},
 
 	// App/Header

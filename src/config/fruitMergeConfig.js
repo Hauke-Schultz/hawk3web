@@ -65,7 +65,7 @@ export const PHYSICS_CONFIG = {
 	},
 
 	// Game Over
-	gameOverHeight: 320,
+	gameOverHeight: 120,
 	fruitsInDanger: 3,
 	gameOverCheckInterval: 1000,
 

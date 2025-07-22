@@ -319,74 +319,56 @@ watch(() => props.visible, (newVisible) => {
 		        {{ getModalTitle }}
 	        </h3>
 
-	        <!-- Compact Rewards Breakdown -->
-	        <div v-if="showRewardBreakdown && !gameOverMode" class="rewards-breakdown">
-		        <div v-if="rewardBreakdown.levelReward.coins > 0 || rewardBreakdown.levelReward.diamonds > 0"
-		             class="reward-item">
-			        <span class="reward-source">{{ t('rewards.level_completion') }}</span>
-			        <div class="reward-amounts">
-                <span v-if="rewardBreakdown.levelReward.coins > 0" class="reward-amount reward-amount--coins">
-                  +{{ rewardBreakdown.levelReward.coins }} 💰
-                </span>
-				        <span v-if="rewardBreakdown.levelReward.diamonds > 0" class="reward-amount reward-amount--diamonds">
-                  +{{ rewardBreakdown.levelReward.diamonds }} 💎
-                </span>
-			        </div>
-		        </div>
+	        <div v-if="showRewardBreakdown && !gameOverMode && rewardBreakdown?.items?.length" class="rewards-breakdown">
+		        <!-- Reward Items -->
+		        <div
+				        v-for="(item, index) in rewardBreakdown.items"
+				        :key="`${item.type}-${index}`"
+				        class="reward-item"
+				        :class="`reward-item--${item.style}`"
+		        >
+			        <!-- Info items (like difficulty multiplier) -->
+			        <template v-if="item.isInfo">
+				        <div class="reward-info">
+					        <Icon :name="item.icon" size="16" />
+					        <span class="reward-info-text">{{ item.source }}</span>
+				        </div>
+			        </template>
 
-		        <!-- Achievement Rewards -->
-		        <div v-for="achievement in rewardBreakdown.achievementRewards"
-		             :key="achievement.id"
-		             class="reward-item">
-              <span class="reward-source">
-                <Icon :name="achievement.icon" size="16" />
-                {{ t(`achievements.definitions.${achievement.id}.name`) }}
-              </span>
-			        <div class="reward-amounts">
-                <span v-if="achievement.coins > 0" class="reward-amount reward-amount--coins">
-                  +{{ achievement.coins }} 💰
-                </span>
-				        <span v-if="achievement.diamonds > 0" class="reward-amount reward-amount--diamonds">
-                  +{{ achievement.diamonds }} 💎
-                </span>
-			        </div>
-		        </div>
-
-		        <!-- Combo Rewards -->
-		        <div v-if="rewardBreakdown.comboRewards.coins > 0" class="reward-item">
-			        <span class="reward-source">{{ t('rewards.combo_bonus') }}</span>
-			        <div class="reward-amounts">
-                <span class="reward-amount reward-amount--coins">
-                  +{{ rewardBreakdown.comboRewards.coins }} 💰
-                </span>
-			        </div>
-		        </div>
-
-		        <!-- Perfect Bonus -->
-		        <div v-if="rewardBreakdown.perfectBonus.coins > 0 || rewardBreakdown.perfectBonus.diamonds > 0"
-		             class="reward-item">
-			        <span class="reward-source">{{ t('rewards.perfect_bonus') }}</span>
-			        <div class="reward-amounts">
-                <span v-if="rewardBreakdown.perfectBonus.coins > 0" class="reward-amount reward-amount--coins">
-                  +{{ rewardBreakdown.perfectBonus.coins }} 💰
-                </span>
-				        <span v-if="rewardBreakdown.perfectBonus.diamonds > 0" class="reward-amount reward-amount--diamonds">
-                  +{{ rewardBreakdown.perfectBonus.diamonds }} 💎
-                </span>
-			        </div>
+			        <!-- Regular reward items -->
+			        <template v-else>
+				        <div class="reward-source">
+					        <Icon :name="item.icon" size="16" />
+					        {{ item.source }}
+				        </div>
+				        <div class="reward-amounts">
+				          <span
+						          v-if="item.coins > 0"
+						          class="reward-amount reward-amount--coins"
+				          >
+				            +{{ item.coins }} 💰
+				          </span>
+					        <span
+							        v-if="item.diamonds > 0"
+							        class="reward-amount reward-amount--diamonds"
+					        >
+				            +{{ item.diamonds }} 💎
+				          </span>
+				        </div>
+			        </template>
 		        </div>
 	        </div>
 
 	        <!-- Total Summary -->
-	        <div class="reward-summary">
+	        <div v-if="rewardBreakdown?.total" class="reward-summary">
 		        <span class="reward-summary-label">{{ t('rewards.total_earned') }}</span>
 		        <div class="reward-summary-amounts">
-              <span v-if="reward.coins > 0" class="reward-total reward-total--coins">
-                {{ reward.coins }} 💰
-              </span>
-			        <span v-if="reward.diamonds > 0" class="reward-total reward-total--diamonds">
-                {{ reward.diamonds }} 💎
-              </span>
+				      <span v-if="rewardBreakdown.total.coins > 0" class="reward-total reward-total--coins">
+				        {{ rewardBreakdown.total.coins }} 💰
+				      </span>
+			        <span v-if="rewardBreakdown.total.diamonds > 0" class="reward-total reward-total--diamonds">
+				        {{ rewardBreakdown.total.diamonds }} 💎
+				      </span>
 		        </div>
 	        </div>
 
@@ -476,7 +458,7 @@ watch(() => props.visible, (newVisible) => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-6);
+  padding: var(--space-4);
 }
 
 .completed-title {
@@ -489,6 +471,7 @@ watch(() => props.visible, (newVisible) => {
 .completed-actions {
   display: flex;
   flex-direction: row;
+	justify-content: space-between;
   gap: var(--space-2);
 }
 
@@ -633,12 +616,10 @@ watch(() => props.visible, (newVisible) => {
   color: var(--error-color);
   font-weight: var(--font-weight-bold);
 }
+
 // Rewards Breakdown
 .rewards-breakdown {
-	background-color: var(--card-bg-hover);
-	border: 1px solid var(--success-color);
 	border-radius: var(--border-radius-lg);
-	padding: var(--space-2);
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-2);
@@ -648,7 +629,7 @@ watch(() => props.visible, (newVisible) => {
 	font-size: var(--font-size-base);
 	font-weight: var(--font-weight-bold);
 	color: var(--success-color);
-	margin: 0 0 var(--space-2) 0;
+	margin: 0 0 var(--space-3) 0;
 	text-align: center;
 }
 
@@ -656,10 +637,37 @@ watch(() => props.visible, (newVisible) => {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: var(--space-2);
+	padding: var(--space-1) var(--space-2);
 	background-color: var(--card-bg);
 	border-radius: var(--border-radius-md);
 	border-left: 3px solid var(--success-color);
+
+	&--special {
+		border-left-color: var(--warning-color);
+		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.1) 100%);
+	}
+
+	&--performance {
+		border-left-color: var(--primary-color);
+		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(79, 70, 229, 0.1) 100%);
+	}
+
+	&--perfect {
+		border-left-color: var(--warning-color);
+		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.15) 100%);
+		box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+	}
+
+	&--achievement {
+		border-left-color: var(--info-color);
+		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(107, 114, 128, 0.1) 100%);
+	}
+
+	&--info {
+		border-left-color: var(--info-color);
+		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(107, 114, 128, 0.05) 100%);
+		justify-content: center;
+	}
 }
 
 .reward-source {
@@ -668,23 +676,25 @@ watch(() => props.visible, (newVisible) => {
 	gap: var(--space-2);
 	font-size: var(--font-size-sm);
 	color: var(--text-color);
+	text-align: left;
 	flex: 1;
+	line-height: 1;
 }
 
 .reward-amounts {
 	display: flex;
-	gap: var(--space-2);
+	gap: var(--space-1);
 	align-items: center;
 }
 
 .reward-amount {
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
-	padding: var(--space-0) var(--space-2);
+	padding: var(--space-1);
 	border-radius: var(--border-radius-sm);
 
 	&--coins {
-		background-color: var(--card-bg);
+		background-color: var(--warning-color);
 		color: var(--white);
 	}
 
@@ -692,6 +702,41 @@ watch(() => props.visible, (newVisible) => {
 		background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
 		color: var(--white);
 	}
+}
+
+// Info items styling
+.reward-info {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	width: 100%;
+	justify-content: center;
+}
+
+.reward-info-text {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	font-style: italic;
+}
+
+// Difficulty Multiplier Info
+.reward-multiplier {
+	padding: var(--space-2);
+	background: linear-gradient(90deg, var(--card-bg) 0%, rgba(16, 185, 129, 0.1) 100%);
+	border-radius: var(--border-radius-md);
+	border-left: 3px solid var(--success-color);
+}
+
+.multiplier-info {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.multiplier-text {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	font-style: italic;
 }
 
 .reward-summary {

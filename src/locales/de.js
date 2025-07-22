@@ -66,7 +66,16 @@ export default {
 		combo_bonus: 'Combo Bonus',
 		perfect_bonus: 'Perfekt Bonus',
 		total_earned: 'Gesamt verdient',
-		achievement_reward: 'Erfolgs-Belohnung'
+		achievement_reward: 'Erfolgs-Belohnung',
+		breakdown: {
+			title: 'Belohnungs-Aufschlüsselung',
+			base_completion: 'Level-Abschluss',
+			first_time_completion: 'Erstmals-Bonus',
+			star_performance: '{stars}-Stern Leistung',
+			perfect_performance: 'Perfekt-Leistungs-Bonus (+50%)',
+			difficulty_multiplier: '{difficulty}: {multiplier}x Multiplikator',
+			achievement_reward: 'Erfolg: {name}'
+		}
 	},
 
 	// App/Header
