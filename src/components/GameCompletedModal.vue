@@ -318,23 +318,6 @@ watch(() => props.visible, (newVisible) => {
 	        <h3 id="completed-title" class="completed-title" :class="{ 'completed-title--game-over': gameOverMode }">
 		        {{ getModalTitle }}
 	        </h3>
-          <!-- Achievements Section -->
-	        <div v-if="showAchievements && newAchievements.length > 0 && !gameOverMode" class="achievements-compact">
-		        <div class="achievements-compact-list">
-			        <div v-for="achievement in newAchievements" :key="achievement.id" class="achievement-compact-item">
-				        <Icon :name="achievement.icon" size="20" />
-				        <span class="achievement-compact-name">{{ t(`achievements.definitions.${achievement.id}.name`) }}</span>
-				        <div class="achievement-compact-reward">
-                  <span v-if="achievement.rewards.coins > 0" class="reward-amount reward-amount--coins">
-                    +{{ achievement.rewards.coins }} 💰
-                  </span>
-					        <span v-if="achievement.rewards.diamonds > 0" class="reward-amount reward-amount--diamonds">
-                    +{{ achievement.rewards.diamonds }} 💎
-                  </span>
-				        </div>
-			        </div>
-		        </div>
-	        </div>
 
 	        <!-- Compact Rewards Breakdown -->
 	        <div v-if="showRewardBreakdown && !gameOverMode" class="rewards-breakdown">

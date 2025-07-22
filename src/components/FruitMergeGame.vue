@@ -706,6 +706,12 @@ const completeLevel = () => {
 	checkGameLevelAchievements('fruitMerge', currentLevel.value)
 	checkAutoAchievements()
 	const achievementsAfter = [...gameData.achievements]
+
+	// Find newly earned achievements
+	earnedAchievements.value = achievementsAfter.filter(after =>
+			!achievementsBefore.some(before => before.id === after.id && before.earned)
+	)
+
 	rewardBreakdown.value = {
 		levelReward: {
 			coins: rewardCalculation.coins - (earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0)),
@@ -729,11 +735,6 @@ const completeLevel = () => {
 			source: 'Perfect Score'
 		}
 	}
-
-	// Find newly earned achievements
-	earnedAchievements.value = achievementsAfter.filter(after =>
-			!achievementsBefore.some(before => before.id === after.id && before.earned)
-	)
 
 	addScore(score.value)
 
