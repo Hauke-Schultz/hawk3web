@@ -12,6 +12,7 @@ import { useI18n } from '../composables/useI18n.js'
 import Header from "./Header.vue";
 import {REWARDS} from "../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../config/comboConfig.js";
+import GameOverModal from "./GameOverModal.vue";
 
 // Props
 const props = defineProps({
@@ -778,7 +779,23 @@ const calculateLevelReward = () => {
 	let totalCoins = 0
 	let totalDiamonds = 0
 
-	// 1. Base reward
+	// 1. Difficulty multiplier info (informational only)
+	if (difficultyMultiplier > 1) {
+		breakdown.push({
+			type: 'multiplier',
+			source: t('rewards.breakdown.difficulty_multiplier', {
+				difficulty: difficultyName,
+				multiplier: difficultyMultiplier
+			}),
+			coins: 0,
+			diamonds: 0,
+			icon: 'star',
+			style: 'info',
+			isInfo: true
+		})
+	}
+
+	// 2. Base reward
 	const baseCoins = Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier)
 	const baseDiamonds = REWARDS.levelCompletion.base.diamonds
 	if (baseCoins > 0 || baseDiamonds > 0) {
@@ -794,7 +811,7 @@ const calculateLevelReward = () => {
 		totalDiamonds += baseDiamonds
 	}
 
-	// 2. First time completion bonus
+	// 3. First time completion bonus
 	if (isFirstTimeCompletion) {
 		const firstTimeCoins = Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier)
 		const firstTimeDiamonds = REWARDS.levelCompletion.firstTime.diamonds
@@ -810,7 +827,7 @@ const calculateLevelReward = () => {
 		totalDiamonds += firstTimeDiamonds
 	}
 
-	// 3. Star-based bonus
+	// 4. Star-based bonus
 	if (starsEarned > 0) {
 		const starBonus = REWARDS.levelCompletion.stars[starsEarned]
 		if (starBonus) {
@@ -829,7 +846,7 @@ const calculateLevelReward = () => {
 		}
 	}
 
-	// 4. Perfect bonus (3 stars)
+	// 5. Perfect bonus (3 stars)
 	if (starsEarned === 3) {
 		const perfectBonusCoins = Math.round(totalCoins * REWARDS.levelCompletion.perfectBonus)
 		breakdown.push({
@@ -841,22 +858,6 @@ const calculateLevelReward = () => {
 			style: 'perfect'
 		})
 		totalCoins += perfectBonusCoins
-	}
-
-	// 5. Difficulty multiplier info (informational only)
-	if (difficultyMultiplier > 1) {
-		breakdown.push({
-			type: 'multiplier',
-			source: t('rewards.breakdown.difficulty_multiplier', {
-				difficulty: difficultyName,
-				multiplier: difficultyMultiplier
-			}),
-			coins: 0,
-			diamonds: 0,
-			icon: 'star',
-			style: 'info',
-			isInfo: true
-		})
 	}
 
 	return {
@@ -1222,7 +1223,6 @@ onUnmounted(() => {
 		  :reward="levelReward"
 		  :show-reward-breakdown="true"
 		  :reward-breakdown="rewardBreakdown"
-		  :game-over-mode="false"
 		  :show-completion-phases="true"
 		  :enable-phase-transition="true"
 		  :next-level-label="t('fruitMerge.next_level')"
@@ -1230,6 +1230,19 @@ onUnmounted(() => {
 		  :back-to-games-label="t('fruitMerge.back_to_levels')"
 		  @next-level="nextLevel"
 		  @play-again="resetGame"
+		  @back-to-games="backToGaming"
+		  @close="backToGaming"
+	  />
+	  <!-- Game Over State -->
+	  <GameOverModal
+		  :visible="gameState === 'gameOver'"
+		  :level="currentLevel"
+		  :game-title="t('fruitMerge.title')"
+		  :final-score="score"
+		  :game-over-icon="'💥'"
+		  :try-again-label="t('fruitMerge.try_again')"
+		  :back-to-games-label="t('fruitMerge.back_to_levels')"
+		  @try-again="handleTryAgain"
 		  @back-to-games="backToGaming"
 		  @close="backToGaming"
 	  />

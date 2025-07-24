@@ -2,8 +2,6 @@
 import {computed, ref, watch} from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from './Icon.vue'
-import PerformanceStats from "./PerformanceStats.vue";
-import CurrencyDisplay from "./CurrencyDisplay.vue";
 
 const props = defineProps({
   visible: {
@@ -67,31 +65,6 @@ const props = defineProps({
   showBackToGames: {
     type: Boolean,
     default: true
-  },
-
-  gameOverMode: {
-    type: Boolean,
-    default: false
-  },
-  gameOverTitle: {
-    type: String,
-    default: 'Game Over'
-  },
-  gameOverMessage: {
-    type: String,
-    default: 'Better luck next time!'
-  },
-  gameOverIcon: {
-    type: String,
-    default: '💥'
-  },
-  showTryAgain: {
-    type: Boolean,
-    default: true
-  },
-  tryAgainLabel: {
-    type: String,
-    default: 'Try Again'
   },
 	rewardBreakdown: {
 		type: Object,
@@ -166,24 +139,7 @@ const getPerformanceMessage = () => {
 }
 
 const getModalTitle = computed(() => {
-  if (props.gameOverMode) {
-    return props.gameOverTitle
-  }
   return `${props.gameTitle} - ${t('memory.level_title', { level: props.level })}`
-})
-
-const getModalMessage = computed(() => {
-  if (props.gameOverMode) {
-    return props.gameOverMessage
-  }
-  return getPerformanceMessage()
-})
-
-const getModalIcon = computed(() => {
-  if (props.gameOverMode) {
-    return props.gameOverIcon
-  }
-  return null
 })
 
 const shouldShowModal = computed(() => {
@@ -264,7 +220,6 @@ watch(() => props.visible, (newVisible) => {
 		  v-if="shouldShowModal"
 		  class="game-completed-overlay"
 		  :class="{
-	      'game-completed-overlay--game-over': gameOverMode,
 	      'game-completed-overlay--first-phase': showFirstPhase,
 	      'game-completed-overlay--second-phase': showSecondPhase
 	    }"
@@ -308,14 +263,13 @@ watch(() => props.visible, (newVisible) => {
 			  v-if="showSecondPhase || (!showCompletionPhases && visible)"
 			  ref="modalContent"
 			  class="game-completed-modal"
-			  :class="{ 'game-completed-modal--game-over': gameOverMode }"
 			  @click.stop
 			  role="dialog"
 			  aria-modal="true"
 			  :aria-labelledby="getModalTitle"
 		  >
         <div class="completed-content">
-	        <h3 id="completed-title" class="completed-title" :class="{ 'completed-title--game-over': gameOverMode }">
+	        <h3 id="completed-title" class="completed-title">
 		        {{ getModalTitle }}
 	        </h3>
 
@@ -342,17 +296,17 @@ watch(() => props.visible, (newVisible) => {
 					        {{ item.source }}
 				        </div>
 				        <div class="reward-amounts">
-				          <span
-						          v-if="item.coins > 0"
-						          class="reward-amount reward-amount--coins"
-				          >
-				            +{{ item.coins }} 💰
-				          </span>
 					        <span
 							        v-if="item.diamonds > 0"
 							        class="reward-amount reward-amount--diamonds"
 					        >
 				            +{{ item.diamonds }} 💎
+				          </span>
+				          <span
+						          v-if="item.coins > 0"
+						          class="reward-amount reward-amount--coins"
+				          >
+				            +{{ item.coins }} 💰
 				          </span>
 				        </div>
 			        </template>
@@ -363,11 +317,11 @@ watch(() => props.visible, (newVisible) => {
 	        <div v-if="rewardBreakdown?.total" class="reward-summary">
 		        <span class="reward-summary-label">{{ t('rewards.total_earned') }}</span>
 		        <div class="reward-summary-amounts">
-				      <span v-if="rewardBreakdown.total.coins > 0" class="reward-total reward-total--coins">
-				        {{ rewardBreakdown.total.coins }} 💰
-				      </span>
 			        <span v-if="rewardBreakdown.total.diamonds > 0" class="reward-total reward-total--diamonds">
 				        {{ rewardBreakdown.total.diamonds }} 💎
+				      </span>
+				      <span v-if="rewardBreakdown.total.coins > 0" class="reward-total reward-total--coins">
+				        {{ rewardBreakdown.total.coins }} 💰
 				      </span>
 		        </div>
 	        </div>
@@ -396,7 +350,7 @@ watch(() => props.visible, (newVisible) => {
             <template v-else>
               <button
                 v-if="showNextLevel"
-                class="btn btn--primary"
+                class="btn btn--gradient"
                 @click="handleNextLevel"
               >
                 {{ nextLevelLabel }}
@@ -410,7 +364,7 @@ watch(() => props.visible, (newVisible) => {
               </button>
               <button
                 v-if="showBackToGames"
-                class="btn btn--ghost"
+                class="btn btn--info"
                 @click="handleBackToGames"
               >
                 {{ backToGamesLabel }}
@@ -592,30 +546,6 @@ watch(() => props.visible, (newVisible) => {
   align-items: center;
 }
 
-// Game Over Specific Styles
-.game-completed-overlay--game-over {
-  background-color: rgba(0, 0, 0, 0.9);
-}
-
-.game-completed-modal--game-over {
-  border-color: var(--error-color);
-  animation: gameOverSlide 0.5s ease;
-}
-
-.game-over-icon {
-  font-size: var(--font-size-4xl);
-  margin-bottom: var(--space-2);
-  animation: shake 0.6s ease-in-out;
-}
-
-.completed-title--game-over {
-  color: var(--error-color);
-}
-
-.performance-message--game-over {
-  color: var(--error-color);
-  font-weight: var(--font-weight-bold);
-}
 
 // Rewards Breakdown
 .rewards-breakdown {
@@ -710,7 +640,7 @@ watch(() => props.visible, (newVisible) => {
 	align-items: center;
 	gap: var(--space-2);
 	width: 100%;
-	justify-content: center;
+	justify-content: flex-start;
 }
 
 .reward-info-text {
@@ -812,26 +742,6 @@ watch(() => props.visible, (newVisible) => {
 .achievement-compact-reward {
 	display: flex;
 	gap: var(--space-1);
-}
-
-// Game Over Animation
-@keyframes gameOverSlide {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.8);
-    filter: hue-rotate(0deg);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: hue-rotate(360deg);
-  }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-  20%, 40%, 60%, 80% { transform: translateX(3px); }
 }
 
 @keyframes achievementSlide {
