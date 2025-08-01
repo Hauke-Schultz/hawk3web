@@ -1521,16 +1521,17 @@ onUnmounted(() => {
 		      </div>
 	      </div>
       </div>
-	    <!-- Milestone Notifications -->
 	    <div v-if="isEndlessMode" class="milestone-notifications">
-		    <div
-			    v-for="milestone in milestones.slice(-3)"
-			    :key="milestone"
-			    class="milestone-notification"
-		    >
-			    <Icon name="trophy" size="16" />
-			    <span>{{ getMilestoneText(milestone) }}</span>
-		    </div>
+		    <transition-group name="milestone" tag="div" class="milestone-container">
+			    <div
+				    v-for="milestone in milestones.slice(-3)"
+				    :key="milestone"
+				    class="milestone-notification"
+			    >
+				    <Icon name="trophy" size="16" />
+				    <span>{{ getMilestoneText(milestone) }}</span>
+			    </div>
+		    </transition-group>
 	    </div>
     </div>
     <!-- Game Completed State -->
@@ -1557,7 +1558,7 @@ onUnmounted(() => {
 		  :next-level-label="isEndlessMode ? t('fruitMerge.play_again') : t('fruitMerge.next_level')"
 		  :play-again-label="t('fruitMerge.play_again')"
 		  :back-to-games-label="t('fruitMerge.back_to_levels')"
-		  @next-level="isEndlessMode ? resetGame : nextLevel"
+		  @next-level="nextLevel"
 		  @play-again="resetGame"
 		  @back-to-games="backToGaming"
 		  @close="backToGaming"
@@ -1870,16 +1871,25 @@ onUnmounted(() => {
 	padding: var(--space-1) var(--space-2);
 	border-radius: var(--border-radius-md);
 }
-
 .milestone-notifications {
 	position: fixed;
-	top: var(--space-16);
-	right: var(--space-4);
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 	z-index: 100;
+	pointer-events: none;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}
+
+.milestone-container {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	gap: var(--space-2);
-	max-width: 250px;
+	max-width: 280px;
+	width: 100%;
 }
 
 .milestone-notification {
@@ -1888,22 +1898,133 @@ onUnmounted(() => {
 	gap: var(--space-2);
 	background: linear-gradient(135deg, var(--success-color), var(--primary-color));
 	color: white;
-	padding: var(--space-2) var(--space-3);
-	border-radius: var(--border-radius-md);
+	padding: var(--space-3) var(--space-4);
+	border-radius: var(--border-radius-lg);
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
-	animation: slideInRight 0.5s ease-out;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	box-shadow:
+			0 8px 32px rgba(0, 0, 0, 0.4),
+			0 0 20px rgba(16, 185, 129, 0.3);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	text-align: center;
+	white-space: nowrap;
 }
 
-@keyframes slideInRight {
-	from {
+// Vue Transition Animations
+.milestone-enter-active {
+	animation: milestoneSlideIn 0.8s ease-out;
+}
+
+.milestone-leave-active {
+	animation: milestoneFadeUp 1.2s ease-in forwards;
+}
+
+.milestone-move {
+	transition: transform 0.6s ease;
+}
+
+// CSS-Only Animations
+@keyframes milestoneSlideIn {
+	0% {
 		opacity: 0;
-		transform: translateX(100%);
+		transform: translateY(30px) scale(0.8);
 	}
-	to {
+	20% {
 		opacity: 1;
-		transform: translateX(0);
+		transform: translateY(-10px) scale(1.1);
+	}
+	40% {
+		transform: translateY(5px) scale(0.95);
+	}
+	60% {
+		transform: translateY(-2px) scale(1.02);
+	}
+	80% {
+		transform: translateY(1px) scale(0.99);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes milestoneFadeUp {
+	0% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	20% {
+		opacity: 0.9;
+		transform: translateY(-10px) scale(1.02);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-50px) scale(0.8);
+	}
+}
+
+// Optional: Stagger animation for multiple notifications
+.milestone-notification:nth-child(1) {
+	animation-delay: 0ms;
+}
+
+.milestone-notification:nth-child(2) {
+	animation-delay: 100ms;
+}
+
+.milestone-notification:nth-child(3) {
+	animation-delay: 200ms;
+}
+
+// Enhanced visual effects
+.milestone-notification::before {
+	content: '';
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
+	background: linear-gradient(45deg,
+			var(--success-color),
+			var(--primary-color),
+			var(--warning-color),
+			var(--success-color)
+	);
+	border-radius: var(--border-radius-lg);
+	z-index: -1;
+	opacity: 0;
+	animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+	0%, 100% {
+		opacity: 0;
+	}
+	50% {
+		opacity: 0.6;
+	}
+}
+
+// Auto-remove animation (CSS-only timing)
+.milestone-notification {
+	animation:
+			milestoneSlideIn 0.8s ease-out,
+			milestoneAutoFade 4s ease-in-out 3s forwards;
+}
+
+@keyframes milestoneAutoFade {
+	0% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	20% {
+		opacity: 0.9;
+		transform: translateY(-5px) scale(1.01);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-40px) scale(0.85);
 	}
 }
 
