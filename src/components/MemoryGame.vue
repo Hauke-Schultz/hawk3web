@@ -5,11 +5,10 @@ import { useI18n } from '../composables/useI18n.js'
 import {
   memoryConfig,
   getMemoryLevel,
-  calculateMaxPossibleScore,
-  calculateStars,
   getGridConfig,
   MEMORY_LEVELS
 } from '../config/memoryConfig.js'
+import { REWARDS } from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
 import { useComboSystem } from '../composables/useComboSystem.js'
 import Icon from './Icon.vue'
@@ -29,7 +28,7 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete', 'menu-click'])
 
 // LocalStorage service
-const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, checkGameLevelAchievements } = useLocalStorage()
+const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, checkGameLevelAchievements, checkAutoAchievements, getLevelStats } = useLocalStorage()
 const { t } = useI18n()
 
 // Game state
@@ -115,6 +114,7 @@ const startLevel = (level) => {
   moves.value = 0
   matches.value = 0
   timeElapsed.value = 0
+	comboSystem.resetCombo() // Reset combo system
   isProcessing.value = false
   gameState.value = 'playing'
   startTimer()
@@ -214,67 +214,221 @@ const calculateCurrentStars = () => {
   )
 }
 
+const calculateLevelReward = () => {
+	if (!isGameComplete.value) return { coins: 0, diamonds: 0, breakdown: [] }
+
+	const levelConfig = currentLevelConfig.value
+	const levelNumber = currentLevel.value
+	const previousLevelStats = getLevelStats('memory', currentLevel.value)
+	const isFirstTimeCompletion = !previousLevelStats?.completed
+	const starsEarned = calculateCurrentStars()
+
+	// Determine difficulty tier for memory game
+	let difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.easy
+	let difficultyName = 'Easy Level'
+	if (levelNumber >= 5) {
+		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.hard
+		difficultyName = 'Hard Level'
+	} else if (levelNumber >= 3) {
+		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.medium
+		difficultyName = 'Medium Level'
+	}
+
+	// Detailed breakdown array
+	const breakdown = []
+	let totalCoins = 0
+	let totalDiamonds = 0
+
+	// 1. Difficulty multiplier info (informational only)
+	if (difficultyMultiplier > 1) {
+		breakdown.push({
+			type: 'multiplier',
+			source: t('rewards.breakdown.difficulty_multiplier', {
+				difficulty: difficultyName,
+				multiplier: difficultyMultiplier
+			}),
+			coins: 0,
+			diamonds: 0,
+			icon: 'star',
+			style: 'info',
+			isInfo: true
+		})
+	}
+
+	// 2. Base reward
+	const baseCoins = Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier)
+	const baseDiamonds = REWARDS.levelCompletion.base.diamonds
+	if (baseCoins > 0 || baseDiamonds > 0) {
+		breakdown.push({
+			type: 'base',
+			source: t('rewards.breakdown.base_completion'),
+			coins: baseCoins,
+			diamonds: baseDiamonds,
+			icon: 'trophy',
+			style: 'default'
+		})
+		totalCoins += baseCoins
+		totalDiamonds += baseDiamonds
+	}
+
+	// 3. First time completion bonus
+	if (isFirstTimeCompletion) {
+		const firstTimeCoins = Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier)
+		const firstTimeDiamonds = REWARDS.levelCompletion.firstTime.diamonds
+		breakdown.push({
+			type: 'firstTime',
+			source: t('rewards.breakdown.first_time_completion'),
+			coins: firstTimeCoins,
+			diamonds: firstTimeDiamonds,
+			icon: 'star-filled',
+			style: 'special'
+		})
+		totalCoins += firstTimeCoins
+		totalDiamonds += firstTimeDiamonds
+	}
+
+	// 4. Star-based bonus
+	if (starsEarned > 0) {
+		const starBonus = REWARDS.levelCompletion.stars[starsEarned]
+		if (starBonus) {
+			const starCoins = Math.round(starBonus.coins * difficultyMultiplier)
+			const starDiamonds = starBonus.diamonds
+			breakdown.push({
+				type: 'stars',
+				source: t('rewards.breakdown.star_performance', { stars: starsEarned }),
+				coins: starCoins,
+				diamonds: starDiamonds,
+				icon: 'star-filled',
+				style: 'performance'
+			})
+			totalCoins += starCoins
+			totalDiamonds += starDiamonds
+		}
+	}
+
+	// 5. Perfect bonus (3 stars)
+	if (starsEarned === 3) {
+		const perfectBonusCoins = Math.round(totalCoins * REWARDS.levelCompletion.perfectBonus)
+		breakdown.push({
+			type: 'perfect',
+			source: t('rewards.breakdown.perfect_performance'),
+			coins: perfectBonusCoins,
+			diamonds: 0,
+			icon: 'trophy',
+			style: 'perfect'
+		})
+		totalCoins += perfectBonusCoins
+	}
+
+	return {
+		coins: totalCoins,
+		diamonds: totalDiamonds,
+		breakdown: breakdown
+	}
+}
+
 const completeGame = () => {
-  stopTimer()
-  comboSystem.cleanup()
-  gameState.value = 'completed'
+	stopTimer()
+	comboSystem.cleanup()
+	gameState.value = 'completed'
 
-  // Calculate final score
-  const gameScore = finalScore.value
-  score.value = gameScore
+	// Calculate final score
+	const gameScore = finalScore.value
+	score.value = gameScore
 
-  // Prepare level completion data
-  const levelResult = {
-    completed: true,
-    score: gameScore,
-    time: timeElapsed.value,
-    moves: moves.value
-  }
+	// Calculate level rewards
+	const rewardCalculation = calculateLevelReward()
+	levelReward.value = rewardCalculation
 
-  // Update level statistics
-  updateLevelStats('memory', currentLevel.value, levelResult)
+	// Prepare level completion data
+	const levelResult = {
+		completed: true,
+		score: gameScore,
+		time: timeElapsed.value,
+		moves: moves.value
+	}
 
-  // Update overall game statistics
-  const gameStats = {
-    gamesPlayed: gameData.games.memory.gamesPlayed + 1,
-    totalScore: gameData.games.memory.totalScore + gameScore,
-    highScore: Math.max(gameData.games.memory.highScore, gameScore),
-    bestTime: gameData.games.memory.bestTime ?
-      Math.min(gameData.games.memory.bestTime, timeElapsed.value) :
-      timeElapsed.value,
-    averageTime: gameData.games.memory.averageTime ?
-      Math.round((gameData.games.memory.averageTime + timeElapsed.value) / 2) :
-      timeElapsed.value,
-    maxCombo: Math.max(
-      gameData.games.memory.maxCombo || 0,
-      comboSystem.comboCount.value
-    )
-  }
+	// Check if this is first time completion
+	const previousLevelStats = getLevelStats('memory', currentLevel.value)
+	const isFirstTimeCompletion = !previousLevelStats?.completed
 
-  updateGameStats('memory', gameStats)
-  // Check for achievements and track new ones
-  const achievementsBefore = [...gameData.achievements]
-  checkLevelAchievements()
-  const achievementsAfter = [...gameData.achievements]
+	// Calculate stars after updating stats
+	const starsEarned = calculateCurrentStars()
 
-  // Find newly earned achievements
-  const newAchievements = achievementsAfter.filter(after =>
-    !achievementsBefore.some(before => before.id === after.id && before.earned)
-  )
-  earnedAchievements.value = newAchievements
+	// Update level statistics
+	updateLevelStats('memory', currentLevel.value, levelResult)
 
-  addScore(gameScore)
-  addExperience(50)
+	// Update overall game statistics
+	const gameStats = {
+		gamesPlayed: gameData.games.memory.gamesPlayed + 1,
+		totalScore: gameData.games.memory.totalScore + gameScore,
+		highScore: Math.max(gameData.games.memory.highScore, gameScore),
+		bestTime: gameData.games.memory.bestTime ?
+				Math.min(gameData.games.memory.bestTime, timeElapsed.value) :
+				timeElapsed.value,
+		averageTime: gameData.games.memory.averageTime ?
+				Math.round((gameData.games.memory.averageTime + timeElapsed.value) / 2) :
+				timeElapsed.value,
+		maxCombo: Math.max(
+				gameData.games.memory.maxCombo || 0,
+				comboSystem.comboCount.value
+		)
+	}
 
-  // Check for achievements
-  checkLevelAchievements()
+	updateGameStats('memory', gameStats)
 
-  emit('game-complete', {
-    level: currentLevel.value,
-    score: gameScore,
-    time: timeElapsed.value,
-    moves: moves.value
-  })
+	// Check for achievements and track new ones
+	const achievementsBefore = [...gameData.achievements]
+	checkLevelAchievements()
+	checkAutoAchievements()
+	const achievementsAfter = [...gameData.achievements]
+
+	// Find newly earned achievements
+	earnedAchievements.value = achievementsAfter.filter(after =>
+			!achievementsBefore.some(before => before.id === after.id && before.earned)
+	)
+
+	// Add achievement rewards to breakdown
+	const achievementBreakdown = earnedAchievements.value.map(achievement => ({
+		type: 'achievement',
+		source: t('rewards.breakdown.achievement_reward', { name: achievement.name }),
+		coins: achievement.rewards.coins,
+		diamonds: achievement.rewards.diamonds,
+		icon: achievement.icon,
+		style: 'achievement'
+	}))
+
+	// Create final breakdown with all rewards
+	rewardBreakdown.value = {
+		items: [
+			...rewardCalculation.breakdown,
+			...achievementBreakdown
+		],
+		total: {
+			coins: rewardCalculation.coins + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0),
+			diamonds: rewardCalculation.diamonds + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
+		}
+	}
+
+	// Add currency rewards to player
+	if (rewardBreakdown.value.total.coins > 0 || rewardBreakdown.value.total.diamonds > 0) {
+		gameData.player.coins = (gameData.player.coins || 0) + rewardBreakdown.value.total.coins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + rewardBreakdown.value.total.diamonds
+	}
+
+	addScore(gameScore)
+	addExperience(50)
+
+	emit('game-complete', {
+		level: currentLevel.value,
+		score: gameScore,
+		time: timeElapsed.value,
+		moves: moves.value,
+		coins: levelReward.value?.coins || 0,
+		diamonds: levelReward.value?.diamonds || 0,
+		completed: true,
+		firstTime: isFirstTimeCompletion
+	})
 }
 
 const checkLevelAchievements = () => {
@@ -434,33 +588,33 @@ onUnmounted(() => {
     </div>
 
     <!-- Game Completed State -->
-    <GameCompletedModal
-      :visible="gameState === 'completed'"
-      :level="currentLevel"
-      :game-title="t('memory.title')"
-      :final-score="finalScore"
-      :time-elapsed="timeElapsed"
-      :moves="moves"
-      :matches="matches"
-      :total-pairs="totalPairs"
-      :stars-earned="calculateCurrentStars()"
-      :show-stars="true"
-      :new-achievements="earnedAchievements"
-      :show-achievements="true"
-      :show-reward="true"
-      :reward="levelReward"
-      :show-reward-breakdown="true"
-      :reward-breakdown="rewardBreakdown"
-      :show-completion-phases="true"
-      :enable-phase-transition="true"
-      :next-level-label="t('memory.next_level')"
-      :play-again-label="t('memory.play_again')"
-      :back-to-games-label="t('memory.back_to_levels')"
-      @next-level="nextLevel"
-      @play-again="resetGame"
-      @back-to-games="backToGaming"
-      @close="backToGaming"
-    />
+	  <GameCompletedModal
+		  :visible="gameState === 'completed'"
+		  :level="currentLevel"
+		  :game-title="t('memory.title')"
+		  :final-score="finalScore"
+		  :time-elapsed="timeElapsed"
+		  :moves="moves"
+		  :matches="matches"
+		  :total-pairs="totalPairs"
+		  :stars-earned="calculateCurrentStars()"
+		  :show-stars="true"
+		  :new-achievements="earnedAchievements"
+		  :show-achievements="true"
+		  :show-reward="true"
+		  :reward="levelReward"
+		  :show-reward-breakdown="true"
+		  :reward-breakdown="rewardBreakdown"
+		  :show-completion-phases="true"
+		  :enable-phase-transition="true"
+		  :next-level-label="t('memory.next_level')"
+		  :play-again-label="t('memory.play_again')"
+		  :back-to-games-label="t('memory.back_to_levels')"
+		  @next-level="nextLevel"
+		  @play-again="resetGame"
+		  @back-to-games="backToGaming"
+		  @close="backToGaming"
+	  />
   </main>
 </template>
 
