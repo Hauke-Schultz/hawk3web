@@ -153,6 +153,66 @@ export const ACHIEVEMENTS = {
 			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
 		},
+		{
+			id: 'endless_first_play',
+			name: 'Endless Explorer',
+			description: 'Played your first endless game',
+			category: 'gaming',
+			icon: 'fruit-merge-game',
+			rarity: 'common',
+			rewards: { coins: 100, diamonds: 1 },
+			trigger: { type: 'level_complete', game: 'fruitMerge', level: 6 }
+		},
+		{
+			id: 'endless_bronze',
+			name: 'Bronze Merger',
+			description: 'Earned 1 star in endless mode',
+			category: 'gaming',
+			icon: 'star',
+			rarity: 'uncommon',
+			rewards: { coins: 200, diamonds: 2 },
+			trigger: { type: 'endless_stars', stars: 1 }
+		},
+		{
+			id: 'endless_silver',
+			name: 'Silver Merger',
+			description: 'Earned 2 stars in endless mode',
+			category: 'gaming',
+			icon: 'star-filled',
+			rarity: 'rare',
+			rewards: { coins: 500, diamonds: 5 },
+			trigger: { type: 'endless_stars', stars: 2 }
+		},
+		{
+			id: 'endless_gold',
+			name: 'Gold Merger',
+			description: 'Earned 3 stars in endless mode',
+			category: 'special',
+			icon: 'trophy',
+			rarity: 'epic',
+			rewards: { coins: 1000, diamonds: 10 },
+			trigger: { type: 'endless_stars', stars: 3 }
+		},
+		{
+			id: 'endless_marathon',
+			name: 'Marathon Merger',
+			description: 'Played endless mode for 30 minutes',
+			category: 'special',
+			icon: 'trophy',
+			rarity: 'epic',
+			rewards: { coins: 1500, diamonds: 15 },
+			trigger: { type: 'endless_time', minutes: 30 }
+		},
+		{
+			id: 'endless_merge_master',
+			name: 'Merge Master',
+			description: 'Performed 500 merges in endless mode',
+			category: 'special',
+			icon: 'fruit-merge-game',
+			rarity: 'legendary',
+			rewards: { coins: 2000, diamonds: 20 },
+			trigger: { type: 'endless_merges', count: 500 }
+		},
 
 		// Special achievements
 		{

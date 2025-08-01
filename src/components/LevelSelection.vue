@@ -49,31 +49,33 @@ const gameStats = computed(() => {
 
 // Compute level data with completion status
 const levelData = computed(() => {
-  return props.levels.map((level, index) => {
-    const levelNumber = index + 1
-    const levelStats = gameStats.value.levels?.[levelNumber] || {}
+	return props.levels.map((level, index) => {
+		const levelNumber = index + 1
+		const levelStats = gameStats.value.levels?.[levelNumber] || {}
 
-    const isUnlocked = levelNumber === 1 ||
-      (gameStats.value.levels?.[levelNumber - 1]?.completed || false)
+		const isUnlocked = levelNumber === 1 ||
+				levelNumber === 6 || // Level 6 (Endless) ist immer freigeschaltet
+				(gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
-    const stars = calculateLevelStars(levelStats, level)
-    const title = getLevelTitle(levelNumber, props.gameId, t)
-    const description = getLevelDescription(levelNumber, props.gameId, t)
+		const stars = calculateLevelStars(levelStats, level)
+		const title = getLevelTitle(levelNumber, props.gameId, t)
+		const description = getLevelDescription(levelNumber, props.gameId, t)
 
-    return {
-      level: levelNumber,
-      title: title,
-      description: description,
-      pairs: level.pairs,
-      timeBonus: level.timeBonus,
-      isLocked: !isUnlocked,
-      isCompleted: levelStats.completed || false,
-      highScore: levelStats.highScore || 0,
-      bestTime: levelStats.bestTime || null,
-      stars: stars,
-      attempts: levelStats.attempts || 0
-    }
-  })
+		return {
+			level: levelNumber,
+			title: title,
+			description: description,
+			pairs: level.pairs,
+			timeBonus: level.timeBonus,
+			isLocked: !isUnlocked,
+			isCompleted: levelStats.completed || false,
+			highScore: levelStats.highScore || 0,
+			bestTime: levelStats.bestTime || null,
+			stars: stars,
+			attempts: levelStats.attempts || 0,
+			isEndless: level.isEndless || false
+		}
+	})
 })
 
 // Completion stats

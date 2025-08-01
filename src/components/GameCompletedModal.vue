@@ -237,16 +237,16 @@ watch(() => props.visible, (newVisible) => {
 			  <div class="completion-overlay">
 				  <div class="completion-content">
 					  <!-- Stars Display -->
-					  <div v-if="showStars && !gameOverMode" class="stars-display">
+					  <div v-if="showStars" class="stars-display">
 						  <Icon
-								  v-for="starIndex in 3"
-								  :key="starIndex"
-								  :name="starIndex <= starsEarned ? 'star-filled' : 'star'"
-								  size="48"
-								  :class="{
-                'star--earned': starIndex <= starsEarned,
-                'star--empty': starIndex > starsEarned
-              }"
+							  v-for="starIndex in 3"
+							  :key="starIndex"
+							  :name="starIndex <= starsEarned ? 'star-filled' : 'star'"
+							  size="48"
+							  :class="{
+	                'star--earned': starIndex <= starsEarned,
+	                'star--empty': starIndex > starsEarned
+	              }"
 						  />
 					  </div>
 
@@ -273,7 +273,7 @@ watch(() => props.visible, (newVisible) => {
 		        {{ getModalTitle }}
 	        </h3>
 
-	        <div v-if="showRewardBreakdown && !gameOverMode && rewardBreakdown?.items?.length" class="rewards-breakdown">
+	        <div v-if="showRewardBreakdown && rewardBreakdown?.items?.length" class="rewards-breakdown">
 		        <!-- Reward Items -->
 		        <div
 				        v-for="(item, index) in rewardBreakdown.items"
@@ -328,48 +328,27 @@ watch(() => props.visible, (newVisible) => {
 
           <!-- Action Buttons (dynamisch basierend auf Modus) -->
           <div class="completed-actions">
-            <!-- Game Over Actions -->
-            <template v-if="gameOverMode">
-              <button
-                v-if="showTryAgain"
-                class="btn btn--primary"
-                @click="handleTryAgain"
-              >
-                {{ tryAgainLabel }}
-              </button>
-              <button
-                v-if="showBackToGames"
-                class="btn btn--ghost"
-                @click="handleBackToGames"
-              >
-                {{ backToGamesLabel }}
-              </button>
-            </template>
-
-            <!-- Success Actions -->
-            <template v-else>
-              <button
-                v-if="showNextLevel"
-                class="btn btn--gradient"
-                @click="handleNextLevel"
-              >
-                {{ nextLevelLabel }}
-              </button>
-              <button
-                v-if="showPlayAgain"
-                class="btn btn--ghost"
-                @click="handlePlayAgain"
-              >
-                {{ playAgainLabel }}
-              </button>
-              <button
-                v-if="showBackToGames"
-                class="btn btn--info"
-                @click="handleBackToGames"
-              >
-                {{ backToGamesLabel }}
-              </button>
-            </template>
+            <button
+              v-if="showNextLevel"
+              class="btn btn--gradient"
+              @click="handleNextLevel"
+            >
+              {{ nextLevelLabel }}
+            </button>
+            <button
+              v-if="showPlayAgain"
+              class="btn btn--ghost"
+              @click="handlePlayAgain"
+            >
+              {{ playAgainLabel }}
+            </button>
+            <button
+              v-if="showBackToGames"
+              class="btn btn--info"
+              @click="handleBackToGames"
+            >
+              {{ backToGamesLabel }}
+            </button>
           </div>
         </div>
       </div>

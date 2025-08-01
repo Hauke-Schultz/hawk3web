@@ -13,6 +13,7 @@ import Header from "./Header.vue";
 import {REWARDS} from "../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../config/comboConfig.js";
 import GameOverModal from "./GameOverModal.vue";
+import Icon from "./Icon.vue";
 
 // Props
 const props = defineProps({
@@ -62,6 +63,10 @@ const levelReward = ref(null)
 const rewardBreakdown = ref(null)
 const scorePoints = shallowRef([])
 const isPhysicsPaused = ref(false)
+const totalMerges = ref(0)
+const sessionTime = ref(0)
+const sessionTimer = ref(null)
+const milestones = ref([])
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -99,32 +104,86 @@ const gameOverHeight = computed(() => {
   return PHYSICS_CONFIG.board.height - PHYSICS_CONFIG.gameOverHeight
 })
 
+const isEndlessMode = computed(() => {
+	return currentLevelConfig.value.isEndless || false
+})
+
+const shouldShowGameOver = computed(() => {
+	return !isEndlessMode.value // Kein Game Over im Endlos-Modus
+})
+
+
 const generateNextFruit = () => {
-  const maxStartingLevel = 4
-  const randomIndex = Math.floor(Math.random() * maxStartingLevel)
-  const randomFruitType = fruitTypes.value[randomIndex]
+	const maxStartingLevel = isEndlessMode.value ?
+			Math.min(6, Math.floor(totalMerges.value / 20) + 4) : 4
+	const randomIndex = Math.floor(Math.random() * maxStartingLevel)
+	const randomFruitType = fruitTypes.value[randomIndex]
 
-  if (!randomFruitType) {
-    console.error('Could not find fruit type at index:', randomIndex)
-    return null
-  }
+	if (!randomFruitType) {
+		console.error('Could not find fruit type at index:', randomIndex)
+		return null
+	}
 
-  return {
-    id: nextFruitId.value++,
-    color: randomFruitType.color,
-    size: randomFruitType.size,
-    level: randomFruitType.level,
-    name: randomFruitType.name,
-    svg: randomFruitType.svg,
-    x: 0,
-    y: 0,
-    rotation: 0,
-    body: null,
-    merging: false,
-    inDanger: false,
-    dangerZoneStartTime: null,
-    dangerZoneTime: 0
-  }
+	return {
+		id: nextFruitId.value++,
+		color: randomFruitType.color,
+		size: randomFruitType.size,
+		level: randomFruitType.level,
+		name: randomFruitType.name,
+		svg: randomFruitType.svg,
+		x: 0,
+		y: 0,
+		rotation: 0,
+		body: null,
+		merging: false,
+		inDanger: false,
+		dangerZoneStartTime: null,
+		dangerZoneTime: 0
+	}
+}
+
+const startSessionTimer = () => {
+	if (!isEndlessMode.value) return
+
+	sessionTimer.value = setInterval(() => {
+		sessionTime.value++
+		checkTimeMilestones()
+	}, 1000)
+}
+
+const stopSessionTimer = () => {
+	if (sessionTimer.value) {
+		clearInterval(sessionTimer.value)
+		sessionTimer.value = null
+	}
+}
+
+const checkTimeMilestones = () => {
+	const config = currentLevelConfig.value.endless
+	if (!config) return
+
+	config.timeCheckpoints.forEach(checkpoint => {
+		if (sessionTime.value === checkpoint && !milestones.value.includes(`time_${checkpoint}`)) {
+			milestones.value.push(`time_${checkpoint}`)
+			console.log(`🕐 Zeit-Meilenstein erreicht: ${Math.floor(checkpoint / 60)} Minuten!`)
+			// Hier könntest du später Belohnungen hinzufügen
+		}
+	})
+}
+
+const checkScoreMilestones = () => {
+	if (!isEndlessMode.value) return
+
+	const config = currentLevelConfig.value.endless
+	if (!config) return
+
+	config.scoreMilestones.forEach(milestone => {
+		if (score.value >= milestone && !milestones.value.includes(`score_${milestone}`)) {
+			milestones.value.push(`score_${milestone}`)
+			console.log(`🎯 Punkte-Meilenstein erreicht: ${milestone} Punkte!`)
+			// Hier könntest du später Belohnungen hinzufügen
+		}
+	})
 }
 
 // Update next fruit position based on mouse/touch coordinates
@@ -395,6 +454,11 @@ const handleCollision = (event) => {
 		          // Add the new fruit to the world
 		          addMergedFruit(newFruit, centerX, centerY)
 
+		          if (isEndlessMode.value) {
+			          totalMerges.value++
+			          checkScoreMilestones()
+		          }
+
 		          // Check if this merge completes the level goal
 		          if (newFruit.name === currentLevelConfig.value.targetFruit) {
 			          console.log(`🎯 Level goal reached! Created ${newFruit.name}`)
@@ -644,14 +708,21 @@ const cleanup = () => {
 
 // Initialize game
 const initGame = async () => {
-  await nextTick()
+	await nextTick()
 
-  initPhysics()
-  nextFruit.value = generateNextFruit()
-  gameLoop()
-  startGameOverChecking()
+	initPhysics()
+	nextFruit.value = generateNextFruit()
+	gameLoop()
 
-  console.log('Game initialized')
+	// Game Over Checking für ALLE Modi starten
+	startGameOverChecking()
+
+	if (isEndlessMode.value) {
+		startSessionTimer() // Additional session timer for endless mode
+		console.log('Endless mode initialized with game over checking')
+	}
+
+	console.log('Game initialized')
 }
 
 const completeLevel = () => {
@@ -755,53 +826,21 @@ const completeLevel = () => {
 }
 
 const calculateLevelReward = () => {
-	if (!isLevelComplete.value) return { coins: 0, diamonds: 0, breakdown: [] }
+	if (isEndlessMode.value) {
+		// Endlos-Modus Belohnungs-Berechnung
+		const starsEarned = calculateCurrentStars()
 
-	const levelConfig = currentLevelConfig.value
-	const levelNumber = currentLevel.value
-	const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
-	const isFirstTimeCompletion = !previousLevelStats?.completed
-	const starsEarned = calculateCurrentStars()
+		const breakdown = []
+		let totalCoins = 0
+		let totalDiamonds = 0
 
-	// Determine difficulty tier
-	let difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.easy
-	let difficultyName = 'Easy Level'
-	if (levelNumber >= 4) {
-		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.hard
-		difficultyName = 'Hard Level'
-	} else if (levelNumber >= 2) {
-		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.medium
-		difficultyName = 'Medium Level'
-	}
+		// Base Endlos-Belohnung
+		const baseCoins = 50 + Math.floor(score.value / 1000) * 10 // 50 + 10 pro 1000 Punkte
+		const baseDiamonds = Math.floor(sessionTime.value / 300) // 1 Diamant pro 5 Minuten
 
-	// Detailed breakdown array
-	const breakdown = []
-	let totalCoins = 0
-	let totalDiamonds = 0
-
-	// 1. Difficulty multiplier info (informational only)
-	if (difficultyMultiplier > 1) {
-		breakdown.push({
-			type: 'multiplier',
-			source: t('rewards.breakdown.difficulty_multiplier', {
-				difficulty: difficultyName,
-				multiplier: difficultyMultiplier
-			}),
-			coins: 0,
-			diamonds: 0,
-			icon: 'star',
-			style: 'info',
-			isInfo: true
-		})
-	}
-
-	// 2. Base reward
-	const baseCoins = Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier)
-	const baseDiamonds = REWARDS.levelCompletion.base.diamonds
-	if (baseCoins > 0 || baseDiamonds > 0) {
 		breakdown.push({
 			type: 'base',
-			source: t('rewards.breakdown.base_completion'),
+			source: t('rewards.breakdown.endless_session'),
 			coins: baseCoins,
 			diamonds: baseDiamonds,
 			icon: 'trophy',
@@ -809,30 +848,39 @@ const calculateLevelReward = () => {
 		})
 		totalCoins += baseCoins
 		totalDiamonds += baseDiamonds
-	}
 
-	// 3. First time completion bonus
-	if (isFirstTimeCompletion) {
-		const firstTimeCoins = Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier)
-		const firstTimeDiamonds = REWARDS.levelCompletion.firstTime.diamonds
-		breakdown.push({
-			type: 'firstTime',
-			source: t('rewards.breakdown.first_time_completion'),
-			coins: firstTimeCoins,
-			diamonds: firstTimeDiamonds,
-			icon: 'star-filled',
-			style: 'special'
-		})
-		totalCoins += firstTimeCoins
-		totalDiamonds += firstTimeDiamonds
-	}
+		// Zeit-basierte Belohnung
+		if (sessionTime.value >= 300) { // Mindestens 5 Minuten
+			const timeBonus = Math.floor(sessionTime.value / 60) * 5 // 5 Münzen pro Minute
+			breakdown.push({
+				type: 'time',
+				source: t('rewards.breakdown.time_bonus', { minutes: Math.floor(sessionTime.value / 60) }),
+				coins: timeBonus,
+				diamonds: 0,
+				icon: 'star',
+				style: 'performance'
+			})
+			totalCoins += timeBonus
+		}
 
-	// 4. Star-based bonus
-	if (starsEarned > 0) {
-		const starBonus = REWARDS.levelCompletion.stars[starsEarned]
-		if (starBonus) {
-			const starCoins = Math.round(starBonus.coins * difficultyMultiplier)
-			const starDiamonds = starBonus.diamonds
+		// Merge-basierte Belohnung
+		if (totalMerges.value >= 20) {
+			const mergeBonus = Math.floor(totalMerges.value / 10) * 15 // 15 Münzen pro 10 Merges
+			breakdown.push({
+				type: 'merges',
+				source: t('rewards.breakdown.merge_bonus', { merges: totalMerges.value }),
+				coins: mergeBonus,
+				diamonds: 0,
+				icon: 'fruit-merge-game',
+				style: 'special'
+			})
+			totalCoins += mergeBonus
+		}
+
+		// Stern-basierte Belohnung
+		if (starsEarned > 0) {
+			const starCoins = starsEarned * 100 // 100 Münzen pro Stern
+			const starDiamonds = starsEarned // 1 Diamant pro Stern
 			breakdown.push({
 				type: 'stars',
 				source: t('rewards.breakdown.star_performance', { stars: starsEarned }),
@@ -844,60 +892,159 @@ const calculateLevelReward = () => {
 			totalCoins += starCoins
 			totalDiamonds += starDiamonds
 		}
-	}
 
-	// 5. Perfect bonus (3 stars)
-	if (starsEarned === 3) {
-		const perfectBonusCoins = Math.round(totalCoins * REWARDS.levelCompletion.perfectBonus)
-		breakdown.push({
-			type: 'perfect',
-			source: t('rewards.breakdown.perfect_performance'),
-			coins: perfectBonusCoins,
-			diamonds: 0,
-			icon: 'trophy',
-			style: 'perfect'
-		})
-		totalCoins += perfectBonusCoins
-	}
+		return {
+			coins: totalCoins,
+			diamonds: totalDiamonds,
+			breakdown: breakdown
+		}
+	} else {
+		if (!isLevelComplete.value) return { coins: 0, diamonds: 0, breakdown: [] }
 
-	return {
-		coins: totalCoins,
-		diamonds: totalDiamonds,
-		breakdown: breakdown
+		const levelConfig = currentLevelConfig.value
+		const levelNumber = currentLevel.value
+		const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
+		const isFirstTimeCompletion = !previousLevelStats?.completed
+		const starsEarned = calculateCurrentStars()
+
+		// Determine difficulty tier
+		let difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.easy
+		let difficultyName = 'Easy Level'
+		if (levelNumber >= 4) {
+			difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.hard
+			difficultyName = 'Hard Level'
+		} else if (levelNumber >= 2) {
+			difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.medium
+			difficultyName = 'Medium Level'
+		}
+
+		// Detailed breakdown array
+		const breakdown = []
+		let totalCoins = 0
+		let totalDiamonds = 0
+
+		// 1. Difficulty multiplier info (informational only)
+		if (difficultyMultiplier > 1) {
+			breakdown.push({
+				type: 'multiplier',
+				source: t('rewards.breakdown.difficulty_multiplier', {
+					difficulty: difficultyName,
+					multiplier: difficultyMultiplier
+				}),
+				coins: 0,
+				diamonds: 0,
+				icon: 'star',
+				style: 'info',
+				isInfo: true
+			})
+		}
+
+		// 2. Base reward
+		const baseCoins = Math.round(REWARDS.levelCompletion.base.coins * difficultyMultiplier)
+		const baseDiamonds = REWARDS.levelCompletion.base.diamonds
+		if (baseCoins > 0 || baseDiamonds > 0) {
+			breakdown.push({
+				type: 'base',
+				source: t('rewards.breakdown.base_completion'),
+				coins: baseCoins,
+				diamonds: baseDiamonds,
+				icon: 'trophy',
+				style: 'default'
+			})
+			totalCoins += baseCoins
+			totalDiamonds += baseDiamonds
+		}
+
+		// 3. First time completion bonus
+		if (isFirstTimeCompletion) {
+			const firstTimeCoins = Math.round(REWARDS.levelCompletion.firstTime.coins * difficultyMultiplier)
+			const firstTimeDiamonds = REWARDS.levelCompletion.firstTime.diamonds
+			breakdown.push({
+				type: 'firstTime',
+				source: t('rewards.breakdown.first_time_completion'),
+				coins: firstTimeCoins,
+				diamonds: firstTimeDiamonds,
+				icon: 'star-filled',
+				style: 'special'
+			})
+			totalCoins += firstTimeCoins
+			totalDiamonds += firstTimeDiamonds
+		}
+
+		// 4. Star-based bonus
+		if (starsEarned > 0) {
+			const starBonus = REWARDS.levelCompletion.stars[starsEarned]
+			if (starBonus) {
+				const starCoins = Math.round(starBonus.coins * difficultyMultiplier)
+				const starDiamonds = starBonus.diamonds
+				breakdown.push({
+					type: 'stars',
+					source: t('rewards.breakdown.star_performance', { stars: starsEarned }),
+					coins: starCoins,
+					diamonds: starDiamonds,
+					icon: 'star-filled',
+					style: 'performance'
+				})
+				totalCoins += starCoins
+				totalDiamonds += starDiamonds
+			}
+		}
+
+		// 5. Perfect bonus (3 stars)
+		if (starsEarned === 3) {
+			const perfectBonusCoins = Math.round(totalCoins * REWARDS.levelCompletion.perfectBonus)
+			breakdown.push({
+				type: 'perfect',
+				source: t('rewards.breakdown.perfect_performance'),
+				coins: perfectBonusCoins,
+				diamonds: 0,
+				icon: 'trophy',
+				style: 'perfect'
+			})
+			totalCoins += perfectBonusCoins
+		}
+
+		return {
+			coins: totalCoins,
+			diamonds: totalDiamonds,
+			breakdown: breakdown
+		}
 	}
 }
 
 const checkGameOver = () => {
-  if (gameState.value !== 'playing') return false
+	if (gameState.value !== 'playing') return false
 
-  const restingFruitsInDangerZone = fruits.value.filter(fruit => {
-    if (!fruit.body || fruit.merging) return false
+	const restingFruitsInDangerZone = fruits.value.filter(fruit => {
+		if (!fruit.body || fruit.merging) return false
 
-    const inDangerZone = fruit.body.position.y <= gameOverHeight.value
-    const velocity = Math.sqrt(
-        fruit.body.velocity.x * fruit.body.velocity.x +
-        fruit.body.velocity.y * fruit.body.velocity.y
-    )
-    const isResting = velocity < 0.5
-    const hasBeenInDangerLongEnough = fruit.dangerZoneTime > 1000 // 1 Sekunde
+		const inDangerZone = fruit.body.position.y <= gameOverHeight.value
+		const velocity = Math.sqrt(
+				fruit.body.velocity.x * fruit.body.velocity.x +
+				fruit.body.velocity.y * fruit.body.velocity.y
+		)
+		const isResting = velocity < 0.5
+		const hasBeenInDangerLongEnough = fruit.dangerZoneTime > 1000 // 1 Sekunde
 
-    return inDangerZone && isResting && hasBeenInDangerLongEnough
-  }).length
+		return inDangerZone && isResting && hasBeenInDangerLongEnough
+	}).length
 
-  if (restingFruitsInDangerZone >= PHYSICS_CONFIG.fruitsInDanger) {
-    gameOver()
-    return true
-  }
+	if (restingFruitsInDangerZone >= PHYSICS_CONFIG.fruitsInDanger) {
+		console.log(`Game Over triggered! ${restingFruitsInDangerZone} fruits in danger zone`)
+		gameOver()
+		return true
+	}
 
-  return false
+	return false
 }
 
 const startGameOverChecking = () => {
-  if (gameOverTimer.value) clearInterval(gameOverTimer.value)
+	if (gameOverTimer.value) clearInterval(gameOverTimer.value)
+	gameOverTimer.value = setInterval(() => {
+		checkGameOver()
+	}, PHYSICS_CONFIG.gameOverCheckInterval)
 
-  gameOverTimer.value = setInterval(() => {
-    checkGameOver()
-  }, PHYSICS_CONFIG.gameOverCheckInterval)
+	console.log('Game Over checking started for', isEndlessMode.value ? 'Endless Mode' : 'Normal Level')
 }
 
 const stopGameOverChecking = () => {
@@ -932,11 +1079,33 @@ const updateFruitDangerStatus = () => {
 }
 
 const calculateCurrentStars = () => {
-  if (!isLevelComplete.value) return 0
-  return calculateLevelStars(
-      { score: score.value, moves: moves.value, completed: true },
-      currentLevelConfig.value
-  )
+	if (isEndlessMode.value) {
+		const thresholds = currentLevelConfig.value.starThresholds
+		if (!thresholds) return 0
+
+		// Check for 3 stars first (most demanding)
+		if (score.value >= thresholds[3].score || totalMerges.value >= thresholds[3].merges) {
+			return 3
+		}
+
+		// Check for 2 stars
+		if (score.value >= thresholds[2].score || totalMerges.value >= thresholds[2].merges) {
+			return 2
+		}
+
+		// Check for 1 star
+		if (score.value >= thresholds[1].score || totalMerges.value >= thresholds[1].merges) {
+			return 1
+		}
+
+		return 0
+	} else {
+		if (!isLevelComplete.value) return 0
+		return calculateLevelStars(
+				{ score: score.value, moves: moves.value, completed: true },
+				currentLevelConfig.value
+		)
+	}
 }
 
 const nextLevel = () => {
@@ -966,6 +1135,14 @@ const resetGame = () => {
 	scorePoints.value = []
 	levelReward.value = null
 	showNextFruit.value = true
+
+	if (isEndlessMode.value) {
+		totalMerges.value = 0
+		sessionTime.value = 0
+		milestones.value = []
+		stopSessionTimer()
+		startSessionTimer()
+	}
 }
 
 const handleTryAgain = () => {
@@ -981,20 +1158,139 @@ const backToGaming = () => {
 const gameOver = () => {
 	pausePhysics()
 	stopAllFruits()
-	gameState.value = 'gameOver'
 	stopGameOverChecking()
 	comboSystem.cleanup()
 
 	console.log('Game Over! Fruits reached the danger zone.')
 
-  const gameStats = {
-    gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
-    totalScore: gameData.games.fruitMerge.totalScore + score.value,
-    highScore: Math.max(gameData.games.fruitMerge.highScore, score.value)
-  }
+	if (isEndlessMode.value) {
+		// Endlos-Modus: Game Over wird zu Game Complete behandelt
+		gameState.value = 'completed'
 
-  updateGameStats('fruitMerge', gameStats)
-  addScore(score.value)
+		// Calculate level rewards für Endlos-Modus
+		const rewardCalculation = calculateLevelReward()
+		levelReward.value = rewardCalculation
+
+		// Check for achievements and track new ones
+		const achievementsBefore = [...gameData.achievements]
+		checkGameLevelAchievements('fruitMerge', currentLevel.value)
+		checkAutoAchievements()
+		const achievementsAfter = [...gameData.achievements]
+
+		// Find newly earned achievements
+		earnedAchievements.value = achievementsAfter.filter(after =>
+				!achievementsBefore.some(before => before.id === after.id && before.earned)
+		)
+
+		// Add achievement rewards to breakdown
+		const achievementBreakdown = earnedAchievements.value.map(achievement => ({
+			type: 'achievement',
+			source: t('rewards.breakdown.achievement_reward', { name: achievement.name }),
+			coins: achievement.rewards.coins,
+			diamonds: achievement.rewards.diamonds,
+			icon: achievement.icon,
+			style: 'achievement'
+		}))
+
+		// Create final breakdown with all rewards
+		rewardBreakdown.value = {
+			items: [
+				...rewardCalculation.breakdown,
+				...achievementBreakdown
+			],
+			total: {
+				coins: rewardCalculation.coins + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0),
+				diamonds: rewardCalculation.diamonds + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
+			}
+		}
+
+		// Add currency rewards to player
+		if (rewardBreakdown.value.total.coins > 0 || rewardBreakdown.value.total.diamonds > 0) {
+			gameData.player.coins = (gameData.player.coins || 0) + rewardBreakdown.value.total.coins
+			gameData.player.diamonds = (gameData.player.diamonds || 0) + rewardBreakdown.value.total.diamonds
+		}
+
+		// Update endless mode session stats
+		updateEndlessStats()
+
+		console.log('Endless session completed! Showing results...')
+	} else {
+		// Normale Level: Normales Game Over
+		gameState.value = 'gameOver'
+	}
+
+	// Update game statistics für beide Modi
+	const gameStats = {
+		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
+		totalScore: gameData.games.fruitMerge.totalScore + score.value,
+		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value)
+	}
+
+	updateGameStats('fruitMerge', gameStats)
+	addScore(score.value)
+}
+
+const updateEndlessStats = () => {
+	const levelResult = {
+		completed: true,
+		score: score.value,
+		time: sessionTime.value,
+		moves: moves.value,
+		merges: totalMerges.value,
+		stars: calculateCurrentStars()
+	}
+
+	// Update level statistics für Endlos-Modus
+	updateLevelStats('fruitMerge', currentLevel.value, levelResult)
+
+	// Update overall game statistics mit Endlos-spezifischen Daten
+	const gameStats = {
+		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
+		totalScore: gameData.games.fruitMerge.totalScore + score.value,
+		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
+		starsEarned: gameData.games.fruitMerge.starsEarned + calculateCurrentStars(),
+		totalMerges: (gameData.games.fruitMerge.totalMerges || 0) + totalMerges.value,
+		maxCombo: Math.max(
+				gameData.games.fruitMerge.maxCombo || 0,
+				comboSystem.comboCount.value
+		)
+	}
+
+	updateGameStats('fruitMerge', gameStats)
+
+	emit('game-complete', {
+		level: currentLevel.value,
+		score: score.value,
+		time: sessionTime.value,
+		moves: moves.value,
+		merges: totalMerges.value,
+		coins: levelReward.value?.coins || 0,
+		diamonds: levelReward.value?.diamonds || 0,
+		completed: true,
+		isEndless: true
+	})
+}
+
+const formatTime = (seconds) => {
+	const mins = Math.floor(seconds / 60)
+	const secs = seconds % 60
+	return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+}
+
+const getMilestoneText = (milestone) => {
+	const [type, value] = milestone.split('_')
+
+	switch (type) {
+		case 'score':
+			return t('fruitMerge.endless.milestone_score', { score: value })
+		case 'time':
+			const minutes = Math.floor(parseInt(value) / 60)
+			return t('fruitMerge.endless.milestone_time', { minutes })
+		case 'combo':
+			return t('fruitMerge.endless.milestone_combo', { combo: value })
+		default:
+			return milestone
+	}
 }
 
 const handleMenuClick = () => {
@@ -1037,49 +1333,52 @@ onUnmounted(() => {
     <!-- Game Header -->
     <div class="game-header">
       <div class="game-info">
-        <h2 class="game-title">{{ t('fruitMerge.title') }}</h2>
-        <div class="level-indicator">{{ t('fruitMerge.level_title', { level: currentLevel }) }}</div>
+	      <h2 class="game-title">{{ t('fruitMerge.title') }}</h2>
+	      <div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
+		      {{ isEndlessMode ? t('fruitMerge.endless_mode') : t('fruitMerge.level_title', { level: currentLevel }) }}
+	      </div>
       </div>
 
       <div class="game-stats-container">
         <!-- Progress Overview -->
-        <ProgressOverview
-          :completed="gameProgress.completed"
-          :total="gameProgress.total"
-          theme="warning"
-          size="small"
-          :levels-label="currentLevelConfig.targetFruit"
-          :show-stars="false"
-          :show-percentage="false"
-          :complete-label="t('fruitMerge.target')"
-        />
+	      <ProgressOverview
+		      v-if="!isEndlessMode"
+		      :completed="gameProgress.completed"
+		      :total="gameProgress.total"
+		      theme="warning"
+		      size="small"
+		      :levels-label="currentLevelConfig.targetFruit"
+		      :show-stars="false"
+		      :show-percentage="false"
+		      :complete-label="t('fruitMerge.target')"
+	      />
 
         <!-- Game Performance Stats -->
-        <PerformanceStats
-          :score="score"
-          :time-elapsed="0"
-          :moves="moves"
-          :matches="fruits.length"
-          :total-pairs="fruits.length"
-          :combo-count="comboSystem.comboLevel.value"
-          :combo-multiplier="comboSystem.comboMultiplier.value"
-          :max-combo="gameData.games.fruitMerge.maxCombo || 0"
-          :combo-time-remaining="comboSystem.timeRemaining.value"
-          :combo-time-max="comboSystem.config.comboTimeout"
-          :is-combo-active="comboSystem.isComboActive.value"
-          layout="horizontal"
-          theme="card"
-          size="normal"
-          :show-score="true"
-          :show-time="false"
-          :show-moves="true"
-          :show-matches="false"
-          :show-combo="true"
-          :score-label="t('stats.score')"
-          :time-label="t('stats.time')"
-          :moves-label="t('stats.moves')"
-          :combo-label="t('stats.combo')"
-        />
+	      <PerformanceStats
+		      :score="score"
+		      :time-elapsed="isEndlessMode ? sessionTime : 0"
+		      :moves="moves"
+		      :matches="fruits.length"
+		      :total-pairs="fruits.length"
+		      :combo-count="comboSystem.comboLevel.value"
+		      :combo-multiplier="comboSystem.comboMultiplier.value"
+		      :max-combo="gameData.games.fruitMerge.maxCombo || 0"
+		      :combo-time-remaining="comboSystem.timeRemaining.value"
+		      :combo-time-max="comboSystem.config.comboTimeout"
+		      :is-combo-active="comboSystem.isComboActive.value"
+		      layout="horizontal"
+		      theme="card"
+		      size="normal"
+		      :show-score="true"
+		      :show-time="isEndlessMode"
+		      :show-moves="true"
+		      :show-matches="false"
+		      :show-combo="true"
+		      :score-label="t('stats.score')"
+		      :time-label="t('stats.time')"
+		      :moves-label="t('stats.moves')"
+		      :combo-label="t('stats.combo')"
+	      />
       </div>
     </div>
 
@@ -1112,27 +1411,45 @@ onUnmounted(() => {
       </div>
 
       <!-- Physics Game Board -->
-      <div
-        ref="gameBoard"
-        class="game-board"
-        :style="{
-          width: `${boardConfig.width}px`,
-          height: `${boardConfig.height}px`
-        }"
-        @click="handleBoardClick"
-        @touchend.prevent="handleBoardClick"
-        @mousemove="handleMouseMove"
-        @mouseenter="handleMouseEnter"
-        @mouseleave="handleMouseLeave"
-        @touchmove.passive="handleTouchMove"
-      >
-        <div
-          class="danger-zone"
-          :style="{
-            height: `${gameOverHeight}px`,
-            top: '0px'
-          }"
-        ></div>
+	    <div
+		    ref="gameBoard"
+		    class="game-board"
+		    :class="{ 'game-board--endless': isEndlessMode }"
+		    :style="{
+			    width: `${boardConfig.width}px`,
+			    height: `${boardConfig.height}px`
+			  }"
+		    @click="handleBoardClick"
+		    @touchend.prevent="handleBoardClick"
+		    @mousemove="handleMouseMove"
+		    @mouseenter="handleMouseEnter"
+		    @mouseleave="handleMouseLeave"
+		    @touchmove.passive="handleTouchMove"
+	    >
+		    <div
+			    class="danger-zone"
+			    :class="{ 'danger-zone--endless': isEndlessMode }"
+			    :style="{
+			      height: `${gameOverHeight}px`,
+			      top: '0px'
+			    }"
+		    ></div>
+
+		    <!-- Endless Mode Info Overlay -->
+		    <div v-if="isEndlessMode" class="endless-overlay">
+			    <div class="stars-preview">
+				    <Icon
+					    v-for="starIndex in 3"
+					    :key="starIndex"
+					    :name="starIndex <= calculateCurrentStars() ? 'star-filled' : 'star'"
+					    size="16"
+					    :class="{
+			          'star--earned': starIndex <= calculateCurrentStars(),
+			          'star--empty': starIndex > calculateCurrentStars()
+			        }"
+				    />
+			    </div>
+		    </div>
         <!-- Drop indicator line -->
         <div
           v-if="canDropFruit"
@@ -1144,26 +1461,26 @@ onUnmounted(() => {
         ></div>
 
         <!-- Fruits -->
-        <div
-          v-for="fruit in fruits"
-          :key="fruit.id"
-          class="fruit"
-          :class="{
-            'fruit--combo': fruit.comboEffect,
-            'fruit--danger': fruit.inDanger,
-            'fruit--goal': fruit.name === currentLevelConfig.targetFruit
-          }"
-          :style="{
-            left: `${fruit.x}px`,
-            top: `${fruit.y}px`,
-            width: `${fruit.size}px`,
-            height: `${fruit.size}px`,
-            transform: `rotate(${fruit.rotation}deg)`,
-            zIndex: fruit.inDanger ? 5 : 1
-          }"
-        >
-          <div class="fruit-svg" v-html="fruit.svg"></div>
-        </div>
+		    <div
+			    v-for="fruit in fruits"
+			    :key="fruit.id"
+			    class="fruit"
+			    :class="{
+			      'fruit--combo': fruit.comboEffect,
+			      'fruit--danger': fruit.inDanger,
+			      'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode
+			    }"
+			    :style="{
+			      left: `${fruit.x}px`,
+			      top: `${fruit.y}px`,
+			      width: `${fruit.size}px`,
+			      height: `${fruit.size}px`,
+			      transform: `rotate(${fruit.rotation}deg)`,
+			      zIndex: fruit.inDanger ? 5 : 1
+			    }"
+		    >
+			    <div class="fruit-svg" v-html="fruit.svg"></div>
+		    </div>
         <!-- Merge Particles Container -->
         <div class="merge-particles-container">
           <div
@@ -1204,6 +1521,17 @@ onUnmounted(() => {
 		      </div>
 	      </div>
       </div>
+	    <!-- Milestone Notifications -->
+	    <div v-if="isEndlessMode" class="milestone-notifications">
+		    <div
+			    v-for="milestone in milestones.slice(-3)"
+			    :key="milestone"
+			    class="milestone-notification"
+		    >
+			    <Icon name="trophy" size="16" />
+			    <span>{{ getMilestoneText(milestone) }}</span>
+		    </div>
+	    </div>
     </div>
     <!-- Game Completed State -->
 	  <GameCompletedModal
@@ -1211,7 +1539,7 @@ onUnmounted(() => {
 		  :level="currentLevel"
 		  :game-title="t('fruitMerge.title')"
 		  :final-score="score"
-		  :time-elapsed="0"
+		  :time-elapsed="isEndlessMode ? sessionTime : 0"
 		  :moves="moves"
 		  :matches="fruits.length"
 		  :total-pairs="fruits.length"
@@ -1225,16 +1553,18 @@ onUnmounted(() => {
 		  :reward-breakdown="rewardBreakdown"
 		  :show-completion-phases="true"
 		  :enable-phase-transition="true"
-		  :next-level-label="t('fruitMerge.next_level')"
+		  :show-next-level="!isEndlessMode"
+		  :next-level-label="isEndlessMode ? t('fruitMerge.play_again') : t('fruitMerge.next_level')"
 		  :play-again-label="t('fruitMerge.play_again')"
 		  :back-to-games-label="t('fruitMerge.back_to_levels')"
-		  @next-level="nextLevel"
+		  @next-level="isEndlessMode ? resetGame : nextLevel"
 		  @play-again="resetGame"
 		  @back-to-games="backToGaming"
 		  @close="backToGaming"
 	  />
 	  <!-- Game Over State -->
 	  <GameOverModal
+		  v-if="!isEndlessMode"
 		  :visible="gameState === 'gameOver'"
 		  :level="currentLevel"
 		  :game-title="t('fruitMerge.title')"
@@ -1478,6 +1808,103 @@ onUnmounted(() => {
 	padding: var(--space-0) var(--space-1);
 	border-radius: var(--border-radius-sm);
 	margin-left: var(--space-1);
+}
+
+.level-indicator--endless {
+	background: linear-gradient(135deg, var(--warning-color), var(--primary-color));
+	color: white;
+	animation: endlessGlow 2s ease-in-out infinite alternate;
+}
+
+.game-board--endless {
+	border: 2px solid var(--success-color);
+	box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.endless-progress {
+	display: flex;
+	gap: var(--space-3);
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-2);
+}
+
+.endless-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-1);
+	min-width: 60px;
+}
+
+.endless-label {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	text-transform: uppercase;
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+}
+
+.endless-value {
+	font-size: var(--font-size-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+}
+
+.endless-overlay {
+	position: absolute;
+	top: var(--space-2);
+	right: var(--space-2);
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.stars-preview {
+	display: flex;
+	gap: var(--space-1);
+	background-color: rgba(0, 0, 0, 0.7);
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-md);
+}
+
+.milestone-notifications {
+	position: fixed;
+	top: var(--space-16);
+	right: var(--space-4);
+	z-index: 100;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	max-width: 250px;
+}
+
+.milestone-notification {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+	color: white;
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	animation: slideInRight 0.5s ease-out;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideInRight {
+	from {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
 }
 
 @keyframes particlePop {

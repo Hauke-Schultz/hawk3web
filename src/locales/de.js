@@ -74,7 +74,10 @@ export default {
 			star_performance: '{stars}-Stern Leistung',
 			perfect_performance: 'Perfekt-Leistungs-Bonus (+50%)',
 			difficulty_multiplier: '{difficulty}: {multiplier}x Multiplikator',
-			achievement_reward: 'Erfolg: {name}'
+			achievement_reward: 'Erfolg: {name}',
+			endless_session: 'Endlos-Session',
+			time_bonus: 'Zeit-Bonus ({minutes} Minuten)',
+			merge_bonus: 'Merge-Bonus ({merges} Zusammenfügungen)',
 		}
 	},
 
@@ -305,6 +308,7 @@ export default {
 		description: 'Füge Früchte zusammen und erstelle neue Kombinationen',
 		target: 'Ziel',
 		level_title: 'Level {level}',
+		endless_mode: 'Endlos-Modus',
 		game_paused: 'Spiel pausiert',
 		level_complete: 'Level abgeschlossen!',
 		game_complete: 'Spiel abgeschlossen!',
@@ -319,6 +323,26 @@ export default {
 		combo_break: 'Combo unterbrochen!',
 		amazing_combo: 'Fantastische Combo!',
 		incredible_combo: 'Unglaubliche Combo!',
+
+		// Endless Mode spezifische Übersetzungen
+		endless: {
+			merges: 'Merges',
+			time: 'Zeit',
+			score_goal_1: '5.000 Punkte für 1 Stern',
+			score_goal_2: '15.000 Punkte für 2 Sterne',
+			score_goal_3: '35.000 Punkte für 3 Sterne',
+			merge_goal_1: '50 Merges für 1 Stern',
+			merge_goal_2: '120 Merges für 2 Sterne',
+			merge_goal_3: '250 Merges für 3 Sterne',
+			milestone_score: '{score} Punkte erreicht!',
+			milestone_time: '{minutes} Minuten gespielt!',
+			milestone_combo: '{combo}er Combo erreicht!',
+			session_stats: 'Session-Statistiken',
+			best_combo: 'Beste Combo',
+			total_time: 'Gesamtzeit',
+			achievements_unlocked: 'Erfolge freigeschaltet'
+		},
+
 		fruits: {
 			blueberry: 'Blaubeere',
 			strawberry: 'Erdbeere',
@@ -330,6 +354,7 @@ export default {
 			coconut: 'Kokosnuss',
 			melon: 'Melone'
 		},
+
 		levels: {
 			1: {
 				title: 'Anfänger',
@@ -351,6 +376,10 @@ export default {
 				title: 'Melonen-Meister',
 				description: 'Erstelle eine Melone'
 			},
+			6: {
+				title: 'Endlos-Modus',
+				description: 'Erstelle so viele Früchte wie möglich'
+			}
 		}
 	},
 

@@ -75,7 +75,10 @@ export default {
 			star_performance: '{stars}-Star Performance',
 			perfect_performance: 'Perfect Performance Bonus (+50%)',
 			difficulty_multiplier: '{difficulty}: {multiplier}x Multiplier',
-			achievement_reward: 'Achievement: {name}'
+			achievement_reward: 'Achievement: {name}',
+			endless_session: 'Endless Session',
+			time_bonus: 'Time Bonus ({minutes} minutes)',
+			merge_bonus: 'Merge Bonus ({merges} merges)',
 		}
 	},
 
@@ -306,6 +309,7 @@ export default {
 		description: 'Merge fruits to create new combinations',
 		target: 'Target',
 		level_title: 'Level {level}',
+		endless_mode: 'Endless Mode',
 		game_paused: 'Game Paused',
 		level_complete: 'Level Complete!',
 		game_complete: 'Game Complete!',
@@ -320,6 +324,26 @@ export default {
 		combo_break: 'Combo broken!',
 		amazing_combo: 'Amazing Combo!',
 		incredible_combo: 'Incredible Combo!',
+
+		// Endless Mode specific translations
+		endless: {
+			merges: 'Merges',
+			time: 'Time',
+			score_goal_1: '5,000 points for 1 star',
+			score_goal_2: '15,000 points for 2 stars',
+			score_goal_3: '35,000 points for 3 stars',
+			merge_goal_1: '50 merges for 1 star',
+			merge_goal_2: '120 merges for 2 stars',
+			merge_goal_3: '250 merges for 3 stars',
+			milestone_score: '{score} points reached!',
+			milestone_time: '{minutes} minutes played!',
+			milestone_combo: '{combo} combo achieved!',
+			session_stats: 'Session Statistics',
+			best_combo: 'Best Combo',
+			total_time: 'Total Time',
+			achievements_unlocked: 'Achievements Unlocked'
+		},
+
 		fruits: {
 			blueberry: 'Blueberry',
 			strawberry: 'Strawberry',
@@ -331,6 +355,7 @@ export default {
 			coconut: 'Coconut',
 			melon: 'Melon'
 		},
+
 		levels: {
 			1: {
 				title: 'Beginner',
@@ -338,7 +363,7 @@ export default {
 			},
 			2: {
 				title: 'Peach Master',
-				description: 'Create a peaches'
+				description: 'Create a peach'
 			},
 			3: {
 				title: 'Pineapple Challenge',
@@ -352,6 +377,10 @@ export default {
 				title: 'Melon Master',
 				description: 'Create a melon'
 			},
+			6: {
+				title: 'Endless Mode',
+				description: 'Create as many fruits as possible'
+			}
 		}
 	},
 
