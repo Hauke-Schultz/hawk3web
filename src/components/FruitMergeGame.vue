@@ -101,7 +101,7 @@ const gameOverHeight = computed(() => {
 
 const generateNextFruit = () => {
   const maxStartingLevel = 4
-  const randomIndex = 3// Math.floor(Math.random() * maxStartingLevel)
+  const randomIndex = Math.floor(Math.random() * maxStartingLevel)
   const randomFruitType = fruitTypes.value[randomIndex]
 
   if (!randomFruitType) {

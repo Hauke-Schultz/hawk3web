@@ -41,6 +41,8 @@ const matches = ref(0)
 const timeElapsed = ref(0)
 const timer = ref(null)
 const earnedAchievements = ref([])
+const levelReward = ref(null)
+const rewardBreakdown = ref(null)
 
 // Card system
 const cards = ref([])
@@ -354,7 +356,7 @@ onUnmounted(() => {
           size="small"
           :levels-label="t('gaming.stats.pairs')"
           :show-stars="false"
-          :show-percentage="true"
+          :show-percentage="false"
         />
 
         <!-- Game Performance Stats -->
@@ -445,6 +447,12 @@ onUnmounted(() => {
       :show-stars="true"
       :new-achievements="earnedAchievements"
       :show-achievements="true"
+      :show-reward="true"
+      :reward="levelReward"
+      :show-reward-breakdown="true"
+      :reward-breakdown="rewardBreakdown"
+      :show-completion-phases="true"
+      :enable-phase-transition="true"
       :next-level-label="t('memory.next_level')"
       :play-again-label="t('memory.play_again')"
       :back-to-games-label="t('memory.back_to_levels')"
@@ -495,9 +503,10 @@ onUnmounted(() => {
 }
 
 .game-stats-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-2);
+	justify-content: space-between;
 }
 
 // Game Board
