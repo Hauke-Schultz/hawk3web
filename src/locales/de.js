@@ -43,7 +43,8 @@ export default {
 		total: 'Gesamt',
 		best: 'Beste',
 		new: 'Neu',
-		try_again: 'Nochmal versuchen'
+		try_again: 'Nochmal versuchen',
+		please_wait: 'Bitte warten...',
 	},
 
 	currency: {

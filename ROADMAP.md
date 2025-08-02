@@ -1,4 +1,4 @@
-## 📊 Current Status (v0.3.0 - Currency & Rewards System)
+## 📊 Current Status v0.2.9
 
 ✅ **Completed:**
 - Basic Vue 3 project structure with Vite
@@ -36,7 +36,3 @@
 - **FruitMerge Achievements** - Game-specific achievements integration
 - **Achievement Rewards Integration** - Automatic coin rewards for achievements
 - **Welcome Card Achievement** - Coin reward for reading welcome message
-
-🚧 **Currently In Development (v0.2.9):**
-- **Level Completion Rewards** - Star-based coin calculation and first-time bonuses
-- **Combo Rewards** - Coin rewards for combo achievements in games

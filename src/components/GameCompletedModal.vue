@@ -185,8 +185,11 @@ const handleKeyDown = (event) => {
   }
 }
 
+const canTransition = ref(false)
+const transitionDelay = 2000
+
 const handleFirstPhaseClick = (event) => {
-	if (!props.enablePhaseTransition) return
+	if (!props.enablePhaseTransition || !canTransition.value) return
 	if (event) {
 		event.stopPropagation()
 	}
@@ -196,7 +199,7 @@ const handleFirstPhaseClick = (event) => {
 }
 
 const handleFirstPhaseKeyDown = (event) => {
-	if (event.key === 'Enter' || event.key === 'Escape') {
+	if ((event.key === 'Enter' || event.key === 'Escape') && canTransition.value) {
 		handleFirstPhaseClick()
 	}
 }
@@ -206,12 +209,20 @@ watch(() => props.visible, (newVisible) => {
 		// Start with first phase
 		showFirstPhase.value = true
 		showSecondPhase.value = false
+		canTransition.value = false
+
+		// Enable transition after delay
+		setTimeout(() => {
+			canTransition.value = true
+		}, transitionDelay)
 	} else if (!newVisible) {
 		// Reset phases when hidden
 		showFirstPhase.value = false
 		showSecondPhase.value = false
+		canTransition.value = false
 	}
 })
+
 </script>
 
 <template>
@@ -230,6 +241,7 @@ watch(() => props.visible, (newVisible) => {
 		  <div
 			  v-if="showFirstPhase"
 			  class="completion-first-phase"
+			  :data-can-transition="canTransition"
 			  @click="handleFirstPhaseClick"
 			  @keydown="handleFirstPhaseKeyDown"
 			  tabindex="0"
@@ -244,9 +256,12 @@ watch(() => props.visible, (newVisible) => {
 							  :name="starIndex <= starsEarned ? 'star-filled' : 'star'"
 							  size="48"
 							  :class="{
-	                'star--earned': starIndex <= starsEarned,
-	                'star--empty': starIndex > starsEarned
-	              }"
+									'star--earned': starIndex <= starsEarned,
+									'star--empty': starIndex > starsEarned
+								}"
+							  :style="{
+									'--star-delay': `${(starIndex - 1) * 0.5}s`
+								}"
 						  />
 					  </div>
 
@@ -254,6 +269,14 @@ watch(() => props.visible, (newVisible) => {
 					  <div class="score-display">
 						  <div class="score-label">{{ t('stats.final_score') }}</div>
 						  <div class="score-value">{{ finalScore }}</div>
+					  </div>
+
+					  <!-- Transition Hint -->
+					  <div v-if="enablePhaseTransition" class="transition-hint" :class="{ 'transition-hint--ready': canTransition }">
+						  <div class="hint-text">{{ canTransition ? t('common.continue') : '' }}</div>
+						  <div v-if="!canTransition" class="countdown-indicator">
+							  <div class="countdown-bar" :style="{ animationDuration: `${transitionDelay}ms` }"></div>
+						  </div>
 					  </div>
 				  </div>
 			  </div>
@@ -328,13 +351,13 @@ watch(() => props.visible, (newVisible) => {
 
           <!-- Action Buttons (dynamisch basierend auf Modus) -->
           <div class="completed-actions">
-            <button
-              v-if="showNextLevel"
-              class="btn btn--gradient"
-              @click="handleNextLevel"
-            >
-              {{ nextLevelLabel }}
-            </button>
+	          <button
+			          v-if="showBackToGames"
+			          class="btn btn--info"
+			          @click="handleBackToGames"
+	          >
+		          {{ backToGamesLabel }}
+	          </button>
             <button
               v-if="showPlayAgain"
               class="btn btn--ghost"
@@ -342,13 +365,13 @@ watch(() => props.visible, (newVisible) => {
             >
               {{ playAgainLabel }}
             </button>
-            <button
-              v-if="showBackToGames"
-              class="btn btn--info"
-              @click="handleBackToGames"
-            >
-              {{ backToGamesLabel }}
-            </button>
+	          <button
+			          v-if="showNextLevel"
+			          class="btn btn--gradient"
+			          @click="handleNextLevel"
+	          >
+		          {{ nextLevelLabel }}
+	          </button>
           </div>
         </div>
       </div>
@@ -826,13 +849,94 @@ watch(() => props.visible, (newVisible) => {
 
 		.star--earned {
 			color: var(--warning-color);
-			animation: starPopIn 4s ease-in-out infinite 2s;
+			animation: starSequentialPopIn 0.8s ease-out var(--star-delay, 0s) both;
 			filter: drop-shadow(0 0 8px var(--warning-color));
+
+			&::after {
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 100%;
+				height: 100%;
+				background: radial-gradient(circle, var(--warning-color) 0%, transparent 70%);
+				border-radius: 50%;
+				transform: translate(-50%, -50%) scale(0);
+				opacity: 0;
+				animation: starSparkle 0.6s ease-out calc(var(--star-delay, 0s) + 0.4s) infinite;
+				pointer-events: none;
+				z-index: -1;
+			}
 		}
 
 		.star--empty {
 			color: var(--text-muted);
 			opacity: 0.4;
+			animation: starFadeIn 0.4s ease-out calc(var(--star-delay, 0s) + 0.6s) both;
+		}
+	}
+
+	@keyframes starSparkle {
+		0% {
+			transform: translate(-50%, -50%) scale(0);
+			opacity: 0;
+		}
+		50% {
+			transform: translate(-50%, -50%) scale(1.5);
+			opacity: 0.6;
+		}
+		100% {
+			transform: translate(-50%, -50%) scale(2);
+			opacity: 0;
+		}
+	}
+
+	@keyframes starSequentialPopIn {
+		0% {
+			transform: scale(0) rotate(-270deg);
+			opacity: 0;
+			filter: drop-shadow(0 0 0px var(--warning-color)) brightness(1);
+		}
+		20% {
+			transform: scale(0.2) rotate(-180deg);
+			opacity: 0.3;
+			filter: drop-shadow(0 0 4px var(--warning-color)) brightness(1.2);
+		}
+		40% {
+			transform: scale(0.8) rotate(-45deg);
+			opacity: 0.7;
+			filter: drop-shadow(0 0 8px var(--warning-color)) brightness(1.5);
+		}
+		60% {
+			transform: scale(1.4) rotate(15deg);
+			opacity: 0.9;
+			filter: drop-shadow(0 0 12px var(--warning-color)) brightness(1.8);
+		}
+		75% {
+			transform: scale(0.85) rotate(-8deg);
+			opacity: 1;
+			filter: drop-shadow(0 0 10px var(--warning-color)) brightness(1.4);
+		}
+		90% {
+			transform: scale(1.1) rotate(3deg);
+			opacity: 1;
+			filter: drop-shadow(0 0 8px var(--warning-color)) brightness(1.1);
+		}
+		100% {
+			transform: scale(1) rotate(0deg);
+			opacity: 1;
+			filter: drop-shadow(0 0 8px var(--warning-color)) brightness(1);
+		}
+	}
+
+	@keyframes starFadeIn {
+		from {
+			opacity: 0;
+			transform: scale(0.8);
+		}
+		to {
+			opacity: 0.4;
+			transform: scale(1);
 		}
 	}
 
@@ -860,6 +964,82 @@ watch(() => props.visible, (newVisible) => {
 		line-height: 1;
 	}
 }
+
+.transition-hint {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	opacity: 0.7;
+	min-height: var(--space-6);
+	transition: opacity 0.3s ease;
+
+	&--ready {
+		opacity: 1;
+
+		.hint-text {
+			animation: pulseHint 1s ease-in-out infinite alternate;
+		}
+	}
+}
+
+.hint-text {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.countdown-indicator {
+	width: 120px;
+	height: 4px;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: var(--border-radius-sm);
+	overflow: hidden;
+	backdrop-filter: blur(4px);
+}
+
+.countdown-bar {
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+	border-radius: var(--border-radius-sm);
+	transform: translateX(-100%);
+	animation: countdownProgress linear forwards;
+	box-shadow: 0 0 8px rgba(79, 70, 229, 0.6);
+}
+
+@keyframes countdownProgress {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0%);
+	}
+}
+
+@keyframes pulseHint {
+	from {
+		transform: scale(1);
+		opacity: 0.8;
+	}
+	to {
+		transform: scale(1.05);
+		opacity: 1;
+	}
+}
+
+// Cursor-Status je nach Transition-Bereitschaft
+.completion-first-phase {
+	cursor: wait;
+
+	&[data-can-transition="true"] {
+		cursor: pointer;
+	}
+}
+
 
 // Second Phase Specific Styles
 .game-completed-overlay--second-phase {

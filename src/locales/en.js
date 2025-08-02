@@ -45,6 +45,7 @@ export default {
 		new: 'New',
 		try_again: 'Try Again',
 		mark_as_read: 'Mark as read',
+		please_wait: 'Please wait...'
 	},
 
 	currency: {
