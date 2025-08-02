@@ -346,10 +346,10 @@ export default {
 		fruits: {
 			blueberry: 'Blaubeere',
 			strawberry: 'Erdbeere',
-			grape: 'Traube',
+			lemon: 'Zitrone',
 			orange: 'Orange',
 			apple: 'Apfel',
-			peach: 'Pfirsich',
+			grapefruit: 'Grapefrucht',
 			pineapple: 'Ananas',
 			coconut: 'Kokosnuss',
 			melon: 'Melone'
@@ -361,8 +361,8 @@ export default {
 				description: 'Erstelle einen Apfel'
 			},
 			2: {
-				title: 'Pfirsich-Meister',
-				description: 'Erstelle einen Pfirsich'
+				title: 'Grape-Meister',
+				description: 'Erstelle eine Grapefrucht'
 			},
 			3: {
 				title: 'Ananas-Challenge',
@@ -478,6 +478,29 @@ export default {
 			fruitMerge_master: {
 				name: 'Zusammenfüge-Meister',
 				description: 'Die ultimative FruitMerge Herausforderung abgeschlossen'
+			},endless_first_play: {
+				name: 'Endlos-Entdecker',
+				description: 'Dein erstes Endlos-Spiel gespielt',
+			},
+			endless_bronze: {
+				name: 'Bronze-Merger',
+				description: '1 Stern im Endlos-Modus erreicht',
+			},
+			endless_silver: {
+				name: 'Silber-Merger',
+				description: '2 Sterne im Endlos-Modus erreicht',
+			},
+			endless_gold: {
+				name: 'Gold-Merger',
+				description: '3 Sterne im Endlos-Modus erreicht',
+			},
+			endless_marathon: {
+				name: 'Marathon-Merger',
+				description: 'Endlos-Modus für 30 Minuten gespielt',
+			},
+			endless_merge_master: {
+				name: 'Merge-Meister',
+				description: '500 Zusammenfügungen im Endlos-Modus durchgeführt',
 			},
 
 			perfectionist: {

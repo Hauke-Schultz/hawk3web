@@ -347,10 +347,10 @@ export default {
 		fruits: {
 			blueberry: 'Blueberry',
 			strawberry: 'Strawberry',
-			grape: 'Grape',
+			lemon: 'Lemon',
 			orange: 'Orange',
 			apple: 'Apple',
-			peach: 'Peach',
+			grapefruit: 'Grapefruit',
 			pineapple: 'Pineapple',
 			coconut: 'Coconut',
 			melon: 'Melon'
@@ -362,8 +362,8 @@ export default {
 				description: 'Create an apple'
 			},
 			2: {
-				title: 'Peach Master',
-				description: 'Create a peach'
+				title: 'Lemon Master',
+				description: 'Create a lemon'
 			},
 			3: {
 				title: 'Pineapple Challenge',
@@ -479,6 +479,30 @@ export default {
 			fruitMerge_master: {
 				name: 'Merge Master',
 				description: 'Completed the ultimate FruitMerge challenge'
+			},
+			endless_first_play: {
+				name: 'Endless Explorer',
+				description: 'Played your first endless game',
+			},
+			endless_bronze: {
+				name: 'Bronze Merger',
+				description: 'Earned 1 star in endless mode',
+			},
+			endless_silver: {
+				name: 'Silver Merger',
+				description: 'Earned 2 stars in endless mode',
+			},
+			endless_gold: {
+				name: 'Gold Merger',
+				description: 'Earned 3 stars in endless mode',
+			},
+			endless_marathon: {
+				name: 'Marathon Merger',
+				description: 'Played endless mode for 30 minutes',
+			},
+			endless_merge_master: {
+				name: 'Merge Master',
+				description: 'Performed 500 merges in endless mode',
 			},
 
 			perfectionist: {

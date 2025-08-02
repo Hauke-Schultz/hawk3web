@@ -3,7 +3,7 @@
 export const PHYSICS_CONFIG = {
 	board: {
 		width: 320,
-		height: 380,
+		height: 400,
 		thickness: 10,
 	},
 
@@ -65,7 +65,7 @@ export const PHYSICS_CONFIG = {
 	},
 
 	// Game Over
-	gameOverHeight: 320,
+	gameOverHeight: 340,
 	fruitsInDanger: 3,
 	gameOverCheckInterval: 1000,
 
@@ -143,8 +143,8 @@ export const FRUIT_TYPES = {
 		index: 2,
 		type: 'STRAWBERRY',
 		emoji: '🍓',
-		radius: 30,
-		nextType: 'GRAPE',
+		radius: 24,
+		nextType: 'LEMON',
 		color: '#ff8787',
 		scoreValue: 25,
 		gradient: ['#ffab91', '#ff8787', '#f4511e'],
@@ -200,17 +200,17 @@ export const FRUIT_TYPES = {
     <path d="M30,8 L34,8 L36,12 L28,12 Z" fill="#4CAF50"/>
 </svg>`
 	},
-	GRAPE: {
+	LEMON: {
 		index: 3,
-		type: 'GRAPE',
-		emoji: '🍇',
-		radius: 36,
+		type: 'LEMON',
+		emoji: '🍋',
+		radius: 28,
 		nextType: 'ORANGE',
-		color: '#845ec2',
+		color: '#fdd835',
 		scoreValue: 50,
-		gradient: ['#b39ddb', '#845ec2', '#5e35b1'],
-		shadow: '0 2px 8px rgba(94, 53, 177, 0.4)',
-		glowColor: 'rgba(132, 94, 194, 0.6)',
+		gradient: ['#fff176', '#fdd835', '#fbc02d'],
+		shadow: '0 2px 8px rgba(255, 235, 59, 0.4)',
+		glowColor: 'rgba(253, 216, 53, 0.6)',
 		sparkleColor: '#FFEB3B',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -258,7 +258,7 @@ export const FRUIT_TYPES = {
 		index: 4,
 		type: 'ORANGE',
 		emoji: '🍊',
-		radius: 42,
+		radius: 34,
 		nextType: 'APPLE',
 		color: '#ffa726',
 		scoreValue: 100,
@@ -314,8 +314,8 @@ export const FRUIT_TYPES = {
 		index: 5,
 		type: 'APPLE',
 		emoji: '🍎',
-		radius: 48,
-		nextType: 'PEACH',
+		radius: 40,
+		nextType: 'DRAGON_FRUIT',
 		color: '#e53e3e',
 		scoreValue: 200,
 		gradient: ['#ef5350', '#e53e3e', '#c62828'],
@@ -369,11 +369,11 @@ export const FRUIT_TYPES = {
     <ellipse cx="34" cy="6" rx="2" ry="3" fill="#4CAF50"/>
 </svg>`
 	},
-	PEACH: {
+	GRAPEFRUIT: {
 		index: 6,
-		type: 'PEACH',
+		type: 'GRAPEFRUIT',
 		emoji: '🍑',
-		radius: 54,
+		radius: 44,
 		nextType: 'PINEAPPLE',
 		color: '#ff7043',
 		scoreValue: 400,
@@ -383,12 +383,12 @@ export const FRUIT_TYPES = {
 		sparkleColor: '#FFAB91',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
-        <radialGradient id="peachGrad" cx="0.3" cy="0.3">
+        <radialGradient id="grapeGrad" cx="0.3" cy="0.3">
             <stop offset="0%" style="stop-color:#FFCC80"/>
             <stop offset="100%" style="stop-color:#FFAB91"/>
         </radialGradient>
     </defs>
-    <circle cx="32" cy="32" r="30" fill="url(#peachGrad)" stroke="#FF8A65" stroke-width="2"/>
+    <circle cx="32" cy="32" r="30" fill="url(#grapeGrad)" stroke="#FF8A65" stroke-width="2"/>
     <path d="M28,8 Q32,12 36,8" stroke="#FF7043" stroke-width="2" fill="none" opacity="0.6"/>
     <path d="M24,16 Q32,20 40,16" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.5"/>
     <path d="M20,28 Q32,32 44,28" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.4"/>
@@ -415,7 +415,7 @@ export const FRUIT_TYPES = {
 		index: 7,
 		type: 'PINEAPPLE',
 		emoji: '🍍',
-		radius: 72,
+		radius: 58,
 		nextType: 'COCONUT',
 		color: '#d69e2e',
 		scoreValue: 800,
@@ -473,7 +473,7 @@ export const FRUIT_TYPES = {
 		index: 8,
 		type: 'COCONUT',
 		emoji: '🥥',
-		radius: 84,
+		radius: 68,
 		nextType: 'MELON',
 		color: '#8b4513',
 		scoreValue: 3200,
@@ -515,8 +515,8 @@ export const FRUIT_TYPES = {
 		index: 9,
 		type: 'MELON',
 		emoji: '🍉',
-		radius: 100,
-		nextType: null,
+		radius: 78,
+		nextType: 'DRAGON_FRUIT',
 		color: '#38b2ac',
 		scoreValue: 1600,
 		gradient: ['#4db6ac', '#38b2ac', '#00695c'],
@@ -552,6 +552,137 @@ export const FRUIT_TYPES = {
     <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
     <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
 </svg>`
+	},
+	DRAGON_FRUIT: {
+		index: 10,
+		type: 'DRAGON_FRUIT',
+		emoji: '🐉',
+		radius: 88,
+		nextType: 'PUMPKIN',
+		color: '#e91e63',
+		scoreValue: 3200,
+		gradient: ['#f48fb1', '#e91e63', '#ad1457'],
+		shadow: '0 6px 24px rgba(173, 20, 87, 0.8)',
+		glowColor: 'rgba(233, 30, 99, 1.0)',
+		sparkleColor: '#f8bbd9',
+		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="dragonGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#F8BBD0"/>
+            <stop offset="50%" style="stop-color:#E91E63"/>
+            <stop offset="100%" style="stop-color:#AD1457"/>
+        </radialGradient>
+    </defs>
+
+    <!-- Dragon fruit body -->
+    <ellipse cx="32" cy="32" rx="30" ry="30" fill="url(#dragonGrad)" stroke="#880E4F" stroke-width="2"/>
+
+    <!-- Dragon fruit scales pattern -->
+    <g fill="#C2185B" opacity="0.6">
+        <circle cx="20" cy="20" r="2"/>
+        <circle cx="32" cy="18" r="2"/>
+        <circle cx="44" cy="20" r="2"/>
+        <circle cx="16" cy="32" r="2"/>
+        <circle cx="28" cy="30" r="2"/>
+        <circle cx="36" cy="30" r="2"/>
+        <circle cx="48" cy="32" r="2"/>
+        <circle cx="20" cy="44" r="2"/>
+        <circle cx="32" cy="46" r="2"/>
+        <circle cx="44" cy="44" r="2"/>
+        <circle cx="24" cy="36" r="1.5"/>
+        <circle cx="40" cy="36" r="1.5"/>
+    </g>
+
+    <!-- Dragon fruit leafy top -->
+    <g stroke="#4CAF50" stroke-width="3" fill="#66BB6A">
+        <path d="M26,8 Q24,4 20,6 Q18,8 22,12"/>
+        <path d="M32,6 Q30,2 26,4 Q24,6 28,10"/>
+        <path d="M38,6 Q36,2 32,4 Q30,6 34,10"/>
+        <path d="M44,8 Q42,4 38,6 Q36,8 40,12"/>
+    </g>
+
+    <!-- Eyes -->
+    <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+    <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
+    <circle cx="24" cy="26" r="2.5" fill="black"/>
+    <circle cx="40" cy="26" r="2.5" fill="black"/>
+    <circle cx="25" cy="25" r="1" fill="white"/>
+    <circle cx="41" cy="25" r="1" fill="white"/>
+
+    <!-- Mouth -->
+    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Mystical sparkles -->
+    <g fill="#FFD700" opacity="0.8">
+        <polygon points="12,16 14,18 12,20 10,18" transform="rotate(45 12 18)"/>
+        <polygon points="52,16 54,18 52,20 50,18" transform="rotate(45 52 18)"/>
+        <polygon points="12,48 14,50 12,52 10,50" transform="rotate(45 12 50)"/>
+        <polygon points="52,48 54,50 52,52 50,50" transform="rotate(45 52 50)"/>
+    </g>
+</svg>`
+	},
+	PUMPKIN: {
+		index: 11,
+		type: 'PUMPKIN',
+		emoji: '🎃',
+		radius: 92,
+		nextType: null,
+		color: '#ff8c00',
+		scoreValue: 3200,
+		gradient: ['#ffa726', '#ff8c00', '#ef6c00'],
+		shadow: '0 6px 24px rgba(239, 108, 0, 0.8)',
+		glowColor: 'rgba(255, 140, 0, 1.0)',
+		sparkleColor: '#ffcc02',
+		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="pumpkinGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFB74D"/>
+            <stop offset="100%" style="stop-color:#FF8C00"/>
+        </radialGradient>
+        <radialGradient id="stemGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#8BC34A"/>
+            <stop offset="100%" style="stop-color:#4CAF50"/>
+        </radialGradient>
+    </defs>
+    
+    <!-- Pumpkin body with segments -->
+    <circle cx="32" cy="32" r="30" fill="url(#pumpkinGrad)" stroke="#E65100" stroke-width="2"/>
+    
+    <!-- Pumpkin segments (vertical lines) -->
+    <path d="M32,2 Q28,32 32,62" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M20,8 Q18,32 20,56" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M44,8 Q46,32 44,56" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M12,18 Q10,32 12,46" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M52,18 Q54,32 52,46" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
+    
+    <!-- Pumpkin stem -->
+    <rect x="30" y="2" width="4" height="8" rx="2" fill="url(#stemGrad)"/>
+    <ellipse cx="32" cy="6" rx="3" ry="1.5" fill="#689F38"/>
+    
+    <!-- Pumpkin leaf -->
+    <path d="M28,4 Q24,2 26,8 Q28,6 28,4" fill="#4CAF50" opacity="0.8"/>
+    
+    <!-- Eyes -->
+    <polygon points="20,22 28,22 24,30" fill="#2E1065"/>
+    <polygon points="36,22 44,22 40,30" fill="#2E1065"/>
+    
+    <!-- Nose -->
+    <polygon points="30,32 34,32 32,38" fill="#2E1065"/>
+    
+    <!-- Mouth -->
+    <path d="M20,42 L22,40 L26,42 L30,40 L34,42 L38,40 L42,42 L44,44 L42,46 L38,44 L34,46 L30,44 L26,46 L22,44 Z" 
+          fill="#2E1065"/>
+    
+    <!-- Teeth -->
+    <rect x="24" y="42" width="2" height="4" fill="#FFB74D"/>
+    <rect x="30" y="42" width="2" height="4" fill="#FFB74D"/>
+    <rect x="36" y="42" width="2" height="4" fill="#FFB74D"/>
+    
+    <!-- Highlight -->
+    <ellipse cx="26" cy="20" rx="4" ry="6" fill="#FFCC80" opacity="0.6"/>
+    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
+    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
+</svg>`
 	}
 }
 
@@ -583,13 +714,13 @@ export const FRUIT_MERGE_LEVELS = {
 		}
 	},
 	2: {
-		targetFruit: 'PEACH',
+		targetFruit: 'GRAPEFRUIT',
 		title: 'Medium',
 		description: "Erstelle einen Pfirsiche",
 		starThresholds: {
-			1: { targetFruit: 'PEACH', moves: 26 },
-			2: { targetFruit: 'PEACH', moves: 20 },
-			3: { targetFruit: 'PEACH', moves: 16 }
+			1: { targetFruit: 'GRAPEFRUIT', moves: 26 },
+			2: { targetFruit: 'GRAPEFRUIT', moves: 20 },
+			3: { targetFruit: 'GRAPEFRUIT', moves: 16 }
 		}
 	},
 	3: {

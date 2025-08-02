@@ -108,14 +108,8 @@ const isEndlessMode = computed(() => {
 	return currentLevelConfig.value.isEndless || false
 })
 
-const shouldShowGameOver = computed(() => {
-	return !isEndlessMode.value // Kein Game Over im Endlos-Modus
-})
-
-
 const generateNextFruit = () => {
-	const maxStartingLevel = isEndlessMode.value ?
-			Math.min(6, Math.floor(totalMerges.value / 20) + 4) : 4
+	const maxStartingLevel = 4
 	const randomIndex = Math.floor(Math.random() * maxStartingLevel)
 	const randomFruitType = fruitTypes.value[randomIndex]
 

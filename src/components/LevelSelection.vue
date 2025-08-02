@@ -53,8 +53,7 @@ const levelData = computed(() => {
 		const levelNumber = index + 1
 		const levelStats = gameStats.value.levels?.[levelNumber] || {}
 
-		const isUnlocked = levelNumber === 1 ||
-				levelNumber === 6 || // Level 6 (Endless) ist immer freigeschaltet
+		const isUnlocked = levelNumber === 1 || level.isEndless ||
 				(gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
 		const stars = calculateLevelStars(levelStats, level)
