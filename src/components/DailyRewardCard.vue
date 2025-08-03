@@ -38,9 +38,9 @@ const isMarkedAsRead = ref(false)
 
 // Event handlers
 const handleClick = () => {
-	// Only emit click events, not mark-as-read
+	// Emit click events for backward compatibility
 	emit('click')
-	emit('package-click') // Emit both for backward compatibility
+	emit('package-click')
 }
 
 const handleCheckboxChange = (event) => {

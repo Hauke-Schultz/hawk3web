@@ -93,6 +93,12 @@ const getDefaultData = () => ({
 			read: false,
 			lastShown: null,
 			readAt: null
+		},
+		dailyRewardCard: {
+			read: false,
+			lastShown: null,
+			readAt: null,
+			lastClaimed: null
 		}
 	},
 	achievements: [
@@ -543,7 +549,10 @@ export function useLocalStorage() {
 			gameData.cardStates[cardType].read = true
 			gameData.cardStates[cardType].readAt = new Date().toISOString()
 
-			// Check for card-related achievements
+			if (cardType === 'dailyRewardCard') {
+				gameData.cardStates[cardType].lastClaimed = new Date().toISOString()
+			}
+
 			const cardAchievements = checkCardReadAchievement(cardType, gameData)
 
 			cardAchievements.forEach(achievement => {
@@ -663,8 +672,9 @@ export function useLocalStorage() {
 		const now = new Date()
 		const lastClaimedDate = new Date(lastClaimed)
 		const daysDiff = Math.floor((now - lastClaimedDate) / (1000 * 60 * 60 * 24))
+		const cardRead = gameData.cardStates.dailyRewardCard?.read || false
 
-		return daysDiff >= 1
+		return daysDiff >= 1 && !cardRead
 	}
 
 	const claimDailyReward = () => {

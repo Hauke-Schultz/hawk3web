@@ -8,7 +8,7 @@ import Header from "./Header.vue";
 import DailyRewardCard from "./DailyRewardCard.vue";
 
 // LocalStorage service for achievements
-const { gameData, markCardAsRead, isCardRead, canClaimDailyReward } = useLocalStorage()
+const { gameData, markCardAsRead, isCardRead, canClaimDailyReward, claimDailyReward } = useLocalStorage()
 
 // Emits for parent component communication
 const emit = defineEmits([
@@ -27,12 +27,13 @@ const isWelcomeCardVisible = computed(() => {
 })
 
 const isDailyRewardVisible = computed(() => {
-	return canClaimDailyReward()
+	return canClaimDailyReward() && !isCardRead('dailyRewardCard')
 })
 
 // Event handlers - emit to parent component
 const handleDailyRewardClaim = (reward) => {
-	// Optional: Show success feedback
+	console.log(`🎁 Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds, Streak: ${reward.streak}`)
+	// Hier könntest du später eine Toast-Benachrichtigung oder Animation hinzufügen
 }
 
 const handleStartGame = () => {
@@ -62,7 +63,15 @@ const handlePackageClick = () => {
 // Card read handlers
 const handleCardRead = (cardType) => {
   console.log(`Marking ${cardType} as read...`, gameData.player.coins)
-  markCardAsRead(cardType)
+	if (cardType === 'dailyRewardCard') {
+		const reward = claimDailyReward()
+		if (reward) {
+			console.log(`Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds`)
+			handleDailyRewardClaim(reward)
+		}
+	}
+
+	markCardAsRead(cardType)
 }
 
 // watch gameData if changes are needed
@@ -95,8 +104,8 @@ watch(() => gameData, (newData) => {
 		  v-if="isDailyRewardVisible"
 		  :title="t('daily_rewards.title')"
 		  card-type="dailyRewardCard"
-		  @claim-reward="handleDailyRewardClaim"
 		  @mark-as-read="handleCardRead"
+		  @click="handlePackageClick"
 	  />
     <!-- Game Actions Section -->
     <section class="game-actions" aria-label="Game Actions">
