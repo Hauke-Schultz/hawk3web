@@ -60,17 +60,10 @@ const handleClick = () => {
 const handleCheckboxChange = (event) => {
   // Stop event propagation to prevent card click
   event.stopPropagation()
-
   isMarkedAsRead.value = event.target.checked
 
   if (event.target.checked) {
-    // Emit read event when checkbox is checked
     emit('mark-as-read', props.cardType)
-
-    // Optional: Show feedback that achievement was earned
-    setTimeout(() => {
-      console.log('💰 Welcome bonus earned!')
-    }, 500)
   }
 }
 

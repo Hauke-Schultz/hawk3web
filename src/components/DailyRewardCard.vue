@@ -36,15 +36,11 @@ const nextReward = computed(() => ({
 // Reactive state for checkbox
 const isMarkedAsRead = ref(false)
 
-const handleClaimReward = () => {
-	if (canClaim.value) {
-		const reward = claimDailyReward()
-		if (reward) {
-			emit('claim-reward', reward)
-			emit('mark-as-read', props.cardType)
-			console.log(`🎁 Daily reward claimed:`, reward)
-		}
-	}
+// Event handlers
+const handleClick = () => {
+	// Only emit click events, not mark-as-read
+	emit('click')
+	emit('package-click') // Emit both for backward compatibility
 }
 
 const handleCheckboxChange = (event) => {
@@ -52,9 +48,8 @@ const handleCheckboxChange = (event) => {
 	event.stopPropagation()
 	isMarkedAsRead.value = event.target.checked
 
-	if (isMarkedAsRead.value) {
+	if (event.target.checked) {
 		emit('mark-as-read', props.cardType)
-		console.log(`✅ ${props.cardType} marked as read`)
 	}
 }
 
@@ -63,14 +58,21 @@ const handleCheckboxClick = (event) => {
 	event.stopPropagation()
 }
 
+const handleKeyDown = (event) => {
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault()
+		handleClick()
+	}
+}
+
 </script>
 
 <template>
 	<section
 			v-if="visible && canClaim"
 			class="daily-reward-card"
-			@click="handleClaimReward"
-			@keydown.enter="handleClaimReward"
+			@click="handleClick"
+			@keydown="handleKeyDown"
 			tabindex="0"
 			:aria-label="`${title}`"
 	>

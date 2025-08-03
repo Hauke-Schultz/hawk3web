@@ -155,10 +155,7 @@ const handleMenuClick = () => {
 						@click="selectFontSize(option.value)"
 						:aria-pressed="selectedFontSize === option.value"
 				>
-					<span class="font-size-label">{{ option.label() }}</span>
-					<span class="font-size-preview" :class="`font-size-preview--${option.value}`">
-            Aa
-          </span>
+					<span class="font-size-label" :class="`font-size-preview--${option.value}`">{{ option.label() }}</span>
 				</button>
 			</div>
 		</section>
@@ -258,20 +255,20 @@ const handleMenuClick = () => {
 .theme-selector {
   background-color: var(--card-bg);
   border-radius: var(--border-radius-xl);
-  padding: var(--space-1);
+	padding: var(--space-2);
   display: flex;
   gap: var(--space-1);
 }
 
 .theme-option {
   flex: 1;
-  padding: var(--space-2) var(--space-3);
+	padding: var(--space-3) var(--space-4);
   border-radius: var(--border-radius-lg);
   border: none;
   background-color: transparent;
   color: var(--text-color);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-base);
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: var(--font-family-base), serif;
@@ -301,7 +298,7 @@ const handleMenuClick = () => {
   border-radius: var(--border-radius-xl);
   padding: var(--space-2);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--space-1);
 }
 
@@ -361,14 +358,14 @@ const handleMenuClick = () => {
 	border-radius: var(--border-radius-xl);
 	padding: var(--space-2);
 	display: flex;
-	flex-direction: column;
 	gap: var(--space-1);
+	flex-direction: row;
+	justify-content: space-between;
 }
 
 .font-size-option {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	padding: var(--space-3) var(--space-4);
 	border-radius: var(--border-radius-lg);
 	border: none;
@@ -380,6 +377,8 @@ const handleMenuClick = () => {
 	transition: all 0.2s ease;
 	font-family: var(--font-family-base), serif;
 	text-align: left;
+	width: 100%;
+	justify-content: center;
 
 	&:hover {
 		background-color: var(--card-bg-hover);
