@@ -1,4 +1,3 @@
-// Shop categories and items configuration
 export const SHOP_CATEGORIES = {
   cosmetics: {
     id: 'cosmetics',
@@ -24,86 +23,108 @@ export const SHOP_CATEGORIES = {
 }
 
 export const SHOP_ITEMS = [
-  // Cosmetic Items
+  // Simple Cosmetic Items with Emojis
   {
-    id: 'premium_avatar_set_1',
-    name: 'Golden Avatar Pack',
-    description: 'Exclusive golden-themed avatar collection',
+    id: 'sunglasses',
+    name: 'Cool Sunglasses',
+    description: 'Look cool with stylish sunglasses',
     category: 'cosmetics',
-    price: { coins: 1000, diamonds: 0 },
-    rarity: 'rare',
-    icon: 'avatar/cap',
-    preview: 'avatar/cap',
-    type: 'avatar_pack',
-    contents: ['avatar/golden_warrior', 'avatar/golden_mage'],
+    price: { coins: 500, diamonds: 0 },
+    rarity: 'common',
+    icon: '🕶️',
+    type: 'cosmetic',
     purchaseLimit: 1
   },
   {
-    id: 'exclusive_frame_set',
-    name: 'Diamond Frame Collection',
-    description: 'Shiny diamond frames for your profile',
+    id: 'regular_glasses',
+    name: 'Smart Glasses',
+    description: 'Classic eyeglasses for the intellectual look',
     category: 'cosmetics',
-    price: { coins: 2500, diamonds: 5 },
-    rarity: 'epic',
-    icon: 'trophy',
-    type: 'profile_frame',
-    contents: ['frame_diamond_basic', 'frame_diamond_advanced'],
+    price: { coins: 300, diamonds: 0 },
+    rarity: 'common',
+    icon: '👓',
+    type: 'cosmetic',
     purchaseLimit: 1
   },
   {
-    id: 'theme_sunset',
-    name: 'Sunset Theme',
-    description: 'Beautiful sunset color theme',
+    id: 'cap',
+    name: 'Baseball Cap',
+    description: 'Sporty cap for casual gaming',
+    category: 'cosmetics',
+    price: { coins: 400, diamonds: 0 },
+    rarity: 'common',
+    icon: '🧢',
+    type: 'cosmetic',
+    purchaseLimit: 1
+  },
+  {
+    id: 'tophat',
+    name: 'Top Hat',
+    description: 'Elegant top hat for distinguished players',
     category: 'cosmetics',
     price: { coins: 800, diamonds: 0 },
-    rarity: 'uncommon',
-    icon: 'settings',
-    type: 'theme',
-    themeData: {
-      primary: '#FF6B35',
-      secondary: '#F7931E',
-      accent: '#FFE66D'
-    },
+    rarity: 'rare',
+    icon: '🎩',
+    type: 'cosmetic',
+    purchaseLimit: 1
+  },
+  {
+    id: 'car',
+    name: 'Cool Car',
+    description: 'Show off with your own car',
+    category: 'cosmetics',
+    price: { coins: 2000, diamonds: 5 },
+    rarity: 'epic',
+    icon: '🚗',
+    type: 'cosmetic',
+    purchaseLimit: 1
+  },
+  {
+    id: 'crown',
+    name: 'Golden Crown',
+    description: 'Royal crown for true champions',
+    category: 'cosmetics',
+    price: { coins: 5000, diamonds: 10 },
+    rarity: 'legendary',
+    icon: '👑',
+    type: 'cosmetic',
     purchaseLimit: 1
   },
 
-  // Power-ups
+  // Simple Power-ups
   {
-    id: 'double_coins_1hour',
-    name: '2x Coins (1 Hour)',
+    id: 'double_coins',
+    name: '2x Coins Boost',
     description: 'Double coin rewards for 1 hour',
     category: 'powerups',
     price: { coins: 500, diamonds: 0 },
     rarity: 'common',
-    icon: 'star',
+    icon: '⭐',
     type: 'boost',
-    effect: { type: 'coin_multiplier', value: 2, duration: 3600 },
-    purchaseLimit: null // unlimited
+    purchaseLimit: null
   },
   {
-    id: 'extra_lives_5',
-    name: '5 Extra Lives',
-    description: 'Get 5 additional attempts for challenging levels',
+    id: 'extra_lives',
+    name: 'Extra Lives',
+    description: 'Get 5 additional attempts',
     category: 'powerups',
     price: { coins: 300, diamonds: 0 },
     rarity: 'common',
-    icon: 'heart',
+    icon: '❤️',
     type: 'consumable',
-    effect: { type: 'extra_lives', value: 5 },
     purchaseLimit: null
   },
 
-  // Utilities
+  // Simple Utilities
   {
-    id: 'level_skip_token',
-    name: 'Level Skip Token',
+    id: 'level_skip',
+    name: 'Skip Level',
     description: 'Skip any level instantly',
     category: 'utilities',
     price: { coins: 0, diamonds: 10 },
     rarity: 'epic',
-    icon: 'arrow-right',
+    icon: '⏭️',
     type: 'consumable',
-    effect: { type: 'level_skip' },
     purchaseLimit: null
   }
 ]
