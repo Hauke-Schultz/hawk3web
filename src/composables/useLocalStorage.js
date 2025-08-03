@@ -1,6 +1,13 @@
 import {ref, reactive, watch, computed} from 'vue'
-import { ACHIEVEMENTS, checkAchievementCondition, checkCardReadAchievement } from '../config/achievementsConfig.js'
+import {
+	ACHIEVEMENTS,
+	checkAchievementCondition,
+	checkCardReadAchievement,
+	REWARDS
+} from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
+import {useI18n} from "./useI18n.js";
+const { t } = useI18n()
 
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'
@@ -54,7 +61,7 @@ const getDefaultData = () => ({
 	currency: {
 		transactions: [],
 		dailyRewards: {
-			lastClaimed: null,
+			lastClaimed: '2023-01-01',
 			streak: 0,
 			nextRewardCoins: 50,
 			nextRewardDiamonds: 1
@@ -185,6 +192,15 @@ const migrateData = (data) => {
 			data.currency = getDefaultData().currency
 		}
 
+		if (!data.currency.dailyRewards) {
+			data.currency.dailyRewards = {
+				lastClaimed: '2023-01-01',
+				streak: 0,
+				nextRewardCoins: 50,
+				nextRewardDiamonds: 1
+			}
+		}
+
 		if (!data.player?.coins && data.player?.coins !== 0) {
 			data.player.coins = 0
 			data.player.diamonds = 0
@@ -208,6 +224,7 @@ export function useLocalStorage() {
 
 				return {
 					player: validatePlayerData(migrated.player),
+					currency: migrated.currency || getDefaultData().currency,
 					settings: validateSettingsData(migrated.settings),
 					games: validateGameData(migrated.games),
 					cardStates: validateCardStates(migrated.cardStates),
@@ -639,6 +656,85 @@ export function useLocalStorage() {
 		}
 	}
 
+	const canClaimDailyReward = () => {
+		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
+		if (!lastClaimed) return true
+
+		const now = new Date()
+		const lastClaimedDate = new Date(lastClaimed)
+		const daysDiff = Math.floor((now - lastClaimedDate) / (1000 * 60 * 60 * 24))
+
+		return daysDiff >= 1
+	}
+
+	const claimDailyReward = () => {
+		if (!canClaimDailyReward()) return null
+
+		const now = new Date()
+		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
+		const currentStreak = gameData.currency.dailyRewards.streak || 0
+
+		// Check if streak continues (claimed yesterday) or resets
+		let newStreak = 1
+		if (lastClaimed) {
+			const daysDiff = Math.floor((now - new Date(lastClaimed)) / (1000 * 60 * 60 * 24))
+			if (daysDiff === 1) {
+				newStreak = Math.min(currentStreak + 1, REWARDS.dailyRewards.maxStreak)
+			}
+		}
+
+		// Calculate reward based on streak
+		const baseReward = REWARDS.dailyRewards.base
+		const streakMultiplier = Math.pow(REWARDS.dailyRewards.streakMultiplier, newStreak - 1)
+
+		const reward = {
+			coins: Math.floor(baseReward.coins * streakMultiplier),
+			diamonds: baseReward.diamonds + Math.floor(newStreak / 3), // Extra diamond every 3 days
+			streak: newStreak,
+			claimedAt: now.toISOString()
+		}
+
+		// Update player currency
+		gameData.player.coins += reward.coins
+		gameData.player.diamonds += reward.diamonds
+
+		// Update daily rewards data
+		gameData.currency.dailyRewards.lastClaimed = now.toISOString().split('T')[0]
+		gameData.currency.dailyRewards.streak = newStreak
+
+		// Update next reward preview
+		const nextStreakMultiplier = Math.pow(REWARDS.dailyRewards.streakMultiplier, newStreak)
+		gameData.currency.dailyRewards.nextRewardCoins = Math.floor(baseReward.coins * nextStreakMultiplier)
+		gameData.currency.dailyRewards.nextRewardDiamonds = baseReward.diamonds + Math.floor((newStreak + 1) / 3)
+
+		// Add transaction record
+		const transaction = {
+			id: `daily_${Date.now()}`,
+			timestamp: now.toISOString(),
+			type: 'earn',
+			source: 'daily_reward',
+			description: t('currency.daily_reward'),
+			amounts: {
+				coins: reward.coins,
+				diamonds: reward.diamonds
+			},
+			balanceAfter: {
+				coins: gameData.player.coins,
+				diamonds: gameData.player.diamonds
+			},
+			metadata: {
+				streak: newStreak,
+				streakMultiplier: streakMultiplier.toFixed(2)
+			}
+		}
+
+		gameData.currency.transactions.push(transaction)
+
+		console.log(`🎁 Daily reward claimed! Streak: ${newStreak}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
+
+		return reward
+	}
+
 	// Language methods
 	const updateLanguage = (language) => {
 		if (['en', 'de'].includes(language)) {
@@ -679,6 +775,9 @@ export function useLocalStorage() {
 		updatePlayer,
 		addExperience,
 		addScore,
+
+		canClaimDailyReward,
+		claimDailyReward,
 
 		// Settings methods
 		updateSettings,

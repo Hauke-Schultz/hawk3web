@@ -1,13 +1,14 @@
 <script setup>
-import {defineEmits, computed} from 'vue'
+import {defineEmits, computed, watch} from 'vue'
 import Icon from "./Icon.vue";
 import WelcomeCard from "./WelcomeCard.vue";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Header from "./Header.vue";
+import DailyRewardCard from "./DailyRewardCard.vue";
 
 // LocalStorage service for achievements
-const { gameData, markCardAsRead, isCardRead } = useLocalStorage()
+const { gameData, markCardAsRead, isCardRead, canClaimDailyReward } = useLocalStorage()
 
 // Emits for parent component communication
 const emit = defineEmits([
@@ -25,7 +26,15 @@ const isWelcomeCardVisible = computed(() => {
   return !isCardRead('welcomeCard')
 })
 
+const isDailyRewardVisible = computed(() => {
+	return canClaimDailyReward()
+})
+
 // Event handlers - emit to parent component
+const handleDailyRewardClaim = (reward) => {
+	// Optional: Show success feedback
+}
+
 const handleStartGame = () => {
   emit('start-game')
 }
@@ -52,10 +61,15 @@ const handlePackageClick = () => {
 
 // Card read handlers
 const handleCardRead = (cardType) => {
-  console.log(`Marking ${cardType} as read...`)
+  console.log(`Marking ${cardType} as read...`, gameData.player.coins)
   markCardAsRead(cardType)
 }
 
+// watch gameData if changes are needed
+watch(() => gameData, (newData) => {
+	// Handle any necessary updates when gameData changes
+	console.log('Game data updated:', newData)
+}, { deep: true })
 </script>
 
 <template>
@@ -77,7 +91,13 @@ const handleCardRead = (cardType) => {
       @mark-as-read="handleCardRead"
       @click="handlePackageClick"
     />
-
+	  <DailyRewardCard
+		  v-if="isDailyRewardVisible"
+		  :title="t('daily_rewards.title')"
+		  card-type="dailyRewardCard"
+		  @claim-reward="handleDailyRewardClaim"
+		  @mark-as-read="handleCardRead"
+	  />
     <!-- Game Actions Section -->
     <section class="game-actions" aria-label="Game Actions">
       <!-- Start Game Card -->
