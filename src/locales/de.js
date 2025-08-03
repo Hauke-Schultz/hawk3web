@@ -106,7 +106,7 @@ export default {
 	nav: {
 		home: 'Start',
 		gaming: 'Spiele',
-		gaming_hub: 'Spiele-Hub',
+		gaming_hub: 'Spiele',
 		profile: 'Profil',
 		trophy: 'Trophäe',
 		trophies: 'Trophäen',
@@ -120,7 +120,7 @@ export default {
 		welcome_title: 'Willkommen zurück!',
 		welcome_subtitle: 'Bereit, deine Reise fortzusetzen?',
 		start_game: 'Spiel starten',
-		gaming_hub: 'Spiele-Hub',
+		gaming_hub: 'Spiele',
 		view_profile: 'Profil anzeigen',
 		view_trophies: 'Trophäen anzeigen',
 		open_settings: 'Einstellungen öffnen',
@@ -273,11 +273,11 @@ export default {
 
 	// Spiele-Hub
 	gaming: {
-		title: 'Spiele-Hub',
+		title: 'Spiele',
 		subtitle: 'Fordere dich selbst mit spannenden Spielen heraus',
 		choose_level: 'Wähle dein Level',
 		back_to_games: 'Zurück zu Spielen',
-		back_to_game_hub: 'Zurück zum Spiele-Hub',
+		back_to_game_hub: 'Zurück zum Spiele',
 		coming_soon: 'Bald verfügbar',
 		play_level: '{title} spielen',
 		replay: 'Wiederholen',

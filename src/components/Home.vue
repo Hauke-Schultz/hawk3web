@@ -212,8 +212,9 @@ watch(() => gameData, (newData) => {
 /* Game Actions Section */
 .game-actions {
   display: flex;
-  flex-direction: column;
   gap: var(--space-4);
+	flex-direction: row;
+	flex-wrap: wrap;
 }
 
 .action-card {
@@ -227,6 +228,7 @@ watch(() => gameData, (newData) => {
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+	width: calc(50% - var(--space-2));
 
   &:hover {
     background-color: var(--card-bg-hover);

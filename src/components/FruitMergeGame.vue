@@ -14,6 +14,7 @@ import {REWARDS} from "../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../config/comboConfig.js";
 import GameOverModal from "./GameOverModal.vue";
 import Icon from "./Icon.vue";
+import GameControls from "./GameControls.vue";
 
 // Props
 const props = defineProps({
@@ -1331,6 +1332,15 @@ onUnmounted(() => {
 	      <div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
 		      {{ isEndlessMode ? t('fruitMerge.endless_mode') : t('fruitMerge.level_title', { level: currentLevel }) }}
 	      </div>
+	      <!-- Game Controls -->
+	      <GameControls
+			      :game-state="gameState"
+			      :show-back="true"
+			      :show-pause="false"
+			      :show-reset="false"
+			      :back-label="t('common.back')"
+			      @back-to-gaming="backToGaming"
+	      />
       </div>
 
       <div class="game-stats-container">

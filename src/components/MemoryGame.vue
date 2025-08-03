@@ -497,6 +497,19 @@ onUnmounted(() => {
       <div class="game-info">
         <h2 class="game-title">{{ t('memory.title') }}</h2>
         <div class="level-indicator">{{ t('memory.level_title', { level: currentLevel }) }}</div>
+	      <!-- Game Controls -->
+	      <GameControls
+			      :game-state="gameState"
+			      :show-pause="false"
+			      :pause-label="t('controls.pause')"
+			      :resume-label="t('controls.resume')"
+			      :reset-label="t('controls.reset')"
+			      :back-label="t('common.back')"
+			      @pause-game="pauseGame"
+			      @resume-game="resumeGame"
+			      @reset-game="resetGame"
+			      @back-to-gaming="backToGaming"
+	      />
       </div>
 
       <div class="game-stats-container">
@@ -544,19 +557,6 @@ onUnmounted(() => {
 
     <!-- Game Playing State -->
     <div v-if="gameState === 'playing' || gameState === 'paused'" class="game-board">
-      <!-- Game Controls -->
-      <GameControls
-        :game-state="gameState"
-        :pause-label="t('controls.pause')"
-        :resume-label="t('controls.resume')"
-        :reset-label="t('controls.reset')"
-        :back-label="t('common.back')"
-        @pause-game="pauseGame"
-        @resume-game="resumeGame"
-        @reset-game="resetGame"
-        @back-to-gaming="backToGaming"
-      />
-
       <!-- Cards Grid -->
       <div
         class="cards-grid"

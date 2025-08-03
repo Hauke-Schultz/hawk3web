@@ -107,7 +107,7 @@ export default {
 	nav: {
 		home: 'Home',
 		gaming: 'Gaming',
-		gaming_hub: 'Gaming Hub',
+		gaming_hub: 'Games',
 		profile: 'Profile',
 		trophy: 'Trophy',
 		trophies: 'Trophies',
@@ -121,7 +121,7 @@ export default {
 		welcome_title: 'Welcome back!',
 		welcome_subtitle: 'Ready to continue your journey?',
 		start_game: 'Start Game',
-		gaming_hub: 'Gaming Hub',
+		gaming_hub: 'Games',
 		view_profile: 'View Profile',
 		view_trophies: 'View Trophies',
 		open_settings: 'Open Settings',
@@ -274,7 +274,7 @@ export default {
 
 	// Gaming Hub
 	gaming: {
-		title: 'Gaming Hub',
+		title: 'Games',
 		subtitle: 'Challenge yourself with exciting games',
 		choose_level: 'Choose your level',
 		back_to_games: 'Back to Games',
@@ -294,7 +294,7 @@ export default {
 
 	// Memory Game
 	memory: {
-		title: 'Memory Game',
+		title: 'Memory',
 		description: 'Match pairs of cards and test your memory',
 		level_title: 'Level {level}',
 		game_paused: 'Game Paused',
