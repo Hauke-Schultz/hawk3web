@@ -36,3 +36,63 @@
 - **FruitMerge Achievements** - Game-specific achievements integration
 - **Achievement Rewards Integration** - Automatic coin rewards for achievements
 - **Welcome Card Achievement** - Coin reward for reading welcome message
+- **Daily Reward System** - Streak-based daily bonus cards with coins and diamonds
+- **Daily Reward Card** - Interactive daily reward claiming with checkbox functionality
+- **Enhanced Currency System** - Expanded coin and diamond economy with transaction tracking
+- **FruitMerge Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
+- **Endless Mode Statistics** - Time-based play tracking, merge counting, and score milestones
+- **Enhanced Reward System** - Detailed reward breakdown with difficulty multipliers and achievement integration
+
+---
+
+## 🚀 Version 0.3.0 - Shop & Economy Expansion
+
+### Primary Features
+
+#### 🛒 Shop System Implementation
+- **Shop Page** - New main navigation item with dedicated shop interface
+- **Shop Categories** - Organized item categories (Power-ups, Cosmetics, Utilities)
+- **Currency Integration** - Full coins and diamonds purchasing system
+- **Purchase System** - Buy and own items
+- **Owned Items Tracking** - Visual indicators for purchased items
+
+#### 💎 Purchasable Items Collection
+**Cosmetic Items:**
+- Exclusive Avatar Items - 1000-3000 coins
+
+### Technical Implementation
+
+#### 🏗️ New Components & Systems
+- **Shop.vue** - Main shop page with category navigation
+- **InventoryService** - Track owned items and usage
+- **ShopConfig** - Centralized item definitions and pricing
+
+---
+
+## 🚀 Future Versions (0.5.0+)
+
+#### 🎲 New Games & Content
+- **Third Mini-Game** - Arcade-style game
+- **Cross-Game Achievements** - Rewards spanning multiple games
+- **Tournament Mode** - Competitive gameplay events
+
+#### 🌐 Social Features
+- **Friend System** - Add and compete with friends
+- **Gift System** - Send items to other players
+- **Leaderboards** - Global and friend competitions
+
+#### 🎨 Advanced Customization
+- **Avatar Editor** - Detailed character customization
+- **Personal Statistics Dashboard** - Comprehensive gameplay analytics
+
+---
+
+## 💡 Innovation Ideas for Later
+
+- **Offline Tournament** - Local multiplayer competitions
+- **Achievement Marketplace** - Trade rare achievements between players
+- **Community Challenges** - Global collaborative goals
+
+## 📋 Contributing
+
+Please refer to [COLLABORATION_GUIDELINES.md](./COLLABORATION_GUIDELINES.md) for development workflow and coding standards.
