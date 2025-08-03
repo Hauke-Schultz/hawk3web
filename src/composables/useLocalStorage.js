@@ -25,7 +25,17 @@ const getDefaultData = () => ({
 		coins: 0,
 		diamonds: 0,
 		createdAt: new Date().toISOString().split('T')[0],
-		lastPlayed: new Date().toISOString().split('T')[0]
+		lastPlayed: new Date().toISOString().split('T')[0],
+		inventory: {
+			items: {},
+			equipped: {
+				avatar: 'avatar/user',
+				theme: 'default',
+				frame: null
+			},
+			activeBoosts: [],
+			consumables: {}
+		}
 	},
 	settings: {
 		theme: 'dark',
@@ -125,7 +135,8 @@ const validatePlayerData = (player) => {
 		coins: typeof player?.coins === 'number' ? player.coins : 0,
 		diamonds: typeof player?.diamonds === 'number' ? player.diamonds : 0,
 		createdAt: player?.createdAt || new Date().toISOString().split('T')[0],
-		lastPlayed: new Date().toISOString().split('T')[0]
+		lastPlayed: new Date().toISOString().split('T')[0],
+		inventory: validateInventoryData(player?.inventory)
 	}
 }
 
@@ -164,6 +175,23 @@ const validateGameData = (games) => {
 			totalDiamondsEarned: typeof games?.fruitMerge?.totalDiamondsEarned === 'number' ? games.fruitMerge.totalDiamondsEarned : 0,
 			levels: typeof games?.fruitMerge?.levels === 'object' ? games.fruitMerge.levels : {}
 		}
+	}
+}
+
+const validateInventoryData = (inventory) => {
+	if (!inventory || typeof inventory !== 'object') {
+		return getDefaultData().player.inventory
+	}
+
+	return {
+		items: typeof inventory.items === 'object' ? inventory.items : {},
+		equipped: {
+			avatar: typeof inventory.equipped?.avatar === 'string' ? inventory.equipped.avatar : 'avatar/user',
+			theme: typeof inventory.equipped?.theme === 'string' ? inventory.equipped.theme : 'default',
+			frame: inventory.equipped?.frame || null
+		},
+		activeBoosts: Array.isArray(inventory.activeBoosts) ? inventory.activeBoosts : [],
+		consumables: typeof inventory.consumables === 'object' ? inventory.consumables : {}
 	}
 }
 
@@ -563,7 +591,165 @@ export function useLocalStorage() {
 			})
 		}
 	}
-	
+
+
+// Inventory management methods
+	const addItemToInventory = (itemId, quantity = 1, itemData = {}) => {
+		if (!gameData.player.inventory.items[itemId]) {
+			gameData.player.inventory.items[itemId] = {
+				id: itemId,
+				quantity: 0,
+				purchasedAt: new Date().toISOString(),
+				...itemData
+			}
+		}
+		gameData.player.inventory.items[itemId].quantity += quantity
+		saveData()
+	}
+
+	const removeItemFromInventory = (itemId, quantity = 1) => {
+		const item = gameData.player.inventory.items[itemId]
+		if (item && item.quantity > 0) {
+			item.quantity -= quantity
+			if (item.quantity <= 0) {
+				delete gameData.player.inventory.items[itemId]
+			}
+			saveData()
+			return true
+		}
+		return false
+	}
+
+	const hasInventoryItem = (itemId) => {
+		return !!gameData.player.inventory.items[itemId]
+	}
+
+	const getInventoryItemQuantity = (itemId) => {
+		return gameData.player.inventory.items[itemId]?.quantity || 0
+	}
+
+	const equipItem = (itemId, slot) => {
+		if (hasInventoryItem(itemId)) {
+			gameData.player.inventory.equipped[slot] = itemId
+
+			// Update player data accordingly
+			if (slot === 'avatar') {
+				updatePlayer({ avatar: itemId })
+			}
+
+			saveData()
+			return true
+		}
+		return false
+	}
+
+	const getEquippedItem = (slot) => {
+		return gameData.player.inventory.equipped[slot]
+	}
+
+	const activateBoost = (itemId, boostData) => {
+		if (removeItemFromInventory(itemId, 1)) {
+			const boost = {
+				id: itemId,
+				...boostData,
+				activatedAt: Date.now(),
+				expiresAt: Date.now() + (boostData.duration * 1000)
+			}
+			gameData.player.inventory.activeBoosts.push(boost)
+			saveData()
+			return true
+		}
+		return false
+	}
+
+	const updateActiveBoosts = () => {
+		const now = Date.now()
+		const initialLength = gameData.player.inventory.activeBoosts.length
+		gameData.player.inventory.activeBoosts = gameData.player.inventory.activeBoosts.filter(
+				boost => boost.expiresAt > now
+		)
+
+		if (gameData.player.inventory.activeBoosts.length !== initialLength) {
+			saveData()
+		}
+	}
+
+	const getActiveBoost = (type) => {
+		updateActiveBoosts()
+		return gameData.player.inventory.activeBoosts.find(boost => boost.type === type)
+	}
+
+	const purchaseShopItem = (item) => {
+		// Check if player can afford the item
+		const canAffordCoins = gameData.player.coins >= item.price.coins
+		const canAffordDiamonds = gameData.player.diamonds >= item.price.diamonds
+
+		if (!canAffordCoins || !canAffordDiamonds) {
+			return {
+				success: false,
+				error: 'insufficient_funds'
+			}
+		}
+
+		// Check purchase limit
+		if (item.purchaseLimit === 1 && hasInventoryItem(item.id)) {
+			return {
+				success: false,
+				error: 'already_owned'
+			}
+		}
+
+		// Deduct currency
+		gameData.player.coins -= item.price.coins
+		gameData.player.diamonds -= item.price.diamonds
+
+		// Add item to inventory
+		addItemToInventory(item.id, 1, {
+			type: item.type,
+			category: item.category,
+			rarity: item.rarity,
+			name: item.name
+		})
+
+		// Record transaction
+		if (!gameData.currency) {
+			gameData.currency = getDefaultData().currency
+		}
+
+		const transaction = {
+			id: `purchase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+			timestamp: new Date().toISOString(),
+			type: 'spend',
+			source: 'shop_purchase',
+			description: `Purchased: ${item.name}`,
+			amounts: {
+				coins: -item.price.coins,
+				diamonds: -item.price.diamonds
+			},
+			balanceAfter: {
+				coins: gameData.player.coins,
+				diamonds: gameData.player.diamonds
+			},
+			metadata: {
+				itemId: item.id,
+				itemName: item.name,
+				category: item.category,
+				rarity: item.rarity
+			}
+		}
+
+		gameData.currency.transactions.push(transaction)
+		saveData()
+
+		console.log(`🛒 Item purchased: ${item.name} for ${item.price.coins} coins, ${item.price.diamonds} diamonds`)
+
+		return {
+			success: true,
+			item: item,
+			transaction: transaction
+		}
+	}
+
 	const markCardAsShown = (cardType) => {
 		if (gameData.cardStates[cardType]) {
 			gameData.cardStates[cardType].lastShown = new Date().toISOString()
@@ -788,6 +974,18 @@ export function useLocalStorage() {
 
 		canClaimDailyReward,
 		claimDailyReward,
+
+		// Inventory methods
+		addItemToInventory,
+		removeItemFromInventory,
+		hasInventoryItem,
+		getInventoryItemQuantity,
+		equipItem,
+		getEquippedItem,
+		activateBoost,
+		updateActiveBoosts,
+		getActiveBoost,
+		purchaseShopItem,
 
 		// Settings methods
 		updateSettings,

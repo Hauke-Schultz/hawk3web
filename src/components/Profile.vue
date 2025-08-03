@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
+import { useInventory } from '../composables/useInventory.js'
 import Icon from "./Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue";
 import Header from "./Header.vue";
@@ -11,6 +12,7 @@ const emit = defineEmits(['menu-click'])
 // LocalStorage service
 const { gameData, updatePlayer, formatCurrency } = useLocalStorage()
 const { t } = useI18n()
+const { getAllOwnedItems } = useInventory()
 
 // Available avatar options
 const avatarOptions = [
@@ -29,6 +31,10 @@ const playerName = computed({
     const trimmedName = value.trim()
 	  updatePlayer({ name: trimmedName })
   }
+})
+
+const ownedItems = computed(() => {
+	return getAllOwnedItems().slice(0, 12) // Limit to 12 items for display
 })
 
 const selectedAvatar = computed({
@@ -96,6 +102,38 @@ const handleMenuClick = () => {
 		      :format-numbers="true"
 	      />
       </div>
+	    <!-- Inventory Section -->
+	    <div class="profile-section">
+		    <h3 class="section-title">{{ t('profile.inventory.title') }}</h3>
+
+		    <div v-if="ownedItems.length > 0" class="inventory-grid">
+			    <div
+					    v-for="item in ownedItems"
+					    :key="item.id"
+					    class="inventory-item"
+					    :class="`inventory-item--${item.rarity}`"
+			    >
+				    <div class="inventory-item__icon">
+					    <Icon :name="item.icon" size="24" />
+				    </div>
+				    <div class="inventory-item__info">
+					    <span class="inventory-item__name">{{ item.name }}</span>
+					    <span v-if="item.quantity > 1" class="inventory-item__quantity">
+							x{{ item.quantity }}
+						</span>
+				    </div>
+				    <div class="inventory-item__rarity">
+					    {{ t(`shop.rarities.${item.rarity}`) }}
+				    </div>
+			    </div>
+		    </div>
+
+		    <div v-else class="inventory-empty">
+			    <Icon name="info" size="48" />
+			    <h4>{{ t('profile.inventory.empty') }}</h4>
+			    <p>{{ t('profile.inventory.empty_description') }}</p>
+		    </div>
+	    </div>
       <!-- Player Settings -->
       <div class="player-settings">
         <!-- Player Name Input -->
@@ -315,5 +353,93 @@ const handleMenuClick = () => {
   align-items: center;
   justify-content: center;
   color: inherit;
+}
+
+// Inventory Section
+.inventory-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-2);
+	max-height: 300px;
+	overflow-y: auto;
+}
+
+.inventory-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-2);
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	border-left: 4px solid var(--card-border);
+
+	&--common { border-left-color: #6B7280; }
+	&--uncommon { border-left-color: #10B981; }
+	&--rare { border-left-color: #3B82F6; }
+	&--epic { border-left-color: #8B5CF6; }
+	&--legendary {
+		border-left-color: #F59E0B;
+		box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+	}
+}
+
+.inventory-item__icon {
+	width: var(--space-8);
+	height: var(--space-8);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-md);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--primary-color);
+	flex-shrink: 0;
+}
+
+.inventory-item__info {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	flex: 1;
+}
+
+.inventory-item__name {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	line-height: 1.2;
+}
+
+.inventory-item__quantity {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	line-height: 1;
+}
+
+.inventory-item__rarity {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	text-transform: uppercase;
+	font-weight: var(--font-weight-bold);
+}
+
+.inventory-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-8) var(--space-4);
+	text-align: center;
+	color: var(--text-secondary);
+
+	h4 {
+		margin: 0;
+		font-size: var(--font-size-base);
+	}
+
+	p {
+		margin: 0;
+		font-size: var(--font-size-sm);
+	}
 }
 </style>

@@ -1,4 +1,4 @@
-## 📊 Current Status v0.2.9
+## 📊 Current Status v0.3.0
 
 ✅ **Completed:**
 - Basic Vue 3 project structure with Vite
@@ -42,34 +42,29 @@
 - **FruitMerge Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
 - **Endless Mode Statistics** - Time-based play tracking, merge counting, and score milestones
 - **Enhanced Reward System** - Detailed reward breakdown with difficulty multipliers and achievement integration
+- **🛒 Shop System Implementation** - Complete shop page with category navigation and item display
+- **💎 Shop Categories & Items** - Cosmetics, Power-ups, and Utilities with rarity system
+- **💰 Currency Integration** - Full coins and diamonds purchasing with transaction history
+- **🎒 Inventory System** - Complete item ownership tracking and management
+- **🛍️ Purchase System** - Buy, own, and equip items with purchase confirmation
+- **📦 Shop Item Components** - Detailed item cards with rarity, pricing, and ownership status
+- **🔗 Shop Navigation** - Integrated shop access from home screen with full routing
+- **🌐 Shop Internationalization** - Complete German/English shop translations
+- **👤 Profile Inventory Display** - Visual inventory section showing owned items
+- **⚡ Boost System Foundation** - Activatable power-ups with duration tracking
 
 ---
 
-## 🚀 Version 0.3.0 - Shop & Economy Expansion
+## 🚀 Version 0.3.1 - Shop System Enhancements
 
 ### Primary Features
 
-#### 🛒 Shop System Implementation
-- **Shop Page** - New main navigation item with dedicated shop interface
-- **Shop Categories** - Organized item categories (Power-ups, Cosmetics, Utilities)
-- **Currency Integration** - Full coins and diamonds purchasing system
-- **Purchase System** - Buy and own items
-- **Owned Items Tracking** - Visual indicators for purchased items
 
-#### 💎 Purchasable Items Collection
-**Cosmetic Items:**
-- Exclusive Avatar Items - 1000-3000 coins
 
-### Technical Implementation
-
-#### 🏗️ New Components & Systems
-- **Shop.vue** - Main shop page with category navigation
-- **InventoryService** - Track owned items and usage
-- **ShopConfig** - Centralized item definitions and pricing
 
 ---
 
-## 🚀 Future Versions (0.5.0+)
+## 🚀 Future Versions (0.4.0+)
 
 #### 🎲 New Games & Content
 - **Third Mini-Game** - Arcade-style game

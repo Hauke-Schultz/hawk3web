@@ -1,81 +1,39 @@
 import { ref, computed } from 'vue'
 import { useLocalStorage } from './useLocalStorage.js'
-import { SHOP_ITEMS } from '../config/shopConfig.js'
+import { SHOP_ITEMS, SHOP_CATEGORIES } from '../config/shopConfig.js'
 
 export function useInventory() {
-  const { gameData, updatePlayer } = useLocalStorage()
-
-  // Initialize inventory if it doesn't exist
-  if (!gameData.player.inventory) {
-    gameData.player.inventory = {
-      items: {},
-      equipped: {
-        avatar: gameData.player.avatar || 'avatar/user',
-        theme: 'default',
-        frame: null
-      },
-      activeBoosts: [],
-      consumables: {}
-    }
-  }
+  const {
+    gameData,
+    updatePlayer,
+    addItemToInventory,
+    removeItemFromInventory,
+    hasInventoryItem,
+    getInventoryItemQuantity,
+    equipItem,
+    getEquippedItem,
+    activateBoost,
+    updateActiveBoosts,
+    getActiveBoost
+  } = useLocalStorage()
 
   const inventory = computed(() => gameData.player.inventory)
 
-  // Check if item is owned
+  // Use methods from localStorage service
   const hasItem = (itemId) => {
-    return !!inventory.value.items[itemId]
+    return hasInventoryItem(itemId)
   }
 
-  // Get owned quantity of item
   const getItemQuantity = (itemId) => {
-    return inventory.value.items[itemId]?.quantity || 0
+    return getInventoryItemQuantity(itemId)
   }
 
-  // Add item to inventory
-  const addItem = (itemId, quantity = 1) => {
-    if (!inventory.value.items[itemId]) {
-      const item = SHOP_ITEMS.find(i => i.id === itemId)
-      inventory.value.items[itemId] = {
-        id: itemId,
-        quantity: 0,
-        purchasedAt: new Date().toISOString(),
-        type: item?.type || 'unknown'
-      }
-    }
-    inventory.value.items[itemId].quantity += quantity
+  const addItem = (itemId, quantity = 1, itemData = {}) => {
+    return addItemToInventory(itemId, quantity, itemData)
   }
 
-  // Use consumable item
   const useConsumableItem = (itemId) => {
-    const item = inventory.value.items[itemId]
-    if (item && item.quantity > 0) {
-      item.quantity -= 1
-      if (item.quantity === 0) {
-        delete inventory.value.items[itemId]
-      }
-      return true
-    }
-    return false
-  }
-
-  // Equip item (for cosmetics)
-  const equipItem = (itemId, slot) => {
-    if (hasItem(itemId)) {
-      inventory.value.equipped[slot] = itemId
-
-      // Update player data accordingly
-      if (slot === 'avatar') {
-        updatePlayer({ avatar: itemId })
-      }
-
-      return true
-    }
-    return false
-  }
-
-  // Get equipped item for slot
-  const getEquippedItem = (slot) => {
-    return inventory.value.equipped[slot]
+    return removeItemFromInventory(itemId, 1)
   }
 
   // Get all owned items by category
@@ -86,36 +44,35 @@ export function useInventory() {
     })
   }
 
-  // Activate boost
-  const activateBoost = (itemId) => {
-    const item = SHOP_ITEMS.find(i => i.id === itemId)
-    if (item && item.type === 'boost' && hasItem(itemId)) {
-      if (useConsumableItem(itemId)) {
-        const boost = {
-          id: itemId,
-          effect: item.effect,
-          activatedAt: Date.now(),
-          expiresAt: Date.now() + (item.effect.duration * 1000)
-        }
-        inventory.value.activeBoosts.push(boost)
-        return true
-      }
+  // Get item details with ownership info
+  const getItemDetails = (itemId) => {
+    const shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+    const inventoryItem = inventory.value.items[itemId]
+
+    if (!shopItem) return null
+
+    return {
+      ...shopItem,
+      owned: !!inventoryItem,
+      quantity: inventoryItem?.quantity || 0,
+      purchasedAt: inventoryItem?.purchasedAt || null
     }
-    return false
   }
 
-  // Check and remove expired boosts
-  const updateActiveBoosts = () => {
-    const now = Date.now()
-    inventory.value.activeBoosts = inventory.value.activeBoosts.filter(
-        boost => boost.expiresAt > now
-    )
+  // Get all owned items with details
+  const getAllOwnedItems = () => {
+    return Object.keys(inventory.value.items).map(itemId => {
+      return getItemDetails(itemId)
+    }).filter(Boolean)
   }
 
-  // Get active boost for type
-  const getActiveBoost = (type) => {
-    updateActiveBoosts()
-    return inventory.value.activeBoosts.find(boost => boost.effect.type === type)
+  // Get equipped items
+  const getEquippedItems = () => {
+    return {
+      avatar: getEquippedItem('avatar'),
+      theme: getEquippedItem('theme'),
+      frame: getEquippedItem('frame')
+    }
   }
 
   return {
@@ -126,7 +83,10 @@ export function useInventory() {
     useConsumableItem,
     equipItem,
     getEquippedItem,
+    getEquippedItems,
     getItemsByCategory,
+    getItemDetails,
+    getAllOwnedItems,
     activateBoost,
     updateActiveBoosts,
     getActiveBoost

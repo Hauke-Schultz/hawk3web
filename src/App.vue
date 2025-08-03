@@ -9,6 +9,7 @@ import Home from './components/Home.vue'
 import Gaming from "./components/Gaming.vue";
 import Trophy from "./components/Trophy.vue";
 import About from "./components/About.vue";
+import Shop from "./components/Shop.vue";
 
 // LocalStorage service
 const { gameData, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
@@ -59,9 +60,9 @@ const handleStartGame = () => {
   currentView.value = 'gaming'
 }
 
-const handleGameStart = (game) => {
-  console.log(`Starting ${game.name}...`)
-  // TODO: Navigate to specific game
+const handleShopClick = () => {
+	console.log('Opening shop...')
+	currentView.value = 'shop'
 }
 
 const handleTrophyClick = () => {
@@ -100,15 +101,16 @@ onMounted(async () => {
   <div class="container" :class="gameData.settings.theme" role="application">
     <!-- Home View -->
     <template v-if="currentView === 'home'">
-      <Home
-        :player-profile="gameData.player"
-        @start-game="handleStartGame"
-        @profile-click="handleProfileClick"
-        @trophy-click="handleTrophyClick"
-        @settings-click="handleSettingsClick"
-        @about-click="handleAboutClick"
-        @package-click="handlePackageClick"
-      />
+	    <Home
+		    :player-profile="gameData.player"
+		    @start-game="handleStartGame"
+		    @profile-click="handleProfileClick"
+		    @trophy-click="handleTrophyClick"
+		    @settings-click="handleSettingsClick"
+		    @about-click="handleAboutClick"
+		    @package-click="handlePackageClick"
+		    @shop-click="handleShopClick"
+	    />
     </template>
 
     <!-- Gaming View -->
@@ -131,6 +133,13 @@ onMounted(async () => {
 				@menu-click="handleBackToHome"
 			/>
 		</template>
+
+	  <!-- Shop View -->
+	  <template v-else-if="currentView === 'shop'">
+		  <Shop
+			  @menu-click="handleBackToHome"
+		  />
+	  </template>
 
 		<!-- Settings View -->
     <template v-else-if="currentView === 'settings'">

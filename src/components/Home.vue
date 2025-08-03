@@ -17,7 +17,8 @@ const emit = defineEmits([
   'trophy-click',
   'settings-click',
   'about-click',
-  'package-click'
+	'package-click',
+	'shop-click'
 ])
 
 const { t } = useI18n()
@@ -42,6 +43,10 @@ const handleStartGame = () => {
 
 const handleProfileClick = () => {
   emit('profile-click')
+}
+
+const handleShopClick = () => {
+	emit('shop-click')
 }
 
 const handleTrophyClick = () => {
@@ -146,6 +151,25 @@ watch(() => gameData, (newData) => {
           <h2 class="card-title">{{ t('nav.profile') }}</h2>
         </div>
       </div>
+
+	    <!-- Shop Card -->
+	    <div
+		    class="action-card"
+		    @click="handleShopClick"
+		    @keydown.enter="handleShopClick"
+		    tabindex="0"
+		    role="button"
+		    aria-label="t('home.open_shop')"
+	    >
+		    <div class="card-icon">
+			    <div class="icon-btn btn--warning" aria-label="Shop">
+				    <Icon name="trophy" size="32" />
+			    </div>
+		    </div>
+		    <div class="card-content">
+			    <h2 class="card-title">{{ t('nav.shop') }}</h2>
+		    </div>
+	    </div>
 
       <!-- Trophy Card -->
       <div

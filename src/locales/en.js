@@ -109,6 +109,7 @@ export default {
 		gaming: 'Gaming',
 		gaming_hub: 'Games',
 		profile: 'Profile',
+		shop: 'Shop',
 		trophy: 'Trophy',
 		trophies: 'Trophies',
 		settings: 'Settings',
@@ -122,6 +123,7 @@ export default {
 		welcome_subtitle: 'Ready to continue your journey?',
 		start_game: 'Start Game',
 		gaming_hub: 'Games',
+		open_shop: 'Open Shop',
 		view_profile: 'View Profile',
 		view_trophies: 'View Trophies',
 		open_settings: 'Open Settings',
@@ -159,6 +161,50 @@ export default {
 			glasses_user: 'Glasses User',
 			headset_user: 'Headset User',
 			cap_user: 'Cap User'
+		},
+		inventory: {
+			title: 'Inventory',
+			empty: 'No items yet',
+			empty_description: 'Visit the shop to purchase items and upgrades!'
+		}
+	},
+
+	// Shop
+	shop: {
+		title: 'Shop',
+		subtitle: 'Purchase items and upgrades',
+		categories: {
+			cosmetics: 'Cosmetics',
+			powerups: 'Power-ups',
+			utilities: 'Utilities'
+		},
+		confirm_purchase: 'Confirm Purchase',
+		item_cost: 'Item Cost',
+		your_balance: 'Your Balance',
+		after_purchase: 'After Purchase',
+		insufficient_funds: 'Insufficient funds',
+		purchase_now: 'Purchase Now',
+		empty_category: 'No items available',
+		empty_category_description: 'Check back later for new items!',
+		price: 'Price',
+		purchase: 'Purchase',
+		owned: 'Owned',
+		one_time_purchase: 'One-time purchase',
+
+		types: {
+			avatar_pack: 'Avatar Pack',
+			profile_frame: 'Profile Frame',
+			theme: 'Theme',
+			boost: 'Power-up',
+			consumable: 'Consumable'
+		},
+
+		rarities: {
+			common: 'Common',
+			uncommon: 'Uncommon',
+			rare: 'Rare',
+			epic: 'Epic',
+			legendary: 'Legendary'
 		}
 	},
 

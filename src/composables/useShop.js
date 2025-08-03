@@ -4,8 +4,8 @@ import { useInventory } from './useInventory.js'
 import { SHOP_ITEMS, SHOP_CATEGORIES } from '../config/shopConfig.js'
 
 export function useShop() {
-  const { gameData, updatePlayer } = useLocalStorage()
-  const { addItem, hasItem } = useInventory()
+  const { gameData, purchaseShopItem } = useLocalStorage()
+  const { hasItem } = useInventory()
 
   const selectedCategory = ref('cosmetics')
 
@@ -40,61 +40,9 @@ export function useShop() {
     return true
   }
 
-  // Purchase item
+  // Purchase item - now uses the localStorage service
   const purchaseItem = (item) => {
-    if (!canPurchaseItem(item)) {
-      return {
-        success: false,
-        error: 'Cannot purchase this item'
-      }
-    }
-
-    // Deduct currency
-    const newCoins = gameData.player.coins - item.price.coins
-    const newDiamonds = gameData.player.diamonds - item.price.diamonds
-
-    updatePlayer({
-      coins: newCoins,
-      diamonds: newDiamonds
-    })
-
-    // Add to inventory
-    addItem(item.id, 1)
-
-    // Record transaction
-    const transaction = {
-      id: `purchase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
-      type: 'spend',
-      source: 'shop_purchase',
-      description: `Purchased: ${item.name}`,
-      amounts: {
-        coins: -item.price.coins,
-        diamonds: -item.price.diamonds
-      },
-      balanceAfter: {
-        coins: newCoins,
-        diamonds: newDiamonds
-      },
-      metadata: {
-        itemId: item.id,
-        itemName: item.name,
-        category: item.category
-      }
-    }
-
-    if (!gameData.currency) {
-      gameData.currency = { transactions: [] }
-    }
-    gameData.currency.transactions.push(transaction)
-
-    console.log(`🛒 Item purchased: ${item.name} for ${item.price.coins} coins, ${item.price.diamonds} diamonds`)
-
-    return {
-      success: true,
-      item: item,
-      transaction: transaction
-    }
+    return purchaseShopItem(item)
   }
 
   // Get purchase summary for confirmation
