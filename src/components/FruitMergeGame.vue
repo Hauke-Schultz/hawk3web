@@ -641,15 +641,24 @@ const createMergeParticles = (x, y, fruitType) => {
 
 // Update fruit visual positions based on physics bodies
 const updateFruitPositions = () => {
-  if (!fruits.value.length) return
+	if (!fruits.value.length) return
 
-  for (const fruit of fruits.value) {
-    if (fruit.body && fruit.body.position) {
-      fruit.x = fruit.body.position.x - fruit.size / 2
-      fruit.y = fruit.body.position.y - fruit.size / 2
-      fruit.rotation = fruit.body.angle * (180 / Math.PI)
-    }
-  }
+	for (const fruit of fruits.value) {
+		if (fruit.body && fruit.body.position) {
+			// Smooth position updates to prevent visual glitches
+			const targetX = fruit.body.position.x - fruit.size / 2
+			const targetY = fruit.body.position.y - fruit.size / 2
+
+			// Only update if position actually changed significantly
+			if (Math.abs(fruit.x - targetX) > 0.5 || Math.abs(fruit.y - targetY) > 0.5) {
+				fruit.x = targetX
+				fruit.y = targetY
+			}
+
+			// Update rotation
+			fruit.rotation = fruit.body.angle * (180 / Math.PI)
+		}
+	}
 }
 
 const gameProgress = computed(() => {
@@ -720,7 +729,7 @@ const initGame = async () => {
 	await nextTick()
 
 	// Check for saved state first
-	const savedState = hasLevelState('fruitMerge', currentLevel.value)
+	const savedState = loadLevelState('fruitMerge', currentLevel.value)
 	hasSavedState.value = !!savedState
 
 	if (savedState && !isRestoringState.value) {
@@ -728,11 +737,15 @@ const initGame = async () => {
 		const restored = await restoreGameState(savedState)
 
 		if (restored) {
+			console.log('✅ Game state restored successfully')
 			return // State restored successfully
+		} else {
+			console.log('❌ Failed to restore state, starting fresh game')
 		}
 	}
 
 	// Initialize fresh game if no saved state or restoration failed
+	console.log('🆕 Starting fresh game')
 	initPhysics()
 	nextFruit.value = generateNextFruit()
 	gameLoop()
@@ -1324,7 +1337,7 @@ const captureCurrentState = () => {
 		// Game progress
 		score: score.value,
 		moves: moves.value,
-		timeElapsed: timeElapsed.value,
+		timeElapsed: sessionTime.value, // FIX: sessionTime statt timeElapsed verwenden
 		totalMerges: totalMerges.value,
 		sessionTime: sessionTime.value,
 		milestones: [...milestones.value],
@@ -1403,20 +1416,22 @@ const restoreGameState = async (savedState) => {
 		// Restore basic game data
 		score.value = savedState.score || 0
 		moves.value = savedState.moves || 0
-		timeElapsed.value = savedState.timeElapsed || 0
+		sessionTime.value = savedState.timeElapsed || savedState.sessionTime || 0
 		nextFruitId.value = savedState.nextFruitId || 0
 		gameState.value = savedState.gameStateValue || 'playing'
 
 		// Restore endless mode specific data
 		if (isEndlessMode.value) {
 			totalMerges.value = savedState.totalMerges || 0
-			sessionTime.value = savedState.sessionTime || 0
 			milestones.value = [...(savedState.milestones || [])]
 		}
 
-		// Initialize physics first
+		// Initialize physics first and wait for it to be ready
 		await nextTick()
 		initPhysics()
+
+		// Wait a bit more to ensure physics engine is fully initialized
+		await new Promise(resolve => setTimeout(resolve, 100))
 
 		// Restore combo system
 		if (savedState.comboData) {
@@ -1426,11 +1441,14 @@ const restoreGameState = async (savedState) => {
 			comboSystem.timeRemaining.value = savedState.comboData.timeRemaining || 0
 		}
 
-		// Restore fruits
+		// Restore fruits with proper physics body recreation
 		if (savedState.fruitsState && savedState.fruitsState.length > 0) {
 			fruits.value = []
 
-			for (const fruitState of savedState.fruitsState) {
+			// Restore fruits one by one with proper timing
+			for (let i = 0; i < savedState.fruitsState.length; i++) {
+				const fruitState = savedState.fruitsState[i]
+
 				const restoredFruit = {
 					id: fruitState.id,
 					color: fruitState.color,
@@ -1448,7 +1466,7 @@ const restoreGameState = async (savedState) => {
 					dangerZoneTime: fruitState.dangerZoneTime || 0
 				}
 
-				// Create physics body
+				// Create physics body with saved position
 				if (fruitState.bodyPosition) {
 					const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruitState.level)
 					const radius = fruitConfig ? fruitConfig.radius : fruitState.size / 2
@@ -1472,19 +1490,31 @@ const restoreGameState = async (savedState) => {
 							}
 					)
 
-					// Restore physics properties
-					if (fruitState.bodyVelocity) {
-						Matter.Body.setVelocity(body, fruitState.bodyVelocity)
-					}
-					if (fruitState.bodyAngle) {
-						Matter.Body.setAngle(body, fruitState.bodyAngle)
-					}
-					if (fruitState.bodyAngularVelocity) {
-						Matter.Body.setAngularVelocity(body, fruitState.bodyAngularVelocity)
-					}
+					// Restore physics properties with small delay to ensure stability
+					setTimeout(() => {
+						if (fruitState.bodyVelocity) {
+							// Reduce velocity to prevent chaotic movement on restore
+							const dampedVelocity = {
+								x: fruitState.bodyVelocity.x * 0.3,
+								y: fruitState.bodyVelocity.y * 0.3
+							}
+							Matter.Body.setVelocity(body, dampedVelocity)
+						}
+						if (fruitState.bodyAngle) {
+							Matter.Body.setAngle(body, fruitState.bodyAngle)
+						}
+						if (fruitState.bodyAngularVelocity) {
+							// Dampen angular velocity too
+							Matter.Body.setAngularVelocity(body, fruitState.bodyAngularVelocity * 0.3)
+						}
+					}, 50 * i) // Staggered restoration to prevent conflicts
 
 					restoredFruit.body = body
 					Matter.Composite.add(engine.world, body)
+
+					// Update visual position immediately
+					restoredFruit.x = fruitState.bodyPosition.x - fruitState.size / 2
+					restoredFruit.y = fruitState.bodyPosition.y - fruitState.size / 2
 				}
 
 				fruits.value.push(restoredFruit)
@@ -1498,14 +1528,16 @@ const restoreGameState = async (savedState) => {
 			nextFruit.value = generateNextFruit()
 		}
 
-		// Start timers and game loop
-		if (isEndlessMode.value) {
-			startSessionTimer()
-		}
-		startGameOverChecking()
-		gameLoop()
+		// Start timers and game loop after everything is restored
+		setTimeout(() => {
+			if (isEndlessMode.value) {
+				startSessionTimer()
+			}
+			startGameOverChecking()
+			gameLoop()
+		}, 200)
 
-		console.log(`Game state restored successfully. Score: ${score.value}, Moves: ${moves.value}`)
+		console.log(`Game state restored successfully. Score: ${score.value}, Moves: ${moves.value}, Fruits: ${fruits.value.length}`)
 		return true
 
 	} catch (error) {
@@ -1587,12 +1619,11 @@ onUnmounted(() => {
 			      :back-label="t('common.back')"
 			      @back-to-gaming="backToGaming"
 	      />
+	      <div v-if="hasSavedState && !isRestoringState" class="saved-state-indicator">
+		      <Icon name="info" size="16" />
+		      <span>{{ t('fruitMerge.state_restored') }}</span>
+	      </div>
       </div>
-
-	    <div v-if="hasSavedState && !isRestoringState" class="saved-state-indicator">
-		    <Icon name="info" size="16" />
-		    <span>{{ t('fruitMerge.state_restored') }}</span>
-	    </div>
 
 	    <!-- Loading indicator für State Restoration -->
 	    <div v-if="isRestoringState" class="restoring-state-overlay">

@@ -328,6 +328,13 @@ export default {
 		coming_soon: 'Coming Soon',
 		play_level: 'Play {title}',
 		replay: 'Replay',
+		saved_progress: 'Saved progress available',
+		saved_just_now: 'Saved just now',
+		saved_minutes_ago: 'Saved {minutes} minutes ago',
+		saved_hours_ago: 'Saved {hours} hours ago',
+		saved_days_ago: 'Saved {days} days ago',
+		continue_game: 'Continue',
+		start_fresh: 'Start Fresh',
 		stats: {
 			best_score: 'Best: {score}',
 			games_played: '{count} played',
@@ -383,6 +390,7 @@ export default {
 		combo_break: 'Combo broken!',
 		amazing_combo: 'Amazing Combo!',
 		incredible_combo: 'Incredible Combo!',
+		state_restored: 'Game state restored',
 
 		// Endless Mode specific translations
 		endless: {

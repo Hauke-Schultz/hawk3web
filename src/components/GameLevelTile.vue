@@ -60,7 +60,15 @@ const props = defineProps({
     type: String,
     default: 'normal',
     validator: (value) => ['small', 'normal', 'large'].includes(value)
-  }
+  },
+	hasSavedState: {
+		type: Boolean,
+		default: false
+	},
+	savedStateTimestamp: {
+		type: String,
+		default: null
+	}
 })
 
 // Emits for parent component communication
@@ -90,7 +98,68 @@ const tileClass = computed(() => {
   }
 })
 
-// Format time display
+const savedStateTooltip = computed(() => {
+	if (!props.savedStateTimestamp) return t('gaming.saved_progress')
+
+	const date = new Date(props.savedStateTimestamp)
+	const now = new Date()
+	const diffMs = now - date
+	const diffMins = Math.floor(diffMs / (1000 * 60))
+	const diffHours = Math.floor(diffMins / 60)
+	const diffDays = Math.floor(diffHours / 24)
+
+	if (diffMins < 1) return t('gaming.saved_just_now')
+	if (diffMins < 60) return t('gaming.saved_minutes_ago', { minutes: diffMins })
+	if (diffHours < 24) return t('gaming.saved_hours_ago', { hours: diffHours })
+	return t('gaming.saved_days_ago', { days: diffDays })
+})
+
+// Get button text based on state
+const playButtonText = computed(() => {
+	if (!canPlay.value) {
+		return t('common.locked')
+	}
+
+	if (props.hasSavedState) {
+		return t('gaming.continue_game')
+	}
+
+	if (props.isCompleted) {
+		return t('gaming.replay')
+	}
+
+	return t('common.play')
+})
+
+// Get button icon based on state
+const playButtonIcon = computed(() => {
+	if (!canPlay.value) {
+		return 'lock'
+	}
+
+	if (props.hasSavedState) {
+		return 'resume' // oder 'play' wenn resume nicht existiert
+	}
+
+	return 'play'
+})
+
+// Get button style based on state
+const playButtonClass = computed(() => {
+	if (!canPlay.value) {
+		return 'btn--ghost'
+	}
+
+	if (props.hasSavedState) {
+		return 'btn--primary'
+	}
+
+	if (props.isCompleted) {
+		return 'btn--ghost' // Ghost für Replay
+	}
+
+	return 'btn--primary' // Primary für neues Spiel
+})
 
 const formatTime = (seconds) => {
   if (!seconds) return '--'
@@ -133,12 +202,18 @@ const handleKeyDown = (event) => {
     </div>
 
     <!-- Level Header -->
-    <div class="level-tile__header">
-      <div class="level-tile__level-number">{{ level }}</div>
-      <div v-if="isCompleted" class="level-tile__completion-badge">
-        <Icon name="completion-badge" size="20" />
-      </div>
-    </div>
+	  <div class="level-tile__header">
+		  <div class="level-tile__level-number">{{ level }}</div>
+
+		  <div class="level-tile__badges">
+			  <div v-if="isCompleted" class="level-tile__completion-badge">
+				  <Icon name="completion-badge" size="16" />
+			  </div>
+			  <div v-if="hasSavedState" class="level-tile__saved-badge" :title="savedStateTooltip">
+				  <Icon name="save" size="14" />
+			  </div>
+		  </div>
+	  </div>
 
     <!-- Level Content -->
     <div class="level-tile__content">
@@ -173,20 +248,22 @@ const handleKeyDown = (event) => {
     </div>
 
     <!-- Play Button -->
-    <div class="level-tile__actions">
-      <button
-        v-if="canPlay"
-        class="btn"
-        @click.stop="handlePlayClick"
-        :aria-label="t('gaming.play_level', { title: levelTitle })"
-      >
-        {{ isCompleted ? t('gaming.replay') : t('common.play') }}
-      </button>
-      <div v-else class="locked-indicator">
-        <Icon name="lock" size="12" />
-        {{ t('common.locked') }}
-      </div>
-    </div>
+	  <div class="level-tile__actions">
+		  <button
+				  v-if="canPlay"
+				  class="btn"
+				  :class="playButtonClass"
+				  @click.stop="handlePlayClick"
+				  :aria-label="t('gaming.play_level', { title: levelTitle })"
+		  >
+			  <Icon :name="playButtonIcon" size="16" />
+			  {{ playButtonText }}
+		  </button>
+		  <div v-else class="locked-indicator">
+			  <Icon name="lock" size="12" />
+			  {{ t('common.locked') }}
+		  </div>
+	  </div>
   </div>
 </template>
 
@@ -330,9 +407,39 @@ const handleKeyDown = (event) => {
 
 // Level Header
 .level-tile__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.level-tile__badges {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.level-tile__completion-badge {
+	color: var(--success-color);
+	display: flex;
+	align-items: center;
+}
+
+.level-tile__saved-badge {
+	background-color: var(--info-color);
+	color: white;
+	border-radius: var(--border-radius-sm);
+	padding: var(--space-1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--font-size-xs);
+	cursor: help;
+	transition: all 0.2s ease;
+
+	&:hover {
+		background-color: var(--info-hover);
+		transform: scale(1.1);
+	}
 }
 
 .level-tile__level-number {
@@ -345,11 +452,6 @@ const handleKeyDown = (event) => {
   color: white;
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-xs);
-}
-
-.level-tile__completion-badge {
-  color: var(--success-color);
-  display: flex;
 }
 
 // Level Content

@@ -12,6 +12,7 @@ const { t } = useI18n()
 // Storage key for the main game data
 const STORAGE_KEY = 'hawk3_game_data'
 const CURRENT_VERSION = '1.1'
+const LEVEL_STATE_KEY = 'hawk3_level_states'
 
 // Default data structure
 const getDefaultData = () => ({
@@ -255,6 +256,11 @@ export function useLocalStorage() {
 			if (stored) {
 				const parsed = JSON.parse(stored)
 				const migrated = migrateData(parsed)
+
+				// Automatische Bereinigung alter Level-States
+				setTimeout(() => {
+					cleanupOldLevelStates()
+				}, 1000)
 
 				return {
 					player: validatePlayerData(migrated.player),
@@ -946,6 +952,7 @@ export function useLocalStorage() {
 
 	const clearStorage = () => {
 		localStorage.removeItem(STORAGE_KEY)
+		localStorage.removeItem(LEVEL_STATE_KEY) // Level-States auch löschen
 		const defaultData = getDefaultData()
 		Object.assign(gameData, defaultData)
 	}
@@ -957,6 +964,138 @@ export function useLocalStorage() {
 			return `${(amount / 1000).toFixed(1)}K`
 		}
 		return amount.toString()
+	}
+
+	const saveLevelState = (gameId, levelNumber, stateData) => {
+		try {
+			// Lade existierende Level-States
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+
+			// Struktur: { gameId: { levelNumber: stateData } }
+			if (!existingStates[gameId]) {
+				existingStates[gameId] = {}
+			}
+
+			// Speichere den aktuellen State mit Timestamp
+			existingStates[gameId][levelNumber] = {
+				...stateData,
+				savedAt: new Date().toISOString(),
+				gameId,
+				levelNumber
+			}
+
+			// Speichere zurück in localStorage
+			localStorage.setItem(LEVEL_STATE_KEY, JSON.stringify(existingStates))
+
+			console.log(`✅ Level state saved for ${gameId} level ${levelNumber}`)
+			return true
+		} catch (error) {
+			console.error('Error saving level state:', error)
+			return false
+		}
+	}
+
+	const loadLevelState = (gameId, levelNumber) => {
+		try {
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+			const levelState = existingStates[gameId]?.[levelNumber]
+
+			if (levelState) {
+				console.log(`📂 Level state loaded for ${gameId} level ${levelNumber}`)
+				return levelState
+			}
+
+			return null
+		} catch (error) {
+			console.error('Error loading level state:', error)
+			return null
+		}
+	}
+
+	const clearLevelState = (gameId, levelNumber) => {
+		try {
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+
+			if (existingStates[gameId]?.[levelNumber]) {
+				delete existingStates[gameId][levelNumber]
+
+				// Wenn keine Level mehr für das Spiel existieren, lösche das Spiel komplett
+				if (Object.keys(existingStates[gameId]).length === 0) {
+					delete existingStates[gameId]
+				}
+
+				localStorage.setItem(LEVEL_STATE_KEY, JSON.stringify(existingStates))
+				console.log(`🗑️ Level state cleared for ${gameId} level ${levelNumber}`)
+				return true
+			}
+
+			return false
+		} catch (error) {
+			console.error('Error clearing level state:', error)
+			return false
+		}
+	}
+
+	const hasLevelState = (gameId, levelNumber) => {
+		try {
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+			const hasState = !!existingStates[gameId]?.[levelNumber]
+
+			if (hasState) {
+				console.log(`🔍 Level state exists for ${gameId} level ${levelNumber}`)
+			}
+
+			return hasState
+		} catch (error) {
+			console.error('Error checking level state:', error)
+			return false
+		}
+	}
+
+// Hilfsfunktion: Alle gespeicherten Level-States für ein Spiel abrufen
+	const getAllLevelStates = (gameId) => {
+		try {
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+			return existingStates[gameId] || {}
+		} catch (error) {
+			console.error('Error getting all level states:', error)
+			return {}
+		}
+	}
+
+// Hilfsfunktion: Alte Level-States bereinigen (älter als 7 Tage)
+	const cleanupOldLevelStates = () => {
+		try {
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+			const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+			let hasChanges = false
+
+			Object.keys(existingStates).forEach(gameId => {
+				Object.keys(existingStates[gameId]).forEach(levelNumber => {
+					const stateData = existingStates[gameId][levelNumber]
+					const savedAt = new Date(stateData.savedAt)
+
+					if (savedAt < sevenDaysAgo) {
+						delete existingStates[gameId][levelNumber]
+						hasChanges = true
+						console.log(`🧹 Cleaned up old level state: ${gameId} level ${levelNumber}`)
+					}
+				})
+
+				// Lösche leere Game-Objekte
+				if (Object.keys(existingStates[gameId]).length === 0) {
+					delete existingStates[gameId]
+					hasChanges = true
+				}
+			})
+
+			if (hasChanges) {
+				localStorage.setItem(LEVEL_STATE_KEY, JSON.stringify(existingStates))
+				console.log('🧹 Old level states cleanup completed')
+			}
+		} catch (error) {
+			console.error('Error during level states cleanup:', error)
+		}
 	}
 
 	// Return all reactive data and methods
@@ -986,6 +1125,14 @@ export function useLocalStorage() {
 		updateActiveBoosts,
 		getActiveBoost,
 		purchaseShopItem,
+
+		// Level State Management
+		saveLevelState,
+		loadLevelState,
+		clearLevelState,
+		hasLevelState,
+		getAllLevelStates,
+		cleanupOldLevelStates,
 
 		// Settings methods
 		updateSettings,

@@ -6,7 +6,6 @@ import GameLevelTile from './GameLevelTile.vue'
 import Icon from './Icon.vue'
 import ProgressOverview from "./ProgressOverview.vue";
 import { calculateLevelStars, getLevelTitle, getLevelDescription } from "../config/levelUtils.js"
-import Header from "./Header.vue";
 
 // Props for the level selection component
 const props = defineProps({
@@ -39,7 +38,7 @@ const emit = defineEmits([
 ])
 
 // LocalStorage service
-const { gameData } = useLocalStorage()
+const { gameData, hasLevelState, loadLevelState } = useLocalStorage()
 const { t } = useI18n()
 
 // Computed game data
@@ -60,6 +59,11 @@ const levelData = computed(() => {
 		const title = getLevelTitle(levelNumber, props.gameId, t)
 		const description = getLevelDescription(levelNumber, props.gameId, t)
 
+		// Check for saved state
+		const savedState = loadLevelState(props.gameId, levelNumber)
+		const hasSaved = !!savedState
+		const savedTimestamp = savedState?.savedAt || null
+
 		return {
 			level: levelNumber,
 			title: title,
@@ -72,7 +76,9 @@ const levelData = computed(() => {
 			bestTime: levelStats.bestTime || null,
 			stars: stars,
 			attempts: levelStats.attempts || 0,
-			isEndless: level.isEndless || false
+			isEndless: level.isEndless || false,
+			hasSavedState: hasSaved,
+			savedStateTimestamp: savedTimestamp
 		}
 	})
 })
@@ -136,21 +142,23 @@ const handleBackToHub = () => {
 
     <!-- Levels Grid -->
     <div class="levels-grid">
-      <GameLevelTile
-        v-for="level in levelData"
-        :key="level.level"
-        :level="level.level"
-        :title="level.title"
-        :description="level.description"
-        :is-locked="level.isLocked"
-        :is-completed="level.isCompleted"
-        :stars="level.stars"
-        :high-score="level.highScore"
-        :best-time="level.bestTime"
-        :theme="theme"
-        :game-type="gameId"
-        @play-level="handlePlayLevel"
-      />
+	    <GameLevelTile
+		    v-for="level in levelData"
+		    :key="level.level"
+		    :level="level.level"
+		    :title="level.title"
+		    :description="level.description"
+		    :is-locked="level.isLocked"
+		    :is-completed="level.isCompleted"
+		    :stars="level.stars"
+		    :high-score="level.highScore"
+		    :best-time="level.bestTime"
+		    :theme="theme"
+		    :game-type="gameId"
+		    :has-saved-state="level.hasSavedState"
+		    :saved-state-timestamp="level.savedStateTimestamp"
+		    @play-level="handlePlayLevel"
+	    />
     </div>
   </main>
 </template>
