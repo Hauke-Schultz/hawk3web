@@ -28,7 +28,19 @@ const props = defineProps({
 const emit = defineEmits(['back-to-gaming', 'game-complete', 'menu-click'])
 
 // Services
-const { gameData, updateGameStats, updateLevelStats, addScore, checkGameLevelAchievements, checkAutoAchievements, getLevelStats } = useLocalStorage()
+const {
+	gameData,
+	updateGameStats,
+	updateLevelStats,
+	addScore,
+	checkGameLevelAchievements,
+	checkAutoAchievements,
+	getLevelStats,
+	saveLevelState,
+	loadLevelState,
+	clearLevelState,
+	hasLevelState
+} = useLocalStorage()
 const { t } = useI18n()
 
 // Game state - using shallowRef for performance
@@ -68,6 +80,8 @@ const totalMerges = ref(0)
 const sessionTime = ref(0)
 const sessionTimer = ref(null)
 const milestones = ref([])
+const isRestoringState = ref(false)
+const hasSavedState = ref(false)
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -705,6 +719,20 @@ const cleanup = () => {
 const initGame = async () => {
 	await nextTick()
 
+	// Check for saved state first
+	const savedState = hasLevelState('fruitMerge', currentLevel.value)
+	hasSavedState.value = !!savedState
+
+	if (savedState && !isRestoringState.value) {
+		console.log(`Found saved state for level ${currentLevel.value}`)
+		const restored = await restoreGameState(savedState)
+
+		if (restored) {
+			return // State restored successfully
+		}
+	}
+
+	// Initialize fresh game if no saved state or restoration failed
 	initPhysics()
 	nextFruit.value = generateNextFruit()
 	gameLoop()
@@ -722,6 +750,10 @@ const initGame = async () => {
 
 const completeLevel = () => {
 	if (gameState.value !== 'playing') return
+
+	// Clear saved state on completion
+	clearLevelState('fruitMerge', currentLevel.value)
+	console.log(`Cleared saved state for completed level ${currentLevel.value}`)
 
 	gameState.value = 'completed'
 
@@ -1118,6 +1150,9 @@ const startLevel = (level) => {
 }
 
 const resetGame = () => {
+	// Clear saved state when resetting
+	clearLevelState('fruitMerge', currentLevel.value)
+
 	cleanup()
 	comboSystem.resetCombo()
 	isPhysicsPaused.value = false
@@ -1130,6 +1165,7 @@ const resetGame = () => {
 	scorePoints.value = []
 	levelReward.value = null
 	showNextFruit.value = true
+	hasSavedState.value = false
 
 	if (isEndlessMode.value) {
 		totalMerges.value = 0
@@ -1146,8 +1182,17 @@ const handleTryAgain = () => {
 }
 
 const backToGaming = () => {
-	emit('back-to-gaming')
+	// Save current state if game is in progress
+	if (gameState.value === 'playing' && !isRestoringState.value) {
+		const currentState = captureCurrentState()
+		if (currentState) {
+			saveLevelState('fruitMerge', currentLevel.value, currentState)
+			console.log(`Game state saved for level ${currentLevel.value}`)
+		}
+	}
+
 	cleanup()
+	emit('back-to-gaming')
 }
 
 const gameOver = () => {
@@ -1272,6 +1317,207 @@ const formatTime = (seconds) => {
 	return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
+const captureCurrentState = () => {
+	if (gameState.value !== 'playing') return null
+
+	const currentState = {
+		// Game progress
+		score: score.value,
+		moves: moves.value,
+		timeElapsed: timeElapsed.value,
+		totalMerges: totalMerges.value,
+		sessionTime: sessionTime.value,
+		milestones: [...milestones.value],
+
+		// Combo system state
+		comboData: {
+			count: comboSystem.comboCount.value,
+			level: comboSystem.comboLevel.value,
+			multiplier: comboSystem.comboMultiplier.value,
+			isActive: comboSystem.isComboActive.value,
+			timeRemaining: comboSystem.timeRemaining.value
+		},
+
+		// Fruits state
+		fruitsState: fruits.value.map(fruit => ({
+			id: fruit.id,
+			color: fruit.color,
+			size: fruit.size,
+			level: fruit.level,
+			name: fruit.name,
+			svg: fruit.svg,
+			x: fruit.x,
+			y: fruit.y,
+			rotation: fruit.rotation,
+			merging: fruit.merging,
+			inDanger: fruit.inDanger,
+			dangerZoneTime: fruit.dangerZoneTime,
+			// Physics body properties
+			bodyPosition: fruit.body ? {
+				x: fruit.body.position.x,
+				y: fruit.body.position.y
+			} : null,
+			bodyVelocity: fruit.body ? {
+				x: fruit.body.velocity.x,
+				y: fruit.body.velocity.y
+			} : null,
+			bodyAngle: fruit.body ? fruit.body.angle : 0,
+			bodyAngularVelocity: fruit.body ? fruit.body.angularVelocity : 0
+		})),
+
+		// Next fruit
+		nextFruitState: nextFruit.value ? {
+			id: nextFruit.value.id,
+			color: nextFruit.value.color,
+			size: nextFruit.value.size,
+			level: nextFruit.value.level,
+			name: nextFruit.value.name,
+			svg: nextFruit.value.svg
+		} : null,
+
+		// Game settings
+		nextFruitId: nextFruitId.value,
+		gameStateValue: gameState.value,
+
+		// Timestamp
+		savedAt: new Date().toISOString(),
+		version: '1.0'
+	}
+
+	return currentState
+}
+
+const restoreGameState = async (savedState) => {
+	if (!savedState || savedState.version !== '1.0') {
+		console.warn('Invalid or incompatible saved state')
+		return false
+	}
+
+	try {
+		console.log('Restoring game state...', savedState)
+		isRestoringState.value = true
+
+		// Stop current game
+		cleanup()
+
+		// Restore basic game data
+		score.value = savedState.score || 0
+		moves.value = savedState.moves || 0
+		timeElapsed.value = savedState.timeElapsed || 0
+		nextFruitId.value = savedState.nextFruitId || 0
+		gameState.value = savedState.gameStateValue || 'playing'
+
+		// Restore endless mode specific data
+		if (isEndlessMode.value) {
+			totalMerges.value = savedState.totalMerges || 0
+			sessionTime.value = savedState.sessionTime || 0
+			milestones.value = [...(savedState.milestones || [])]
+		}
+
+		// Initialize physics first
+		await nextTick()
+		initPhysics()
+
+		// Restore combo system
+		if (savedState.comboData) {
+			comboSystem.comboCount.value = savedState.comboData.count || 0
+			comboSystem.comboMultiplier.value = savedState.comboData.multiplier || 1
+			comboSystem.isComboActive.value = savedState.comboData.isActive || false
+			comboSystem.timeRemaining.value = savedState.comboData.timeRemaining || 0
+		}
+
+		// Restore fruits
+		if (savedState.fruitsState && savedState.fruitsState.length > 0) {
+			fruits.value = []
+
+			for (const fruitState of savedState.fruitsState) {
+				const restoredFruit = {
+					id: fruitState.id,
+					color: fruitState.color,
+					size: fruitState.size,
+					level: fruitState.level,
+					name: fruitState.name,
+					svg: fruitState.svg,
+					x: fruitState.x,
+					y: fruitState.y,
+					rotation: fruitState.rotation,
+					body: null,
+					merging: fruitState.merging || false,
+					inDanger: fruitState.inDanger || false,
+					dangerZoneStartTime: null,
+					dangerZoneTime: fruitState.dangerZoneTime || 0
+				}
+
+				// Create physics body
+				if (fruitState.bodyPosition) {
+					const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruitState.level)
+					const radius = fruitConfig ? fruitConfig.radius : fruitState.size / 2
+
+					const body = Matter.Bodies.circle(
+							fruitState.bodyPosition.x,
+							fruitState.bodyPosition.y,
+							radius,
+							{
+								restitution: 0.3,
+								friction: 0.05,
+								frictionAir: 0.005,
+								density: 0.001,
+								label: `fruit-${fruitState.id}-${fruitState.color}-${fruitState.level}`,
+								render: {
+									sprite: {
+										xScale: 1,
+										yScale: 1
+									}
+								}
+							}
+					)
+
+					// Restore physics properties
+					if (fruitState.bodyVelocity) {
+						Matter.Body.setVelocity(body, fruitState.bodyVelocity)
+					}
+					if (fruitState.bodyAngle) {
+						Matter.Body.setAngle(body, fruitState.bodyAngle)
+					}
+					if (fruitState.bodyAngularVelocity) {
+						Matter.Body.setAngularVelocity(body, fruitState.bodyAngularVelocity)
+					}
+
+					restoredFruit.body = body
+					Matter.Composite.add(engine.world, body)
+				}
+
+				fruits.value.push(restoredFruit)
+			}
+		}
+
+		// Restore next fruit
+		if (savedState.nextFruitState) {
+			nextFruit.value = { ...savedState.nextFruitState }
+		} else {
+			nextFruit.value = generateNextFruit()
+		}
+
+		// Start timers and game loop
+		if (isEndlessMode.value) {
+			startSessionTimer()
+		}
+		startGameOverChecking()
+		gameLoop()
+
+		console.log(`Game state restored successfully. Score: ${score.value}, Moves: ${moves.value}`)
+		return true
+
+	} catch (error) {
+		console.error('Error restoring game state:', error)
+		// Fallback to fresh game
+		resetGame()
+		return false
+	} finally {
+		isRestoringState.value = false
+	}
+}
+
 const getMilestoneText = (milestone) => {
 	const [type, value] = milestone.split('_')
 
@@ -1342,6 +1588,19 @@ onUnmounted(() => {
 			      @back-to-gaming="backToGaming"
 	      />
       </div>
+
+	    <div v-if="hasSavedState && !isRestoringState" class="saved-state-indicator">
+		    <Icon name="info" size="16" />
+		    <span>{{ t('fruitMerge.state_restored') }}</span>
+	    </div>
+
+	    <!-- Loading indicator für State Restoration -->
+	    <div v-if="isRestoringState" class="restoring-state-overlay">
+		    <div class="restoring-content">
+			    <div class="loading-spinner"></div>
+			    <p>{{ t('fruitMerge.restoring_state') }}</p>
+		    </div>
+	    </div>
 
       <div class="game-stats-container">
         <!-- Progress Overview -->
@@ -1875,6 +2134,57 @@ onUnmounted(() => {
 	padding: var(--space-1) var(--space-2);
 	border-radius: var(--border-radius-md);
 }
+
+.saved-state-indicator {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	background-color: var(--info-color);
+	color: white;
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	margin: var(--space-2) 0;
+}
+
+.restoring-state-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100;
+}
+
+.restoring-content {
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-xl);
+	padding: var(--space-6);
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	align-items: center;
+}
+
+.loading-spinner {
+	width: 32px;
+	height: 32px;
+	border: 3px solid var(--card-border);
+	border-top: 3px solid var(--primary-color);
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
 .milestone-notifications {
 	position: fixed;
 	top: 50%;
