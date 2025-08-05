@@ -391,6 +391,7 @@ export default {
 		amazing_combo: 'Amazing Combo!',
 		incredible_combo: 'Incredible Combo!',
 		state_restored: 'Game state restored',
+		save_game: 'Save game',
 
 		// Endless Mode specific translations
 		endless: {

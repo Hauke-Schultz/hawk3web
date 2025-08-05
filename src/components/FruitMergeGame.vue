@@ -82,6 +82,7 @@ const sessionTimer = ref(null)
 const milestones = ref([])
 const isRestoringState = ref(false)
 const hasSavedState = ref(false)
+const isSaving = ref(false)
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -1194,6 +1195,28 @@ const handleTryAgain = () => {
   gameState.value = 'playing'
 }
 
+const handleManualSave = async () => {
+	if (gameState.value !== 'playing' || isSaving.value) return
+
+	isSaving.value = true
+
+	try {
+		const currentState = captureCurrentState()
+		if (currentState) {
+			saveLevelState('fruitMerge', currentLevel.value, currentState)
+			console.log(`✅ Game manually saved for level ${currentLevel.value}`)
+
+			// Kurzes visuelles Feedback
+			setTimeout(() => {
+				isSaving.value = false
+			}, 800)
+		}
+	} catch (error) {
+		console.error('Error saving game state:', error)
+		isSaving.value = false
+	}
+}
+
 const backToGaming = () => {
 	// Save current state if game is in progress
 	if (gameState.value === 'playing' && !isRestoringState.value) {
@@ -1619,9 +1642,15 @@ onUnmounted(() => {
 			      :back-label="t('common.back')"
 			      @back-to-gaming="backToGaming"
 	      />
-	      <div v-if="hasSavedState && !isRestoringState" class="saved-state-indicator">
-		      <Icon name="info" size="16" />
-		      <span>{{ t('fruitMerge.state_restored') }}</span>
+	      <div v-if="gameState === 'playing'" class="manual-save">
+		      <button
+				      class="btn btn--small"
+				      @click="handleManualSave"
+				      :disabled="isSaving"
+				      :title="t('fruitMerge.save_game')"
+		      >
+			      <Icon :name="isSaving ? 'loading' : 'save'" size="22" />
+		      </button>
 	      </div>
       </div>
 
@@ -2166,16 +2195,10 @@ onUnmounted(() => {
 	border-radius: var(--border-radius-md);
 }
 
-.saved-state-indicator {
+.manual-save {
 	display: flex;
 	align-items: center;
-	gap: var(--space-2);
-	background-color: var(--info-color);
-	color: white;
-	padding: var(--space-2) var(--space-3);
-	border-radius: var(--border-radius-md);
-	font-size: var(--font-size-sm);
-	margin: var(--space-2) 0;
+	justify-content: center;
 }
 
 .restoring-state-overlay {

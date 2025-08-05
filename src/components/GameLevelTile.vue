@@ -190,8 +190,6 @@ const handleKeyDown = (event) => {
 <template>
   <div
     :class="tileClass"
-    @click="handleTileClick"
-    @keydown="handleKeyDown"
     :tabindex="canPlay ? 0 : -1"
     :aria-label="`${levelTitle}, ${isCompleted ? 'completed' : isLocked ? 'locked' : 'available'}`"
     role="button"
