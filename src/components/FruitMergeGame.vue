@@ -8,6 +8,7 @@ import {calculateLevelStars} from "../config/levelUtils.js";
 import GameCompletedModal from "./GameCompletedModal.vue";
 import {useComboSystem} from "../composables/useComboSystem.js";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useInventory } from '../composables/useInventory.js'
 import { useI18n } from '../composables/useI18n.js'
 import Header from "./Header.vue";
 import {REWARDS} from "../config/achievementsConfig.js";
@@ -42,6 +43,7 @@ const {
 	hasLevelState
 } = useLocalStorage()
 const { t } = useI18n()
+const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
 
 // Game state - using shallowRef for performance
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
@@ -83,6 +85,11 @@ const milestones = ref([])
 const isRestoringState = ref(false)
 const hasSavedState = ref(false)
 const isSaving = ref(false)
+
+const hammerMode = ref(false)
+const hammerUses = ref(0)
+const selectedFruitForHammer = ref(null)
+const isUsingHammer = ref(false)
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -284,6 +291,104 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
     isDropping.value = false
     dropCooldown.value = false
   }, PHYSICS_CONFIG.dropCooldown)
+}
+
+
+const activateHammerMode = () => {
+	if (!isEndlessMode.value) {
+		console.log('Hammer only available in endless mode')
+		return false
+	}
+
+	const hammerCount = getItemQuantity('hammer_powerup')
+	if (hammerCount <= 0) {
+		console.log('No hammers available')
+		return false
+	}
+
+	hammerMode.value = true
+	isDropping.value = true // Prevent normal dropping
+	console.log('🔨 Hammer mode activated!')
+	return true
+}
+
+const deactivateHammerMode = () => {
+	hammerMode.value = false
+	isDropping.value = false
+	selectedFruitForHammer.value = null
+	console.log('Hammer mode deactivated')
+}
+
+const handleFruitClick = (fruit) => {
+	if (!hammerMode.value || isUsingHammer.value || !fruit) return
+
+	console.log(`🔨 Hammering fruit: ${fruit.name} (ID: ${fruit.id})`)
+	isUsingHammer.value = true
+
+	// Visual effect - mark as being destroyed
+	selectedFruitForHammer.value = fruit.id
+
+	// Create destruction effect at fruit center
+	const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
+	const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
+	createDestructionEffect(centerX, centerY, fruit)
+
+	// Remove fruit after animation
+	setTimeout(() => {
+		// Remove from physics
+		if (fruit.body && engine) {
+			try {
+				Matter.Composite.remove(engine.world, fruit.body)
+			} catch (error) {
+				console.warn('Error removing fruit body:', error)
+			}
+		}
+
+		// Remove from fruits array
+		fruits.value = fruits.value.filter(f => f.id !== fruit.id)
+
+		// Use one hammer charge
+		const used = useConsumableItem('hammer_powerup')
+		if (used) {
+			const remaining = getItemQuantity('hammer_powerup')
+			hammerUses.value = remaining
+			console.log(`✅ Hammer used! Remaining: ${remaining}`)
+		}
+
+		// Reset states
+		selectedFruitForHammer.value = null
+		isUsingHammer.value = false
+		deactivateHammerMode()
+	}, 300)
+}
+
+const createDestructionEffect = (x, y, fruit) => {
+	// Create explosion particles
+	const particleCount = 12
+	for (let i = 0; i < particleCount; i++) {
+		const angle = (i / particleCount) * Math.PI * 2
+		const distance = 60 + Math.random() * 40
+		const particleX = Math.cos(angle) * distance
+		const particleY = Math.sin(angle) * distance
+
+		const particle = {
+			id: `destroy-${Date.now()}-${i}`,
+			x: x,
+			y: y,
+			targetX: particleX,
+			targetY: particleY,
+			type: 'destruction',
+			backgroundColor: '#FF4444',
+			duration: 800,
+			size: 4 + Math.random() * 4
+		}
+
+		particles.value.push(particle)
+
+		setTimeout(() => {
+			particles.value = particles.value.filter(p => p.id !== particle.id)
+		}, 800)
+	}
 }
 
 // Handle board click/touch for dropping
@@ -1180,6 +1285,10 @@ const resetGame = () => {
 	levelReward.value = null
 	showNextFruit.value = true
 	hasSavedState.value = false
+	hammerMode.value = false
+	hammerUses.value = getItemQuantity('hammer_powerup')
+	selectedFruitForHammer.value = null
+	isUsingHammer.value = false
 
 	if (isEndlessMode.value) {
 		totalMerges.value = 0
@@ -1236,6 +1345,7 @@ const gameOver = () => {
 	stopAllFruits()
 	stopGameOverChecking()
 	comboSystem.cleanup()
+	clearLevelState('fruitMerge', currentLevel.value)
 
 	console.log('Game Over! Fruits reached the danger zone.')
 
@@ -1610,6 +1720,9 @@ watch(isLevelComplete, (newValue) => {
 // Lifecycle
 onMounted(() => {
   initGame()
+	if (isEndlessMode.value) {
+		hammerUses.value = getItemQuantity('hammer_powerup')
+	}
 })
 
 onUnmounted(() => {
@@ -1702,6 +1815,20 @@ onUnmounted(() => {
 		      :moves-label="t('stats.moves')"
 		      :combo-label="t('stats.combo')"
 	      />
+	      <div v-if="isEndlessMode && hammerUses > 0" class="hammer-control">
+		      <button
+			      class="btn btn--small"
+			      :class="{
+				      'btn--warning': !hammerMode,
+				      'btn--danger': hammerMode
+				    }"
+			      @click="hammerMode ? deactivateHammerMode() : activateHammerMode()"
+			      :title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
+		      >
+			      <span class="hammer-icon">🔨</span>
+			      <span class="hammer-count">{{ hammerUses }}</span>
+		      </button>
+	      </div>
       </div>
     </div>
 
@@ -1789,21 +1916,25 @@ onUnmounted(() => {
 			    :key="fruit.id"
 			    class="fruit"
 			    :class="{
-			      'fruit--combo': fruit.comboEffect,
-			      'fruit--danger': fruit.inDanger,
-			      'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode
-			    }"
+				    'fruit--combo': fruit.comboEffect,
+				    'fruit--danger': fruit.inDanger,
+				    'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
+				    'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
+				    'fruit--destroying': selectedFruitForHammer === fruit.id
+				  }"
 			    :style="{
-			      left: `${fruit.x}px`,
-			      top: `${fruit.y}px`,
-			      width: `${fruit.size}px`,
-			      height: `${fruit.size}px`,
-			      transform: `rotate(${fruit.rotation}deg)`,
-			      zIndex: fruit.inDanger ? 5 : 1
-			    }"
+				    left: `${fruit.x}px`,
+				    top: `${fruit.y}px`,
+				    width: `${fruit.size}px`,
+				    height: `${fruit.size}px`,
+				    transform: `rotate(${fruit.rotation}deg)`,
+				    zIndex: fruit.inDanger ? 5 : (hammerMode ? 10 : 1)
+				  }"
+			    @click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
 		    >
 			    <div class="fruit-svg" v-html="fruit.svg"></div>
 		    </div>
+
         <!-- Merge Particles Container -->
         <div class="merge-particles-container">
           <div
@@ -2021,26 +2152,42 @@ onUnmounted(() => {
 
 // Fruits
 .fruit {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+	position: absolute;
+	border-radius: 50%;
+	pointer-events: none; // Standard: keine Events
+	transition: opacity 0.3s ease;
 
-  &--combo {
-    animation: comboSparkle 1s ease-out;
-    box-shadow: 0 0 20px var(--warning-color);
-  }
+	// Nur im Hammer-Modus klickbar machen
+	&.fruit--hammer-target {
+		pointer-events: auto; // Events aktivieren!
+		cursor: crosshair !important;
 
-  &--danger {
-    animation: dangerPulse 1s ease-in-out infinite alternate;
-    box-shadow: 0 0 15px var(--error-color);
-    filter: brightness(1.2) saturate(1.3);
-    border: 2px solid var(--error-color);
-    border-radius: 50%;
-  }
+		&:hover {
+			filter: brightness(1.3);
+			box-shadow: 0 0 20px var(--error-color);
+		}
+	}
+
+	&--combo {
+		animation: comboSparkle 1s ease-out;
+		box-shadow: 0 0 20px var(--warning-color);
+	}
+
+	&--danger {
+		animation: dangerPulse 1s ease-in-out infinite alternate;
+		box-shadow: 0 0 15px var(--error-color);
+		filter: brightness(1.2) saturate(1.3);
+		border: 2px solid var(--error-color);
+		border-radius: 50%;
+	}
 
 	&--goal {
 		box-shadow: 0 0 2px 6px var(--success-color);
+	}
+
+	&--destroying {
+		pointer-events: none !important;
+		animation: destroyAnimation 0.3s ease-out forwards;
 	}
 }
 
@@ -2380,6 +2527,63 @@ onUnmounted(() => {
 			milestoneSlideIn 0.8s ease-out,
 			milestoneAutoFade 4s ease-in-out 3s forwards;
 }
+
+
+
+.hammer-control {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	.hammer-icon {
+		font-size: var(--font-size-lg);
+	}
+
+	.hammer-count {
+		margin-left: var(--space-1);
+		background-color: var(--error-color);
+		color: white;
+		padding: 0 var(--space-1);
+		border-radius: var(--border-radius-sm);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+	}
+}
+
+.fruit--hammer-target {
+	&:hover {
+		filter: brightness(1.3);
+		box-shadow: 0 0 20px var(--error-color);
+		cursor: crosshair !important;
+	}
+}
+
+.fruit--destroying {
+	animation: destroyAnimation 0.3s ease-out forwards;
+}
+
+@keyframes destroyAnimation {
+	0% {
+		transform: scale(1) rotate(0deg);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(1.2) rotate(180deg);
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(0) rotate(360deg);
+		opacity: 0;
+	}
+}
+
+
+// Destruction particle style
+.particle--destruction {
+	background-color: #FF4444 !important;
+	box-shadow: 0 0 10px #FF4444;
+}
+
 
 @keyframes milestoneAutoFade {
 	0% {

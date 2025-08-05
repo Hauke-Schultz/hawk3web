@@ -25,22 +25,11 @@ export const SHOP_CATEGORIES = {
 export const SHOP_ITEMS = [
   // Simple Cosmetic Items with Emojis
   {
-    id: 'sunglasses',
-    name: 'Cool Sunglasses',
-    description: 'Look cool with stylish sunglasses',
-    category: 'cosmetics',
-    price: { coins: 500, diamonds: 0 },
-    rarity: 'common',
-    icon: '🕶️',
-    type: 'cosmetic',
-    purchaseLimit: 1
-  },
-  {
     id: 'regular_glasses',
     name: 'Smart Glasses',
     description: 'Classic eyeglasses for the intellectual look',
     category: 'cosmetics',
-    price: { coins: 300, diamonds: 0 },
+    price: { coins: 200, diamonds: 0 },
     rarity: 'common',
     icon: '👓',
     type: 'cosmetic',
@@ -58,11 +47,22 @@ export const SHOP_ITEMS = [
     purchaseLimit: 1
   },
   {
+    id: 'sunglasses',
+    name: 'Cool Sunglasses',
+    description: 'Look cool with stylish sunglasses',
+    category: 'cosmetics',
+    price: { coins: 1000, diamonds: 2 },
+    rarity: 'common',
+    icon: '🕶️',
+    type: 'cosmetic',
+    purchaseLimit: 1
+  },
+  {
     id: 'tophat',
     name: 'Top Hat',
     description: 'Elegant top hat for distinguished players',
     category: 'cosmetics',
-    price: { coins: 800, diamonds: 0 },
+    price: { coins: 1000, diamonds: 6 },
     rarity: 'rare',
     icon: '🎩',
     type: 'cosmetic',
@@ -73,7 +73,7 @@ export const SHOP_ITEMS = [
     name: 'Cool Car',
     description: 'Show off with your own car',
     category: 'cosmetics',
-    price: { coins: 2000, diamonds: 5 },
+    price: { coins: 5000, diamonds: 10 },
     rarity: 'epic',
     icon: '🚗',
     type: 'cosmetic',
@@ -84,7 +84,7 @@ export const SHOP_ITEMS = [
     name: 'Golden Crown',
     description: 'Royal crown for true champions',
     category: 'cosmetics',
-    price: { coins: 5000, diamonds: 10 },
+    price: { coins: 10000, diamonds: 50 },
     rarity: 'legendary',
     icon: '👑',
     type: 'cosmetic',
@@ -93,26 +93,16 @@ export const SHOP_ITEMS = [
 
   // Simple Power-ups
   {
-    id: 'double_coins',
-    name: '2x Coins Boost',
-    description: 'Double coin rewards for 1 hour',
+    id: 'hammer_powerup',
+    name: 'Fruit Hammer',
+    description: 'Remove any fruit instantly! Perfect for clearing dangerous situations',
     category: 'powerups',
-    price: { coins: 500, diamonds: 0 },
-    rarity: 'common',
-    icon: '⭐',
-    type: 'boost',
-    purchaseLimit: null
-  },
-  {
-    id: 'extra_lives',
-    name: 'Extra Lives',
-    description: 'Get 5 additional attempts',
-    category: 'powerups',
-    price: { coins: 300, diamonds: 0 },
-    rarity: 'common',
-    icon: '❤️',
+    price: { coins: 1000, diamonds: 5 },
+    rarity: 'rare',
+    icon: '🔨',
     type: 'consumable',
-    purchaseLimit: null
+    purchaseLimit: null,
+    uses: 1
   },
 
   // Simple Utilities

@@ -391,6 +391,11 @@ export default {
 		incredible_combo: 'Unglaubliche Combo!',
 		state_restored: 'Spielstand wiederhergestellt',
 		save_game: 'Spiel speichern',
+		activate_hammer: 'Hammer aktivieren',
+		deactivate_hammer: 'Hammer deaktivieren',
+		hammer_mode_active: '🔨 Hammer-Modus - Klicke auf eine Frucht zum Entfernen',
+		hammer_used: 'Hammer benutzt!',
+		no_hammers: 'Keine Hämmer verfügbar',
 
 		// Endless Mode spezifische Übersetzungen
 		endless: {

@@ -261,8 +261,9 @@ const handleMenuClick = () => {
 
 .items-grid {
 	display: grid;
-	grid-template-columns: 1fr;
-	gap: var(--space-3);
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--space-2);
+	max-width: 100%;
 }
 
 // Empty State
