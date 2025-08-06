@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import router from './router'
 import './style.css'
 
 const initializeApp = async () => {
@@ -9,7 +10,9 @@ const initializeApp = async () => {
 	const savedLanguage = localStorage.getItem('hawk3_language') || 'en'
 	document.documentElement.setAttribute('lang', savedLanguage)
 
-	createApp(App).mount('#app')
+	const app = createApp(App)
+	app.use(router)
+	app.mount('#app')
 }
 
 initializeApp()

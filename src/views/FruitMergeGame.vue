@@ -2,31 +2,32 @@
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
 import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG, POINTS_CONFIG} from '../config/fruitMergeConfig.js'
-import PerformanceStats from "./PerformanceStats.vue";
-import ProgressOverview from "./ProgressOverview.vue";
+import { useRouter } from 'vue-router'
+import PerformanceStats from "../components/PerformanceStats.vue";
+import ProgressOverview from "../components/ProgressOverview.vue";
 import {calculateLevelStars} from "../config/levelUtils.js";
-import GameCompletedModal from "./GameCompletedModal.vue";
+import GameCompletedModal from "../components/GameCompletedModal.vue";
 import {useComboSystem} from "../composables/useComboSystem.js";
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useInventory } from '../composables/useInventory.js'
 import { useI18n } from '../composables/useI18n.js'
-import Header from "./Header.vue";
+import Header from "../components/Header.vue";
 import {REWARDS} from "../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../config/comboConfig.js";
-import GameOverModal from "./GameOverModal.vue";
-import Icon from "./Icon.vue";
-import GameControls from "./GameControls.vue";
+import GameOverModal from "../components/GameOverModal.vue";
+import Icon from "../components/Icon.vue";
 
 // Props
 const props = defineProps({
-  level: {
-    type: Number,
-    default: 1
-  }
+	level: {
+		type: Number,
+		default: 1
+	}
 })
+const router = useRouter()
 
 // Emits
-const emit = defineEmits(['back-to-gaming', 'game-complete', 'menu-click'])
+const emit = defineEmits(['back-to-gaming', 'game-complete', 'menu-click', 'shop-click', 'trophy-click'])
 
 // Services
 const {
@@ -93,38 +94,38 @@ const isUsingHammer = ref(false)
 
 // Combo system setup
 const comboSystem = useComboSystem({
-  minComboLength: 2,
-  maxComboLength: 15,
-  comboTimeout: 3000,
-  baseMultiplier: 1.4,
-  multiplierIncrement: 0.4
+	minComboLength: 2,
+	maxComboLength: 15,
+	comboTimeout: 3000,
+	baseMultiplier: 1.4,
+	multiplierIncrement: 0.4
 })
 
 const fruitTypes = computed(() => {
-  return Object.values(FRUIT_TYPES)
-      .sort((a, b) => a.index - b.index)
-      .map(fruit => ({
-        size: fruit.radius * 2,
-        color: fruit.color,
-        level: fruit.index,
-        name: fruit.type,
-        svg: fruit.svg,
-        scoreValue: fruit.scoreValue,
-        nextType: fruit.nextType,
-        radius: fruit.radius
-      }))
+	return Object.values(FRUIT_TYPES)
+			.sort((a, b) => a.index - b.index)
+			.map(fruit => ({
+				size: fruit.radius * 2,
+				color: fruit.color,
+				level: fruit.index,
+				name: fruit.type,
+				svg: fruit.svg,
+				scoreValue: fruit.scoreValue,
+				nextType: fruit.nextType,
+				radius: fruit.radius
+			}))
 })
 
 // Game area dimensions - computed for reactivity
 const boardConfig = computed(() => ({
-  width: PHYSICS_CONFIG.board.width,
-  height: PHYSICS_CONFIG.board.height,
-  thickness: PHYSICS_CONFIG.board.thickness
+	width: PHYSICS_CONFIG.board.width,
+	height: PHYSICS_CONFIG.board.height,
+	thickness: PHYSICS_CONFIG.board.thickness
 }))
 
 const gameOverTimer = ref(null)
 const gameOverHeight = computed(() => {
-  return PHYSICS_CONFIG.board.height - PHYSICS_CONFIG.gameOverHeight
+	return PHYSICS_CONFIG.board.height - PHYSICS_CONFIG.gameOverHeight
 })
 
 const isEndlessMode = computed(() => {
@@ -205,92 +206,92 @@ const checkScoreMilestones = () => {
 
 // Update next fruit position based on mouse/touch coordinates
 const updateNextFruitPosition = (clientX) => {
-  if (!gameBoard.value || !nextFruit.value) return
+	if (!gameBoard.value || !nextFruit.value) return
 
-  const rect = gameBoard.value.getBoundingClientRect()
-  const relativeX = clientX - rect.left
+	const rect = gameBoard.value.getBoundingClientRect()
+	const relativeX = clientX - rect.left
 
-  // Constrain position within bounds (considering fruit radius)
-  const fruitRadius = nextFruit.value.size / 2
-  const minX = fruitRadius + boardConfig.value.thickness / 4
-  const maxX = boardConfig.value.width - fruitRadius - boardConfig.value.thickness / 4
-  nextFruitPosition.value = Math.max(minX, Math.min(maxX, relativeX))
+	// Constrain position within bounds (considering fruit radius)
+	const fruitRadius = nextFruit.value.size / 2
+	const minX = fruitRadius + boardConfig.value.thickness / 4
+	const maxX = boardConfig.value.width - fruitRadius - boardConfig.value.thickness / 4
+	nextFruitPosition.value = Math.max(minX, Math.min(maxX, relativeX))
 }
 
 // Mouse event handlers
 const handleMouseMove = (event) => {
-  if (!isHoveringBoard.value) return
-  updateNextFruitPosition(event.clientX)
+	if (!isHoveringBoard.value) return
+	updateNextFruitPosition(event.clientX)
 }
 
 const handleMouseEnter = () => {
-  isHoveringBoard.value = true
+	isHoveringBoard.value = true
 }
 
 const handleMouseLeave = () => {
-  isHoveringBoard.value = false
+	isHoveringBoard.value = false
 }
 
 // Touch event handlers
 const handleTouchMove = (event) => {
-  if (event.touches.length > 0) {
-    event.preventDefault() // Prevent scrolling
-    updateNextFruitPosition(event.touches[0].clientX)
-  }
+	if (event.touches.length > 0) {
+		event.preventDefault() // Prevent scrolling
+		updateNextFruitPosition(event.touches[0].clientX)
+	}
 }
 
 const handleTouchStart = (event) => {
-  if (event.touches.length > 0) {
-    updateNextFruitPosition(event.touches[0].clientX)
-  }
+	if (event.touches.length > 0) {
+		updateNextFruitPosition(event.touches[0].clientX)
+	}
 }
 
 // Drop fruit
 const dropFruit = (targetX = nextFruitPosition.value) => {
-  if (isDropping.value || dropCooldown.value || !nextFruit.value) return
+	if (isDropping.value || dropCooldown.value || !nextFruit.value) return
 
-  console.log(`Dropping fruit at x: ${targetX}`)
+	console.log(`Dropping fruit at x: ${targetX}`)
 
-  isDropping.value = true
-  dropCooldown.value = true
+	isDropping.value = true
+	dropCooldown.value = true
 
-  const fruit = nextFruit.value
-  const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruit.level)
-  const radius = fruitConfig ? fruitConfig.radius : fruit.size / 2
+	const fruit = nextFruit.value
+	const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruit.level)
+	const radius = fruitConfig ? fruitConfig.radius : fruit.size / 2
 
-  const body = Matter.Bodies.circle(
-      targetX,
-      -30,
-      radius,
-      {
-        restitution: 0.6,
-        friction: 0.05,
-        frictionAir: 0.008,
-        density: 0.001,
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`,
-        render: {
-          sprite: {
-            xScale: 1,
-            yScale: 1
-          }
-        }
-      }
-  )
+	const body = Matter.Bodies.circle(
+			targetX,
+			-30,
+			radius,
+			{
+				restitution: 0.6,
+				friction: 0.05,
+				frictionAir: 0.008,
+				density: 0.001,
+				label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`,
+				render: {
+					sprite: {
+						xScale: 1,
+						yScale: 1
+					}
+				}
+			}
+	)
 
-  fruit.body = body
-  fruit.x = targetX - fruit.size / 2
-  fruit.y = -30 - fruit.size / 2
+	fruit.body = body
+	fruit.x = targetX - fruit.size / 2
+	fruit.y = -30 - fruit.size / 2
 
-  Matter.Composite.add(engine.world, body)
-  fruits.value = [...fruits.value, fruit]
+	Matter.Composite.add(engine.world, body)
+	fruits.value = [...fruits.value, fruit]
 
-  moves.value++
+	moves.value++
 
-  setTimeout(() => {
-    nextFruit.value = generateNextFruit()
-    isDropping.value = false
-    dropCooldown.value = false
-  }, PHYSICS_CONFIG.dropCooldown)
+	setTimeout(() => {
+		nextFruit.value = generateNextFruit()
+		isDropping.value = false
+		dropCooldown.value = false
+	}, PHYSICS_CONFIG.dropCooldown)
 }
 
 
@@ -393,207 +394,207 @@ const createDestructionEffect = (x, y, fruit) => {
 
 // Handle board click/touch for dropping
 const handleBoardClick = (event) => {
-  if (dropCooldown.value || isDropping.value) return
+	if (dropCooldown.value || isDropping.value) return
 
-  // Get the correct clientX based on event type
-  let clientX
-  if (event.type === 'touchend' && event.changedTouches.length > 0) {
-    clientX = event.changedTouches[0].clientX
-  } else {
-    clientX = event.clientX
-  }
+	// Get the correct clientX based on event type
+	let clientX
+	if (event.type === 'touchend' && event.changedTouches.length > 0) {
+		clientX = event.changedTouches[0].clientX
+	} else {
+		clientX = event.clientX
+	}
 
-  updateNextFruitPosition(clientX)
-  dropFruit(nextFruitPosition.value)
+	updateNextFruitPosition(clientX)
+	dropFruit(nextFruitPosition.value)
 }
 
 const canDropFruit = computed(() => {
-  return gameState.value === 'playing' && !isDropping.value && !dropCooldown.value && nextFruit.value
+	return gameState.value === 'playing' && !isDropping.value && !dropCooldown.value && nextFruit.value
 })
 
 // Initialize physics engine with performance optimizations
 const initPhysics = () => {
-  console.log('Initializing physics engine...')
+	console.log('Initializing physics engine...')
 
-  // Create engine with optimized settings like in OldFruitMergeGame
-  engine = Matter.Engine.create({
-    gravity: { x: 0, y: 0.5, scale: 0.001 }
-  })
+	// Create engine with optimized settings like in OldFruitMergeGame
+	engine = Matter.Engine.create({
+		gravity: { x: 0, y: 0.5, scale: 0.001 }
+	})
 
-  // Create world boundaries (walls) - no top wall by default
-  createWalls(false)
+	// Create world boundaries (walls) - no top wall by default
+	createWalls(false)
 
-  // Create and start runner
-  runner = Matter.Runner.create()
-  Matter.Runner.run(runner, engine)
+	// Create and start runner
+	runner = Matter.Runner.create()
+	Matter.Runner.run(runner, engine)
 
-  Matter.Events.on(engine, 'collisionStart', handleCollision)
+	Matter.Events.on(engine, 'collisionStart', handleCollision)
 
-  console.log('Physics engine initialized successfully')
+	console.log('Physics engine initialized successfully')
 }
 
 // Create boundary walls
 const createWalls = (includeTopWall = false) => {
-  const { width, height, thickness } = boardConfig.value
+	const { width, height, thickness } = boardConfig.value
 
-  const walls = [
-    // Bottom wall
-    Matter.Bodies.rectangle(
-        width / 2,
-        height + thickness / 2,
-        width,
-        thickness,
-        {
-          isStatic: true,
-          label: 'wall-bottom',
-          restitution: 0.1
-        }
-    ),
-    // Left wall
-    Matter.Bodies.rectangle(
-        -thickness / 2,
-        height / 2,
-        thickness,
-        height,
-        {
-          isStatic: true,
-          label: 'wall-left',
-          restitution: 0.1
-        }
-    ),
-    // Right wall
-    Matter.Bodies.rectangle(
-        width + thickness / 2,
-        height / 2,
-        thickness,
-        height,
-        {
-          isStatic: true,
-          label: 'wall-right',
-          restitution: 0.1
-        }
-    )
-  ]
+	const walls = [
+		// Bottom wall
+		Matter.Bodies.rectangle(
+				width / 2,
+				height + thickness / 2,
+				width,
+				thickness,
+				{
+					isStatic: true,
+					label: 'wall-bottom',
+					restitution: 0.1
+				}
+		),
+		// Left wall
+		Matter.Bodies.rectangle(
+				-thickness / 2,
+				height / 2,
+				thickness,
+				height,
+				{
+					isStatic: true,
+					label: 'wall-left',
+					restitution: 0.1
+				}
+		),
+		// Right wall
+		Matter.Bodies.rectangle(
+				width + thickness / 2,
+				height / 2,
+				thickness,
+				height,
+				{
+					isStatic: true,
+					label: 'wall-right',
+					restitution: 0.1
+				}
+		)
+	]
 
-  if (includeTopWall) {
-    walls.push(
-        Matter.Bodies.rectangle(
-            width / 2,
-            -thickness / 2,
-            width,
-            thickness,
-            { isStatic: true, label: 'wall-top', restitution: 0.3 }
-        )
-    )
-  }
+	if (includeTopWall) {
+		walls.push(
+				Matter.Bodies.rectangle(
+						width / 2,
+						-thickness / 2,
+						width,
+						thickness,
+						{ isStatic: true, label: 'wall-top', restitution: 0.3 }
+				)
+		)
+	}
 
-  Matter.Composite.add(engine.world, walls)
+	Matter.Composite.add(engine.world, walls)
 }
 
 const handleCollision = (event) => {
-  const pairs = event.pairs
+	const pairs = event.pairs
 
-  for (let i = 0; i < pairs.length; i++) {
-    const pair = pairs[i]
-    const bodyA = pair.bodyA
-    const bodyB = pair.bodyB
+	for (let i = 0; i < pairs.length; i++) {
+		const pair = pairs[i]
+		const bodyA = pair.bodyA
+		const bodyB = pair.bodyB
 
-    // Check if both bodies are fruits
-    if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
-      // Extract information from labels: fruit-{id}-{color}-{level}
-      const labelPartsA = bodyA.label.split('-')
-      const labelPartsB = bodyB.label.split('-')
+		// Check if both bodies are fruits
+		if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
+			// Extract information from labels: fruit-{id}-{color}-{level}
+			const labelPartsA = bodyA.label.split('-')
+			const labelPartsB = bodyB.label.split('-')
 
-      const idA = parseInt(labelPartsA[1])
-      const idB = parseInt(labelPartsB[1])
-      const levelA = parseInt(labelPartsA[3])
-      const levelB = parseInt(labelPartsB[3])
+			const idA = parseInt(labelPartsA[1])
+			const idB = parseInt(labelPartsB[1])
+			const levelA = parseInt(labelPartsA[3])
+			const levelB = parseInt(labelPartsB[3])
 
-      // If fruits have the same level, merge them
-      if (levelA === levelB) {
-        // Find the fruit objects
-        const fruitA = fruits.value.find(f => f.id === idA)
-        const fruitB = fruits.value.find(f => f.id === idB)
+			// If fruits have the same level, merge them
+			if (levelA === levelB) {
+				// Find the fruit objects
+				const fruitA = fruits.value.find(f => f.id === idA)
+				const fruitB = fruits.value.find(f => f.id === idB)
 
-        // Only merge if both fruits exist and aren't already merging
-        if (fruitA && fruitB && !fruitA.merging && !fruitB.merging) {
-          console.log(`Merging level ${levelA} fruits: ${fruitA.name} + ${fruitB.name}`)
+				// Only merge if both fruits exist and aren't already merging
+				if (fruitA && fruitB && !fruitA.merging && !fruitB.merging) {
+					console.log(`Merging level ${levelA} fruits: ${fruitA.name} + ${fruitB.name}`)
 
-          // Mark fruits as merging to prevent multiple merges
-          fruitA.merging = true
+					// Mark fruits as merging to prevent multiple merges
+					fruitA.merging = true
 
-          // Calculate center position for the new fruit
-          const centerX = (bodyA.position.x + bodyB.position.x) / 2
-          const centerY = (bodyA.position.y + bodyB.position.y) / 2
+					// Calculate center position for the new fruit
+					const centerX = (bodyA.position.x + bodyB.position.x) / 2
+					const centerY = (bodyA.position.y + bodyB.position.y) / 2
 
-          console.log(`Merging fruits at center: (${centerX}, ${centerY}) bodyA: ${bodyA.position.x}, ${bodyA.position.y} bodyB: ${bodyB.position.x}, ${bodyB.position.y}`)
-          // Remove bodies from the physics world
-          Matter.Composite.remove(engine.world, bodyA)
-          Matter.Composite.remove(engine.world, bodyB)
+					console.log(`Merging fruits at center: (${centerX}, ${centerY}) bodyA: ${bodyA.position.x}, ${bodyA.position.y} bodyB: ${bodyB.position.x}, ${bodyB.position.y}`)
+					// Remove bodies from the physics world
+					Matter.Composite.remove(engine.world, bodyA)
+					Matter.Composite.remove(engine.world, bodyB)
 
-          // Remove fruits from the array
-          fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB)
+					// Remove fruits from the array
+					fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB)
 
-          // Find current fruit type in config
-          const currentFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA)
-          if (currentFruitType) {
-            // Add combo for successful merge
-            const comboResult = comboSystem.addCombo()
+					// Find current fruit type in config
+					const currentFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA)
+					if (currentFruitType) {
+						// Add combo for successful merge
+						const comboResult = comboSystem.addCombo()
 
-            // Calculate score with combo multiplier
-            const baseScore = currentFruitType.scoreValue
-            const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
-            score.value += comboMultipliedScore
+						// Calculate score with combo multiplier
+						const baseScore = currentFruitType.scoreValue
+						const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
+						score.value += comboMultipliedScore
 
-            // Find next fruit type
-            const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
+						// Find next fruit type
+						const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
 
-            createMergeVisualEffects(centerX, centerY, nextFruitType);
-	          createScorePoint(centerX, centerY, comboMultipliedScore, comboResult.multiplier, comboResult.comboLevel)
+						createMergeVisualEffects(centerX, centerY, nextFruitType);
+						createScorePoint(centerX, centerY, comboMultipliedScore, comboResult.multiplier, comboResult.comboLevel)
 
-	          if (nextFruitType) {
-		          const newFruit = {
-			          id: nextFruitId.value++,
-			          color: nextFruitType.color,
-			          size: nextFruitType.radius * 2,
-			          level: nextFruitType.index,
-			          name: nextFruitType.type,
-			          svg: nextFruitType.svg,
-			          x: centerX - nextFruitType.radius,
-			          y: centerY - nextFruitType.radius,
-			          rotation: 0,
-			          body: null,
-			          merging: false
-		          }
+						if (nextFruitType) {
+							const newFruit = {
+								id: nextFruitId.value++,
+								color: nextFruitType.color,
+								size: nextFruitType.radius * 2,
+								level: nextFruitType.index,
+								name: nextFruitType.type,
+								svg: nextFruitType.svg,
+								x: centerX - nextFruitType.radius,
+								y: centerY - nextFruitType.radius,
+								rotation: 0,
+								body: null,
+								merging: false
+							}
 
-		          // Add the new fruit to the world
-		          addMergedFruit(newFruit, centerX, centerY)
+							// Add the new fruit to the world
+							addMergedFruit(newFruit, centerX, centerY)
 
-		          if (isEndlessMode.value) {
-			          totalMerges.value++
-			          checkScoreMilestones()
-		          }
+							if (isEndlessMode.value) {
+								totalMerges.value++
+								checkScoreMilestones()
+							}
 
-		          // Check if this merge completes the level goal
-		          if (newFruit.name === currentLevelConfig.value.targetFruit) {
-			          console.log(`🎯 Level goal reached! Created ${newFruit.name}`)
+							// Check if this merge completes the level goal
+							if (newFruit.name === currentLevelConfig.value.targetFruit) {
+								console.log(`🎯 Level goal reached! Created ${newFruit.name}`)
 
-			          // Stop physics
-			          setTimeout(() => {
-				          showNextFruit.value = false
-				          nextFruit.value = null
-				          pausePhysics()
-				          stopAllFruits()
-			          }, PHYSICS_CONFIG.stopPhysicsDelay)
+								// Stop physics
+								setTimeout(() => {
+									showNextFruit.value = false
+									nextFruit.value = null
+									pausePhysics()
+									stopAllFruits()
+								}, PHYSICS_CONFIG.stopPhysicsDelay)
 
-			          return
-		          }
-	          }
-          }
-        }
-      }
-    }
-  }
+								return
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 const createScorePoint = (x, y, points, multiplier, level) => {
@@ -638,50 +639,50 @@ const createScorePoint = (x, y, points, multiplier, level) => {
 }
 
 const addMergedFruit = (fruit, x, y) => {
-  const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruit.level)
-  const radius = fruitConfig ? fruitConfig.radius : fruit.size / 2
+	const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruit.level)
+	const radius = fruitConfig ? fruitConfig.radius : fruit.size / 2
 
-  const fruitBody = Matter.Bodies.circle(
-      x,
-      y,
-      radius,
-      {
-        restitution: 0.3,
-        friction: 0.05,
-        frictionAir: 0.005,
-        density: 0.001,
-        label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`,
-        render: {
-          sprite: {
-            xScale: 1,
-            yScale: 1
-          }
-        }
-      }
-  )
+	const fruitBody = Matter.Bodies.circle(
+			x,
+			y,
+			radius,
+			{
+				restitution: 0.3,
+				friction: 0.05,
+				frictionAir: 0.005,
+				density: 0.001,
+				label: `fruit-${fruit.id}-${fruit.color}-${fruit.level}`,
+				render: {
+					sprite: {
+						xScale: 1,
+						yScale: 1
+					}
+				}
+			}
+	)
 
-  // Combo-Effekt
-  if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 2) {
-    fruit.comboEffect = true
-    setTimeout(() => {
-      if (fruits.value.includes(fruit)) {
-        fruit.comboEffect = false
-      }
-    }, 1000)
-  }
+	// Combo-Effekt
+	if (comboSystem.isComboActive.value && comboSystem.comboCount.value >= 2) {
+		fruit.comboEffect = true
+		setTimeout(() => {
+			if (fruits.value.includes(fruit)) {
+				fruit.comboEffect = false
+			}
+		}, 1000)
+	}
 
-  fruit.body = fruitBody
-  fruit.inDanger = false
-  fruit.dangerZoneStartTime = null
-  fruit.dangerZoneTime = 0
+	fruit.body = fruitBody
+	fruit.inDanger = false
+	fruit.dangerZoneStartTime = null
+	fruit.dangerZoneTime = 0
 
 	Matter.Body.setVelocity(fruitBody, {
-    x: (Math.random() - 0.5) * 2,
-    y: -1
-  })
-  Matter.Composite.add(engine.world, fruitBody)
+		x: (Math.random() - 0.5) * 2,
+		y: -1
+	})
+	Matter.Composite.add(engine.world, fruitBody)
 
-  fruits.value = [...fruits.value, fruit]
+	fruits.value = [...fruits.value, fruit]
 }
 
 const pausePhysics = () => {
@@ -689,14 +690,6 @@ const pausePhysics = () => {
 		Matter.Runner.stop(runner)
 		isPhysicsPaused.value = true
 		console.log('Physics paused')
-	}
-}
-
-const resumePhysics = () => {
-	if (engine && runner && isPhysicsPaused.value) {
-		Matter.Runner.run(runner, engine)
-		isPhysicsPaused.value = false
-		console.log('Physics resumed')
 	}
 }
 
@@ -712,37 +705,37 @@ const stopAllFruits = () => {
 }
 
 const createMergeVisualEffects = (mergeX, mergeY, newFruitType) => {
-  createMergeParticles(mergeX, mergeY, newFruitType)
+	createMergeParticles(mergeX, mergeY, newFruitType)
 }
 
 const createMergeParticles = (x, y, fruitType) => {
-  const particleCount = Math.min(fruitType.index + 2, 10)
+	const particleCount = Math.min(fruitType.index + 2, 10)
 
-  for (let i = 0; i < particleCount; i++) {
-    const angle = (i / particleCount) * Math.PI * 2
-    const distance = 40 + Math.random() * 30
-    const particleX = Math.cos(angle) * distance + (Math.random() - 0.5) * 20
-    const particleY = Math.sin(angle) * distance + (Math.random() - 0.5) * 20
+	for (let i = 0; i < particleCount; i++) {
+		const angle = (i / particleCount) * Math.PI * 2
+		const distance = 40 + Math.random() * 30
+		const particleX = Math.cos(angle) * distance + (Math.random() - 0.5) * 20
+		const particleY = Math.sin(angle) * distance + (Math.random() - 0.5) * 20
 
-    const particle = {
-      id: `particle-${Date.now()}-${i}`,
-      x: x,
-      y: y,
-      targetX: particleX,
-      targetY: particleY,
-      type: fruitType.type,
-      backgroundColor: fruitType.sparkleColor,
-      duration: PHYSICS_CONFIG.sparkleDelay,
-      size: 2 + Math.random() * 4
-    }
+		const particle = {
+			id: `particle-${Date.now()}-${i}`,
+			x: x,
+			y: y,
+			targetX: particleX,
+			targetY: particleY,
+			type: fruitType.type,
+			backgroundColor: fruitType.sparkleColor,
+			duration: PHYSICS_CONFIG.sparkleDelay,
+			size: 2 + Math.random() * 4
+		}
 
-    particles.value.push(particle)
+		particles.value.push(particle)
 
-    // Remove particle after animation
-    setTimeout(() => {
-      particles.value = particles.value.filter(p => p.id !== particle.id)
-    }, PHYSICS_CONFIG.sparkleDelay)
-  }
+		// Remove particle after animation
+		setTimeout(() => {
+			particles.value = particles.value.filter(p => p.id !== particle.id)
+		}, PHYSICS_CONFIG.sparkleDelay)
+	}
 }
 
 // Update fruit visual positions based on physics bodies
@@ -768,39 +761,39 @@ const updateFruitPositions = () => {
 }
 
 const gameProgress = computed(() => {
-  const targetFruitType = currentLevelConfig.value.targetFruit
-  const targetCount = 1
-  const currentCount = fruits.value.filter(fruit =>
-      fruit.name === targetFruitType && !fruit.merging
-  ).length
-  return {
-    completed: Math.min(currentCount, targetCount),
-    total: targetCount,
-    percentage: Math.round((Math.min(currentCount, targetCount) / targetCount) * 100)
-  }
+	const targetFruitType = currentLevelConfig.value.targetFruit
+	const targetCount = 1
+	const currentCount = fruits.value.filter(fruit =>
+			fruit.name === targetFruitType && !fruit.merging
+	).length
+	return {
+		completed: Math.min(currentCount, targetCount),
+		total: targetCount,
+		percentage: Math.round((Math.min(currentCount, targetCount) / targetCount) * 100)
+	}
 })
 
 // Check if level is completed
 const isLevelComplete = computed(() => {
-  const levelConfig = currentLevelConfig.value
-  if (!levelConfig) return false
+	const levelConfig = currentLevelConfig.value
+	if (!levelConfig) return false
 
-  const targetFruitType = levelConfig.targetFruit
-  const targetCount = 1
+	const targetFruitType = levelConfig.targetFruit
+	const targetCount = 1
 
-  const currentCount = fruits.value.filter(fruit =>
-      fruit.name === targetFruitType && !fruit.merging
-  ).length
+	const currentCount = fruits.value.filter(fruit =>
+			fruit.name === targetFruitType && !fruit.merging
+	).length
 
-  return currentCount >= targetCount
+	return currentCount >= targetCount
 })
 
 // Game loop for updating positions
 let animationFrame = null
 const gameLoop = () => {
-  updateFruitPositions()
-  updateFruitDangerStatus()
-  animationFrame = requestAnimationFrame(gameLoop)
+	updateFruitPositions()
+	updateFruitDangerStatus()
+	animationFrame = requestAnimationFrame(gameLoop)
 }
 
 // Cleanup function
@@ -1194,34 +1187,34 @@ const startGameOverChecking = () => {
 }
 
 const stopGameOverChecking = () => {
-  if (gameOverTimer.value) {
-    clearInterval(gameOverTimer.value)
-    gameOverTimer.value = null
-  }
+	if (gameOverTimer.value) {
+		clearInterval(gameOverTimer.value)
+		gameOverTimer.value = null
+	}
 }
 
 const updateFruitDangerStatus = () => {
-  const currentTime = Date.now()
+	const currentTime = Date.now()
 
-  fruits.value.forEach(fruit => {
-    if (!fruit.body) return
+	fruits.value.forEach(fruit => {
+		if (!fruit.body) return
 
-    const inDangerZone = fruit.body.position.y <= gameOverHeight.value
+		const inDangerZone = fruit.body.position.y <= gameOverHeight.value
 
-    if (inDangerZone) {
-      if (!fruit.inDanger) {
-        fruit.dangerZoneStartTime = currentTime
-        fruit.dangerZoneTime = 0
-      } else {
-        fruit.dangerZoneTime = currentTime - fruit.dangerZoneStartTime
-      }
-      fruit.inDanger = true
-    } else {
-      fruit.inDanger = false
-      fruit.dangerZoneStartTime = null
-      fruit.dangerZoneTime = 0
-    }
-  })
+		if (inDangerZone) {
+			if (!fruit.inDanger) {
+				fruit.dangerZoneStartTime = currentTime
+				fruit.dangerZoneTime = 0
+			} else {
+				fruit.dangerZoneTime = currentTime - fruit.dangerZoneStartTime
+			}
+			fruit.inDanger = true
+		} else {
+			fruit.inDanger = false
+			fruit.dangerZoneStartTime = null
+			fruit.dangerZoneTime = 0
+		}
+	})
 }
 
 const calculateCurrentStars = () => {
@@ -1258,14 +1251,15 @@ const nextLevel = () => {
 	if (currentLevel.value < Object.keys(FRUIT_MERGE_LEVELS).length) {
 		currentLevel.value++
 		startLevel(currentLevel.value)
+		router.push(`/games/fruitmerge/${currentLevel.value}`)
 	} else {
 		backToGaming()
 	}
 }
 
 const startLevel = (level) => {
-  currentLevel.value = level
-  resetGame()
+	currentLevel.value = level
+	resetGame()
 }
 
 const resetGame = () => {
@@ -1300,8 +1294,8 @@ const resetGame = () => {
 }
 
 const handleTryAgain = () => {
-  resetGame()
-  gameState.value = 'playing'
+	resetGame()
+	gameState.value = 'playing'
 }
 
 const handleManualSave = async () => {
@@ -1455,12 +1449,6 @@ const updateEndlessStats = () => {
 		completed: true,
 		isEndless: true
 	})
-}
-
-const formatTime = (seconds) => {
-	const mins = Math.floor(seconds / 60)
-	const secs = seconds % 60
-	return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
 const captureCurrentState = () => {
@@ -1705,7 +1693,7 @@ const handleMenuClick = () => {
 
 // Watchers
 watch(() => props.level, (newLevel) => {
-  currentLevel.value = newLevel
+	currentLevel.value = newLevel
 })
 
 // Watch for level completion
@@ -1719,210 +1707,193 @@ watch(isLevelComplete, (newValue) => {
 
 // Lifecycle
 onMounted(() => {
-  initGame()
+	initGame()
 	if (isEndlessMode.value) {
 		hammerUses.value = getItemQuantity('hammer_powerup')
 	}
 })
 
 onUnmounted(() => {
-  cleanup()
-  comboSystem.cleanup()
+	cleanup()
+	comboSystem.cleanup()
 })
 </script>
 
 <template>
 	<Header
-		:game-data="gameData"
-		:show-profile="true"
-		:show-menu-button="true"
-		@menu-click="handleMenuClick"
+			:game-data="gameData"
+			:show-profile="true"
+			:show-menu-button="true"
+			@menu-click="handleMenuClick"
 	/>
-  <main class="fruit-merge-game">
-    <!-- Game Header -->
-    <div class="game-header">
-      <div class="game-info">
-	      <h2 class="game-title">{{ t('fruitMerge.title') }}</h2>
-	      <div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
-		      {{ isEndlessMode ? t('fruitMerge.endless_mode') : t('fruitMerge.level_title', { level: currentLevel }) }}
-	      </div>
-	      <!-- Game Controls -->
-	      <GameControls
-			      :game-state="gameState"
-			      :show-back="true"
-			      :show-pause="false"
-			      :show-reset="false"
-			      :back-label="t('common.back')"
-			      @back-to-gaming="backToGaming"
-	      />
-	      <div v-if="gameState === 'playing'" class="manual-save">
-		      <button
-				      class="btn btn--small"
-				      @click="handleManualSave"
-				      :disabled="isSaving"
-				      :title="t('fruitMerge.save_game')"
-		      >
-			      <Icon :name="isSaving ? 'loading' : 'save'" size="22" />
-		      </button>
-	      </div>
-      </div>
+	<main class="fruit-merge-game">
+		<!-- Game Header -->
+		<div class="game-header">
+			<div class="game-info">
+				<h2 class="game-title">{{ t('fruitMerge.title') }}</h2>
+				<div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
+					{{ isEndlessMode ? t('fruitMerge.endless_mode') : t('fruitMerge.level_title', { level: currentLevel }) }}
+				</div>
+				<div v-if="gameState === 'playing'" class="manual-save">
+					<button
+							class="btn btn--small"
+							@click="handleManualSave"
+							:disabled="isSaving"
+							:title="t('fruitMerge.save_game')"
+					>
+						<Icon :name="isSaving ? 'loading' : 'save'" size="22" />
+					</button>
+				</div>
+			</div>
 
-	    <!-- Loading indicator für State Restoration -->
-	    <div v-if="isRestoringState" class="restoring-state-overlay">
-		    <div class="restoring-content">
-			    <div class="loading-spinner"></div>
-			    <p>{{ t('fruitMerge.restoring_state') }}</p>
-		    </div>
-	    </div>
+			<div class="game-stats-container">
+				<!-- Progress Overview -->
+				<ProgressOverview
+						v-if="!isEndlessMode"
+						:completed="gameProgress.completed"
+						:total="gameProgress.total"
+						theme="warning"
+						size="small"
+						:levels-label="currentLevelConfig.targetFruit"
+						:show-stars="false"
+						:show-percentage="false"
+						:complete-label="t('fruitMerge.target')"
+				/>
 
-      <div class="game-stats-container">
-        <!-- Progress Overview -->
-	      <ProgressOverview
-		      v-if="!isEndlessMode"
-		      :completed="gameProgress.completed"
-		      :total="gameProgress.total"
-		      theme="warning"
-		      size="small"
-		      :levels-label="currentLevelConfig.targetFruit"
-		      :show-stars="false"
-		      :show-percentage="false"
-		      :complete-label="t('fruitMerge.target')"
-	      />
-
-        <!-- Game Performance Stats -->
-	      <PerformanceStats
-		      :score="score"
-		      :time-elapsed="isEndlessMode ? sessionTime : 0"
-		      :moves="moves"
-		      :matches="fruits.length"
-		      :total-pairs="fruits.length"
-		      :combo-count="comboSystem.comboLevel.value"
-		      :combo-multiplier="comboSystem.comboMultiplier.value"
-		      :max-combo="gameData.games.fruitMerge.maxCombo || 0"
-		      :combo-time-remaining="comboSystem.timeRemaining.value"
-		      :combo-time-max="comboSystem.config.comboTimeout"
-		      :is-combo-active="comboSystem.isComboActive.value"
-		      layout="horizontal"
-		      theme="card"
-		      size="normal"
-		      :show-score="true"
-		      :show-time="isEndlessMode"
-		      :show-moves="true"
-		      :show-matches="false"
-		      :show-combo="true"
-		      :score-label="t('stats.score')"
-		      :time-label="t('stats.time')"
-		      :moves-label="t('stats.moves')"
-		      :combo-label="t('stats.combo')"
-	      />
-	      <div v-if="isEndlessMode && hammerUses > 0" class="hammer-control">
-		      <button
-			      class="btn btn--small"
-			      :class="{
+				<!-- Game Performance Stats -->
+				<PerformanceStats
+						:score="score"
+						:time-elapsed="isEndlessMode ? sessionTime : 0"
+						:moves="moves"
+						:matches="fruits.length"
+						:total-pairs="fruits.length"
+						:combo-count="comboSystem.comboLevel.value"
+						:combo-multiplier="comboSystem.comboMultiplier.value"
+						:max-combo="gameData.games.fruitMerge.maxCombo || 0"
+						:combo-time-remaining="comboSystem.timeRemaining.value"
+						:combo-time-max="comboSystem.config.comboTimeout"
+						:is-combo-active="comboSystem.isComboActive.value"
+						layout="horizontal"
+						theme="card"
+						size="normal"
+						:show-score="true"
+						:show-time="isEndlessMode"
+						:show-moves="true"
+						:show-matches="false"
+						:show-combo="true"
+						:score-label="t('stats.score')"
+						:time-label="t('stats.time')"
+						:moves-label="t('stats.moves')"
+						:combo-label="t('stats.combo')"
+				/>
+				<div v-if="isEndlessMode && hammerUses > 0" class="hammer-control">
+					<button
+							class="btn btn--small"
+							:class="{
 				      'btn--warning': !hammerMode,
 				      'btn--danger': hammerMode
 				    }"
-			      @click="hammerMode ? deactivateHammerMode() : activateHammerMode()"
-			      :title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
-		      >
-			      <span class="hammer-icon">🔨</span>
-			      <span class="hammer-count">{{ hammerUses }}</span>
-		      </button>
-	      </div>
-      </div>
-    </div>
+							@click="hammerMode ? deactivateHammerMode() : activateHammerMode()"
+							:title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
+					>
+						<span class="hammer-icon">🔨</span>
+						<span class="hammer-count">{{ hammerUses }}</span>
+					</button>
+				</div>
+			</div>
+		</div>
 
-    <!-- Game Board Container -->
-    <div class="game-container">
-      <!-- Next Fruit Preview -->
-      <div
-        ref="nextFruitContainer"
-        class="next-fruit-preview"
-        @mousemove="handleMouseMove"
-        @mouseenter="handleMouseEnter"
-        @mouseleave="handleMouseLeave"
-        @touchmove.passive="handleTouchMove"
-        @touchstart.passive="handleTouchStart"
-      >
-        <div
-          v-if="nextFruit && showNextFruit"
-          class="next-fruit"
-          :class="{ 'next-fruit--disabled': !canDropFruit }"
-          :style="{
+		<!-- Game Board Container -->
+		<div class="game-container">
+			<!-- Next Fruit Preview -->
+			<div
+					ref="nextFruitContainer"
+					class="next-fruit-preview"
+					@mousemove="handleMouseMove"
+					@mouseenter="handleMouseEnter"
+					@mouseleave="handleMouseLeave"
+					@touchmove.passive="handleTouchMove"
+					@touchstart.passive="handleTouchStart"
+			>
+				<div
+						v-if="nextFruit && showNextFruit"
+						class="next-fruit"
+						:class="{ 'next-fruit--disabled': !canDropFruit }"
+						:style="{
             width: `${nextFruit.size}px`,
             height: `${nextFruit.size}px`,
             left: `${nextFruitPosition - nextFruit.size / 2}px`,
             transform: 'translateY(-50%)',
             opacity: canDropFruit ? 1 : 0
           }"
-        >
-          <div class="fruit-svg" v-html="nextFruit.svg"></div>
-        </div>
-      </div>
+				>
+					<div class="fruit-svg" v-html="nextFruit.svg"></div>
+				</div>
+			</div>
 
-      <!-- Physics Game Board -->
-	    <div
-		    ref="gameBoard"
-		    class="game-board"
-		    :class="{ 'game-board--endless': isEndlessMode }"
-		    :style="{
+			<!-- Physics Game Board -->
+			<div
+					ref="gameBoard"
+					class="game-board"
+					:class="{ 'game-board--endless': isEndlessMode }"
+					:style="{
 			    width: `${boardConfig.width}px`,
 			    height: `${boardConfig.height}px`
 			  }"
-		    @click="handleBoardClick"
-		    @touchend.prevent="handleBoardClick"
-		    @mousemove="handleMouseMove"
-		    @mouseenter="handleMouseEnter"
-		    @mouseleave="handleMouseLeave"
-		    @touchmove.passive="handleTouchMove"
-	    >
-		    <div
-			    class="danger-zone"
-			    :class="{ 'danger-zone--endless': isEndlessMode }"
-			    :style="{
+					@click="handleBoardClick"
+					@touchend.prevent="handleBoardClick"
+					@mousemove="handleMouseMove"
+					@mouseenter="handleMouseEnter"
+					@mouseleave="handleMouseLeave"
+					@touchmove.passive="handleTouchMove"
+			>
+				<div
+						class="danger-zone"
+						:class="{ 'danger-zone--endless': isEndlessMode }"
+						:style="{
 			      height: `${gameOverHeight}px`,
 			      top: '0px'
 			    }"
-		    ></div>
+				></div>
 
-		    <!-- Endless Mode Info Overlay -->
-		    <div v-if="isEndlessMode" class="endless-overlay">
-			    <div class="stars-preview">
-				    <Icon
-					    v-for="starIndex in 3"
-					    :key="starIndex"
-					    :name="starIndex <= calculateCurrentStars() ? 'star-filled' : 'star'"
-					    size="16"
-					    :class="{
+				<!-- Endless Mode Info Overlay -->
+				<div v-if="isEndlessMode" class="endless-overlay">
+					<div class="stars-preview">
+						<Icon
+								v-for="starIndex in 3"
+								:key="starIndex"
+								:name="starIndex <= calculateCurrentStars() ? 'star-filled' : 'star'"
+								size="16"
+								:class="{
 			          'star--earned': starIndex <= calculateCurrentStars(),
 			          'star--empty': starIndex > calculateCurrentStars()
 			        }"
-				    />
-			    </div>
-		    </div>
-        <!-- Drop indicator line -->
-        <div
-          v-if="canDropFruit"
-          class="drop-line"
-          :style="{
+						/>
+					</div>
+				</div>
+				<!-- Drop indicator line -->
+				<div
+						v-if="canDropFruit"
+						class="drop-line"
+						:style="{
             left: `${nextFruitPosition}px`,
             height: `${boardConfig.height}px`
           }"
-        ></div>
+				></div>
 
-        <!-- Fruits -->
-		    <div
-			    v-for="fruit in fruits"
-			    :key="fruit.id"
-			    class="fruit"
-			    :class="{
+				<!-- Fruits -->
+				<div
+						v-for="fruit in fruits"
+						:key="fruit.id"
+						class="fruit"
+						:class="{
 				    'fruit--combo': fruit.comboEffect,
 				    'fruit--danger': fruit.inDanger,
 				    'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
 				    'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
 				    'fruit--destroying': selectedFruitForHammer === fruit.id
 				  }"
-			    :style="{
+						:style="{
 				    left: `${fruit.x}px`,
 				    top: `${fruit.y}px`,
 				    width: `${fruit.size}px`,
@@ -1930,19 +1901,20 @@ onUnmounted(() => {
 				    transform: `rotate(${fruit.rotation}deg)`,
 				    zIndex: fruit.inDanger ? 5 : (hammerMode ? 10 : 1)
 				  }"
-			    @click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
-		    >
-			    <div class="fruit-svg" v-html="fruit.svg"></div>
-		    </div>
+						@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+						@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+				>
+					<div class="fruit-svg" v-html="fruit.svg"></div>
+				</div>
 
-        <!-- Merge Particles Container -->
-        <div class="merge-particles-container">
-          <div
-            v-for="particle in particles"
-            :key="particle.id"
-            class="merge-particle"
-            :class="`particle--${particle.type.toLowerCase()}`"
-            :style="{
+				<!-- Merge Particles Container -->
+				<div class="merge-particles-container">
+					<div
+							v-for="particle in particles"
+							:key="particle.id"
+							class="merge-particle"
+							:class="`particle--${particle.type.toLowerCase()}`"
+							:style="{
               left: `${particle.x}px`,
               top: `${particle.y}px`,
               '--particle-x': `${particle.targetX}px`,
@@ -1953,15 +1925,15 @@ onUnmounted(() => {
               width: `${particle.size || 6}px`,
               height: `${particle.size || 6}px`
             }"
-          ></div>
-        </div>
-	      <!-- Score Points Container -->
-	      <div class="score-points-container">
-		      <div
-			      v-for="scorePoint in scorePoints"
-			      :key="scorePoint.id"
-			      class="score-point"
-			      :style="{
+					></div>
+				</div>
+				<!-- Score Points Container -->
+				<div class="score-points-container">
+					<div
+							v-for="scorePoint in scorePoints"
+							:key="scorePoint.id"
+							class="score-point"
+							:style="{
 	            left: `${scorePoint.x}px`,
 	            top: `${scorePoint.y}px`,
 	            transform: `translate(-50%, ${scorePoint.translateY}px) scale(${scorePoint.scale})`,
@@ -1970,109 +1942,109 @@ onUnmounted(() => {
 	            pointerEvents: 'none',
 	            zIndex: 50
 	          }"
-		      >
-			      +{{ scorePoint.points }}
-		      </div>
-	      </div>
-      </div>
-	    <div v-if="isEndlessMode" class="milestone-notifications">
-		    <transition-group name="milestone" tag="div" class="milestone-container">
-			    <div
-				    v-for="milestone in milestones.slice(-3)"
-				    :key="milestone"
-				    class="milestone-notification"
-			    >
-				    <Icon name="trophy" size="16" />
-				    <span>{{ getMilestoneText(milestone) }}</span>
-			    </div>
-		    </transition-group>
-	    </div>
-    </div>
-    <!-- Game Completed State -->
-	  <GameCompletedModal
-		  :visible="gameState === 'completed'"
-		  :level="currentLevel"
-		  :game-title="t('fruitMerge.title')"
-		  :final-score="score"
-		  :time-elapsed="isEndlessMode ? sessionTime : 0"
-		  :moves="moves"
-		  :matches="fruits.length"
-		  :total-pairs="fruits.length"
-		  :stars-earned="calculateCurrentStars()"
-		  :show-stars="true"
-		  :new-achievements="earnedAchievements"
-		  :show-achievements="true"
-		  :show-reward="true"
-		  :reward="levelReward"
-		  :show-reward-breakdown="true"
-		  :reward-breakdown="rewardBreakdown"
-		  :show-completion-phases="true"
-		  :enable-phase-transition="true"
-		  :show-next-level="!isEndlessMode"
-		  :next-level-label="isEndlessMode ? t('fruitMerge.play_again') : t('fruitMerge.next_level')"
-		  :play-again-label="t('fruitMerge.play_again')"
-		  :back-to-games-label="t('fruitMerge.back_to_levels')"
-		  @next-level="nextLevel"
-		  @play-again="resetGame"
-		  @back-to-games="backToGaming"
-		  @close="backToGaming"
-	  />
-	  <!-- Game Over State -->
-	  <GameOverModal
-		  v-if="!isEndlessMode"
-		  :visible="gameState === 'gameOver'"
-		  :level="currentLevel"
-		  :game-title="t('fruitMerge.title')"
-		  :final-score="score"
-		  :game-over-icon="'💥'"
-		  :try-again-label="t('fruitMerge.try_again')"
-		  :back-to-games-label="t('fruitMerge.back_to_levels')"
-		  @try-again="handleTryAgain"
-		  @back-to-games="backToGaming"
-		  @close="backToGaming"
-	  />
-  </main>
+					>
+						+{{ scorePoint.points }}
+					</div>
+				</div>
+			</div>
+			<div v-if="isEndlessMode" class="milestone-notifications">
+				<transition-group name="milestone" tag="div" class="milestone-container">
+					<div
+							v-for="milestone in milestones.slice(-3)"
+							:key="milestone"
+							class="milestone-notification"
+					>
+						<Icon name="trophy" size="16" />
+						<span>{{ getMilestoneText(milestone) }}</span>
+					</div>
+				</transition-group>
+			</div>
+		</div>
+		<!-- Game Completed State -->
+		<GameCompletedModal
+				:visible="gameState === 'completed'"
+				:level="currentLevel"
+				:game-title="t('fruitMerge.title')"
+				:final-score="score"
+				:time-elapsed="isEndlessMode ? sessionTime : 0"
+				:moves="moves"
+				:matches="fruits.length"
+				:total-pairs="fruits.length"
+				:stars-earned="calculateCurrentStars()"
+				:show-stars="true"
+				:new-achievements="earnedAchievements"
+				:show-achievements="true"
+				:show-reward="true"
+				:reward="levelReward"
+				:show-reward-breakdown="true"
+				:reward-breakdown="rewardBreakdown"
+				:show-completion-phases="true"
+				:enable-phase-transition="true"
+				:show-next-level="!isEndlessMode"
+				:next-level-label="isEndlessMode ? t('fruitMerge.play_again') : t('fruitMerge.next_level')"
+				:play-again-label="t('fruitMerge.play_again')"
+				:back-to-games-label="t('fruitMerge.back_to_levels')"
+				@next-level="nextLevel"
+				@play-again="resetGame"
+				@back-to-games="backToGaming"
+				@close="backToGaming"
+		/>
+		<!-- Game Over State -->
+		<GameOverModal
+				v-if="!isEndlessMode"
+				:visible="gameState === 'gameOver'"
+				:level="currentLevel"
+				:game-title="t('fruitMerge.title')"
+				:final-score="score"
+				:game-over-icon="'💥'"
+				:try-again-label="t('fruitMerge.try_again')"
+				:back-to-games-label="t('fruitMerge.back_to_levels')"
+				@try-again="handleTryAgain"
+				@back-to-games="backToGaming"
+				@close="backToGaming"
+		/>
+	</main>
 </template>
 
 <style lang="scss" scoped>
 .fruit-merge-game {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  min-height: calc(100vh - 80px);
-  max-width: 440px;
-  margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	padding: var(--space-4);
+	min-height: calc(100vh - 80px);
+	max-width: 440px;
+	margin: 0 auto;
 }
 
 // Game Header
 .game-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
 }
 
 .game-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 .game-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  margin: 0;
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
 }
 
 .level-indicator {
-  background-color: var(--warning-color);
-  color: white;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  align-self: center;
+	background-color: var(--warning-color);
+	color: white;
+	padding: var(--space-1) var(--space-3);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	align-self: center;
 }
 
 .game-stats-container {
@@ -2084,70 +2056,70 @@ onUnmounted(() => {
 
 // Game Container
 .game-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-2);
+	position: relative;
 }
 
 // Next Fruit Preview
 .next-fruit-preview {
-  position: relative;
-  width: 320px;
-  height: 76px;
+	position: relative;
+	width: 320px;
+	height: 76px;
 }
 
 .next-fruit {
-  position: absolute;
-  top: 50%;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 2;
+	position: absolute;
+	top: 50%;
+	border-radius: 50%;
+	pointer-events: none;
+	z-index: 2;
 
-  &--disabled {
-    filter: grayscale(50%);
-  }
+	&--disabled {
+		filter: grayscale(50%);
+	}
 }
 
 .drop-line {
-  position: absolute;
-  top: 0;
-  width: 1px;
-  background: var(--primary-color);
-  opacity: 0.8;
-  transform: translateX(-3px);
-  z-index: 10;
+	position: absolute;
+	top: 0;
+	width: 1px;
+	background: var(--primary-color);
+	opacity: 0.8;
+	transform: translateX(-3px);
+	z-index: 10;
 }
 
 .danger-zone {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%);
-  border-bottom: 2px dashed var(--error-color);
-  z-index: 3;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
+	position: absolute;
+	left: 0;
+	width: 100%;
+	background: linear-gradient(180deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%);
+	border-bottom: 2px dashed var(--error-color);
+	z-index: 3;
+	opacity: 0.7;
+	transition: opacity 0.3s ease;
 
-  &:hover {
-    opacity: 0.9;
-  }
+	&:hover {
+		opacity: 0.9;
+	}
 }
 
 // Game Board
 .game-board {
-  position: relative;
-  background: linear-gradient(180deg, #00000000 0%, #000000aa 50%, #808080aa 100%);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  cursor: crosshair;
-  box-shadow: 0 0 2px 2px var(--card-border);
-  transition: border-color 0.2s ease;
+	position: relative;
+	background: linear-gradient(180deg, #00000000 0%, #000000aa 50%, #808080aa 100%);
+	border-radius: var(--border-radius-lg);
+	overflow: hidden;
+	cursor: crosshair;
+	box-shadow: 0 0 2px 2px var(--card-border);
+	transition: border-color 0.2s ease;
 
-  &:hover {
-    box-shadow: 0 0 2px 2px var(--primary-color);
-  }
+	&:hover {
+		box-shadow: 0 0 2px 2px var(--primary-color);
+	}
 }
 
 // Fruits
@@ -2192,52 +2164,52 @@ onUnmounted(() => {
 }
 
 .fruit-svg {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
-  :deep(svg) {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-  }
+	:deep(svg) {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+	}
 }
 
 
 // Merge Animation Effects
 .merge-particles-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 45;
-  overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 45;
+	overflow: hidden;
 }
 
 .fruit-merge-effect {
-  position: absolute;
-  pointer-events: none;
-  z-index: 50;
+	position: absolute;
+	pointer-events: none;
+	z-index: 50;
 }
 
 .merge-particle {
-  contain: strict;
-  pointer-events: none;
-  will-change: transform, opacity;
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  z-index: 45;
-  animation: particlePop 1400ms linear forwards;
-  box-shadow:
-      0 0 6px rgba(0, 0, 0, 1),
-      0 0 8px rgba(255, 255, 255, 0.5),
-      0 0 12px var(--particle-color, #FFD700);
+	contain: strict;
+	pointer-events: none;
+	will-change: transform, opacity;
+	position: absolute;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	z-index: 45;
+	animation: particlePop 1400ms linear forwards;
+	box-shadow:
+			0 0 6px rgba(0, 0, 0, 1),
+			0 0 8px rgba(255, 255, 255, 0.5),
+			0 0 12px var(--particle-color, #FFD700);
 }
 
 // Score Points System
@@ -2346,44 +2318,6 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-
-.restoring-state-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.7);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 100;
-}
-
-.restoring-content {
-	background-color: var(--card-bg);
-	border-radius: var(--border-radius-xl);
-	padding: var(--space-6);
-	text-align: center;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
-	align-items: center;
-}
-
-.loading-spinner {
-	width: 32px;
-	height: 32px;
-	border: 3px solid var(--card-border);
-	border-top: 3px solid var(--primary-color);
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
 }
 
 .milestone-notifications {
@@ -2601,47 +2535,47 @@ onUnmounted(() => {
 }
 
 @keyframes particlePop {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(2);
-  }
-  20% {
-    opacity: 1;
-    transform: translate(calc(var(--particle-x) * 0.4), calc(var(--particle-y) * 0.4)) scale(1.5);
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--particle-x), var(--particle-y)) scale(0.4);
-  }
+	0% {
+		opacity: 0;
+		transform: translate(0, 0) scale(2);
+	}
+	20% {
+		opacity: 1;
+		transform: translate(calc(var(--particle-x) * 0.4), calc(var(--particle-y) * 0.4)) scale(1.5);
+	}
+	80% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translate(var(--particle-x), var(--particle-y)) scale(0.4);
+	}
 }
 
 @keyframes comboSparkle {
-  0%, 100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.3);
-  }
+	0%, 100% {
+		filter: brightness(1);
+	}
+	50% {
+		filter: brightness(1.3);
+	}
 }
 
 @keyframes dangerPulse {
-  0% {
-    box-shadow: 0 0 15px var(--error-color);
-    transform: scale(1);
-  }
-  100% {
-    box-shadow: 0 0 25px var(--error-color);
-    transform: scale(1.05);
-  }
+	0% {
+		box-shadow: 0 0 15px var(--error-color);
+		transform: scale(1);
+	}
+	100% {
+		box-shadow: 0 0 25px var(--error-color);
+		transform: scale(1.05);
+	}
 }
 
 // Touch-specific improvements
 @media (hover: none) {
-  .game-board {
-    border-color: var(--primary-color);
-  }
+	.game-board {
+		border-color: var(--primary-color);
+	}
 }
 </style>

@@ -1,16 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useShop } from '../composables/useShop.js'
 import { useInventory } from '../composables/useInventory.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
-import Icon from './Icon.vue'
-import CurrencyDisplay from './CurrencyDisplay.vue'
-import ShopItem from './ShopItem.vue'
-import PurchaseConfirmationModal from './PurchaseConfirmationModal.vue'
-import Header from './Header.vue'
-
-const emit = defineEmits(['menu-click'])
+import Icon from '../components/Icon.vue'
+import CurrencyDisplay from '../components/CurrencyDisplay.vue'
+import ShopItem from '../components/ShopItem.vue'
+import PurchaseConfirmationModal from '../components/PurchaseConfirmationModal.vue'
+import Header from '../components/Header.vue'
 
 // Services
 const { gameData } = useLocalStorage()
@@ -23,6 +22,7 @@ const {
 } = useShop()
 const { hasItem } = useInventory()
 const { t } = useI18n()
+const router = useRouter()
 
 // State
 const showPurchaseModal = ref(false)
@@ -52,7 +52,6 @@ const confirmPurchase = () => {
 
 		if (result.success) {
 			showPurchaseModal.value = false
-			// Show success feedback
 			console.log('Purchase successful!')
 		}
 	}
@@ -64,7 +63,7 @@ const cancelPurchase = () => {
 }
 
 const handleMenuClick = () => {
-	emit('menu-click')
+	router.push('/')
 }
 </script>
 
