@@ -1052,7 +1052,7 @@ export function useLocalStorage() {
 		}
 	}
 
-// Hilfsfunktion: Alle gespeicherten Level-States für ein Spiel abrufen
+	// Hilfsfunktion: Alle gespeicherten Level-States für ein Spiel abrufen
 	const getAllLevelStates = (gameId) => {
 		try {
 			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
@@ -1062,8 +1062,95 @@ export function useLocalStorage() {
 			return {}
 		}
 	}
+	const getLastPlayedLevel = (gameId) => {
+		try {
+			// Get all level states for the game
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+			const gameLevels = existingStates[gameId] || {}
 
-// Hilfsfunktion: Alte Level-States bereinigen (älter als 7 Tage)
+			if (Object.keys(gameLevels).length === 0) {
+				console.log(`No saved states found for ${gameId}`)
+				return null
+			}
+
+			// Find the level with the most recent savedAt timestamp
+			let lastPlayedLevel = null
+			let mostRecentDate = null
+
+			Object.entries(gameLevels).forEach(([levelNumber, levelData]) => {
+				if (levelData.savedAt) {
+					const savedDate = new Date(levelData.savedAt)
+
+					if (!mostRecentDate || savedDate > mostRecentDate) {
+						mostRecentDate = savedDate
+						lastPlayedLevel = parseInt(levelNumber)
+					}
+				}
+			})
+
+			if (lastPlayedLevel) {
+				console.log(`Last played level for ${gameId}: Level ${lastPlayedLevel} (saved: ${mostRecentDate.toLocaleString()})`)
+				return {
+					level: lastPlayedLevel,
+					savedAt: mostRecentDate.toISOString(),
+					gameId: gameId
+				}
+			}
+
+			return null
+		} catch (error) {
+			console.error('Error getting last played level:', error)
+			return null
+		}
+	}
+
+	const getMostRecentGameActivity = () => {
+		try {
+			const games = ['memory', 'fruitMerge']
+			let mostRecentActivity = null
+
+			games.forEach(gameId => {
+				const lastPlayed = getLastPlayedLevel(gameId)
+				if (lastPlayed) {
+					const savedDate = new Date(lastPlayed.savedAt)
+
+					if (!mostRecentActivity || savedDate > new Date(mostRecentActivity.savedAt)) {
+						mostRecentActivity = lastPlayed
+					}
+				}
+			})
+
+			return mostRecentActivity
+		} catch (error) {
+			console.error('Error getting most recent game activity:', error)
+			return null
+		}
+	}
+
+	const getRecentLevelsForGame = (gameId, limit = 3) => {
+		try {
+			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
+			const gameLevels = existingStates[gameId] || {}
+
+			// Convert to array and sort by savedAt date (most recent first)
+			const levelsWithDates = Object.entries(gameLevels)
+					.filter(([_, levelData]) => levelData.savedAt)
+					.map(([levelNumber, levelData]) => ({
+						level: parseInt(levelNumber),
+						savedAt: new Date(levelData.savedAt),
+						gameId: gameId
+					}))
+					.sort((a, b) => b.savedAt - a.savedAt)
+					.slice(0, limit)
+
+			return levelsWithDates
+		} catch (error) {
+			console.error('Error getting recent levels:', error)
+			return []
+		}
+	}
+
+	// Hilfsfunktion: Alte Level-States bereinigen (älter als 7 Tage)
 	const cleanupOldLevelStates = () => {
 		try {
 			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
@@ -1132,6 +1219,9 @@ export function useLocalStorage() {
 		clearLevelState,
 		hasLevelState,
 		getAllLevelStates,
+		getLastPlayedLevel,
+		getMostRecentGameActivity,
+		getRecentLevelsForGame,
 		cleanupOldLevelStates,
 
 		// Settings methods

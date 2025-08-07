@@ -105,6 +105,7 @@ export default {
 
 	// Navigation
 	nav: {
+		menu: 'Menü',
 		home: 'Home',
 		gaming: 'Gaming',
 		gaming_hub: 'Games',
@@ -335,6 +336,9 @@ export default {
 		saved_days_ago: 'Saved {days} days ago',
 		continue_game: 'Continue',
 		start_fresh: 'Start Fresh',
+		recent_games: 'Recent Games',
+		last_played: 'Last Played',
+		other_recent_levels: 'Other Recent Levels',
 		stats: {
 			best_score: 'Best: {score}',
 			games_played: '{count} played',
@@ -397,6 +401,7 @@ export default {
 		hammer_mode_active: '🔨 Hammer Mode - Click a fruit to remove',
 		hammer_used: 'Hammer used!',
 		no_hammers: 'No hammers available',
+		auto_saved: 'Auto-saved',
 
 		// Endless Mode specific translations
 		endless: {

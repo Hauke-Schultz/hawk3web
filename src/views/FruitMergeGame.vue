@@ -1298,6 +1298,16 @@ const handleTryAgain = () => {
 	gameState.value = 'playing'
 }
 
+const handleMenuSaveGame = () => {
+	if (gameState.value === 'playing' && !isRestoringState.value) {
+		const currentState = captureCurrentState()
+		if (currentState) {
+			saveLevelState('fruitMerge', currentLevel.value, currentState)
+			console.log(`✅ Game manually saved via menu for level ${currentLevel.value}`)
+		}
+	}
+}
+
 const handleManualSave = async () => {
 	if (gameState.value !== 'playing' || isSaving.value) return
 
@@ -1721,9 +1731,10 @@ onUnmounted(() => {
 
 <template>
 	<Header
-			:game-data="gameData"
-			:show-menu-button="true"
-			@menu-click="handleMenuClick"
+		:game-data="gameData"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+		@save-game="handleMenuSaveGame"
 	/>
 	<main class="fruit-merge-game">
 		<!-- Game Header -->
