@@ -89,9 +89,7 @@ watch(() => gameData, (newData) => {
 
 <template>
 	<Header
-			:game-data="gameData"
-			:show-profile="true"
-			@profile-click="handleProfileClick"
+		:game-data="gameData"
 	/>
 	<!-- Main Content Area -->
 	<main class="content">

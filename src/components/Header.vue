@@ -21,25 +21,9 @@ const props = defineProps({
     type: String,
     default: ''
   },
-  showProfile: {
-    type: Boolean,
-    default: true
-  },
-  showNotifications: {
-    type: Boolean,
-    default: false
-  },
   showMenuButton: {
     type: Boolean,
     default: false
-  },
-	showStatus: {
-		type: Boolean,
-		default: false
-	},
-  pageTitle: {
-    type: String,
-    default: ''
   },
 	gameData: {
 		type: Object,
@@ -57,19 +41,8 @@ const props = defineProps({
 
 // Emits for parent component communication
 const emit = defineEmits([
-  'profile-click',
-  'notification-click',
   'menu-click'
 ])
-
-// Reactive state
-const notificationCount = ref(3)
-
-// Computed properties for player data from store
-const levelDisplay = computed(() => {
-  const level = props.gameData.player.level
-  return level < 10 ? `0${level}` : level.toString()
-})
 
 const playerInfo = computed(() => ({
   name: props.gameData.player.name,
@@ -88,17 +61,9 @@ const displaySubtitle = computed(() => {
   return props.subtitle || t('app.subtitle')
 })
 
-// Event handlers
-const handleNotificationClick = () => {
-  emit('notification-click')
-}
 
 const handleMenuClick = () => {
   emit('menu-click')
-}
-
-const handleProfileClick = () => {
-  emit('profile-click')
 }
 </script>
 
@@ -126,48 +91,18 @@ const handleProfileClick = () => {
 
       <!-- Center section -->
       <div class="header-center">
-
-        <!-- Player Profile -->
-        <div
-          v-if="showProfile"
-          class="player-profile"
-          @click="handleProfileClick"
-          @keydown.enter="handleProfileClick"
-          tabindex="0"
-          role="button"
-          :aria-label="t('a11y.profile_button')"
-        >
-          <div class="player-avatar">
-            <Icon :name="playerInfo.avatar" size="34" />
-          </div>
-          <div class="player-display">
-	          <div class="player-info">
-	            <span class="player-name">{{ playerInfo.name }}</span>
-	            <span v-if="showStatus" class="player-status">{{ t('common.level') }} {{ levelDisplay }}</span>
-	          </div>
-	          <CurrencyDisplay
-		          :coins="playerInfo.coins"
-		          :diamonds="playerInfo.diamonds"
-		          layout="horizontal"
-		          size="small"
-		          variant="compact"
-		          :format-numbers="true"
-	          />
-          </div>
-        </div>
       </div>
 
       <!-- Right section -->
       <div class="header-right">
-        <button
-          v-if="showNotifications"
-          class="btn btn--circle-ghost notification-btn"
-          @click="handleNotificationClick"
-          :aria-label="t('a11y.notification_button')"
-        >
-          <Icon name="bell" size="24" />
-          <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
-        </button>
+	      <CurrencyDisplay
+		      :coins="playerInfo.coins"
+		      :diamonds="playerInfo.diamonds"
+		      layout="vertical"
+		      size="small"
+		      variant="compact"
+		      :format-numbers="true"
+	      />
       </div>
     </div>
   </header>
@@ -227,72 +162,6 @@ const handleProfileClick = () => {
   gap: var(--space-3);
 }
 
-.player-display {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	flex-wrap: wrap;
-	gap: var(--space-1);
-	flex: 1;
-}
-
-.player-profile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-2);
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 2rem;
-  padding: var(--space-2);
-  min-width: 190px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: var(--card-bg-hover);
-    box-shadow: var(--card-shadow-hover);
-  }
-
-  &:focus-visible {
-    outline: var(--focus-outline);
-    outline-offset: 2px;
-  }
-}
-
-.player-avatar {
-  width: var(--space-8);
-  height: var(--space-8);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-}
-
-.player-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-	width: 100%;
-
-  .player-name {
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-color);
-    line-height: 1;
-  }
-
-  .player-status {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    line-height: 1;
-    margin-top: var(--space-0);
-  }
-}
-
 // Right Section
 .header-right {
   display: flex;
@@ -302,20 +171,4 @@ const handleProfileClick = () => {
   justify-content: flex-end;
 }
 
-.notification-badge {
-  background-color: var(--error-color);
-  color: var(--white);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  position: absolute;
-  top: calc(-1 * var(--space-2));
-  right: calc(-1 * var(--space-2));
-  padding: var(--space-0) var(--space-1);
-  border-radius: 50%;
-  min-width: var(--space-5);
-  height: var(--space-5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 </style>

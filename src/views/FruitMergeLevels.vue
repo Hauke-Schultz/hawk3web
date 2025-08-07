@@ -86,7 +86,6 @@ const handleMenuClick = () => {
 <template>
 	<Header
 		:game-data="gameData"
-		:show-profile="true"
 		:show-menu-button="true"
 		@menu-click="handleMenuClick"
 	/>
