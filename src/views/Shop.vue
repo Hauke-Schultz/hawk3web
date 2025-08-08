@@ -1,70 +1,137 @@
 <script setup>
-import { ref, computed } from 'vue'
+import {ref, computed, watch, nextTick} from 'vue'
 import { useRouter } from 'vue-router'
 import { useShop } from '../composables/useShop.js'
 import { useInventory } from '../composables/useInventory.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
+import { SHOP_CATEGORIES, RARITY_CONFIG } from '../config/shopConfig.js'
+import Header from '../components/Header.vue'
 import Icon from '../components/Icon.vue'
 import CurrencyDisplay from '../components/CurrencyDisplay.vue'
-import ShopItem from '../components/ShopItem.vue'
-import PurchaseConfirmationModal from '../components/PurchaseConfirmationModal.vue'
-import Header from '../components/Header.vue'
+import ShopModal from '../components/ShopModal.vue'
 
 // Services
-const { gameData } = useLocalStorage()
-const {
-	selectedCategory,
-	currentCategoryItems,
-	categories,
-	purchaseItem,
-	getPurchaseSummary
-} = useShop()
+const { gameData, buyItem } = useLocalStorage()
+const { selectedCategory, currentCategoryItems, canAffordItem, canPurchaseItem } = useShop()
 const { hasItem } = useInventory()
 const { t } = useI18n()
 const router = useRouter()
 
-// State
-const showPurchaseModal = ref(false)
+// Modal state
+const showModal = ref(false)
 const selectedItem = ref(null)
-const purchaseResult = ref(null)
+const modalType = ref('purchase') // 'purchase', 'insufficient', 'owned'
 
-// Computed
-const playerCurrency = computed(() => ({
+// Reactive player balance
+const playerBalance = computed(() => ({
 	coins: gameData.player.coins || 0,
 	diamonds: gameData.player.diamonds || 0
 }))
 
-// Methods
+// Category management
+const categories = computed(() => Object.values(SHOP_CATEGORIES))
+
 const selectCategory = (categoryId) => {
 	selectedCategory.value = categoryId
 }
 
-const handleItemPurchase = (item) => {
+// Item purchase flow
+const handleItemClick = (item) => {
 	selectedItem.value = item
-	showPurchaseModal.value = true
+
+	// Determine modal type
+	if (hasItem(item.id)) {
+		modalType.value = 'owned'
+	} else if (!canAffordItem(item)) {
+		modalType.value = 'insufficient'
+	} else {
+		modalType.value = 'purchase'
+	}
+
+	showModal.value = true
 }
 
-const confirmPurchase = () => {
-	if (selectedItem.value) {
-		const result = purchaseItem(selectedItem.value)
-		purchaseResult.value = result
+const handlePurchaseConfirm = async () => {
+	if (!selectedItem.value || modalType.value !== 'purchase') {
+		closeModal()
+		return
+	}
+
+	try {
+		const result = buyItem(selectedItem.value)
 
 		if (result.success) {
-			showPurchaseModal.value = false
-			console.log('Purchase successful!')
+			console.log(`✅ Item purchased: ${selectedItem.value.name}`)
+			await nextTick()
+			setTimeout(() => {
+				closeModal()
+			}, 300)
+			showPurchaseSuccess(selectedItem.value)
+		} else {
+			console.error('Purchase failed:', result.error)
+			closeModal()
 		}
+	} catch (error) {
+		console.error('Purchase error:', error)
+		closeModal()
 	}
 }
 
-const cancelPurchase = () => {
-	showPurchaseModal.value = false
-	selectedItem.value = null
+const handleModalCancel = () => {
+	closeModal()
 }
 
+const closeModal = () => {
+	showModal.value = false
+	selectedItem.value = null
+	modalType.value = 'purchase'
+}
+
+const showPurchaseSuccess = (item) => {
+	// Optional: Hier könntest du ein kurzes Success-Feedback zeigen
+	console.log(`🎉 Successfully purchased: ${item.name}`)
+}
+
+// Item display helpers
+const getItemRarityStyle = (rarity) => {
+	const config = RARITY_CONFIG[rarity] || RARITY_CONFIG.common
+	return {
+		borderColor: config.borderColor,
+		backgroundColor: `${config.color}20`
+	}
+}
+
+const isItemOwned = (item) => {
+	return hasItem(item.id)
+}
+
+const isItemAffordable = (item) => {
+	return canAffordItem(item)
+}
+
+const getItemButtonClass = (item) => {
+	if (isItemOwned(item)) return 'item-button--owned'
+	if (!isItemAffordable(item)) return 'item-button--expensive'
+	return 'item-button--buyable'
+}
+
+const getItemButtonText = (item) => {
+	if (isItemOwned(item)) return t('shop.owned')
+	if (!isItemAffordable(item)) return t('shop.cant_afford')
+	return t('shop.buy')
+}
+
+// Navigation
 const handleMenuClick = () => {
 	router.push('/')
 }
+
+// watch gameData if changes are needed
+watch(() => gameData, (newData) => {
+	// Handle any necessary updates when gameData changes
+	console.log('Game data updated:', newData)
+}, { deep: true })
 </script>
 
 <template>
@@ -89,50 +156,100 @@ const handleMenuClick = () => {
 					v-for="category in categories"
 					:key="category.id"
 					class="category-btn"
-					:class="{
-          'category-btn--active': selectedCategory === category.id,
-          [`category-btn--${category.color}`]: true
-        }"
+					:class="{ 'category-btn--active': selectedCategory === category.id }"
 					@click="selectCategory(category.id)"
 			>
 				<Icon :name="category.icon" size="20" />
-				<span class="category-name">{{ t(`shop.categories.${category.id}`) }}</span>
+				<span>{{ t(`shop.categories.${category.id}`) }}</span>
 			</button>
 		</div>
 
 		<!-- Items Grid -->
 		<div class="items-section">
-			<div class="items-grid">
-				<ShopItem
-						v-for="item in currentCategoryItems"
-						:key="item.id"
-						:item="item"
-						:is-owned="hasItem(item.id)"
-						:player-currency="playerCurrency"
-						@purchase="handleItemPurchase"
-				/>
-			</div>
-
 			<!-- Empty State -->
 			<div v-if="currentCategoryItems.length === 0" class="empty-state">
-				<Icon name="info" size="48" />
+				<Icon name="shop" size="48" />
 				<h3>{{ t('shop.empty_category') }}</h3>
 				<p>{{ t('shop.empty_category_description') }}</p>
 			</div>
+
+			<!-- Items Grid -->
+			<div v-else class="items-grid">
+				<div
+						v-for="item in currentCategoryItems"
+						:key="item.id"
+						class="shop-item"
+						:class="{ 'shop-item--owned': isItemOwned(item) }"
+						@click="handleItemClick(item)"
+				>
+					<!-- Item Icon -->
+					<div
+							class="item-icon"
+							:style="getItemRarityStyle(item.rarity)"
+					>
+						<span class="item-emoji">{{ item.icon }}</span>
+					</div>
+
+					<!-- Item Info -->
+					<div class="item-info">
+						<h4 class="item-name">{{ item.name }}</h4>
+						<p class="item-description">{{ item.description }}</p>
+
+						<!-- Item Rarity -->
+						<div
+								class="item-rarity"
+								:style="{ color: RARITY_CONFIG[item.rarity]?.color }"
+						>
+							{{ t(`shop.rarities.${item.rarity}`) }}
+						</div>
+					</div>
+
+					<!-- Item Price & Action -->
+					<div class="item-action">
+						<!-- Price Display -->
+						<div class="item-price">
+							<CurrencyDisplay
+									:coins="item.price.coins"
+									:diamonds="item.price.diamonds"
+									layout="horizontal"
+									size="small"
+									variant="compact"
+									:show-zero-values="false"
+							/>
+						</div>
+
+						<!-- Action Button -->
+						<button
+								class="item-button"
+								:class="getItemButtonClass(item)"
+						>
+							<Icon
+									v-if="isItemOwned(item)"
+									name="completion-badge"
+									size="16"
+							/>
+							<span>{{ getItemButtonText(item) }}</span>
+						</button>
+					</div>
+				</div>
+			</div>
 		</div>
 
-		<!-- Purchase Confirmation Modal -->
-		<PurchaseConfirmationModal
-				:visible="showPurchaseModal"
+		<!-- Shop Modal -->
+		<ShopModal
+				:visible="showModal"
 				:item="selectedItem"
-				:purchase-summary="selectedItem ? getPurchaseSummary(selectedItem) : null"
-				@confirm="confirmPurchase"
-				@cancel="cancelPurchase"
+				:player-balance="playerBalance"
+				:type="modalType"
+				@confirm="handlePurchaseConfirm"
+				@cancel="handleModalCancel"
+				@close="closeModal"
 		/>
 	</main>
 </template>
 
 <style lang="scss" scoped>
+// Main Shop Container
 .shop {
 	display: flex;
 	flex-direction: column;
@@ -145,52 +262,65 @@ const handleMenuClick = () => {
 .shop-header {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-4);
+	gap: var(--space-3);
 }
 
 .shop-title-section {
-	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
 }
 
 .shop-title {
-	font-size: var(--font-size-2xl);
+	font-size: var(--font-size-xl);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
-	margin: 0 0 var(--space-2) 0;
+	margin: 0;
 }
 
 .shop-subtitle {
-	font-size: var(--font-size-base);
+	font-size: var(--font-size-sm);
 	color: var(--text-secondary);
 	margin: 0;
+}
+
+.shop-balance {
+	display: flex;
+	justify-content: center;
 }
 
 // Category Navigation
 .category-nav {
 	display: flex;
 	gap: var(--space-2);
-	background-color: var(--card-bg);
-	border-radius: var(--border-radius-xl);
 	padding: var(--space-2);
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-lg);
+	border: 1px solid var(--card-border);
+	overflow-x: auto;
 }
 
 .category-btn {
-	flex: 1;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: var(--space-1);
-	padding: var(--space-3);
+	padding: var(--space-2) var(--space-3);
+	background: none;
 	border: none;
-	border-radius: var(--border-radius-lg);
-	background-color: transparent;
+	border-radius: var(--border-radius-md);
 	color: var(--text-secondary);
+	font-family: var(--font-family-base);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
 	cursor: pointer;
 	transition: all 0.2s ease;
-	font-family: var(--font-family-base);
+	white-space: nowrap;
+	min-width: 80px;
 
 	&:hover {
 		background-color: var(--card-bg-hover);
+		color: var(--text-color);
 	}
 
 	&--active {
@@ -201,42 +331,12 @@ const handleMenuClick = () => {
 			background-color: var(--primary-hover);
 		}
 	}
-
-	&--primary.category-btn--active {
-		background-color: var(--primary-color);
-	}
-
-	&--success.category-btn--active {
-		background-color: var(--success-color);
-	}
-
-	&--warning.category-btn--active {
-		background-color: var(--warning-color);
-	}
-
-	&--info.category-btn--active {
-		background-color: var(--info-color);
-	}
-}
-
-.category-name {
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-	text-transform: uppercase;
 }
 
 // Items Section
 .items-section {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
-}
-
-.items-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: var(--space-2);
-	max-width: 100%;
+	flex: 1;
+	min-height: 300px;
 }
 
 // Empty State
@@ -244,19 +344,200 @@ const handleMenuClick = () => {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: center;
 	gap: var(--space-3);
 	padding: var(--space-8) var(--space-4);
-	text-align: center;
 	color: var(--text-secondary);
+	text-align: center;
 
 	h3 {
-		margin: 0;
 		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		margin: 0;
 	}
 
 	p {
-		margin: 0;
 		font-size: var(--font-size-sm);
+		margin: 0;
+	}
+}
+
+// Items Grid
+.items-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-3);
+}
+
+// Shop Item Card
+.shop-item {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-3);
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	position: relative;
+	overflow: hidden;
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		box-shadow: var(--card-shadow-hover);
+		transform: translateY(-1px);
+	}
+
+	&--owned {
+		opacity: 0.8;
+
+		&:hover {
+			transform: none;
+		}
+	}
+}
+
+// Item Icon
+.item-icon {
+	width: var(--space-12);
+	height: var(--space-12);
+	border-radius: var(--border-radius-lg);
+	border: 2px solid;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.item-emoji {
+	font-size: var(--font-size-2xl);
+	line-height: 1;
+}
+
+// Item Info
+.item-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	min-width: 0; // Prevent text overflow
+}
+
+.item-name {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+	line-height: 1.2;
+}
+
+.item-description {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	margin: 0;
+	line-height: 1.3;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.item-rarity {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+// Item Action
+.item-action {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: var(--space-2);
+	flex-shrink: 0;
+}
+
+.item-price {
+	display: flex;
+	justify-content: flex-end;
+}
+
+// Item Button
+.item-button {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-1) var(--space-3);
+	border: none;
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	font-family: var(--font-family-base);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	min-width: 80px;
+	justify-content: center;
+
+	&--buyable {
+		background-color: var(--success-color);
+		color: white;
+
+		&:hover {
+			background-color: var(--success-hover);
+			transform: translateY(-1px);
+		}
+	}
+
+	&--expensive {
+		background-color: var(--error-color);
+		color: white;
+		opacity: 0.7;
+
+		&:hover {
+			background-color: var(--error-hover);
+		}
+	}
+
+	&--owned {
+		background-color: var(--info-color);
+		color: white;
+		cursor: default;
+
+		&:hover {
+			transform: none;
+		}
+	}
+}
+
+// Owned Overlay
+.owned-overlay {
+	position: absolute;
+	top: var(--space-2);
+	right: var(--space-2);
+	color: var(--success-color);
+	background-color: var(--card-bg);
+	border-radius: 50%;
+	padding: var(--space-1);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+// Responsive adjustments
+@media (max-width: 375px) {
+	.shop-item {
+		flex-direction: column;
+		text-align: center;
+		gap: var(--space-2);
+	}
+
+	.item-action {
+		align-items: center;
+		flex-direction: column-reverse;
+	}
+
+	.category-nav {
+		justify-content: center;
 	}
 }
 </style>

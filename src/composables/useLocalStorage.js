@@ -685,7 +685,7 @@ export function useLocalStorage() {
 		return gameData.player.inventory.activeBoosts.find(boost => boost.type === type)
 	}
 
-	const purchaseShopItem = (item) => {
+	const buyItem = (item) => {
 		// Check if player can afford the item
 		const canAffordCoins = gameData.player.coins >= item.price.coins
 		const canAffordDiamonds = gameData.player.diamonds >= item.price.diamonds
@@ -705,9 +705,15 @@ export function useLocalStorage() {
 			}
 		}
 
-		// Deduct currency
-		gameData.player.coins -= item.price.coins
-		gameData.player.diamonds -= item.price.diamonds
+		const oldCoins = gameData.player.coins
+		const oldDiamonds = gameData.player.diamonds
+
+		// Deduct currency with reactive assignment
+		gameData.player = {
+			...gameData.player,
+			coins: oldCoins - item.price.coins,
+			diamonds: oldDiamonds - item.price.diamonds
+		}
 
 		// Add item to inventory
 		addItemToInventory(item.id, 1, {
@@ -1185,6 +1191,25 @@ export function useLocalStorage() {
 		}
 	}
 
+	const getAllRecentLevels = (limit = 10) => {
+		try {
+			const games = ['memory', 'fruitMerge']
+			let allLevels = []
+
+			games.forEach(gameId => {
+				const gameLevels = getRecentLevelsForGame(gameId, limit)
+				allLevels = allLevels.concat(gameLevels)
+			})
+
+			return allLevels
+					.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
+					.slice(0, limit)
+		} catch (error) {
+			console.error('Error getting all recent levels:', error)
+			return []
+		}
+	}
+
 	// Return all reactive data and methods
 	return {
 		// Reactive data
@@ -1211,7 +1236,7 @@ export function useLocalStorage() {
 		activateBoost,
 		updateActiveBoosts,
 		getActiveBoost,
-		purchaseShopItem,
+		buyItem,
 
 		// Level State Management
 		saveLevelState,
@@ -1223,6 +1248,7 @@ export function useLocalStorage() {
 		getMostRecentGameActivity,
 		getRecentLevelsForGame,
 		cleanupOldLevelStates,
+		getAllRecentLevels,
 
 		// Settings methods
 		updateSettings,

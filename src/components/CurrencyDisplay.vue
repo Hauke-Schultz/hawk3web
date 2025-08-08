@@ -190,6 +190,12 @@ const containerClass = computed(() => {
 		.currency-label {
 			font-size: var(--font-size-sm);
 		}
+
+		.currency-item {
+			padding: var(--space-2);
+			background-color: var(--bg-secondary);
+			border-radius: var(--border-radius-sm);
+		}
 	}
 
 	// Style variants

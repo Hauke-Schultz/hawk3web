@@ -7,7 +7,13 @@ import Icon from "./Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
 
 // Services
-const { getMostRecentGameActivity, getRecentLevelsForGame } = useLocalStorage()
+const { gameData,
+	updateSettings,
+	checkAutoAchievements,
+	getCurrentLanguage,
+	getMostRecentGameActivity,
+	getRecentLevelsForGame,
+	getAllRecentLevels } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -90,13 +96,38 @@ function getCurrentLevelFromRoute() {
 	return matches ? parseInt(matches[2]) : null
 }
 
-// Get last played level based on most recent save date
-const lastPlayedActivity = computed(() => {
-	return getMostRecentGameActivity()
-})
-
 const recentFruitMergeLevels = computed(() => {
 	return getRecentLevelsForGame('fruitMerge', 3)
+})
+
+const allRecentLevels = computed(() => {
+	const memoryLevels = getRecentLevelsForGame('memory', 10).map(level => ({
+		...level,
+		gameId: 'memory',
+		gameTitle: t('memory.title'),
+		gameIcon: 'brain'
+	}))
+
+	const fruitMergeLevels = getRecentLevelsForGame('fruitMerge', 10).map(level => ({
+		...level,
+		gameId: 'fruitMerge',
+		gameTitle: t('fruitMerge.title'),
+		gameIcon: 'fruit-merge-game'
+	}))
+
+	const combined = [...memoryLevels, ...fruitMergeLevels]
+			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
+			.slice(0, 3) // Nur die 3 neuesten
+
+	return combined
+})
+
+const lastPlayedActivity = computed(() => {
+	return allRecentLevels.value.length > 0 ? allRecentLevels.value[0] : null
+})
+
+const otherRecentLevels = computed(() => {
+	return allRecentLevels.value.slice(1) // Alle außer dem ersten
 })
 
 // Format relative time
@@ -203,8 +234,8 @@ const menuIcon = computed(() => {
 })
 
 const openMenuWithAutoSave = async () => {
-	// Auto-save if we're in a FruitMerge game
-	if (currentRoute.value.isFruitMergeGame) {
+	// Auto-save
+	if (currentRoute.value.isFruitMergeGame || currentRoute.value.isMemoryGame) {
 		isSaving.value = true
 
 		try {
@@ -329,9 +360,11 @@ watch(showMenu, (isOpen) => {
 					<transition name="menu">
 						<div v-if="showMenu" class="menu-dropdown" :class="{ 'menu-dropdown--animating': isMenuAnimating }">
 							<!-- Auto-Save Status (if just saved) -->
-							<div v-if="currentRoute.isFruitMergeGame && !isSaving" class="save-status">
+							<div v-if="(currentRoute.isFruitMergeGame || currentRoute.isMemoryGame) && !isSaving" class="save-status">
 								<Icon name="save" size="16" />
-								<span class="save-status-text">{{ t('fruitMerge.state_saved') }}</span>
+								<span class="save-status-text">
+							    {{ currentRoute.isFruitMergeGame ? t('fruitMerge.state_saved') : t('memory.state_saved') }}
+							  </span>
 							</div>
 
 							<nav class="menu-nav">
@@ -355,8 +388,8 @@ watch(showMenu, (isOpen) => {
 
 							<!-- Recent Games Section -->
 							<div
-								v-if="!currentRoute.isGame && (lastPlayedActivity || recentFruitMergeLevels.length > 0)"
-								class="menu-recent-games"
+									v-if="!currentRoute.isGame && allRecentLevels.length > 0"
+									class="menu-recent-games"
 							>
 								<div v-if="lastPlayedActivity" class="recent-activity">
 									<h5 class="activity-subtitle">{{ t('gaming.last_played') }}</h5>
@@ -364,37 +397,36 @@ watch(showMenu, (isOpen) => {
 										class="recent-game-button recent-game-button--primary"
 										@click="navigateToLevel(lastPlayedActivity.gameId, lastPlayedActivity.level)"
 									>
-										<Icon :name="lastPlayedActivity.gameId === 'fruitMerge' ? 'fruit-merge-game' : 'brain'" size="20" />
+										<Icon :name="lastPlayedActivity.gameIcon" size="20" />
 										<div class="recent-game-info">
-                      <span class="recent-game-title">
-                        {{ lastPlayedActivity.gameId === 'fruitMerge' ? t('fruitMerge.title') : t('memory.title') }}
-                      </span>
+											<span class="recent-game-title">{{ lastPlayedActivity.gameTitle }}</span>
 											<span class="recent-game-level">
-                        {{ t('fruitMerge.level_title', { level: lastPlayedActivity.level }) }}
-                      </span>
+							          {{ t('memory.level_title', { level: lastPlayedActivity.level }) }}
+							        </span>
 											<span class="recent-game-time">
-                        {{ formatRelativeTime(lastPlayedActivity.savedAt) }}
-                      </span>
+							          {{ formatRelativeTime(lastPlayedActivity.savedAt) }}
+							        </span>
 										</div>
 									</div>
-									<template v-if="recentFruitMergeLevels.length > 1">
+
+									<!-- Andere recent levels -->
+									<template v-if="otherRecentLevels.length > 0">
+										<h5 v-if="otherRecentLevels.length > 0" class="activity-subtitle">{{ t('gaming.other_recent_levels') }}</h5>
 										<div
-											v-for="levelInfo in recentFruitMergeLevels.slice(1)"
+											v-for="levelInfo in otherRecentLevels"
 											:key="`${levelInfo.gameId}-${levelInfo.level}`"
 											class="recent-game-button"
 											@click="navigateToLevel(levelInfo.gameId, levelInfo.level)"
 										>
-											<Icon :name="levelInfo.gameId === 'fruitMerge' ? 'fruit-merge-game' : 'brain'" size="20" />
+											<Icon :name="levelInfo.gameIcon" size="20" />
 											<div class="recent-game-info">
-	                      <span class="recent-game-title">
-	                        {{ levelInfo.gameId === 'fruitMerge' ? t('fruitMerge.title') : t('memory.title') }}
-	                      </span>
+												<span class="recent-game-title">{{ levelInfo.gameTitle }}</span>
 												<span class="recent-game-level">
-	                        {{ t('fruitMerge.level_title', { level: levelInfo.level }) }}
-	                      </span>
+							            {{ t('memory.level_title', { level: levelInfo.level }) }}
+							          </span>
 												<span class="recent-game-time">
-	                        {{ formatRelativeTime(levelInfo.savedAt) }}
-	                      </span>
+							            {{ formatRelativeTime(levelInfo.savedAt) }}
+							          </span>
 											</div>
 										</div>
 									</template>
@@ -670,7 +702,6 @@ watch(showMenu, (isOpen) => {
 }
 
 .recent-activity {
-	margin-bottom: var(--space-4);
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-2);
@@ -740,6 +771,7 @@ watch(showMenu, (isOpen) => {
 	font-size: var(--font-size-xs);
 	opacity: 0.7;
 	font-style: italic;
+	width: 100%;
 }
 
 .level-number {

@@ -40,11 +40,6 @@ export function useShop() {
     return true
   }
 
-  // Purchase item - now uses the localStorage service
-  const purchaseItem = (item) => {
-    return purchaseShopItem(item)
-  }
-
   // Get purchase summary for confirmation
   const getPurchaseSummary = (item) => {
     return {
@@ -69,7 +64,6 @@ export function useShop() {
     getItemsByCategory,
     canAffordItem,
     canPurchaseItem,
-    purchaseItem,
     getPurchaseSummary
   }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import {ref, computed, onMounted, onUnmounted, nextTick} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
@@ -26,7 +26,20 @@ const route = useRoute()
 const currentLevel = ref(parseInt(route.params.level) || 1)
 
 // Services
-const { gameData, updateGameStats, updateLevelStats, addScore, addExperience, checkGameLevelAchievements, checkAutoAchievements, getLevelStats } = useLocalStorage()
+const {
+	gameData,
+	updateGameStats,
+	updateLevelStats,
+	addScore,
+	addExperience,
+	checkGameLevelAchievements,
+	checkAutoAchievements,
+	getLevelStats,
+	saveLevelState,
+	loadLevelState,
+	clearLevelState,
+	hasLevelState
+} = useLocalStorage()
 const { t } = useI18n()
 
 // Game state
@@ -45,6 +58,9 @@ const cards = ref([])
 const flippedCards = ref([])
 const matchedCards = ref([])
 const isProcessing = ref(false)
+const isRestoringState = ref(false)
+const hasSavedState = ref(false)
+const isSaving = ref(false)
 
 // Computed properties
 const currentLevelConfig = computed(() => getMemoryLevel(currentLevel.value))
@@ -83,7 +99,27 @@ const gameProgress = computed(() => {
 	}
 })
 
-const initializeGame = () => {
+const initializeGame = async () => {
+	await nextTick()
+
+	// Check for saved state first
+	const savedState = loadLevelState('memory', currentLevel.value)
+	hasSavedState.value = !!savedState
+
+	if (savedState && !isRestoringState.value) {
+		console.log(`Found saved state for memory level ${currentLevel.value}`)
+		const restored = await restoreGameState(savedState)
+
+		if (restored) {
+			console.log('✅ Memory game state restored successfully')
+			return // State restored successfully
+		} else {
+			console.log('❌ Failed to restore state, starting fresh game')
+		}
+	}
+
+	// Initialize fresh game if no saved state or restoration failed
+	console.log('🆕 Starting fresh memory game')
 	startLevel(currentLevel.value)
 }
 
@@ -325,6 +361,10 @@ const calculateLevelReward = () => {
 }
 
 const completeGame = () => {
+	// Clear saved state on completion
+	clearLevelState('memory', currentLevel.value)
+	console.log(`Cleared saved state for completed memory level ${currentLevel.value}`)
+
 	stopTimer()
 	comboSystem.cleanup()
 	gameState.value = 'completed'
@@ -422,6 +462,9 @@ const checkLevelAchievements = () => {
 }
 
 const resetGame = () => {
+	// Clear saved state when resetting
+	clearLevelState('memory', currentLevel.value)
+
 	stopTimer()
 	comboSystem.resetCombo()
 	initializeGame()
@@ -434,6 +477,142 @@ const nextLevel = () => {
 		router.push(`/games/memory/${currentLevel.value}`)
 	} else {
 		backToGaming()
+	}
+}
+
+const handleMenuSaveGame = () => {
+	if (gameState.value === 'playing' && !isRestoringState.value) {
+		const currentState = captureCurrentState()
+		if (currentState) {
+			saveLevelState('memory', currentLevel.value, currentState)
+			console.log(`✅ Memory game manually saved via menu for level ${currentLevel.value}`)
+		}
+	}
+}
+
+const handleManualSave = async () => {
+	if (gameState.value !== 'playing' || isSaving.value) return
+
+	isSaving.value = true
+
+	try {
+		const currentState = captureCurrentState()
+		if (currentState) {
+			saveLevelState('memory', currentLevel.value, currentState)
+			console.log(`✅ Memory game manually saved for level ${currentLevel.value}`)
+
+			// Kurzes visuelles Feedback
+			setTimeout(() => {
+				isSaving.value = false
+			}, 800)
+		}
+	} catch (error) {
+		console.error('Error saving memory game state:', error)
+		isSaving.value = false
+	}
+}
+
+const captureCurrentState = () => {
+	if (gameState.value !== 'playing') return null
+
+	const currentState = {
+		// Game progress
+		score: score.value,
+		moves: moves.value,
+		matches: matches.value,
+		timeElapsed: timeElapsed.value,
+
+		// Combo system state
+		comboData: {
+			count: comboSystem.comboCount.value,
+			level: comboSystem.comboLevel.value,
+			multiplier: comboSystem.comboMultiplier.value,
+			isActive: comboSystem.isComboActive.value,
+			timeRemaining: comboSystem.timeRemaining.value
+		},
+
+		// Cards state
+		cardsState: cards.value.map(card => ({
+			id: card.id,
+			symbol: card.symbol,
+			isFlipped: card.isFlipped,
+			isMatched: card.isMatched
+		})),
+
+		// Flipped cards
+		flippedCardsState: [...flippedCards.value],
+		matchedCardsState: [...matchedCards.value],
+
+		// Game settings
+		gameStateValue: gameState.value,
+		isProcessing: isProcessing.value,
+
+		// Timestamp
+		savedAt: new Date().toISOString(),
+		version: '1.0'
+	}
+
+	return currentState
+}
+
+const restoreGameState = async (savedState) => {
+	if (!savedState || savedState.version !== '1.0') {
+		console.warn('Invalid or incompatible memory game saved state')
+		return false
+	}
+
+	try {
+		console.log('Restoring memory game state...', savedState)
+		isRestoringState.value = true
+
+		// Stop current timer
+		stopTimer()
+
+		// Restore basic game data
+		score.value = savedState.score || 0
+		moves.value = savedState.moves || 0
+		matches.value = savedState.matches || 0
+		timeElapsed.value = savedState.timeElapsed || 0
+		gameState.value = savedState.gameStateValue || 'playing'
+		isProcessing.value = savedState.isProcessing || false
+
+		// Restore combo system
+		if (savedState.comboData) {
+			comboSystem.comboCount.value = savedState.comboData.count || 0
+			comboSystem.comboMultiplier.value = savedState.comboData.multiplier || 1
+			comboSystem.isComboActive.value = savedState.comboData.isActive || false
+			comboSystem.timeRemaining.value = savedState.comboData.timeRemaining || 0
+		}
+
+		// Restore cards state
+		if (savedState.cardsState && savedState.cardsState.length > 0) {
+			cards.value = savedState.cardsState.map(cardState => ({
+				id: cardState.id,
+				symbol: cardState.symbol,
+				isFlipped: cardState.isFlipped || false,
+				isMatched: cardState.isMatched || false
+			}))
+		}
+
+		// Restore flipped and matched cards arrays
+		flippedCards.value = [...(savedState.flippedCardsState || [])]
+		matchedCards.value = [...(savedState.matchedCardsState || [])]
+
+		// Restart timer if game is playing
+		if (gameState.value === 'playing') {
+			startTimer()
+		}
+
+		console.log(`Memory game state restored successfully. Score: ${score.value}, Moves: ${moves.value}, Matches: ${matches.value}`)
+		return true
+
+	} catch (error) {
+		console.error('Error restoring memory game state:', error)
+		// Fallback to fresh game
+		startLevel(currentLevel.value)
+		return false
+	} finally {
+		isRestoringState.value = false
 	}
 }
 
@@ -459,9 +638,10 @@ onUnmounted(() => {
 
 <template>
 	<Header
-			:game-data="gameData"
-			:show-menu-button="true"
-			@menu-click="handleMenuClick"
+		:game-data="gameData"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+		@save-game="handleMenuSaveGame"
 	/>
 	<main class="memory-game">
 		<!-- Game Header -->
@@ -469,6 +649,16 @@ onUnmounted(() => {
 			<div class="game-info">
 				<h2 class="game-title">{{ t('memory.title') }}</h2>
 				<div class="level-indicator">{{ t('memory.level_title', { level: currentLevel }) }}</div>
+				<div v-if="gameState === 'playing'" class="manual-save">
+					<button
+							class="btn btn--small"
+							@click="handleManualSave"
+							:disabled="isSaving"
+							:title="t('memory.save_game')"
+					>
+						<Icon :name="isSaving ? 'loading' : 'save'" size="22" />
+					</button>
+				</div>
 			</div>
 
 			<div class="game-stats-container">
@@ -712,5 +902,11 @@ onUnmounted(() => {
 		color: white;
 		border-color: var(--success-color);
 	}
+}
+
+.manual-save {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 </style>

@@ -173,24 +173,29 @@ export default {
 	// Shop
 	shop: {
 		title: 'Shop',
-		subtitle: 'Purchase items and upgrades',
+		subtitle: 'Buy items and upgrades',
 		categories: {
 			cosmetics: 'Cosmetics',
 			powerups: 'Power-ups',
 			utilities: 'Utilities'
 		},
-		confirm_purchase: 'Confirm Purchase',
+		buy: 'Buy',
+		buy_item: 'Buy Item',
+		buy_confirm: 'Buy this item?',
+		buy_now: 'Buy Now',
+		cant_afford: 'Too Expensive',
 		item_cost: 'Item Cost',
 		your_balance: 'Your Balance',
 		after_purchase: 'After Purchase',
-		insufficient_funds: 'Insufficient funds',
-		purchase_now: 'Purchase Now',
-		empty_category: 'No items available',
-		empty_category_description: 'Check back later for new items!',
-		price: 'Price',
-		purchase: 'Purchase',
 		owned: 'Owned',
 		one_time_purchase: 'One-time purchase',
+		empty_category: 'No items here',
+		empty_category_description: 'Check back soon!',
+		price: 'Price',
+		insufficient_funds_message: 'You need more coins or diamonds to buy this item.',
+		already_owned: 'Already Owned',
+		already_owned_message: 'You already own this item.',
+		earn_more_currency: 'Play games to earn more currency!',
 
 		types: {
 			avatar_pack: 'Avatar Pack',
@@ -363,6 +368,10 @@ export default {
 		back_to_levels: 'Back',
 		play_again: 'Play Again',
 		next_level: 'Next Level',
+		save_game: 'Save game',
+		state_restored: 'Game state restored',
+		state_saved: 'Game state saved',
+		auto_saved: 'Auto-saved',
 		levels: {
 			1: { title: 'Starter', description: 'Match 3 pairs - Learn the basics' },
 			2: { title: 'Easy', description: 'Match 6 pairs - Build your skills' },
