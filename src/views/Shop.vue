@@ -81,19 +81,6 @@ const handleMenuClick = () => {
 				<h2 class="shop-title">{{ t('shop.title') }}</h2>
 				<p class="shop-subtitle">{{ t('shop.subtitle') }}</p>
 			</div>
-
-			<!-- Player Currency Display -->
-			<CurrencyDisplay
-					:coins="playerCurrency.coins"
-					:diamonds="playerCurrency.diamonds"
-					layout="horizontal"
-					size="large"
-					variant="card"
-					:format-numbers="true"
-					:show-labels="true"
-					:coins-label="t('currency.coins')"
-					:diamonds-label="t('currency.diamonds')"
-			/>
 		</div>
 
 		<!-- Category Navigation -->
@@ -115,10 +102,6 @@ const handleMenuClick = () => {
 
 		<!-- Items Grid -->
 		<div class="items-section">
-			<h3 class="section-title">
-				{{ t(`shop.categories.${selectedCategory}`) }}
-			</h3>
-
 			<div class="items-grid">
 				<ShopItem
 						v-for="item in currentCategoryItems"
@@ -247,14 +230,6 @@ const handleMenuClick = () => {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-4);
-}
-
-.section-title {
-	font-size: var(--font-size-lg);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	margin: 0;
-	text-align: center;
 }
 
 .items-grid {

@@ -395,6 +395,7 @@ export default {
 		amazing_combo: 'Amazing Combo!',
 		incredible_combo: 'Incredible Combo!',
 		state_restored: 'Game state restored',
+		state_saved: 'Game state saved',
 		save_game: 'Save game',
 		activate_hammer: 'Activate Hammer',
 		deactivate_hammer: 'Deactivate Hammer',

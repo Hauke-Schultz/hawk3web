@@ -7,14 +7,7 @@ import Icon from "./Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
 
 // Services
-const {
-	gameData,
-	saveLevelState,
-	hasLevelState,
-	getLastPlayedLevel,
-	getMostRecentGameActivity,
-	getRecentLevelsForGame
-} = useLocalStorage()
+const { getMostRecentGameActivity, getRecentLevelsForGame } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -61,6 +54,7 @@ const emit = defineEmits([
 const showMenu = ref(false)
 const isMenuAnimating = ref(false)
 const isSaving = ref(false)
+const isMenuTransitioning = ref(false)
 
 // Computed values
 const playerInfo = computed(() => ({
@@ -133,27 +127,31 @@ const menuItems = computed(() => {
 			label: t('nav.home'),
 			icon: 'menu',
 			action: () => navigateTo('/'),
-			visible: !currentRoute.value.isHome
+			highlight: currentRoute.value.isHome,
+			visible: true
 		},
 		{
 			id: 'games',
 			label: t('nav.gaming'),
 			icon: 'play',
 			action: () => navigateTo('/games'),
-			visible: !currentRoute.value.isGame
+			highlight: route.path.includes('/games'),
+			visible: true
 		},
 		{
 			id: 'shop',
 			label: t('nav.shop'),
-			icon: 'trophy',
+			icon: 'shop',
 			action: () => navigateTo('/shop'),
-			visible: !currentRoute.value.isShop
+			highlight: currentRoute.value.isShop,
+			visible: true
 		},
 		{
 			id: 'profile',
 			label: t('nav.profile'),
 			icon: 'user',
 			action: () => navigateTo('/profile'),
+			highlight: route.path.includes('/profile'),
 			visible: true
 		},
 		{
@@ -161,13 +159,15 @@ const menuItems = computed(() => {
 			label: t('nav.trophies'),
 			icon: 'trophy',
 			action: () => navigateTo('/trophies'),
-			visible: !currentRoute.value.isGame
+			highlight: route.path.includes('/trophies'),
+			visible: true
 		},
 		{
 			id: 'settings',
 			label: t('nav.settings'),
 			icon: 'settings',
 			action: () => navigateTo('/settings'),
+			highlight: route.path.includes('/settings'),
 			visible: true
 		}
 	]
@@ -176,15 +176,31 @@ const menuItems = computed(() => {
 })
 
 // Menu methods with auto-save functionality
-const toggleMenu = async () => {
-	if (isMenuAnimating.value) return
+const toggleMenu = async (event) => {
+	if (isMenuAnimating.value || isMenuTransitioning.value) return
+
+	// Prevent event bubbling
+	if (event) {
+		event.stopPropagation()
+	}
+
+	isMenuTransitioning.value = true
 
 	if (showMenu.value) {
 		closeMenu()
 	} else {
 		await openMenuWithAutoSave()
 	}
+
+	// Reset transition flag after animation
+	setTimeout(() => {
+		isMenuTransitioning.value = false
+	}, 350)
 }
+
+const menuIcon = computed(() => {
+	return showMenu.value ? 'close' : 'menu'
+})
 
 const openMenuWithAutoSave = async () => {
 	// Auto-save if we're in a FruitMerge game
@@ -218,6 +234,8 @@ const openMenu = () => {
 }
 
 const closeMenu = () => {
+	if (!showMenu.value) return
+
 	isMenuAnimating.value = true
 
 	setTimeout(() => {
@@ -244,9 +262,9 @@ const navigateToLevel = (gameId, level) => {
 	}
 }
 
-const handleMenuClick = () => {
+const handleMenuClick = (event) => {
 	if (props.showMenuButton) {
-		toggleMenu()
+		toggleMenu(event)
 	} else {
 		emit('menu-click')
 	}
@@ -254,8 +272,13 @@ const handleMenuClick = () => {
 
 // Close menu when clicking outside
 const handleOutsideClick = (event) => {
-	if (showMenu.value && !event.target.closest('.menu-container')) {
-		closeMenu()
+	if (showMenu.value && !event.target.closest('.menu-container') && !isMenuTransitioning.value) {
+		// Add small delay to prevent immediate closure
+		setTimeout(() => {
+			if (showMenu.value && !isMenuTransitioning.value) {
+				closeMenu()
+			}
+		}, 50)
 	}
 }
 
@@ -284,55 +307,44 @@ watch(showMenu, (isOpen) => {
 				<!-- Menu Button -->
 				<div class="menu-container">
 					<button
-							v-if="showMenuButton"
-							class="btn btn--circle-ghost menu-button"
-							:class="{
+						v-if="showMenuButton"
+						class="btn btn--circle-ghost menu-button"
+						:class="{
               'menu-button--saving': isSaving,
               'menu-button--active': showMenu
             }"
-							@click="handleMenuClick"
-							:aria-label="t('a11y.menu_button')"
-							:aria-expanded="showMenu"
-							:disabled="isMenuAnimating"
+						@click="handleMenuClick($event)"
+						:aria-label="t('a11y.menu_button')"
+						:aria-expanded="showMenu"
+						:disabled="isMenuAnimating"
 					>
 						<Icon
-								:name="isSaving ? 'loading' : 'menu'"
-								size="24"
-								:class="{ 'icon-spin': isSaving }"
+							:name="isSaving ? 'loading' : menuIcon"
+							size="24"
+							:class="{ 'icon-spin': isSaving }"
 						/>
 					</button>
 
 					<!-- Menu Dropdown -->
 					<transition name="menu">
 						<div v-if="showMenu" class="menu-dropdown" :class="{ 'menu-dropdown--animating': isMenuAnimating }">
-							<div class="menu-header">
-								<h3 class="menu-title">{{ t('nav.menu') || 'Menu' }}</h3>
-								<button
-										class="btn btn--circle-ghost menu-close"
-										@click="closeMenu"
-										:aria-label="t('common.close')"
-								>
-									<Icon name="arrow-left" size="20" />
-								</button>
-							</div>
-
 							<!-- Auto-Save Status (if just saved) -->
 							<div v-if="currentRoute.isFruitMergeGame && !isSaving" class="save-status">
 								<Icon name="save" size="16" />
-								<span class="save-status-text">{{ t('fruitMerge.state_restored') }}</span>
+								<span class="save-status-text">{{ t('fruitMerge.state_saved') }}</span>
 							</div>
 
 							<nav class="menu-nav">
 								<ul class="menu-list">
 									<li
-											v-for="item in menuItems"
-											:key="item.id"
-											class="menu-item"
+										v-for="item in menuItems"
+										:key="item.id"
+										class="menu-item"
 									>
 										<button
-												class="menu-link"
-												:class="{ 'menu-link--special': item.special }"
-												@click="item.action"
+											class="menu-link"
+											:class="{ 'menu-link--highlight': item.highlight }"
+											@click="item.action"
 										>
 											<Icon :name="item.icon" size="20" />
 											<span class="menu-label">{{ item.label }}</span>
@@ -343,8 +355,8 @@ watch(showMenu, (isOpen) => {
 
 							<!-- Recent Games Section -->
 							<div
-									v-if="!currentRoute.isGame && (lastPlayedActivity || recentFruitMergeLevels.length > 0)"
-									class="menu-recent-games"
+								v-if="!currentRoute.isGame && (lastPlayedActivity || recentFruitMergeLevels.length > 0)"
+								class="menu-recent-games"
 							>
 								<div v-if="lastPlayedActivity" class="recent-activity">
 									<h5 class="activity-subtitle">{{ t('gaming.last_played') }}</h5>
@@ -457,6 +469,12 @@ watch(showMenu, (isOpen) => {
 // Menu Button States
 .menu-button {
 	transition: all 0.3s ease;
+	pointer-events: auto;
+
+	&:disabled,
+	&.menu-button--transitioning {
+		pointer-events: none;
+	}
 
 	&--saving {
 		background-color: var(--warning-color);
@@ -546,27 +564,6 @@ watch(showMenu, (isOpen) => {
 	overflow-y: auto;
 }
 
-.menu-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: var(--space-3) var(--space-4);
-	border-bottom: 1px solid var(--card-border);
-	background-color: var(--bg-secondary);
-}
-
-.menu-title {
-	font-size: var(--font-size-base);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	margin: 0;
-}
-
-.menu-close {
-	width: var(--space-8);
-	height: var(--space-8);
-}
-
 // Save Status
 .save-status {
 	display: flex;
@@ -594,7 +591,7 @@ watch(showMenu, (isOpen) => {
 	padding: 0;
 	margin: 0;
 	display: grid;
-	grid-template-columns: repeat(2, 1fr);
+	grid-template-columns: repeat(3, 1fr);
 	gap: var(--space-1);
 	align-items: stretch;
 }
@@ -626,7 +623,7 @@ watch(showMenu, (isOpen) => {
 		transform: translateY(-1px);
 	}
 
-	&--special {
+	&--highlight {
 		background-color: var(--primary-color);
 		color: white;
 
@@ -690,8 +687,8 @@ watch(showMenu, (isOpen) => {
 .recent-game-button {
 	display: flex;
 	align-items: center;
-	gap: var(--space-3);
-	padding: var(--space-3);
+	gap: var(--space-2);
+	padding: var(--space-1) var(--space-2);
 	width: 100%;
 	border: none;
 	border-radius: var(--border-radius-lg);
@@ -720,10 +717,12 @@ watch(showMenu, (isOpen) => {
 .recent-game-info {
 	flex: 1;
 	display: flex;
-	gap: var(--space-1);;
+	gap: 0 var(--space-2);
 	flex-direction: row;
 	flex-wrap: wrap;
 	justify-content: space-between;
+	align-items: center;
+	min-height: var(--space-8);
 }
 
 .recent-game-title {

@@ -394,6 +394,7 @@ export default {
 		amazing_combo: 'Fantastische Combo!',
 		incredible_combo: 'Unglaubliche Combo!',
 		state_restored: 'Spielstand wiederhergestellt',
+		state_saved: 'Spielstand gespeichert',
 		save_game: 'Spiel speichern',
 		activate_hammer: 'Hammer aktivieren',
 		deactivate_hammer: 'Hammer deaktivieren',

@@ -162,7 +162,7 @@ watch(() => gameData, (newData) => {
 			>
 				<div class="card-icon">
 					<div class="icon-btn btn--warning" aria-label="Shop">
-						<Icon name="trophy" size="32" />
+						<Icon name="shop" size="32" />
 					</div>
 				</div>
 				<div class="card-content">

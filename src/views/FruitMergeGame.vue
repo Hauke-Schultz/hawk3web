@@ -1331,17 +1331,7 @@ const handleManualSave = async () => {
 }
 
 const backToGaming = () => {
-	// Save current state if game is in progress
-	if (gameState.value === 'playing' && !isRestoringState.value) {
-		const currentState = captureCurrentState()
-		if (currentState) {
-			saveLevelState('fruitMerge', currentLevel.value, currentState)
-			console.log(`Game state saved for level ${currentLevel.value}`)
-		}
-	}
-
-	cleanup()
-	emit('back-to-gaming')
+	router.push('/games/fruitmerge');
 }
 
 const gameOver = () => {
