@@ -22,6 +22,7 @@ const router = useRouter()
 const showModal = ref(false)
 const selectedItem = ref(null)
 const modalType = ref('purchase') // 'purchase', 'insufficient', 'owned'
+const justPurchasedItems = ref([])
 
 // Reactive player balance
 const playerBalance = computed(() => ({
@@ -63,6 +64,18 @@ const handlePurchaseConfirm = async () => {
 
 		if (result.success) {
 			console.log(`✅ Item purchased: ${selectedItem.value.name}`)
+
+			// Add to just purchased for animation
+			justPurchasedItems.value.push(selectedItem.value.id)
+
+			// Remove from just purchased after animation
+			setTimeout(() => {
+				const index = justPurchasedItems.value.indexOf(selectedItem.value.id)
+				if (index > -1) {
+					justPurchasedItems.value.splice(index, 1)
+				}
+			}, 2000)
+
 			await nextTick()
 			setTimeout(() => {
 				closeModal()
@@ -89,8 +102,11 @@ const closeModal = () => {
 }
 
 const showPurchaseSuccess = (item) => {
-	// Optional: Hier könntest du ein kurzes Success-Feedback zeigen
 	console.log(`🎉 Successfully purchased: ${item.name}`)
+
+	nextTick(() => {
+		console.log(`✅ Item ownership updated for: ${item.name}`)
+	})
 }
 
 // Item display helpers
@@ -102,8 +118,12 @@ const getItemRarityStyle = (rarity) => {
 	}
 }
 
+const inventoryItems = computed(() => {
+	return gameData.player.inventory.items || {}
+})
+
 const isItemOwned = (item) => {
-	return hasItem(item.id)
+	return !!inventoryItems.value[item.id]
 }
 
 const isItemAffordable = (item) => {
@@ -176,11 +196,14 @@ watch(() => gameData, (newData) => {
 			<!-- Items Grid -->
 			<div v-else class="items-grid">
 				<div
-						v-for="item in currentCategoryItems"
-						:key="item.id"
-						class="shop-item"
-						:class="{ 'shop-item--owned': isItemOwned(item) }"
-						@click="handleItemClick(item)"
+					v-for="item in currentCategoryItems"
+					:key="item.id"
+					class="shop-item"
+					:class="{
+				    'shop-item--owned': isItemOwned(item),
+				    'shop-item--just-purchased': justPurchasedItems.includes(item.id)
+				  }"
+					@click="handleItemClick(item)"
 				>
 					<!-- Item Icon -->
 					<div
