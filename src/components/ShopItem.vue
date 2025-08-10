@@ -23,23 +23,35 @@ const emit = defineEmits(['purchase'])
 
 const { t } = useI18n()
 
-// Check if player can afford the item
 const canAfford = computed(() => {
 	const hasCoins = props.playerCurrency.coins >= props.item.price.coins
 	const hasDiamonds = props.playerCurrency.diamonds >= props.item.price.diamonds
 	return hasCoins && hasDiamonds
 })
 
-// Check if item can be purchased
+const itemQuantity = computed(() => {
+	if (props.item.type === 'consumable') {
+		return props.playerCurrency.quantity || 0
+	}
+	return 0
+})
+
 const canPurchase = computed(() => {
+	if (props.item.type === 'consumable' && !props.item.purchaseLimit) {
+		return canAfford.value
+	}
+
 	if (props.isOwned && props.item.purchaseLimit === 1) {
 		return false
 	}
 	return canAfford.value
 })
 
-// Get button text based on state
 const purchaseButtonText = computed(() => {
+	if (props.item.type === 'consumable' && !props.item.purchaseLimit) {
+		return t('shop.purchase')
+	}
+
 	if (props.isOwned && props.item.purchaseLimit === 1) {
 		return t('shop.owned')
 	}
@@ -69,6 +81,10 @@ const handlePurchase = () => {
 			{{ item.icon }}
 		</div>
 
+		<div v-if="item.type === 'consumable' && itemQuantity > 0" class="shop-item__quantity-badge">
+			{{ itemQuantity }}
+		</div>
+
 		<!-- Item Info -->
 		<div class="shop-item__info">
 			<h3 class="shop-item__name">{{ item.name }}</h3>
@@ -89,14 +105,14 @@ const handlePurchase = () => {
 
 		<!-- Purchase Button -->
 		<button
-				class="btn btn--small shop-item__purchase-btn"
-				:class="{
-        'btn--primary': canPurchase,
-        'btn--ghost': isOwned && item.purchaseLimit === 1,
-        'btn--info': !canAfford && !isOwned
-      }"
-				:disabled="!canPurchase"
-				@click="handlePurchase"
+			class="btn btn--small shop-item__purchase-btn"
+			:class="{
+		    'btn--primary': canPurchase,
+		    'btn--ghost': isOwned && item.purchaseLimit === 1 && item.type !== 'consumable',
+		    'btn--info': !canAfford && !isOwned
+		  }"
+			:disabled="!canPurchase"
+			@click="handlePurchase"
 		>
 			{{ purchaseButtonText }}
 		</button>
@@ -185,5 +201,21 @@ const handlePurchase = () => {
 	font-weight: var(--font-weight-bold);
 	line-height: 1;
 	z-index: 1;
+}
+
+.shop-item__quantity-badge {
+	position: absolute;
+	top: var(--space-1);
+	left: var(--space-1);
+	background-color: var(--warning-color);
+	color: white;
+	padding: 2px var(--space-1);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+	z-index: 2;
+	min-width: 20px;
+	text-align: center;
 }
 </style>

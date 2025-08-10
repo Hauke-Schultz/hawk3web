@@ -41,13 +41,22 @@ const selectCategory = (categoryId) => {
 const handleItemClick = (item) => {
 	selectedItem.value = item
 
-	// Determine modal type
-	if (hasItem(item.id)) {
-		modalType.value = 'owned'
-	} else if (!canAffordItem(item)) {
-		modalType.value = 'insufficient'
+	// Für Consumables ohne purchaseLimit: nie als "owned" behandeln
+	if (item.type === 'consumable' && !item.purchaseLimit) {
+		if (!canAffordItem(item)) {
+			modalType.value = 'insufficient'
+		} else {
+			modalType.value = 'purchase'
+		}
 	} else {
-		modalType.value = 'purchase'
+		// Normale Items
+		if (hasItem(item.id)) {
+			modalType.value = 'owned'
+		} else if (!canAffordItem(item)) {
+			modalType.value = 'insufficient'
+		} else {
+			modalType.value = 'purchase'
+		}
 	}
 
 	showModal.value = true
@@ -123,7 +132,16 @@ const inventoryItems = computed(() => {
 })
 
 const isItemOwned = (item) => {
+	// Für Consumables ohne purchaseLimit: NIEMALS als owned betrachten
+	if (item.type === 'consumable' && !item.purchaseLimit) {
+		return false
+	}
+	// Für normale Items mit purchaseLimit
 	return !!inventoryItems.value[item.id]
+}
+
+const getItemQuantity = (item) => {
+	return inventoryItems.value[item.id]?.quantity || 0
 }
 
 const isItemAffordable = (item) => {
@@ -131,14 +149,26 @@ const isItemAffordable = (item) => {
 }
 
 const getItemButtonClass = (item) => {
+	// Für Consumables ohne purchaseLimit: immer basierend auf Affordability
+	if (item.type === 'consumable' && !item.purchaseLimit) {
+		return canAffordItem(item) ? 'item-button--buyable' : 'item-button--expensive'
+	}
+
+	// Für normale Items
 	if (isItemOwned(item)) return 'item-button--owned'
-	if (!isItemAffordable(item)) return 'item-button--expensive'
+	if (!canAffordItem(item)) return 'item-button--expensive'
 	return 'item-button--buyable'
 }
 
 const getItemButtonText = (item) => {
+	// Für Consumables ohne purchaseLimit: immer "Buy" oder "Can't afford"
+	if (item.type === 'consumable' && !item.purchaseLimit) {
+		return canAffordItem(item) ? t('shop.buy') : t('shop.cant_afford')
+	}
+
+	// Für normale Items
 	if (isItemOwned(item)) return t('shop.owned')
-	if (!isItemAffordable(item)) return t('shop.cant_afford')
+	if (!canAffordItem(item)) return t('shop.cant_afford')
 	return t('shop.buy')
 }
 
@@ -200,17 +230,24 @@ watch(() => gameData, (newData) => {
 					:key="item.id"
 					class="shop-item"
 					:class="{
-				    'shop-item--owned': isItemOwned(item),
-				    'shop-item--just-purchased': justPurchasedItems.includes(item.id)
-				  }"
+						'shop-item--owned': isItemOwned(item),
+						'shop-item--just-purchased': justPurchasedItems.includes(item.id),
+						'shop-item--consumable': item.type === 'consumable'
+					}"
 					@click="handleItemClick(item)"
 				>
 					<!-- Item Icon -->
 					<div
-							class="item-icon"
-							:style="getItemRarityStyle(item.rarity)"
+						class="item-icon"
+						:style="getItemRarityStyle(item.rarity)"
 					>
 						<span class="item-emoji">{{ item.icon }}</span>
+						<div
+							v-if="item.type === 'consumable' && getItemQuantity(item) > 0"
+							class="item-quantity-badge"
+						>
+							{{ getItemQuantity(item) }}
+						</div>
 					</div>
 
 					<!-- Item Info -->
@@ -544,6 +581,30 @@ watch(() => gameData, (newData) => {
 	border-radius: 50%;
 	padding: var(--space-1);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.item-quantity-badge {
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	background-color: var(--warning-color);
+	color: white;
+	border-radius: 50%;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	border: 2px solid var(--card-bg);
+	z-index: 2;
+}
+
+.shop-item--consumable {
+	.item-icon {
+		position: relative;
+	}
 }
 
 // Responsive adjustments

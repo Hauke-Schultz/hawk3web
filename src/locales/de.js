@@ -265,6 +265,9 @@ export default {
 		already_owned: 'Bereits besessen',
 		already_owned_message: 'Du besitzt diesen Artikel bereits.',
 		earn_more_currency: 'Spiele Spiele, um mehr Währung zu verdienen!',
+		buy_consumable_confirm: 'Diesen Gegenstand kaufen? Du kannst mehrere besitzen.',
+		quantity: 'Anzahl',
+		in_inventory: 'Im Inventar',
 
 		types: {
 			avatar_pack: 'Avatar-Paket',

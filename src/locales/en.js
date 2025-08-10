@@ -196,6 +196,9 @@ export default {
 		already_owned: 'Already Owned',
 		already_owned_message: 'You already own this item.',
 		earn_more_currency: 'Play games to earn more currency!',
+		buy_consumable_confirm: 'Buy this item? You can own multiple.',
+		quantity: 'Quantity',
+		in_inventory: 'In Inventory',
 
 		types: {
 			avatar_pack: 'Avatar Pack',

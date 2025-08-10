@@ -38,9 +38,10 @@ const modalConfig = computed(() => {
 
 	switch (props.type) {
 		case 'purchase':
+			const isConsumable = props.item.type === 'consumable'
 			return {
 				title: t('shop.buy_item'),
-				message: t('shop.buy_confirm'),
+				message: isConsumable ? t('shop.buy_consumable_confirm') : t('shop.buy_confirm'),
 				confirmText: t('shop.buy_now'),
 				confirmVariant: 'success',
 			}
