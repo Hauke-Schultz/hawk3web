@@ -503,7 +503,9 @@ export default {
 			general: 'Allgemein',
 			gaming: 'Spiele',
 			progress: 'Fortschritt',
-			special: 'Besonders'
+			special: 'Besonders',
+			memory: 'Memory-Spiel',
+			fruitMerge: 'Fruit Merge-Spiel',
 		},
 		rarities: {
 			common: 'Häufig',

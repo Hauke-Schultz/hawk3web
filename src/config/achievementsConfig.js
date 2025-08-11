@@ -25,6 +25,7 @@ export const ACHIEVEMENTS = {
 		},
 
 		// Level-based achievements
+		/*
 		{
 			id: 'level_5',
 			name: 'Rising Star',
@@ -54,7 +55,7 @@ export const ACHIEVEMENTS = {
 			rarity: 'rare',
 			rewards: { coins: 15, diamonds: 0 },
 			trigger: { type: 'auto', condition: 'level >= 15' }
-		},
+		}, */
 
 		// Score-based achievements
 		{
@@ -85,7 +86,7 @@ export const ACHIEVEMENTS = {
 			id: 'memory_beginner',
 			name: 'Memory Beginner',
 			description: 'Completed first memory level',
-			category: 'gaming',
+			category: 'memory',
 			icon: 'brain',
 			rarity: 'common',
 			rewards: { coins: 15, diamonds: 0 },
@@ -95,7 +96,7 @@ export const ACHIEVEMENTS = {
 			id: 'memory_intermediate',
 			name: 'Memory Intermediate',
 			description: 'Completed level 3',
-			category: 'gaming',
+			category: 'memory',
 			icon: 'brain',
 			rarity: 'uncommon',
 			rewards: { coins: 150, diamonds: 1 },
@@ -105,7 +106,7 @@ export const ACHIEVEMENTS = {
 			id: 'memory_master',
 			name: 'Memory Master',
 			description: 'Completed the hardest level',
-			category: 'gaming',
+			category: 'memory',
 			icon: 'brain',
 			rarity: 'rare',
 			rewards: { coins: 1500, diamonds: 10 },
@@ -117,7 +118,7 @@ export const ACHIEVEMENTS = {
 			id: 'fruitMerge_beginner',
 			name: 'Fruit Beginner',
 			description: 'Completed first fruitMerge level',
-			category: 'gaming',
+			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
 			rewards: { coins: 20, diamonds: 1 },
@@ -127,7 +128,7 @@ export const ACHIEVEMENTS = {
 			id: 'fruitMerge_intermediate',
 			name: 'Fruit Merger',
 			description: 'Completed FruitMerge Level 3',
-			category: 'gaming',
+			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'uncommon',
 			rewards: { coins: 200, diamonds: 2 },
@@ -137,7 +138,7 @@ export const ACHIEVEMENTS = {
 			id: 'fruitMerge_expert',
 			name: 'Merge Expert',
 			description: 'Completed FruitMerge Level 5',
-			category: 'gaming',
+			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'epic',
 			rewards: { coins: 2000, diamonds: 10 },
@@ -147,7 +148,7 @@ export const ACHIEVEMENTS = {
 			id: 'fruitMerge_master',
 			name: 'Merge Master',
 			description: 'Completed the ultimate FruitMerge challenge',
-			category: 'special',
+			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'legendary',
 			rewards: { coins: 15, diamonds: 0 },
@@ -157,7 +158,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_first_play',
 			name: 'Endless Explorer',
 			description: 'Played your first endless game',
-			category: 'gaming',
+			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
 			rewards: { coins: 100, diamonds: 1 },
@@ -167,7 +168,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_bronze',
 			name: 'Bronze Merger',
 			description: 'Earned 1 star in endless mode',
-			category: 'gaming',
+			category: 'fruitMerge',
 			icon: 'star',
 			rarity: 'uncommon',
 			rewards: { coins: 200, diamonds: 2 },
@@ -177,7 +178,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_silver',
 			name: 'Silver Merger',
 			description: 'Earned 2 stars in endless mode',
-			category: 'gaming',
+			category: 'fruitMerge',
 			icon: 'star-filled',
 			rarity: 'rare',
 			rewards: { coins: 500, diamonds: 5 },
@@ -187,7 +188,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_gold',
 			name: 'Gold Merger',
 			description: 'Earned 3 stars in endless mode',
-			category: 'special',
+			category: 'fruitMerge',
 			icon: 'trophy',
 			rarity: 'epic',
 			rewards: { coins: 1000, diamonds: 10 },
@@ -197,7 +198,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_marathon',
 			name: 'Marathon Merger',
 			description: 'Played endless mode for 30 minutes',
-			category: 'special',
+			category: 'fruitMerge',
 			icon: 'trophy',
 			rarity: 'epic',
 			rewards: { coins: 1500, diamonds: 15 },
@@ -207,7 +208,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_merge_master',
 			name: 'Merge Master',
 			description: 'Performed 500 merges in endless mode',
-			category: 'special',
+			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'legendary',
 			rewards: { coins: 2000, diamonds: 20 },
@@ -242,17 +243,23 @@ export const ACHIEVEMENTS = {
 			description: 'Achievements related to playing games'
 		},
 		{
-			id: 'progress',
-			name: 'Progress',
-			color: 'warning',
-			description: 'Level and progression achievements'
+			id: 'memory',
+			name: 'Memory Game',
+			color: 'purple',
+			description: 'Achievements for the Memory Game'
+		},
+		{
+			id: 'fruitMerge',
+			name: 'Fruit Merge Game',
+			color: 'orange',
+			description: 'Achievements for the Fruit Merge Game'
 		},
 		{
 			id: 'special',
 			name: 'Special',
 			color: 'info',
 			description: 'Rare and special achievements'
-		}
+		},
 	],
 
 	// Rarity definitions

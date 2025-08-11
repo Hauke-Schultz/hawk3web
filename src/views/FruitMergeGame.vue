@@ -333,34 +333,21 @@ const handleFruitClick = (fruit) => {
 	const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
 	const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
 	createDestructionEffect(centerX, centerY, fruit)
+	Matter.Composite.remove(engine.world, fruit.body);
+	// Remove from fruits array
+	fruits.value = fruits.value.filter(f => f.id !== fruit.id)
+	// Use one hammer charge
+	const used = useConsumableItem('hammer_powerup')
+	if (used) {
+		const remaining = getItemQuantity('hammer_powerup')
+		hammerUses.value = remaining
+		console.log(`✅ Hammer used! Remaining: ${remaining}`)
+	}
 
-	// Remove fruit after animation
-	setTimeout(() => {
-		// Remove from physics
-		if (fruit.body && engine) {
-			try {
-				Matter.Composite.remove(engine.world, fruit.body)
-			} catch (error) {
-				console.warn('Error removing fruit body:', error)
-			}
-		}
-
-		// Remove from fruits array
-		fruits.value = fruits.value.filter(f => f.id !== fruit.id)
-
-		// Use one hammer charge
-		const used = useConsumableItem('hammer_powerup')
-		if (used) {
-			const remaining = getItemQuantity('hammer_powerup')
-			hammerUses.value = remaining
-			console.log(`✅ Hammer used! Remaining: ${remaining}`)
-		}
-
-		// Reset states
-		selectedFruitForHammer.value = null
-		isUsingHammer.value = false
-		deactivateHammerMode()
-	}, 300)
+	// Reset states
+	selectedFruitForHammer.value = null
+	isUsingHammer.value = false
+	deactivateHammerMode()
 }
 
 const createDestructionEffect = (x, y, fruit) => {

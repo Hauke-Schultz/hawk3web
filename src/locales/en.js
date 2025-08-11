@@ -503,8 +503,9 @@ export default {
 		categories: {
 			general: 'General',
 			gaming: 'Gaming',
-			progress: 'Progress',
-			special: 'Special'
+			special: 'Special',
+			memory: 'Memory Game',
+			fruitMerge: 'Fruit Merge Game',
 		},
 		rarities: {
 			common: 'Common',
