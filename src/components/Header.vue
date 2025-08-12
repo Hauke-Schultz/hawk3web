@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import {ref, computed, watch, onMounted, reactive} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
@@ -7,13 +7,9 @@ import Icon from "./Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
 
 // Services
-const { gameData,
-	updateSettings,
-	checkAutoAchievements,
-	getCurrentLanguage,
-	getMostRecentGameActivity,
+const {
 	getRecentLevelsForGame,
-	getAllRecentLevels } = useLocalStorage()
+	isCardRead } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -32,28 +28,25 @@ const props = defineProps({
 		type: Boolean,
 		default: false
 	},
-	gameData: {
-		type: Object,
-		default: () => ({
-			player: {
-				name: 'Player',
-				avatar: 'avatar/user',
-				level: 1,
-				coins: 0,
-				diamonds: 0
-			}
-		})
+	showNotifications: {
+		type: Boolean,
+		default: true
 	},
 	gameState: {
 		type: Object,
 		default: null
+	},
+	gameData: {
+		type: Object,
+		default: () => ({})
 	}
 })
 
 // Emits
 const emit = defineEmits([
 	'menu-click',
-	'save-game'
+	'save-game',
+	'notification-click',
 ])
 
 // Menu state
@@ -61,15 +54,7 @@ const showMenu = ref(false)
 const isMenuAnimating = ref(false)
 const isSaving = ref(false)
 const isMenuTransitioning = ref(false)
-
-// Computed values
-const playerInfo = computed(() => ({
-	name: props.gameData.player.name,
-	avatar: props.gameData.player.avatar,
-	level: props.gameData.player.level,
-	coins: props.gameData.player.coins || 0,
-	diamonds: props.gameData.player.diamonds || 0
-}))
+const notificationCount = ref(0)
 
 const displayTitle = computed(() => {
 	return props.title || t('app.title')
@@ -95,10 +80,6 @@ function getCurrentLevelFromRoute() {
 	const matches = route.path.match(/\/games\/(fruitmerge|memory)\/(\d+)/)
 	return matches ? parseInt(matches[2]) : null
 }
-
-const recentFruitMergeLevels = computed(() => {
-	return getRecentLevelsForGame('fruitMerge', 3)
-})
 
 const allRecentLevels = computed(() => {
 	const memoryLevels = getRecentLevelsForGame('memory', 10).map(level => ({
@@ -313,6 +294,19 @@ const handleOutsideClick = (event) => {
 	}
 }
 
+const handleNotificationClick = () => {
+	emit('notification-click')
+}
+
+onMounted(() => {
+	if (!isCardRead('dailyRewardCard')) {
+		notificationCount.value += 1
+	}
+	if (!isCardRead('welcomeCard')) {
+		notificationCount.value += 1
+	}
+})
+
 // Close menu on route change
 watch(() => route.path, () => {
 	if (showMenu.value) {
@@ -328,6 +322,7 @@ watch(showMenu, (isOpen) => {
 		document.removeEventListener('click', handleOutsideClick)
 	}
 })
+
 </script>
 
 <template>
@@ -449,9 +444,18 @@ watch(showMenu, (isOpen) => {
 
 			<!-- Right section -->
 			<div class="header-right">
+				<button
+					v-if="showNotifications && notificationCount >= 0"
+					class="btn btn--circle-ghost notification-btn"
+					@click="handleNotificationClick"
+					:aria-label="t('a11y.notification_button')"
+				>
+					<Icon name="bell" size="24" />
+					<span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
+				</button>
 				<CurrencyDisplay
-						:coins="playerInfo.coins"
-						:diamonds="playerInfo.diamonds"
+						:coins="props.gameData.player.coins || 0"
+						:diamonds="props.gameData.player.diamonds || 0"
 						layout="vertical"
 						size="small"
 						variant="compact"
@@ -828,5 +832,23 @@ watch(showMenu, (isOpen) => {
 		max-width: calc(100vw - 2 * var(--space-4));
 		left: calc(-1 * var(--space-4));
 	}
+}
+
+
+.notification-badge {
+	background-color: var(--error-color);
+	color: var(--white);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	position: absolute;
+	top: calc(-1 * var(--space-2));
+	right: calc(-1 * var(--space-2));
+	padding: var(--space-0) var(--space-1);
+	border-radius: 50%;
+	min-width: var(--space-5);
+	height: var(--space-5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 </style>

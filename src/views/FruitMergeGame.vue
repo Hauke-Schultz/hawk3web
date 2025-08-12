@@ -27,7 +27,7 @@ const props = defineProps({
 const router = useRouter()
 
 // Emits
-const emit = defineEmits(['back-to-gaming', 'game-complete', 'menu-click', 'shop-click', 'trophy-click'])
+const emit = defineEmits(['game-complete', 'menu-click'])
 
 // Services
 const {

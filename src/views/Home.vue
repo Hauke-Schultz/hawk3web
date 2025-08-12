@@ -79,12 +79,6 @@ const handleCardRead = (cardType) => {
 
 	markCardAsRead(cardType)
 }
-
-// watch gameData if changes are needed
-watch(() => gameData, (newData) => {
-	// Handle any necessary updates when gameData changes
-	console.log('Game data updated:', newData)
-}, { deep: true })
 </script>
 
 <template>
