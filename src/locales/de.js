@@ -244,8 +244,8 @@ export default {
 		title: 'Shop',
 		subtitle: 'Gegenstände und Upgrades kaufen',
 		categories: {
-			cosmetics: 'Kosmetik',
-			powerups: 'Power-ups',
+			profile: 'Profil',
+			items: 'Items',
 			utilities: 'Werkzeuge'
 		},
 		buy: 'Kaufen',

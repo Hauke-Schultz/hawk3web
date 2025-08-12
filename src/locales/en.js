@@ -175,8 +175,8 @@ export default {
 		title: 'Shop',
 		subtitle: 'Buy items and upgrades',
 		categories: {
-			cosmetics: 'Cosmetics',
-			powerups: 'Power-ups',
+			profile: 'Profile',
+			items: 'Items',
 			utilities: 'Utilities'
 		},
 		buy: 'Buy',

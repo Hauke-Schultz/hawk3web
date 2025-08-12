@@ -7,7 +7,7 @@ export function useShop() {
   const { gameData, purchaseShopItem } = useLocalStorage()
   const { hasItem } = useInventory()
 
-  const selectedCategory = ref('cosmetics')
+  const selectedCategory = ref('profile')
 
   // Get items by category
   const getItemsByCategory = (categoryId) => {
