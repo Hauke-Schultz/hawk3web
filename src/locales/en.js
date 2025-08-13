@@ -170,9 +170,13 @@ export default {
 	notifications: {
 		title: 'Notifications',
 		no_new: 'No new notifications',
+		no_activity: 'No recent activity',
+		unread: 'New',
+		recent_activity: 'Recent Activity',
 		mark_all_read: 'Mark all as read',
 		daily_reward_available: 'Daily reward available',
-		achievement_unlocked: 'Achievement unlocked'
+		daily_reward_claimed: 'Daily reward claimed successfully',
+		achievement_unlocked: 'Achievement unlocked!'
 	},
 
 	// Shop

@@ -34,10 +34,6 @@ const props = defineProps({
 		type: Boolean,
 		default: false
 	},
-	showNotifications: {
-		type: Boolean,
-		default: true
-	},
 	gameState: {
 		type: Object,
 		default: null
@@ -150,6 +146,56 @@ const notificationItems = computed(() => {
 	}
 
 	return items
+})
+
+const readNotificationItems = computed(() => {
+	const items = []
+
+	// Recently read daily reward
+	if (isCardRead('dailyRewardCard')) {
+		const readAt = gameData.cardStates.dailyRewardCard?.readAt
+		if (readAt) {
+			items.push({
+				id: 'dailyRewardCard-read',
+				type: 'daily_reward_read',
+				title: t('daily_rewards.title'),
+				description: t('notifications.daily_reward_claimed'),
+				icon: 'completion-badge',
+				readAt: readAt,
+				timestamp: new Date(readAt)
+			})
+		}
+	}
+
+	// Recent achievements (last 10)
+	const recentAchievements = gameData.achievements
+			.filter(achievement => achievement.earned && achievement.earnedAt)
+			.sort((a, b) => new Date(b.earnedAt) - new Date(a.earnedAt))
+			.slice(0, 10)
+
+	recentAchievements.forEach(achievement => {
+		items.push({
+			id: `achievement-${achievement.id}`,
+			type: 'achievement',
+			title: t(`achievements.definitions.${achievement.id}.name`),
+			description: t('notifications.achievement_unlocked'),
+			icon: 'trophy',
+			readAt: achievement.earnedAt,
+			timestamp: new Date(achievement.earnedAt),
+			rarity: achievement.rarity,
+			rewards: achievement.rewards
+		})
+	})
+
+	// Sort by timestamp (newest first)
+	return items.sort((a, b) => b.timestamp - a.timestamp)
+})
+
+const allNotificationItems = computed(() => {
+	return {
+		unread: notificationItems.value,
+		read: readNotificationItems.value
+	}
 })
 
 function getCurrentLevelFromRoute() {
@@ -526,21 +572,21 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 			<div class="header-right">
 				<div class="notification-container">
 					<button
-						v-if="showNotifications || notificationItems.length >= 0"
-						class="btn btn--circle-ghost notification-btn"
-						:class="{
+							v-if="showNotifications || notificationItems.length >= 0"
+							class="btn btn--circle-ghost notification-btn"
+							:class="{
 							'notification-btn--active': showNotifications
 						}"
-						@click="handleNotificationClick($event)"
-						:aria-label="t('a11y.notification_button')"
-						:aria-expanded="showNotifications"
-						:disabled="isNotificationAnimating"
+							@click="handleNotificationClick($event)"
+							:aria-label="t('a11y.notification_button')"
+							:aria-expanded="showNotifications"
+							:disabled="isNotificationAnimating"
 					>
 						<Icon name="bell" size="24" />
 						<span v-if="notificationItems.length > 0" class="notification-badge">{{ notificationItems.length }}</span>
 					</button>
 
-					<!-- Notification Dropdown -->
+						<!-- Notification Dropdown -->
 					<transition name="menu">
 						<div v-if="showNotifications" class="notification-dropdown" :class="{ 'notification-dropdown--animating': isNotificationAnimating }">
 							<div class="notification-header">
@@ -548,27 +594,71 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 							</div>
 
 							<div class="notification-content">
-								<div v-if="notificationItems.length === 0" class="notification-empty">
-									<Icon name="bell" size="32" />
-									<span class="empty-text">{{ t('notifications.no_new') }}</span>
+								<!-- Unread Notifications Section -->
+								<div v-if="allNotificationItems.unread.length > 0" class="notification-section">
+									<h5 class="notification-section-title">{{ t('notifications.unread') }}</h5>
+									<div class="notification-list">
+										<div
+												v-for="item in allNotificationItems.unread"
+												:key="item.id"
+												class="notification-item"
+												:class="`notification-item--${item.type}`"
+										>
+											<DailyRewardCard
+													v-if="item.type === 'daily_reward'"
+													:title="item.title"
+													:visible="true"
+													:card-type="item.id"
+													@mark-as-read="handleNotificationItemRead"
+													@click="handleNotificationItemRead(item.id)"
+											/>
+										</div>
+									</div>
 								</div>
 
-								<div v-else class="notification-list">
-									<div
-											v-for="item in notificationItems"
-											:key="item.id"
-											class="notification-item"
-											:class="`notification-item--${item.type}`"
-									>
-										<DailyRewardCard
-												v-if="item.type === 'daily_reward'"
-												:title="item.title"
-												:visible="true"
-												:card-type="item.id"
-												@mark-as-read="handleNotificationItemRead"
-												@click="handleNotificationItemRead(item.id)"
-										/>
+								<!-- Read Notifications Section -->
+								<div v-if="allNotificationItems.read.length > 0" class="notification-section">
+									<h5 class="notification-section-title">{{ t('notifications.recent_activity') }}</h5>
+									<div class="notification-list">
+										<div
+												v-for="item in allNotificationItems.read"
+												:key="item.id"
+												class="notification-item notification-item--read"
+												:class="`notification-item--${item.type}`"
+										>
+											<!-- Achievement Notification -->
+											<div v-if="item.type === 'achievement'" class="achievement-notification">
+												<div class="achievement-info">
+													<div class="achievement-title">{{ item.title }}</div>
+													<div v-if="item.rewards" class="achievement-rewards">
+														<span v-if="item.rewards.diamonds > 0" class="reward-diamonds">
+					                    +{{ item.rewards.diamonds }} 💎
+					                  </span>
+														<span v-if="item.rewards.coins > 0" class="reward-coins">
+					                    +{{ item.rewards.coins }} 💰
+					                  </span>
+													</div>
+													<div class="achievement-meta">
+														<span class="achievement-time">{{ formatRelativeTime(item.readAt) }}</span>
+													</div>
+												</div>
+											</div>
+
+											<!-- Daily Reward Notification -->
+											<div v-else-if="item.type === 'daily_reward_read'" class="daily-reward-notification">
+												<div class="daily-reward-info">
+													<div class="daily-reward-title">{{ item.title }}</div>
+													<div class="daily-reward-time">{{ formatRelativeTime(item.readAt) }}</div>
+												</div>
+											</div>
+										</div>
 									</div>
+								</div>
+
+								<!-- Empty State -->
+								<div v-if="allNotificationItems.unread.length === 0 && allNotificationItems.read.length === 0" class="notification-empty">
+									<Icon name="bell" size="32" />
+									<span class="empty-text">{{ t('notifications.no_activity') }}</span>
 								</div>
 							</div>
 						</div>
@@ -1061,5 +1151,188 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 		max-width: calc(100vw - 2 * var(--space-4));
 		right: calc(-1 * var(--space-4));
 	}
+}
+
+.notification-section {
+	margin-bottom: var(--space-4);
+
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.notification-section-title {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-secondary);
+	margin: 0 0 var(--space-2) 0;
+	padding: 0 var(--space-2);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.notification-item--read {
+	opacity: 0.8;
+	background-color: var(--bg-secondary);
+}
+
+// Achievement Notification Styles
+.achievement-notification {
+	display: flex;
+	padding: var(--space-2);
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-lg);
+	border-left: 3px solid var(--warning-color);
+}
+
+.achievement-icon {
+	width: var(--space-10);
+	height: var(--space-10);
+	background-color: var(--warning-color);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	flex-shrink: 0;
+}
+
+.achievement-info {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.achievement-title {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	line-height: 1.3;
+}
+
+.achievement-description {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	line-height: 1.3;
+}
+
+.achievement-meta {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	width: 100%;
+}
+
+.achievement-time {
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.achievement-rarity {
+	padding: var(--space-0) var(--space-1);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+
+	&.rarity--common {
+		background-color: var(--info-color);
+		color: white;
+	}
+
+	&.rarity--uncommon {
+		background-color: var(--success-color);
+		color: white;
+	}
+
+	&.rarity--rare {
+		background-color: var(--primary-color);
+		color: white;
+	}
+
+	&.rarity--epic {
+		background-color: var(--warning-color);
+		color: white;
+	}
+
+	&.rarity--legendary {
+		background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+		color: white;
+	}
+}
+
+.achievement-rewards {
+	display: flex;
+	gap: var(--space-2);
+}
+
+.reward-coins,
+.reward-diamonds {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	padding: var(--space-1);
+	border-radius: var(--border-radius-sm);
+}
+
+.reward-coins {
+	background-color: var(--warning-color);
+	color: white;
+}
+
+.reward-diamonds {
+	background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+	color: white;
+}
+
+// Daily Reward Notification Styles
+.daily-reward-notification {
+	display: flex;
+	gap: var(--space-3);
+	padding: var(--space-3);
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-lg);
+	border-left: 3px solid var(--success-color);
+}
+
+.daily-reward-icon {
+	width: var(--space-10);
+	height: var(--space-10);
+	background-color: var(--success-color);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	flex-shrink: 0;
+}
+
+.daily-reward-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+}
+
+.daily-reward-title {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	line-height: 1.3;
+}
+
+.daily-reward-description {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	line-height: 1.3;
+}
+
+.daily-reward-time {
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	font-style: italic;
 }
 </style>

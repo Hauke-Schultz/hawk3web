@@ -239,9 +239,13 @@ export default {
 	notifications: {
 		title: 'Benachrichtigungen',
 		no_new: 'Keine neuen Benachrichtigungen',
+		no_activity: 'Keine aktuelle Aktivität',
+		unread: 'Neu',
+		recent_activity: 'Aktuelle Aktivität',
 		mark_all_read: 'Alle als gelesen markieren',
 		daily_reward_available: 'Tägliche Belohnung verfügbar',
-		achievement_unlocked: 'Erfolg freigeschaltet'
+		daily_reward_claimed: 'Tägliche Belohnung erfolgreich eingelöst',
+		achievement_unlocked: 'Erfolg freigeschaltet!'
 	},
 
 	// Shop
