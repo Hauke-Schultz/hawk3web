@@ -85,7 +85,6 @@ onMounted(async () => {
 
 <template>
 	<div class="container" :class="gameData.settings.theme" role="application">
-		<!-- Router View - alle Views werden hier gerendert -->
 		<router-view
 				:player-profile="gameData.player"
 				:current-theme="gameData.settings.theme"

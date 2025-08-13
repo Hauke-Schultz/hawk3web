@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed, watch, onMounted, reactive} from 'vue'
+import {ref, computed, watch, onMounted, reactive, onUpdated} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
@@ -9,6 +9,8 @@ import CurrencyDisplay from "./CurrencyDisplay.vue"
 // Services
 const {
 	getRecentLevelsForGame,
+	updateNotificationCount,
+	getUnreadNotificationCount,
 	isCardRead } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
@@ -39,6 +41,10 @@ const props = defineProps({
 	gameData: {
 		type: Object,
 		default: () => ({})
+	},
+	notificationCount: {
+		type: Number,
+		default: 0
 	}
 })
 
@@ -54,7 +60,6 @@ const showMenu = ref(false)
 const isMenuAnimating = ref(false)
 const isSaving = ref(false)
 const isMenuTransitioning = ref(false)
-const notificationCount = ref(0)
 
 const displayTitle = computed(() => {
 	return props.title || t('app.title')
@@ -299,12 +304,7 @@ const handleNotificationClick = () => {
 }
 
 onMounted(() => {
-	if (!isCardRead('dailyRewardCard')) {
-		notificationCount.value += 1
-	}
-	if (!isCardRead('welcomeCard')) {
-		notificationCount.value += 1
-	}
+	updateNotificationCount()
 })
 
 // Close menu on route change

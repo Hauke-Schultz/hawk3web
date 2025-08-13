@@ -72,7 +72,6 @@ const handleCardRead = (cardType) => {
 	if (cardType === 'dailyRewardCard') {
 		const reward = claimDailyReward()
 		if (reward) {
-			console.log(`Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds`)
 			handleDailyRewardClaim(reward)
 		}
 	}
@@ -84,6 +83,7 @@ const handleCardRead = (cardType) => {
 <template>
 	<Header
 		:game-data="gameData"
+		:notification-count="gameData.notifications.unreadCount"
 	/>
 	<!-- Main Content Area -->
 	<main class="content">

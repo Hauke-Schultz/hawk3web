@@ -38,6 +38,11 @@ const getDefaultData = () => ({
 			consumables: {}
 		}
 	},
+	notifications: {
+		unreadCount: 0,
+		items: [],
+		lastUpdated: new Date().toISOString()
+	},
 	settings: {
 		theme: 'dark',
 		soundEnabled: true,
@@ -212,6 +217,22 @@ const validateCardStates = (cardStates) => {
 	return validated
 }
 
+const validateNotificationsData = (notifications) => {
+	if (!notifications || typeof notifications !== 'object') {
+		return {
+			unreadCount: 0,
+			items: [],
+			lastUpdated: new Date().toISOString()
+		}
+	}
+
+	return {
+		unreadCount: typeof notifications.unreadCount === 'number' ? notifications.unreadCount : 0,
+		items: Array.isArray(notifications.items) ? notifications.items : [],
+		lastUpdated: notifications.lastUpdated || new Date().toISOString()
+	}
+}
+
 // Data migration function
 const migrateData = (data) => {
 	// Handle version migrations here
@@ -239,6 +260,10 @@ const migrateData = (data) => {
 		if (!data.player?.coins && data.player?.coins !== 0) {
 			data.player.coins = 0
 			data.player.diamonds = 0
+		}
+
+		if (!data.notifications) {
+			data.notifications = getDefaultData().notifications
 		}
 
 		data.version = CURRENT_VERSION
@@ -269,6 +294,7 @@ export function useLocalStorage() {
 					games: validateGameData(migrated.games),
 					cardStates: validateCardStates(migrated.cardStates),
 					achievements: Array.isArray(migrated.achievements) ? migrated.achievements : getDefaultData().achievements,
+					notifications: validateNotificationsData(migrated.notifications),
 					version: CURRENT_VERSION
 				}
 			}
@@ -306,7 +332,7 @@ export function useLocalStorage() {
 	// Player methods
 	const updatePlayer = (updates) => {
 		const newPlayerData = { ...gameData.player, ...updates }
-		console.log('XXXX Updating player data:', updates, gameData.player, newPlayerData)
+		console.log('Updating player data:', updates, gameData.player, newPlayerData)
 		Object.assign(gameData.player, validatePlayerData(newPlayerData))
 		saveData()
 	}
@@ -588,13 +614,14 @@ export function useLocalStorage() {
 			}
 
 			const cardAchievements = checkCardReadAchievement(cardType, gameData)
-
 			cardAchievements.forEach(achievement => {
 				const wasAdded = addAchievement(achievement)
 				if (wasAdded) {
 					console.log(`🎉 Card read achievement unlocked: ${achievement.name}`)
 				}
 			})
+
+			updateNotificationCount()
 		}
 	}
 
@@ -958,7 +985,7 @@ export function useLocalStorage() {
 
 	const clearStorage = () => {
 		localStorage.removeItem(STORAGE_KEY)
-		localStorage.removeItem(LEVEL_STATE_KEY) // Level-States auch löschen
+		localStorage.removeItem(LEVEL_STATE_KEY)
 		const defaultData = getDefaultData()
 		Object.assign(gameData, defaultData)
 	}
@@ -1210,6 +1237,89 @@ export function useLocalStorage() {
 		}
 	}
 
+	const getUnreadNotificationCount = () => {
+		if (!gameData.notifications) {
+			gameData.notifications = getDefaultData().notifications
+		}
+		return gameData.notifications.unreadCount || 0
+	}
+
+	const updateNotificationCount = () => {
+		// Ensure notifications object exists
+		if (!gameData.notifications) {
+			gameData.notifications = getDefaultData().notifications
+		}
+
+		let count = 0
+
+		// Check for unread daily reward card
+		if (!isCardRead('dailyRewardCard') && canClaimDailyReward()) {
+			count += 1
+		}
+
+		// Check for unread welcome card
+		if (!isCardRead('welcomeCard')) {
+			count += 1
+		}
+
+		// Update the notification count
+		gameData.notifications.unreadCount = count
+		gameData.notifications.lastUpdated = new Date().toISOString()
+
+		console.log(`📱 Notification count updated: ${count}`, gameData.notifications)
+		return count
+	}
+
+	const addNotification = (notification) => {
+		if (!gameData.notifications) {
+			gameData.notifications = getDefaultData().notifications
+		}
+
+		const newNotification = {
+			id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+			type: notification.type || 'info',
+			title: notification.title,
+			message: notification.message,
+			read: false,
+			createdAt: new Date().toISOString(),
+			...notification
+		}
+
+		gameData.notifications.items.unshift(newNotification)
+
+		console.log('addNotification updateNotificationCount');
+		updateNotificationCount()
+
+		return newNotification
+	}
+
+	const markNotificationAsRead = (notificationId) => {
+		if (!gameData.notifications) {
+			gameData.notifications = getDefaultData().notifications
+			return
+		}
+
+		const notification = gameData.notifications.items.find(n => n.id === notificationId)
+		if (notification) {
+			notification.read = true
+
+			console.log('markNotificationAsRead updateNotificationCount');
+			updateNotificationCount()
+		}
+	}
+
+	const clearAllNotifications = () => {
+		if (!gameData.notifications) {
+			gameData.notifications = getDefaultData().notifications
+			return
+		}
+
+		gameData.notifications.items = []
+
+		console.log('clearAllNotifications updateNotificationCount');
+		updateNotificationCount()
+	}
+
 	// Return all reactive data and methods
 	return {
 		// Reactive data
@@ -1279,6 +1389,13 @@ export function useLocalStorage() {
 		resetCardState,
 		isCardRead,
 		getCardState,
+
+		// Notification methods
+		updateNotificationCount,
+		addNotification,
+		markNotificationAsRead,
+		clearAllNotifications,
+		getUnreadNotificationCount,
 
 		// Data management
 		saveData,
