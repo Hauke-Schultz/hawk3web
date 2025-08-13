@@ -4,12 +4,10 @@ import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "../components/Icon.vue";
-import WelcomeCard from "../components/WelcomeCard.vue";
 import Header from "../components/Header.vue";
-import DailyRewardCard from "../components/DailyRewardCard.vue";
 
 // LocalStorage service for achievements
-const { gameData, markCardAsRead, isCardRead, canClaimDailyReward, claimDailyReward } = useLocalStorage()
+const { gameData } = useLocalStorage()
 
 // Emits for parent component communication
 const emit = defineEmits([
@@ -23,20 +21,6 @@ const emit = defineEmits([
 ])
 
 const { t } = useI18n()
-
-const isWelcomeCardVisible = computed(() => {
-	return !isCardRead('welcomeCard')
-})
-
-const isDailyRewardVisible = computed(() => {
-	return canClaimDailyReward() && !isCardRead('dailyRewardCard')
-})
-
-// Event handlers - emit to parent component
-const handleDailyRewardClaim = (reward) => {
-	console.log(`🎁 Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds, Streak: ${reward.streak}`)
-	// Hier könntest du später eine Toast-Benachrichtigung oder Animation hinzufügen
-}
 
 const handleStartGame = () => {
 	emit('start-game')
@@ -62,49 +46,15 @@ const handleAboutClick = () => {
 	emit('about-click')
 }
 
-const handlePackageClick = () => {
-	emit('package-click')
-}
-
-// Card read handlers
-const handleCardRead = (cardType) => {
-	console.log(`Marking ${cardType} as read...`, gameData.player.coins)
-	if (cardType === 'dailyRewardCard') {
-		const reward = claimDailyReward()
-		if (reward) {
-			handleDailyRewardClaim(reward)
-		}
-	}
-
-	markCardAsRead(cardType)
-}
 </script>
 
 <template>
 	<Header
 		:game-data="gameData"
-		:notification-count="gameData.notifications.unreadCount"
 	/>
 	<!-- Main Content Area -->
 	<main class="content">
 
-		<!-- Welcome Back Section -->
-		<WelcomeCard
-				v-if="isWelcomeCardVisible"
-				:title="t('home.welcome_title')"
-				:subtitle="t('home.welcome_subtitle')"
-				card-type="welcomeCard"
-				:hide-when-read="true"
-				@mark-as-read="handleCardRead"
-				@click="handlePackageClick"
-		/>
-		<DailyRewardCard
-				v-if="isDailyRewardVisible"
-				:title="t('daily_rewards.title')"
-				card-type="dailyRewardCard"
-				@mark-as-read="handleCardRead"
-				@click="handlePackageClick"
-		/>
 		<!-- Game Actions Section -->
 		<section class="game-actions" aria-label="Game Actions">
 			<!-- Start Game Card -->

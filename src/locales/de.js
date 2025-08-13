@@ -98,7 +98,6 @@ export default {
 	app: {
 		title: 'Hawk3',
 		subtitle: 'Gaming Platform',
-		welcome_back: 'Willkommen zurück!',
 		ready_to_continue: 'Bereit, deine Reise fortzusetzen?'
 	},
 
@@ -119,8 +118,6 @@ export default {
 
 	// Startseite
 	home: {
-		welcome_title: 'Willkommen zurück!',
-		welcome_subtitle: 'Bereit, deine Reise fortzusetzen?',
 		start_game: 'Spiel starten',
 		gaming_hub: 'Spiele',
 		open_shop: 'Shop öffnen',
@@ -237,6 +234,14 @@ export default {
 			empty: 'Noch keine Gegenstände',
 			empty_description: 'Besuche den Shop, um Gegenstände und Upgrades zu kaufen!'
 		}
+	},
+
+	notifications: {
+		title: 'Benachrichtigungen',
+		no_new: 'Keine neuen Benachrichtigungen',
+		mark_all_read: 'Alle als gelesen markieren',
+		daily_reward_available: 'Tägliche Belohnung verfügbar',
+		achievement_unlocked: 'Erfolg freigeschaltet'
 	},
 
 	// Shop
@@ -515,10 +520,6 @@ export default {
 			legendary: 'Legendär'
 		},
 		definitions: {
-			welcome: {
-				name: 'Willkommen bei Hawk3',
-				description: 'Deine Spielreise begonnen'
-			},
 			first_game: {
 				name: 'Erstes Spiel',
 				description: 'Dein erstes Spiel gespielt'
@@ -599,11 +600,6 @@ export default {
 			perfectionist: {
 				name: 'Perfektionist',
 				description: 'Ein Spiel mit perfekter Punktzahl abgeschlossen'
-			},
-
-			welcome_card_read: {
-				name: 'Erste Schritte',
-				description: 'Willkommensnachricht gelesen'
 			},
 		}
 	},

@@ -57,14 +57,6 @@ const handleTrophyClick = () => {
 	router.push('/trophies')
 }
 
-const handlePackageClick = () => {
-	console.log('Welcome back! Ready to continue your journey?')
-}
-
-const handleNotificationClick = () => {
-	console.log('Notifications clicked')
-}
-
 const handleMenuClick = () => {
 	router.push('/')
 }
@@ -93,7 +85,6 @@ onMounted(async () => {
 				@trophy-click="handleTrophyClick"
 				@settings-click="handleSettingsClick"
 				@about-click="handleAboutClick"
-				@package-click="handlePackageClick"
 				@shop-click="handleShopClick"
 				@theme-change="handleThemeChange"
 				@language-change="handleLanguageChange"

@@ -5,13 +5,17 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from "./Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
+import DailyRewardCard from "./DailyRewardCard.vue"
 
 // Services
 const {
+	gameData,
 	getRecentLevelsForGame,
 	updateNotificationCount,
-	getUnreadNotificationCount,
-	isCardRead } = useLocalStorage()
+	isCardRead,
+	markCardAsRead,
+	canClaimDailyReward,
+	claimDailyReward } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -38,14 +42,6 @@ const props = defineProps({
 		type: Object,
 		default: null
 	},
-	gameData: {
-		type: Object,
-		default: () => ({})
-	},
-	notificationCount: {
-		type: Number,
-		default: 0
-	}
 })
 
 // Emits
@@ -60,6 +56,62 @@ const showMenu = ref(false)
 const isMenuAnimating = ref(false)
 const isSaving = ref(false)
 const isMenuTransitioning = ref(false)
+const showNotifications = ref(false)
+const isNotificationAnimating = ref(false)
+const isNotificationTransitioning = ref(false)
+
+const toggleNotifications = async (event) => {
+	if (isNotificationAnimating.value || isNotificationTransitioning.value) return
+
+	// Prevent event bubbling
+	if (event) {
+		event.stopPropagation()
+	}
+
+	isNotificationTransitioning.value = true
+
+	if (showNotifications.value) {
+		closeNotifications()
+	} else {
+		openNotifications()
+	}
+
+	// Reset transition flag after animation
+	setTimeout(() => {
+		isNotificationTransitioning.value = false
+	}, 350)
+}
+
+const openNotifications = () => {
+	showNotifications.value = true
+	isNotificationAnimating.value = true
+
+	setTimeout(() => {
+		isNotificationAnimating.value = false
+	}, 300)
+}
+
+const closeNotifications = () => {
+	if (!showNotifications.value) return
+
+	isNotificationAnimating.value = true
+
+	setTimeout(() => {
+		showNotifications.value = false
+		isNotificationAnimating.value = false
+	}, 300)
+}
+
+const handleNotificationItemRead = (cardType) => {
+	if (cardType === 'dailyRewardCard') {
+		const reward = claimDailyReward()
+		if (reward) {
+			console.log(`🎁 Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds, Streak: ${reward.streak}`)
+		}
+	}
+	markCardAsRead(cardType)
+	updateNotificationCount()
+}
 
 const displayTitle = computed(() => {
 	return props.title || t('app.title')
@@ -79,6 +131,25 @@ const currentRoute = computed(() => {
 		isMemoryGame: route.path.includes('/games/memory/'),
 		currentLevel: getCurrentLevelFromRoute()
 	}
+})
+
+const notificationItems = computed(() => {
+	const items = []
+
+	// Daily Reward Notification
+	if (canClaimDailyReward() && !isCardRead('dailyRewardCard')) {
+		items.push({
+			id: 'dailyRewardCard',
+			type: 'daily_reward',
+			title: t('daily_rewards.title'),
+			description: t('daily_rewards.tap_to_claim'),
+			icon: 'bell',
+			isDaily: true,
+			canClaim: true
+		})
+	}
+
+	return items
 })
 
 function getCurrentLevelFromRoute() {
@@ -290,17 +361,24 @@ const handleMenuClick = (event) => {
 // Close menu when clicking outside
 const handleOutsideClick = (event) => {
 	if (showMenu.value && !event.target.closest('.menu-container') && !isMenuTransitioning.value) {
-		// Add small delay to prevent immediate closure
 		setTimeout(() => {
 			if (showMenu.value && !isMenuTransitioning.value) {
 				closeMenu()
 			}
 		}, 50)
 	}
+
+	if (showNotifications.value && !event.target.closest('.notification-container') && !isNotificationTransitioning.value) {
+		setTimeout(() => {
+			if (showNotifications.value && !isNotificationTransitioning.value) {
+				closeNotifications()
+			}
+		}, 50)
+	}
 }
 
-const handleNotificationClick = () => {
-	emit('notification-click')
+const handleNotificationClick = (event) => {
+	toggleNotifications(event)
 }
 
 onMounted(() => {
@@ -312,11 +390,13 @@ watch(() => route.path, () => {
 	if (showMenu.value) {
 		closeMenu()
 	}
+	if (showNotifications.value) {
+		closeNotifications()
+	}
 })
 
-// Add/remove event listener for outside clicks
-watch(showMenu, (isOpen) => {
-	if (isOpen) {
+watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
+	if (isMenuOpen || isNotificationOpen) {
 		document.addEventListener('click', handleOutsideClick)
 	} else {
 		document.removeEventListener('click', handleOutsideClick)
@@ -444,18 +524,59 @@ watch(showMenu, (isOpen) => {
 
 			<!-- Right section -->
 			<div class="header-right">
-				<button
-					v-if="showNotifications && notificationCount >= 0"
-					class="btn btn--circle-ghost notification-btn"
-					@click="handleNotificationClick"
-					:aria-label="t('a11y.notification_button')"
-				>
-					<Icon name="bell" size="24" />
-					<span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
-				</button>
+				<div class="notification-container">
+					<button
+						v-if="showNotifications || notificationItems.length >= 0"
+						class="btn btn--circle-ghost notification-btn"
+						:class="{
+							'notification-btn--active': showNotifications
+						}"
+						@click="handleNotificationClick($event)"
+						:aria-label="t('a11y.notification_button')"
+						:aria-expanded="showNotifications"
+						:disabled="isNotificationAnimating"
+					>
+						<Icon name="bell" size="24" />
+						<span v-if="notificationItems.length > 0" class="notification-badge">{{ notificationItems.length }}</span>
+					</button>
+
+					<!-- Notification Dropdown -->
+					<transition name="menu">
+						<div v-if="showNotifications" class="notification-dropdown" :class="{ 'notification-dropdown--animating': isNotificationAnimating }">
+							<div class="notification-header">
+								<h4 class="notification-title">{{ t('nav.notifications') }}</h4>
+							</div>
+
+							<div class="notification-content">
+								<div v-if="notificationItems.length === 0" class="notification-empty">
+									<Icon name="bell" size="32" />
+									<span class="empty-text">{{ t('notifications.no_new') }}</span>
+								</div>
+
+								<div v-else class="notification-list">
+									<div
+											v-for="item in notificationItems"
+											:key="item.id"
+											class="notification-item"
+											:class="`notification-item--${item.type}`"
+									>
+										<DailyRewardCard
+												v-if="item.type === 'daily_reward'"
+												:title="item.title"
+												:visible="true"
+												:card-type="item.id"
+												@mark-as-read="handleNotificationItemRead"
+												@click="handleNotificationItemRead(item.id)"
+										/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</transition>
+				</div>
 				<CurrencyDisplay
-						:coins="props.gameData.player.coins || 0"
-						:diamonds="props.gameData.player.diamonds || 0"
+						:coins="gameData.player.coins || 0"
+						:diamonds="gameData.player.diamonds || 0"
 						layout="vertical"
 						size="small"
 						variant="compact"
@@ -850,5 +971,95 @@ watch(showMenu, (isOpen) => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.notification-btn {
+	position: relative;
+	transition: all 0.3s ease;
+
+	&--active {
+		background-color: var(--primary-color);
+		color: white;
+		border-color: var(--primary-color);
+
+		&:hover {
+			background-color: var(--primary-hover);
+			border-color: var(--primary-hover);
+		}
+	}
+}
+
+// Notification Dropdown
+.notification-dropdown {
+	position: absolute;
+	top: calc(100% + var(--space-2));
+	right: 0;
+	min-width: 320px;
+	max-width: 350px;
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-xl);
+	box-shadow: var(--card-shadow-hover);
+	z-index: 1000;
+	overflow: hidden;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+.notification-header {
+	padding: var(--space-3) var(--space-4);
+	border-bottom: 1px solid var(--card-border);
+	background-color: var(--bg-secondary);
+}
+
+.notification-title {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.notification-content {
+	padding: var(--space-2);
+}
+
+.notification-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-6);
+	color: var(--text-secondary);
+	text-align: center;
+}
+
+.empty-text {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+}
+
+.notification-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.notification-item {
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-lg);
+	overflow: hidden;
+
+	&--daily_reward {
+		// Daily reward specific styles if needed
+	}
+}
+
+// Responsive adjustments
+@media (max-width: 375px) {
+	.notification-dropdown {
+		min-width: calc(100vw - 2 * var(--space-4));
+		max-width: calc(100vw - 2 * var(--space-4));
+		right: calc(-1 * var(--space-4));
+	}
 }
 </style>

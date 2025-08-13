@@ -105,11 +105,6 @@ const getDefaultData = () => ({
 		}
 	},
 	cardStates: {
-		welcomeCard: {
-			read: false,
-			lastShown: null,
-			readAt: null
-		},
 		dailyRewardCard: {
 			read: false,
 			lastShown: null,
@@ -117,15 +112,7 @@ const getDefaultData = () => ({
 			lastClaimed: null
 		}
 	},
-	achievements: [
-		{
-			id: 'welcome',
-			name: 'Welcome to Hawk3',
-			description: 'Started your gaming journey',
-			earned: true,
-			earnedAt: new Date().toISOString()
-		}
-	],
+	achievements: [],
 	version: CURRENT_VERSION
 })
 
@@ -1254,11 +1241,6 @@ export function useLocalStorage() {
 
 		// Check for unread daily reward card
 		if (!isCardRead('dailyRewardCard') && canClaimDailyReward()) {
-			count += 1
-		}
-
-		// Check for unread welcome card
-		if (!isCardRead('welcomeCard')) {
 			count += 1
 		}
 

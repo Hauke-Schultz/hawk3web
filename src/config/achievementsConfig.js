@@ -4,16 +4,6 @@ export const ACHIEVEMENTS = {
 	definitions: [
 		// General achievements
 		{
-			id: 'welcome_card_read',
-			name: 'Welcome to Hawk3',
-			description: 'Started your gaming journey',
-			category: 'general',
-			icon: 'user',
-			rarity: 'common',
-			rewards: { coins: 100, diamonds: 1 },
-			trigger: { type: 'card_read', cardType: 'welcomeCard' }
-		},
-		{
 			id: 'first_game',
 			name: 'First Game',
 			description: 'Played your first game',
