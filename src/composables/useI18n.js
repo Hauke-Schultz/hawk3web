@@ -86,8 +86,14 @@ const translateText = (key, params = {}, locale = currentLanguage.value) => {
 		}
 	}
 
-	// Handle interpolation
+	// Handle interpolation and pluralization
 	if (typeof text === 'string' && Object.keys(params).length > 0) {
+		// First handle ICU-style plurals
+		if (text.includes('plural')) {
+			text = processPluralForm(text, params.count, params)
+		}
+
+		// Then handle simple parameter replacement
 		return text.replace(/\{(\w+)\}/g, (match, paramKey) => {
 			return params[paramKey] !== undefined ? String(params[paramKey]) : match
 		})
@@ -96,6 +102,38 @@ const translateText = (key, params = {}, locale = currentLanguage.value) => {
 	return text
 }
 
+const processPluralForm = (text, count, params) => {
+	// Simple ICU plural processor
+	// Handles: {count, plural, =1 {singular} other {plural}}
+	const pluralRegex = /\{(\w+),\s*plural,\s*(.*?)\}/g
+
+	return text.replace(pluralRegex, (match, varName, forms) => {
+		const currentCount = params[varName] || count
+
+		// Parse forms: =1 {one} =2 {two} other {many}
+		const formRegex = /(=(\d+)|other)\s*\{([^}]*)\}/g
+		let result = ''
+		let hasMatch = false
+
+		let formMatch
+		while ((formMatch = formRegex.exec(forms)) !== null) {
+			const [, condition, exactNumber, content] = formMatch
+
+			if (condition === 'other' && !hasMatch) {
+				result = content
+			} else if (exactNumber && parseInt(exactNumber) === currentCount) {
+				result = content
+				hasMatch = true
+				break
+			}
+		}
+
+		// Replace parameters in the result
+		return result.replace(/\{(\w+)\}/g, (paramMatch, paramKey) => {
+			return params[paramKey] !== undefined ? String(params[paramKey]) : paramMatch
+		})
+	})
+}
 // Format numbers according to locale
 const formatNumber = (number, locale = currentLanguage.value) => {
 	try {
@@ -217,7 +255,17 @@ export function useI18n() {
 	const tp = (key, count, params = {}) => {
 		const pluralParams = { ...params, count }
 
-		// Try to get plural form
+		// Handle plural forms
+		let pluralKey = key
+
+		// Check for ICU-style plurals: {count, plural, =1 {one} other {many}}
+		const baseTranslation = translateText(key, pluralParams, currentLanguage.value)
+
+		if (baseTranslation.includes('{') && baseTranslation.includes('plural')) {
+			return processPluralForm(baseTranslation, count, pluralParams)
+		}
+
+		// Try to get plural form (traditional .singular/.plural)
 		if (count === 1) {
 			const singular = translateText(`${key}.singular`, pluralParams)
 			if (singular !== `${key}.singular`) {
@@ -230,7 +278,7 @@ export function useI18n() {
 			}
 		}
 
-		// Fallback to base key
+		// Fallback to base key with parameter replacement
 		return translateText(key, pluralParams)
 	}
 

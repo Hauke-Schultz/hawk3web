@@ -134,10 +134,15 @@ const notificationItems = computed(() => {
 
 	// Daily Reward Notification
 	if (canClaimDailyReward() && !isCardRead('dailyRewardCard')) {
+		const currentStreak = gameData.currency.dailyRewards.streak || 1
+
 		items.push({
 			id: 'dailyRewardCard',
 			type: 'daily_reward',
-			title: t('daily_rewards.title'),
+			title: t('daily_rewards.title', {
+				streak: currentStreak,
+				count: currentStreak
+			}),
 			description: t('daily_rewards.tap_to_claim'),
 			icon: 'bell',
 			isDaily: true,
@@ -154,11 +159,15 @@ const readNotificationItems = computed(() => {
 	// Recently read daily reward
 	if (isCardRead('dailyRewardCard')) {
 		const readAt = gameData.cardStates.dailyRewardCard?.readAt
+		const currentStreak = gameData.currency.dailyRewards.streak || 1
 		if (readAt) {
 			items.push({
 				id: 'dailyRewardCard-read',
 				type: 'daily_reward_read',
-				title: t('daily_rewards.title'),
+				title: t('daily_rewards.title', {
+					streak: currentStreak,
+					count: currentStreak
+				}),
 				description: t('notifications.daily_reward_claimed'),
 				icon: 'completion-badge',
 				readAt: readAt,

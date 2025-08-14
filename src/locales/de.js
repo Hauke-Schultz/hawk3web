@@ -83,15 +83,15 @@ export default {
 	},
 
 	daily_rewards: {
-		title: 'Claim your daily bonus!',
-		tap_to_claim: 'Tap to claim',
-		day_streak: 'Day Streak',
-		streak_bonus: 'Streak Bonus',
-		claimed_today: 'Already claimed today',
-		come_back_tomorrow: 'Come back tomorrow!',
-		reward_claimed: 'Daily reward claimed!',
-		streak_maintained: 'Streak maintained: {streak} days',
-		streak_broken: 'Streak reset - missed a day'
+		title: 'Tag {streak} Bonus!',
+		tap_to_claim: 'Zum Abholen tippen',
+		day_streak: 'Tage-Streak',
+		streak_bonus: 'Streak-Bonus',
+		claimed_today: 'Heute bereits abgeholt',
+		come_back_tomorrow: 'Komm morgen wieder!',
+		reward_claimed: 'Tägliche Belohnung abgeholt!',
+		streak_maintained: 'Streak aufrechterhalten: {streak} {streak, plural, =1 {Tag} other {Tage}}',
+		streak_broken: 'Streak zurückgesetzt - Tag verpasst'
 	},
 
 	// App/Header

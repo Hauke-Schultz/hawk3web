@@ -880,28 +880,34 @@ export function useLocalStorage() {
 	const canClaimDailyReward = () => {
 		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
 		if (!lastClaimed) return true
-
 		const now = new Date()
-		const lastClaimedDate = new Date(lastClaimed)
-		const daysDiff = Math.floor((now - lastClaimedDate) / (1000 * 60 * 60 * 24))
-		const cardRead = gameData.cardStates.dailyRewardCard?.read || false
-
-		return daysDiff >= 1 && !cardRead
+		const today = now.toISOString().split('T')[0]
+		return today !== lastClaimed
 	}
 
 	const claimDailyReward = () => {
 		if (!canClaimDailyReward()) return null
 
 		const now = new Date()
+		const today = now.toISOString().split('T')[0] // YYYY-MM-DD format
 		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
 		const currentStreak = gameData.currency.dailyRewards.streak || 0
 
 		// Check if streak continues (claimed yesterday) or resets
 		let newStreak = 1
 		if (lastClaimed) {
-			const daysDiff = Math.floor((now - new Date(lastClaimed)) / (1000 * 60 * 60 * 24))
+			const lastClaimedDate = new Date(lastClaimed + 'T00:00:00') // Convert to proper date
+			const todayDate = new Date(today + 'T00:00:00')
+
+			// Calculate difference in days
+			const daysDiff = Math.floor((todayDate - lastClaimedDate) / (1000 * 60 * 60 * 24))
+
 			if (daysDiff === 1) {
+				// Claimed yesterday - continue streak
 				newStreak = Math.min(currentStreak + 1, REWARDS.dailyRewards.maxStreak)
+			} else if (daysDiff > 1) {
+				// Missed days - reset streak
+				newStreak = 1
 			}
 		}
 
@@ -913,15 +919,16 @@ export function useLocalStorage() {
 			coins: Math.floor(baseReward.coins * streakMultiplier),
 			diamonds: baseReward.diamonds + Math.floor(newStreak / 3), // Extra diamond every 3 days
 			streak: newStreak,
-			claimedAt: now.toISOString()
+			claimedAt: now.toISOString(),
+			claimedDate: today
 		}
 
 		// Update player currency
 		gameData.player.coins += reward.coins
 		gameData.player.diamonds += reward.diamonds
 
-		// Update daily rewards data
-		gameData.currency.dailyRewards.lastClaimed = now.toISOString().split('T')[0]
+		// Update daily rewards data - store only the date part
+		gameData.currency.dailyRewards.lastClaimed = today
 		gameData.currency.dailyRewards.streak = newStreak
 
 		// Update next reward preview
@@ -946,13 +953,14 @@ export function useLocalStorage() {
 			},
 			metadata: {
 				streak: newStreak,
-				streakMultiplier: streakMultiplier.toFixed(2)
+				streakMultiplier: streakMultiplier.toFixed(2),
+				claimedDate: today
 			}
 		}
 
 		gameData.currency.transactions.push(transaction)
 
-		console.log(`🎁 Daily reward claimed! Streak: ${newStreak}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
+		console.log(`🎁 Daily reward claimed! Date: ${today}, Streak: ${newStreak}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
 
 		return reward
 	}
