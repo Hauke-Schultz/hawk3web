@@ -14,11 +14,20 @@ import { useI18n } from '../composables/useI18n.js'
 import Header from "../components/Header.vue";
 import {REWARDS} from "../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../config/comboConfig.js";
+import { ACHIEVEMENTS } from '../config/achievementsConfig.js'
 import GameOverModal from "../components/GameOverModal.vue";
 import Icon from "../components/Icon.vue";
 
 // Props
 const props = defineProps({
+	playerProfile: {
+		type: Object,
+		required: true
+	},
+	currentTheme: {
+		type: String,
+		default: 'default'
+	},
 	level: {
 		type: Number,
 		default: 1
@@ -27,7 +36,7 @@ const props = defineProps({
 const router = useRouter()
 
 // Emits
-const emit = defineEmits(['game-complete', 'menu-click'])
+const emit = defineEmits(['game-complete', 'menu-click', 'start-game', 'profile-click', 'trophy-click', 'settings-click', 'about-click', 'shop-click', 'theme-change', 'language-change', 'font-size-change', 'back-to-home'])
 
 // Services
 const {
@@ -41,7 +50,9 @@ const {
 	saveLevelState,
 	loadLevelState,
 	clearLevelState,
-	hasLevelState
+	hasLevelState,
+	addAchievement,
+	hasAchievement
 } = useLocalStorage()
 const { t } = useI18n()
 const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
@@ -184,9 +195,11 @@ const checkTimeMilestones = () => {
 		if (sessionTime.value === checkpoint && !milestones.value.includes(`time_${checkpoint}`)) {
 			milestones.value.push(`time_${checkpoint}`)
 			console.log(`🕐 Zeit-Meilenstein erreicht: ${Math.floor(checkpoint / 60)} Minuten!`)
-			// Hier könntest du später Belohnungen hinzufügen
 		}
 	})
+
+	// Check for time-based achievements
+	checkEndlessAchievements()
 }
 
 const checkScoreMilestones = () => {
@@ -199,9 +212,11 @@ const checkScoreMilestones = () => {
 		if (score.value >= milestone && !milestones.value.includes(`score_${milestone}`)) {
 			milestones.value.push(`score_${milestone}`)
 			console.log(`🎯 Punkte-Meilenstein erreicht: ${milestone} Punkte!`)
-			// Hier könntest du später Belohnungen hinzufügen
 		}
 	})
+
+	// Check for score-based achievements
+	checkEndlessAchievements()
 }
 
 // Update next fruit position based on mouse/touch coordinates
@@ -532,6 +547,8 @@ const handleCollision = (event) => {
 						const baseScore = currentFruitType.scoreValue
 						const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
 						score.value += comboMultipliedScore
+						checkEndlessAchievements()
+						checkScoreAchievements()
 
 						// Find next fruit type
 						const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
@@ -560,6 +577,7 @@ const handleCollision = (event) => {
 							if (isEndlessMode.value) {
 								totalMerges.value++
 								checkScoreMilestones()
+								checkEndlessAchievements()
 							}
 
 							// Check if this merge completes the level goal
@@ -581,6 +599,30 @@ const handleCollision = (event) => {
 				}
 			}
 		}
+	}
+}
+
+const checkScoreAchievements = () => {
+	const achievementsBefore = [...gameData.achievements]
+
+	// Score-basierte Achievements für alle Modi
+	const scoreThresholds = [5000, 15000, 35000, 50000, 100000]
+	scoreThresholds.forEach(threshold => {
+		if (score.value >= threshold) {
+			checkSpecificAchievement(`score_${threshold}`)
+		}
+	})
+
+	// Check if new achievements were earned
+	const achievementsAfter = [...gameData.achievements]
+	const newAchievements = achievementsAfter.filter(after =>
+			!achievementsBefore.some(before => before.id === after.id && before.earned)
+	)
+
+	// Add new achievements to current session
+	if (newAchievements.length > 0) {
+		earnedAchievements.value.push(...newAchievements)
+		console.log(`🏆 ${newAchievements.length} new score achievements unlocked!`)
 	}
 }
 
@@ -1662,6 +1704,9 @@ const getMilestoneText = (milestone) => {
 	const [type, value] = milestone.split('_')
 
 	switch (type) {
+		case 'achievement':
+			const achievement = ACHIEVEMENTS.definitions.find(a => a.id === value)
+			return achievement ? `🏆 ${t(`achievements.definitions.${value}.name`)}` : milestone
 		case 'score':
 			return t('fruitMerge.endless.milestone_score', { score: value })
 		case 'time':
@@ -1671,6 +1716,71 @@ const getMilestoneText = (milestone) => {
 			return t('fruitMerge.endless.milestone_combo', { combo: value })
 		default:
 			return milestone
+	}
+}
+
+const checkEndlessAchievements = () => {
+	if (!isEndlessMode.value) return
+
+	const achievementsBefore = [...gameData.achievements]
+
+	// Score-basierte Achievements
+	const scoreThresholds = [2000, 5000, 15000, 35000]
+	scoreThresholds.forEach(threshold => {
+		if (score.value >= threshold) {
+			checkSpecificAchievement(`score_${threshold}`)
+		}
+	})
+
+	// Zeit-basierte Achievements
+	if (sessionTime.value >= 1200) { // 20 Minuten
+		checkSpecificAchievement('endless_marathon')
+	}
+
+	// Merge-basierte Achievements
+	if (totalMerges.value >= 200) {
+		checkSpecificAchievement('endless_merge_master')
+	}
+
+	// Stern-basierte Achievements
+	const currentStars = calculateCurrentStars()
+	if (currentStars >= 1 && !hasAchievement('endless_bronze')) {
+		checkSpecificAchievement('endless_bronze')
+	}
+	if (currentStars >= 2 && !hasAchievement('endless_silver')) {
+		checkSpecificAchievement('endless_silver')
+	}
+	if (currentStars >= 3 && !hasAchievement('endless_gold')) {
+		checkSpecificAchievement('endless_gold')
+	}
+
+	// Check if new achievements were earned
+	const achievementsAfter = [...gameData.achievements]
+	const newAchievements = achievementsAfter.filter(after =>
+			!achievementsBefore.some(before => before.id === after.id && before.earned)
+	)
+
+	// Add new achievements to current session
+	if (newAchievements.length > 0) {
+		earnedAchievements.value.push(...newAchievements)
+		console.log(`🏆 ${newAchievements.length} new achievements unlocked!`)
+	}
+}
+
+const checkSpecificAchievement = (achievementId) => {
+	if (hasAchievement(achievementId)) return
+
+	const achievement = ACHIEVEMENTS.definitions.find(a => a.id === achievementId)
+	if (achievement) {
+		const wasAdded = addAchievement(achievement)
+		if (wasAdded) {
+			console.log(`🎉 Endless achievement unlocked: ${achievement.name}`)
+
+			// Add to milestones for visual feedback
+			if (!milestones.value.includes(`${achievementId}`)) {
+				milestones.value.push(`${achievementId}`)
+			}
+		}
 	}
 }
 
@@ -2349,15 +2459,15 @@ onUnmounted(() => {
 
 // Vue Transition Animations
 .milestone-enter-active {
-	animation: milestoneSlideIn 0.8s ease-out;
+	animation: milestoneSlideIn 10.8s ease-out;
 }
 
 .milestone-leave-active {
-	animation: milestoneFadeUp 1.2s ease-in forwards;
+	animation: milestoneFadeUp 11.2s ease-in forwards;
 }
 
 .milestone-move {
-	transition: transform 0.6s ease;
+	transition: transform 10.6s ease;
 }
 
 // CSS-Only Animations

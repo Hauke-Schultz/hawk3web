@@ -764,9 +764,9 @@ export const FRUIT_MERGE_LEVELS = {
 			3: { score: 35000, merges: 250 }
 		},
 		endless: {
-			scoreMilestones: [1000, 5000, 10000, 25000, 50000, 100000], // Belohnungs-Meilensteine
-			timeCheckpoints: [300, 600, 1200, 1800], // Zeit-Checkpoints in Sekunden (5min, 10min, 20min, 30min)
-			comboThresholds: [10, 25, 50, 100] // Combo-Meilensteine
+			scoreMilestones: [2000, 5000, 15000, 35000],
+			timeCheckpoints: [300, 600, 1200, 1800],
+			comboThresholds: [10, 25, 50, 100]
 		}
 	},
 }

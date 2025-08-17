@@ -601,7 +601,22 @@ export default {
 				name: 'Merge Master',
 				description: 'Performed 500 merges in endless mode',
 			},
-
+			score_2000: {
+				name: 'Score Beginner',
+				description: 'Reached 2,000 points in a single game'
+			},
+			score_5000: {
+				name: 'Score Achiever',
+				description: 'Reached 5,000 points in a single game'
+			},
+			score_15000: {
+				name: 'Score Expert',
+				description: 'Reached 15,000 points in a single game'
+			},
+			score_35000: {
+				name: 'Score Master',
+				description: 'Reached 35,000 points in a single game'
+			},
 			perfectionist: {
 				name: 'Perfectionist',
 				description: 'Complete a game with perfect score'

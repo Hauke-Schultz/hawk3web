@@ -576,7 +576,8 @@ export default {
 			fruitMerge_master: {
 				name: 'Zusammenfüge-Meister',
 				description: 'Die ultimative FruitMerge Herausforderung abgeschlossen'
-			},endless_first_play: {
+			},
+			endless_first_play: {
 				name: 'Endlos-Entdecker',
 				description: 'Dein erstes Endlos-Spiel gespielt',
 			},
@@ -600,7 +601,22 @@ export default {
 				name: 'Merge-Meister',
 				description: '500 Zusammenfügungen im Endlos-Modus durchgeführt',
 			},
-
+			score_2000: {
+				name: 'Punkte-Sammler',
+				description: '2.000 Punkte in einem Spiel erreicht'
+			},
+			score_5000: {
+				name: 'Punkte-Erreicher',
+				description: '5.000 Punkte in einem Spiel erreicht'
+			},
+			score_15000: {
+				name: 'Punkte-Experte',
+				description: '15.000 Punkte in einem Spiel erreicht'
+			},
+			score_35000: {
+				name: 'Punkte-Meister',
+				description: '35.000 Punkte in einem Spiel erreicht'
+			},
 			perfectionist: {
 				name: 'Perfektionist',
 				description: 'Ein Spiel mit perfekter Punktzahl abgeschlossen'

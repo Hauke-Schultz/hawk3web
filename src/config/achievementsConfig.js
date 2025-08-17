@@ -204,7 +204,46 @@ export const ACHIEVEMENTS = {
 			rewards: { coins: 2000, diamonds: 20 },
 			trigger: { type: 'endless_merges', count: 200 }
 		},
-
+		{
+			id: 'score_2000',
+			name: 'Score Beginner',
+			description: 'Reached 2,000 points in a single game',
+			category: 'fruitMerge',
+			icon: 'star',
+			rarity: 'common',
+			rewards: { coins: 100, diamonds: 1 },
+			trigger: { type: 'score_reach', score: 2000 }
+		},
+		{
+			id: 'score_5000',
+			name: 'Score Achiever',
+			description: 'Reached 5,000 points in a single game',
+			category: 'fruitMerge',
+			icon: 'star',
+			rarity: 'common',
+			rewards: { coins: 1000, diamonds: 5 },
+			trigger: { type: 'score_reach', score: 5000 }
+		},
+		{
+			id: 'score_15000',
+			name: 'Score Expert',
+			description: 'Reached 15,000 points in a single game',
+			category: 'fruitMerge',
+			icon: 'star-filled',
+			rarity: 'uncommon',
+			rewards: { coins: 3000, diamonds: 10 },
+			trigger: { type: 'score_reach', score: 15000 }
+		},
+		{
+			id: 'score_35000',
+			name: 'Score Master',
+			description: 'Reached 35,000 points in a single game',
+			category: 'fruitMerge',
+			icon: 'trophy',
+			rarity: 'rare',
+			rewards: { coins: 7500, diamonds: 17 },
+			trigger: { type: 'score_reach', score: 35000 }
+		},
 		// Special achievements
 		{
 			id: 'perfectionist',
