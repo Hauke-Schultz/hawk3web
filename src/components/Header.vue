@@ -70,6 +70,7 @@ const toggleNotifications = async (event) => {
 		closeNotifications()
 	} else {
 		openNotifications()
+		closeMenu()
 	}
 
 	// Reset transition flag after animation
@@ -333,6 +334,7 @@ const toggleMenu = async (event) => {
 		closeMenu()
 	} else {
 		await openMenuWithAutoSave()
+		closeNotifications()
 	}
 
 	// Reset transition flag after animation
