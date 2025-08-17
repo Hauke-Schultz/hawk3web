@@ -27,7 +27,7 @@ const { t } = useI18n()
 const { gameData, claimDailyReward, canClaimDailyReward } = useLocalStorage()
 
 const canClaim = computed(() => canClaimDailyReward())
-const currentStreak = computed(() => gameData.currency.dailyRewards.streak)
+const currentStreak = computed(() => gameData.currency.dailyRewards.streak + 1)
 const nextReward = computed(() => ({
 	coins: gameData.currency.dailyRewards.nextRewardCoins,
 	diamonds: gameData.currency.dailyRewards.nextRewardDiamonds
@@ -94,13 +94,12 @@ const handleKeyDown = (event) => {
 
 			<!-- Streak Display -->
 			<div class="streak-info">
-				<div class="streak-number">{{ currentStreak }}</div>
-				<div class="streak-label">{{ t('daily_rewards.day_streak') }}</div>
+				<div class="reward-title">{{ t('daily_rewards.day_streak', { streak: currentStreak }) }}</div>
 			</div>
 
 			<!-- Reward Preview -->
 			<div class="reward-preview">
-				<h2 class="reward-title">{{ title }}</h2>
+				<h2 class="streak-label">{{ title }}</h2>
 
 				<div class="reward-amounts">
 					<div class="reward-item">
@@ -154,16 +153,6 @@ const handleKeyDown = (event) => {
 	justify-content: center;
 	align-items: center;
 	gap: var(--space-4);
-}
-
-.streak-number {
-	font-size: var(--font-size-3xl);
-	font-weight: var(--font-weight-bold);
-	line-height: 1;
-	background: linear-gradient(45deg, #FF6B6B, #FFE66D);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .streak-label {

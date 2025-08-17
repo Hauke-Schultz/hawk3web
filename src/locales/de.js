@@ -83,9 +83,9 @@ export default {
 	},
 
 	daily_rewards: {
-		title: 'Tag {streak} Bonus!',
+		title: 'Tägliche Belohnunge abholen',
 		tap_to_claim: 'Zum Abholen tippen',
-		day_streak: 'Tage-Streak',
+		day_streak: 'Tag {streak} Bonus!',
 		streak_bonus: 'Streak-Bonus',
 		claimed_today: 'Heute bereits abgeholt',
 		come_back_tomorrow: 'Komm morgen wieder!',

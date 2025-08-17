@@ -133,17 +133,17 @@ const notificationItems = computed(() => {
 	const items = []
 
 	// Daily Reward Notification
-	if (canClaimDailyReward() && !isCardRead('dailyRewardCard')) {
-		const currentStreak = gameData.currency.dailyRewards.streak || 1
+	if (canClaimDailyReward()) {
+		const currentStreak = gameData.currency.dailyRewards.streak + 1 || 1
 
 		items.push({
 			id: 'dailyRewardCard',
 			type: 'daily_reward',
-			title: t('daily_rewards.title', {
+			title: t('daily_rewards.title'),
+			description: t('daily_rewards.day_streak', {
 				streak: currentStreak,
 				count: currentStreak
 			}),
-			description: t('daily_rewards.tap_to_claim'),
 			icon: 'bell',
 			isDaily: true,
 			canClaim: true
@@ -164,11 +164,11 @@ const readNotificationItems = computed(() => {
 			items.push({
 				id: 'dailyRewardCard-read',
 				type: 'daily_reward_read',
-				title: t('daily_rewards.title', {
+				title: t('daily_rewards.title'),
+				description: t('daily_rewards.day_streak', {
 					streak: currentStreak,
 					count: currentStreak
 				}),
-				description: t('notifications.daily_reward_claimed'),
 				icon: 'completion-badge',
 				readAt: readAt,
 				timestamp: new Date(readAt)
@@ -656,7 +656,7 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 											<!-- Daily Reward Notification -->
 											<div v-else-if="item.type === 'daily_reward_read'" class="daily-reward-notification">
 												<div class="daily-reward-info">
-													<div class="daily-reward-title">{{ item.title }}</div>
+													<div class="daily-reward-title">{{ item.description }}</div>
 													<div class="daily-reward-time">{{ formatRelativeTime(item.readAt) }}</div>
 												</div>
 											</div>

@@ -84,10 +84,9 @@ export default {
 	},
 
 	daily_rewards: {
-		title: 'Day {streak} Bonus!',
-		titlex: '{streak, plural, =1 {Daily Bonus!} other {Day {streak} Streak Bonus!}}',
+		title: 'Claim your daily bonus!',
 		tap_to_claim: 'Tap to claim',
-		day_streak: 'Day Streak',
+		day_streak: 'Day {streak} Streak',
 		streak_bonus: 'Streak Bonus',
 		claimed_today: 'Already claimed today',
 		come_back_tomorrow: 'Come back tomorrow!',
