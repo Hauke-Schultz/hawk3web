@@ -244,6 +244,46 @@ export const ACHIEVEMENTS = {
 			rewards: { coins: 7500, diamonds: 17 },
 			trigger: { type: 'score_reach', score: 35000 }
 		},
+		{
+			id: 'time_10',
+			name: 'Time Traveler',
+			description: 'Played for 10 seconds in a single game',
+			category: 'fruitMerge',
+			icon: 'clock',
+			rarity: 'common',
+			rewards: { coins: 10, diamonds: 0 },
+			trigger: { type: 'time_played', seconds: 10 }
+		},
+		{
+			id: 'time_300',
+			name: 'Time Master',
+			description: 'Played for 5 minutes in a single game',
+			category: 'fruitMerge',
+			icon: 'clock',
+			rarity: 'common',
+			rewards: { coins: 100, diamonds: 1 },
+			trigger: { type: 'time_played', seconds: 300 }
+		},
+		{
+			id: 'time_600',
+			name: 'Time Expert',
+			description: 'Played for 10 minutes in a single game',
+			category: 'fruitMerge',
+			icon: 'clock',
+			rarity: 'uncommon',
+			rewards: { coins: 500, diamonds: 5 },
+			trigger: { type: 'time_played', seconds: 600 }
+		},
+		{
+			id: 'time_1200',
+			name: 'Time Champion',
+			description: 'Played for 20 minutes in a single game',
+			category: 'fruitMerge',
+			icon: 'clock',
+			rarity: 'rare',
+			rewards: { coins: 1000, diamonds: 10 },
+			trigger: { type: 'time_played', seconds: 1200 }
+		},
 		// Special achievements
 		{
 			id: 'perfectionist',

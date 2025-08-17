@@ -593,13 +593,21 @@ export default {
 				name: 'Gold Merger',
 				description: 'Earned 3 stars in endless mode',
 			},
-			endless_marathon: {
-				name: 'Marathon Merger',
-				description: 'Played endless mode for 30 minutes',
+			time_10: {
+				name: 'Time Beginner',
+				description: 'Played for 10 seconds in a single game'
 			},
-			endless_merge_master: {
-				name: 'Merge Master',
-				description: 'Performed 500 merges in endless mode',
+			time_300: {
+				name: 'Time Master',
+				description: 'Played for 5 minutes in a single game'
+			},
+			time_600: {
+				name: 'Time Champion',
+				description: 'Played for 10 minutes in a single game'
+			},
+			time_1200: {
+				name: 'Time Legend',
+				description: 'Played for 20 minutes in a single game'
 			},
 			score_2000: {
 				name: 'Score Beginner',

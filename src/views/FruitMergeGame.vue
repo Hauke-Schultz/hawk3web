@@ -1702,11 +1702,12 @@ const restoreGameState = async (savedState) => {
 
 const getMilestoneText = (milestone) => {
 	const [type, value] = milestone.split('_')
+	const achievement = ACHIEVEMENTS.definitions.find(a => a.id === milestone)
+	if (achievement) {
+		return t(`achievements.definitions.${achievement.id}.name`)
+	}
 
 	switch (type) {
-		case 'achievement':
-			const achievement = ACHIEVEMENTS.definitions.find(a => a.id === value)
-			return achievement ? `🏆 ${t(`achievements.definitions.${value}.name`)}` : milestone
 		case 'score':
 			return t('fruitMerge.endless.milestone_score', { score: value })
 		case 'time':
@@ -1733,14 +1734,12 @@ const checkEndlessAchievements = () => {
 	})
 
 	// Zeit-basierte Achievements
-	if (sessionTime.value >= 1200) { // 20 Minuten
-		checkSpecificAchievement('endless_marathon')
-	}
-
-	// Merge-basierte Achievements
-	if (totalMerges.value >= 200) {
-		checkSpecificAchievement('endless_merge_master')
-	}
+	const timeThresholds = [10, 300, 600, 1200, 1800]
+	timeThresholds.forEach(threshold => {
+		if (sessionTime.value >= threshold) {
+			checkSpecificAchievement(`time_${threshold}`)
+		}
+	})
 
 	// Stern-basierte Achievements
 	const currentStars = calculateCurrentStars()
@@ -2459,15 +2458,15 @@ onUnmounted(() => {
 
 // Vue Transition Animations
 .milestone-enter-active {
-	animation: milestoneSlideIn 10.8s ease-out;
+	animation: milestoneSlideIn 0.8s ease-out;
 }
 
 .milestone-leave-active {
-	animation: milestoneFadeUp 11.2s ease-in forwards;
+	animation: milestoneFadeUp 1.2s ease-in forwards;
 }
 
 .milestone-move {
-	transition: transform 10.6s ease;
+	transition: transform 0.6s ease;
 }
 
 // CSS-Only Animations

@@ -593,13 +593,21 @@ export default {
 				name: 'Gold-Merger',
 				description: '3 Sterne im Endlos-Modus erreicht',
 			},
-			endless_marathon: {
-				name: 'Marathon-Merger',
-				description: 'Endlos-Modus für 30 Minuten gespielt',
+			time_10: {
+				name: 'Zeit-Anfänger',
+				description: '10 Sekunden in einem Spiel gespielt'
 			},
-			endless_merge_master: {
-				name: 'Merge-Meister',
-				description: '500 Zusammenfügungen im Endlos-Modus durchgeführt',
+			time_300: {
+				name: 'Zeit-Herausforderer',
+				description: '5 Minuten in einem Spiel gespielt'
+			},
+			time_600: {
+				name: 'Zeit-Experte',
+				description: '10 Minuten in einem Spiel gespielt'
+			},
+			time_1200: {
+				name: 'Zeit-Meister',
+				description: '20 Minuten in einem Spiel gespielt'
 			},
 			score_2000: {
 				name: 'Punkte-Sammler',
