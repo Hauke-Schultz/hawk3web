@@ -181,7 +181,7 @@ const readNotificationItems = computed(() => {
 	const recentAchievements = gameData.achievements
 			.filter(achievement => achievement.earned && achievement.earnedAt)
 			.sort((a, b) => new Date(b.earnedAt) - new Date(a.earnedAt))
-			.slice(0, 10)
+			.slice(0, 3)
 
 	recentAchievements.forEach(achievement => {
 		items.push({

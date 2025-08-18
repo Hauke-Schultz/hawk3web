@@ -424,6 +424,8 @@ export default {
 		hammer_used: 'Hammer used!',
 		no_hammers: 'No hammers available',
 		auto_saved: 'Auto-saved',
+		buy_hammer: 'Buy Hammer',
+		buy_hammer_ingame: 'Buy hammer directly',
 
 		// Endless Mode specific translations
 		endless: {

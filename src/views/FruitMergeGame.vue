@@ -17,6 +17,8 @@ import {COMBO_CONFIG} from "../config/comboConfig.js";
 import { ACHIEVEMENTS } from '../config/achievementsConfig.js'
 import GameOverModal from "../components/GameOverModal.vue";
 import Icon from "../components/Icon.vue";
+import ShopModal from "../components/ShopModal.vue";
+import { SHOP_ITEMS } from '../config/shopConfig.js'
 
 // Props
 const props = defineProps({
@@ -52,7 +54,8 @@ const {
 	clearLevelState,
 	hasLevelState,
 	addAchievement,
-	hasAchievement
+	hasAchievement,
+	buyItem,
 } = useLocalStorage()
 const { t } = useI18n()
 const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
@@ -99,9 +102,29 @@ const hasSavedState = ref(false)
 const isSaving = ref(false)
 
 const hammerMode = ref(false)
-const hammerUses = ref(0)
+const hammerUses = computed(() => {
+	return getItemQuantity('hammer_powerup')
+})
 const selectedFruitForHammer = ref(null)
 const isUsingHammer = ref(false)
+
+const showShopModal = ref(false)
+const modalType = ref('purchase')
+
+const hammerItem = computed(() => {
+	return SHOP_ITEMS.find(item => item.id === 'hammer_powerup')
+})
+
+const playerBalance = computed(() => ({
+	coins: gameData.player.coins || 0,
+	diamonds: gameData.player.diamonds || 0
+}))
+
+const canAffordHammer = computed(() => {
+	if (!hammerItem.value) return false
+	return playerBalance.value.coins >= hammerItem.value.price.coins &&
+			playerBalance.value.diamonds >= hammerItem.value.price.diamonds
+})
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -1309,7 +1332,6 @@ const resetGame = () => {
 	showNextFruit.value = true
 	hasSavedState.value = false
 	hammerMode.value = false
-	hammerUses.value = getItemQuantity('hammer_powerup')
 	selectedFruitForHammer.value = null
 	isUsingHammer.value = false
 
@@ -1357,6 +1379,60 @@ const handleManualSave = async () => {
 		console.error('Error saving game state:', error)
 		isSaving.value = false
 	}
+}
+const handleBuyHammerClick = () => {
+	if (!hammerItem.value) return
+
+	if (!canAffordHammer.value) {
+		modalType.value = 'insufficient'
+	} else {
+		modalType.value = 'purchase'
+	}
+
+	showShopModal.value = true
+}
+
+const handleHammerPurchaseConfirm = async () => {
+	if (!hammerItem.value || modalType.value !== 'purchase') {
+		closeShopModal()
+		return
+	}
+
+	try {
+		// Verwende buyItem falls verfügbar, sonst purchaseHammerDirectly
+		const result = typeof buyItem !== 'undefined'
+				? buyItem(hammerItem.value)
+				: purchaseHammerDirectly(hammerItem.value)
+
+		if (result.success) {
+			console.log(`✅ Hammer purchased in-game: ${hammerItem.value.name}`)
+
+			// Force reactivity update durch nextTick
+			await nextTick()
+
+			// Warte ein wenig länger für die Aktualisierung
+			setTimeout(() => {
+				console.log(`🔨 Hammer inventory updated: ${hammerUses.value} hammers available`)
+				closeShopModal()
+			}, 100)
+
+		} else {
+			console.error('Hammer purchase failed:', result.error)
+			closeShopModal()
+		}
+	} catch (error) {
+		console.error('Hammer purchase error:', error)
+		closeShopModal()
+	}
+}
+
+const handleShopModalCancel = () => {
+	closeShopModal()
+}
+
+const closeShopModal = () => {
+	showShopModal.value = false
+	modalType.value = 'purchase'
 }
 
 const backToGaming = () => {
@@ -1804,9 +1880,6 @@ watch(isLevelComplete, (newValue) => {
 // Lifecycle
 onMounted(() => {
 	initGame()
-	if (isEndlessMode.value) {
-		hammerUses.value = getItemQuantity('hammer_powerup')
-	}
 })
 
 onUnmounted(() => {
@@ -1882,18 +1955,41 @@ onUnmounted(() => {
 						:moves-label="t('stats.moves')"
 						:combo-label="t('stats.combo')"
 				/>
-				<div v-if="isEndlessMode && hammerUses > 0" class="hammer-control">
+				<div v-if="isEndlessMode" class="hammer-control">
 					<button
-							class="btn btn--small"
-							:class="{
+						v-if="hammerUses > 0"
+						class="btn btn--small"
+						:class="{
 				      'btn--warning': !hammerMode,
 				      'btn--danger': hammerMode
 				    }"
-							@click="hammerMode ? deactivateHammerMode() : activateHammerMode()"
-							:title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
+						@click="hammerMode ? deactivateHammerMode() : activateHammerMode()"
+						:title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
 					>
 						<span class="hammer-icon">🔨</span>
 						<span class="hammer-count">{{ hammerUses }}</span>
+					</button>
+
+					<!-- Keine Hammer - Kaufen Button -->
+					<button
+						v-else-if="hammerItem"
+						class="btn btn--small buy-hammer-btn"
+						:class="{
+				      'btn--success': canAffordHammer,
+				      'btn--ghost': !canAffordHammer
+				    }"
+						@click="handleBuyHammerClick"
+						:title="t('fruitMerge.no_hammers')"
+					>
+						<span class="hammer-icon">🔨</span>
+						<div class="hammer-price">
+				      <span v-if="hammerItem.price.coins > 0" class="price-coins">
+				        💰{{ hammerItem.price.coins }}
+				      </span>
+							<span v-if="hammerItem.price.diamonds > 0" class="price-diamonds">
+				        💎{{ hammerItem.price.diamonds }}
+				      </span>
+						</div>
 					</button>
 				</div>
 			</div>
@@ -1929,24 +2025,24 @@ onUnmounted(() => {
 
 			<!-- Physics Game Board -->
 			<div
-					ref="gameBoard"
-					class="game-board"
-					:class="{ 'game-board--endless': isEndlessMode }"
-					:style="{
+				ref="gameBoard"
+				class="game-board"
+				:class="{ 'game-board--endless': isEndlessMode }"
+				:style="{
 			    width: `${boardConfig.width}px`,
 			    height: `${boardConfig.height}px`
 			  }"
-					@click="handleBoardClick"
-					@touchend.prevent="handleBoardClick"
-					@mousemove="handleMouseMove"
-					@mouseenter="handleMouseEnter"
-					@mouseleave="handleMouseLeave"
-					@touchmove.passive="handleTouchMove"
+				@click="handleBoardClick"
+				@touchend.prevent="handleBoardClick"
+				@mousemove="handleMouseMove"
+				@mouseenter="handleMouseEnter"
+				@mouseleave="handleMouseLeave"
+				@touchmove.passive="handleTouchMove"
 			>
 				<div
-						class="danger-zone"
-						:class="{ 'danger-zone--endless': isEndlessMode }"
-						:style="{
+					class="danger-zone"
+					:class="{ 'danger-zone--endless': isEndlessMode }"
+					:style="{
 			      height: `${gameOverHeight}px`,
 			      top: '0px'
 			    }"
@@ -1956,11 +2052,11 @@ onUnmounted(() => {
 				<div v-if="isEndlessMode" class="endless-overlay">
 					<div class="stars-preview">
 						<Icon
-								v-for="starIndex in 3"
-								:key="starIndex"
-								:name="starIndex <= calculateCurrentStars() ? 'star-filled' : 'star'"
-								size="16"
-								:class="{
+							v-for="starIndex in 3"
+							:key="starIndex"
+							:name="starIndex <= calculateCurrentStars() ? 'star-filled' : 'star'"
+							size="16"
+							:class="{
 			          'star--earned': starIndex <= calculateCurrentStars(),
 			          'star--empty': starIndex > calculateCurrentStars()
 			        }"
@@ -1979,17 +2075,17 @@ onUnmounted(() => {
 
 				<!-- Fruits -->
 				<div
-						v-for="fruit in fruits"
-						:key="fruit.id"
-						class="fruit"
-						:class="{
+					v-for="fruit in fruits"
+					:key="fruit.id"
+					class="fruit"
+					:class="{
 				    'fruit--combo': fruit.comboEffect,
 				    'fruit--danger': fruit.inDanger,
 				    'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
 				    'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
 				    'fruit--destroying': selectedFruitForHammer === fruit.id
 				  }"
-						:style="{
+					:style="{
 				    left: `${fruit.x}px`,
 				    top: `${fruit.y}px`,
 				    width: `${fruit.size}px`,
@@ -1997,8 +2093,8 @@ onUnmounted(() => {
 				    transform: `rotate(${fruit.rotation}deg)`,
 				    zIndex: fruit.inDanger ? 5 : (hammerMode ? 10 : 1)
 				  }"
-						@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
-						@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+					@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+					@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
 				>
 					<div class="fruit-svg" v-html="fruit.svg"></div>
 				</div>
@@ -2098,6 +2194,16 @@ onUnmounted(() => {
 				@try-again="handleTryAgain"
 				@back-to-games="backToGaming"
 				@close="backToGaming"
+		/>
+		<!-- In-Game Shop Modal -->
+		<ShopModal
+				:visible="showShopModal"
+				:item="hammerItem"
+				:player-balance="playerBalance"
+				:type="modalType"
+				@confirm="handleHammerPurchaseConfirm"
+				@cancel="handleShopModalCancel"
+				@close="closeShopModal"
 		/>
 	</main>
 </template>
@@ -2558,8 +2664,6 @@ onUnmounted(() => {
 			milestoneAutoFade 4s ease-in-out 3s forwards;
 }
 
-
-
 .hammer-control {
 	display: flex;
 	align-items: center;
@@ -2577,6 +2681,36 @@ onUnmounted(() => {
 		border-radius: var(--border-radius-sm);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-bold);
+	}
+}
+
+.buy-hammer-btn {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-1);
+	position: relative;
+
+	.hammer-price {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1px;
+		margin-left: var(--space-1);
+		font-size: var(--font-size-xs);
+		line-height: 1;
+	}
+
+	.price-coins,
+	.price-diamonds {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		white-space: nowrap;
+	}
+
+	&:hover {
+		transform: translateY(-1px);
 	}
 }
 

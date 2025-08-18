@@ -185,26 +185,6 @@ export const ACHIEVEMENTS = {
 			trigger: { type: 'endless_stars', stars: 3 }
 		},
 		{
-			id: 'endless_marathon',
-			name: 'Marathon Merger',
-			description: 'Played endless mode for 20 minutes',
-			category: 'fruitMerge',
-			icon: 'trophy',
-			rarity: 'epic',
-			rewards: { coins: 1500, diamonds: 15 },
-			trigger: { type: 'endless_time', minutes: 20 }
-		},
-		{
-			id: 'endless_merge_master',
-			name: 'Merge Master',
-			description: 'Performed 200 merges in endless mode',
-			category: 'fruitMerge',
-			icon: 'fruit-merge-game',
-			rarity: 'legendary',
-			rewards: { coins: 2000, diamonds: 20 },
-			trigger: { type: 'endless_merges', count: 200 }
-		},
-		{
 			id: 'score_2000',
 			name: 'Score Beginner',
 			description: 'Reached 2,000 points in a single game',
