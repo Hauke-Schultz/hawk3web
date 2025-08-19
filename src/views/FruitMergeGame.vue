@@ -56,6 +56,7 @@ const {
 	addAchievement,
 	hasAchievement,
 	buyItem,
+	removeItemFromInventory,
 } = useLocalStorage()
 const { t } = useI18n()
 const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
@@ -102,9 +103,7 @@ const hasSavedState = ref(false)
 const isSaving = ref(false)
 
 const hammerMode = ref(false)
-const hammerUses = computed(() => {
-	return getItemQuantity('hammer_powerup')
-})
+const hammerRemaining = ref(gameData.player.inventory.items?.hammer_powerup?.quantity || 0);
 const selectedFruitForHammer = ref(null)
 const isUsingHammer = ref(false)
 
@@ -339,23 +338,26 @@ const activateHammerMode = () => {
 		return false
 	}
 
-	const hammerCount = getItemQuantity('hammer_powerup')
-	if (hammerCount <= 0) {
+	const quantity = gameData.player.inventory.items?.hammer_powerup?.quantity || 0
+	if (quantity <= 0) {
 		console.log('No hammers available')
 		return false
 	}
 
 	hammerMode.value = true
 	isDropping.value = true // Prevent normal dropping
-	console.log('🔨 Hammer mode activated!')
+	console.log(`🔨 Hammer mode activated! Remaining hammers: ${quantity}`)
 	return true
 }
 
 const deactivateHammerMode = () => {
-	hammerMode.value = false
-	isDropping.value = false
+	setTimeout(() => {
+		hammerMode.value = false
+		isDropping.value = false
+	}, 100)
 	selectedFruitForHammer.value = null
-	console.log('Hammer mode deactivated')
+	const remainingHammers = getItemQuantity('hammer_powerup')
+	console.log(`🔨 Hammer mode deactivated. Remaining hammers: ${remainingHammers}`)
 }
 
 const handleFruitClick = (fruit) => {
@@ -371,16 +373,19 @@ const handleFruitClick = (fruit) => {
 	const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
 	const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
 	createDestructionEffect(centerX, centerY, fruit)
-	Matter.Composite.remove(engine.world, fruit.body);
+
+	// Remove from physics world
+	Matter.Composite.remove(engine.world, fruit.body)
+
 	// Remove from fruits array
 	fruits.value = fruits.value.filter(f => f.id !== fruit.id)
-	// Use one hammer charge
+
 	const used = useConsumableItem('hammer_powerup')
-	if (used) {
-		const remaining = getItemQuantity('hammer_powerup')
-		hammerUses.value = remaining
-		console.log(`✅ Hammer used! Remaining: ${remaining}`)
-	}
+	removeItemFromInventory('hammer_powerup', 1);
+	console.log(`hammerRemaining: ${hammerRemaining.value} used: ${used}`)
+	const remaining = getItemQuantity('hammer_powerup')
+	hammerRemaining.value = remaining
+	console.log(`✅ Hammer used! Remaining: ${remaining}`)
 
 	// Reset states
 	selectedFruitForHammer.value = null
@@ -1397,33 +1402,13 @@ const handleHammerPurchaseConfirm = async () => {
 		closeShopModal()
 		return
 	}
-
-	try {
-		// Verwende buyItem falls verfügbar, sonst purchaseHammerDirectly
-		const result = typeof buyItem !== 'undefined'
-				? buyItem(hammerItem.value)
-				: purchaseHammerDirectly(hammerItem.value)
-
-		if (result.success) {
-			console.log(`✅ Hammer purchased in-game: ${hammerItem.value.name}`)
-
-			// Force reactivity update durch nextTick
-			await nextTick()
-
-			// Warte ein wenig länger für die Aktualisierung
-			setTimeout(() => {
-				console.log(`🔨 Hammer inventory updated: ${hammerUses.value} hammers available`)
-				closeShopModal()
-			}, 100)
-
-		} else {
-			console.error('Hammer purchase failed:', result.error)
-			closeShopModal()
-		}
-	} catch (error) {
-		console.error('Hammer purchase error:', error)
+	buyItem(hammerItem.value)
+	setTimeout(() => {
+		const newQuantity = gameData.player.inventory.items?.hammer_powerup?.quantity || 0
+		hammerRemaining.value = newQuantity
+		console.log(`🔨 Purchase hammer count: ${newQuantity}`)
 		closeShopModal()
-	}
+	}, 200)
 }
 
 const handleShopModalCancel = () => {
@@ -1957,38 +1942,37 @@ onUnmounted(() => {
 				/>
 				<div v-if="isEndlessMode" class="hammer-control">
 					<button
-						v-if="hammerUses > 0"
+						v-if="hammerRemaining > 0"
 						class="btn btn--small"
 						:class="{
-				      'btn--warning': !hammerMode,
-				      'btn--danger': hammerMode
-				    }"
+							'btn--warning': !hammerMode,
+							'btn--danger': hammerMode
+						}"
 						@click="hammerMode ? deactivateHammerMode() : activateHammerMode()"
 						:title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
 					>
 						<span class="hammer-icon">🔨</span>
-						<span class="hammer-count">{{ hammerUses }}</span>
+						<span class="hammer-count">{{ hammerRemaining }}</span>
 					</button>
 
-					<!-- Keine Hammer - Kaufen Button -->
 					<button
-						v-else-if="hammerItem"
-						class="btn btn--small buy-hammer-btn"
-						:class="{
-				      'btn--success': canAffordHammer,
-				      'btn--ghost': !canAffordHammer
-				    }"
-						@click="handleBuyHammerClick"
-						:title="t('fruitMerge.no_hammers')"
+							v-if="hammerRemaining === 0 && hammerItem"
+							class="btn btn--small buy-hammer-btn"
+							:class="{
+							'btn--success': canAffordHammer,
+							'btn--ghost': !canAffordHammer
+						}"
+							@click="handleBuyHammerClick"
+							:title="t('fruitMerge.no_hammers')"
 					>
 						<span class="hammer-icon">🔨</span>
 						<div class="hammer-price">
-				      <span v-if="hammerItem.price.coins > 0" class="price-coins">
-				        💰{{ hammerItem.price.coins }}
-				      </span>
+							<span v-if="hammerItem.price.coins > 0" class="price-coins">
+								💰{{ hammerItem.price.coins }}
+							</span>
 							<span v-if="hammerItem.price.diamonds > 0" class="price-diamonds">
-				        💎{{ hammerItem.price.diamonds }}
-				      </span>
+								💎{{ hammerItem.price.diamonds }}
+							</span>
 						</div>
 					</button>
 				</div>
