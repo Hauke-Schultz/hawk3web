@@ -187,6 +187,8 @@ watch(() => gameData, (newData) => {
 <template>
 	<Header
 			:game-data="gameData"
+			:player="gameData.player"
+			:achievements="gameData.achievements"
 			:show-menu-button="true"
 			@menu-click="handleMenuClick"
 	/>

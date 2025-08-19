@@ -51,6 +51,8 @@ const handleAboutClick = () => {
 <template>
 	<Header
 		:game-data="gameData"
+		:player="gameData.player"
+		:achievements="gameData.achievements"
 	/>
 	<!-- Main Content Area -->
 	<main class="content">

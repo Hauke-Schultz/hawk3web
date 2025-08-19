@@ -38,6 +38,14 @@ const props = defineProps({
 		type: Object,
 		default: null
 	},
+	player: {
+		type: Object,
+		default: () => ({ coins: 0, diamonds: 0 })
+	},
+	achievements: {
+		type: Array,
+		default: () => []
+	},
 })
 
 // Emits
@@ -178,7 +186,7 @@ const readNotificationItems = computed(() => {
 	}
 
 	// Recent achievements (last 10)
-	const recentAchievements = gameData.achievements
+	const recentAchievements = props.achievements
 			.filter(achievement => achievement.earned && achievement.earnedAt)
 			.sort((a, b) => new Date(b.earnedAt) - new Date(a.earnedAt))
 			.slice(0, 3)
@@ -676,8 +684,8 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 					</transition>
 				</div>
 				<CurrencyDisplay
-						:coins="gameData.player.coins || 0"
-						:diamonds="gameData.player.diamonds || 0"
+						:coins="player.coins || 0"
+						:diamonds="player.diamonds || 0"
 						layout="vertical"
 						size="small"
 						variant="compact"
