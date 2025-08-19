@@ -1945,7 +1945,7 @@ onUnmounted(() => {
 				<div v-if="isEndlessMode" class="hammer-control">
 					<button
 						v-if="hammerRemaining > 0"
-						class="btn btn--small"
+						class="btn btn--small btn--circle hammer-btn"
 						:class="{
 							'btn--warning': !hammerMode,
 							'btn--danger': hammerMode
@@ -1954,7 +1954,7 @@ onUnmounted(() => {
 						:title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
 					>
 						<span class="hammer-icon">🔨</span>
-						<span class="hammer-count">{{ hammerRemaining }}</span>
+						<span class="notification-badge">{{ hammerRemaining }}</span>
 					</button>
 
 					<button
@@ -2670,19 +2670,27 @@ onUnmounted(() => {
 	}
 }
 
+.hammer-btn {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	padding: var(--space-1);
+	position: relative;
+}
+
 .buy-hammer-btn {
 	display: flex;
 	align-items: center;
 	gap: var(--space-1);
 	padding: var(--space-1);
 	position: relative;
+	height: 100%;
 
 	.hammer-price {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		gap: 1px;
-		margin-left: var(--space-1);
+		align-items: flex-start;
+		gap: var(--space-1);
 		font-size: var(--font-size-xs);
 		line-height: 1;
 	}

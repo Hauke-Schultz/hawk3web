@@ -1065,22 +1065,6 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 }
 
 
-.notification-badge {
-	background-color: var(--error-color);
-	color: var(--white);
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-	position: absolute;
-	top: calc(-1 * var(--space-2));
-	right: calc(-1 * var(--space-2));
-	padding: var(--space-0) var(--space-1);
-	border-radius: 50%;
-	min-width: var(--space-5);
-	height: var(--space-5);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
 
 .notification-btn {
 	position: relative;

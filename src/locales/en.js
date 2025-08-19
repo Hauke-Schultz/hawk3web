@@ -385,7 +385,7 @@ export default {
 		state_saved: 'Game state saved',
 		auto_saved: 'Auto-saved',
 		levels: {
-			1: { title: 'Starter', description: 'Match 3 pairs - Learn the basics' },
+			1: { title: 'Starter', description: 'Match 2 pairs - Learn the basics' },
 			2: { title: 'Easy', description: 'Match 6 pairs - Build your skills' },
 			3: { title: 'Medium', description: 'Match 8 pairs - Test your memory' },
 			4: { title: 'Hard', description: 'Match 10 pairs - Challenge yourself' },
@@ -595,21 +595,21 @@ export default {
 				name: 'Gold Merger',
 				description: 'Earned 3 stars in endless mode',
 			},
-			time_10: {
+			time_60: {
 				name: 'Time Beginner',
-				description: 'Played for 10 seconds in a single game'
+				description: 'Played for 1 minute'
 			},
 			time_300: {
 				name: 'Time Master',
-				description: 'Played for 5 minutes in a single game'
+				description: 'Played for 5 minutes'
 			},
 			time_600: {
 				name: 'Time Champion',
-				description: 'Played for 10 minutes in a single game'
+				description: 'Played for 10 minutes'
 			},
 			time_1200: {
 				name: 'Time Legend',
-				description: 'Played for 20 minutes in a single game'
+				description: 'Played for 20 minutes'
 			},
 			score_2000: {
 				name: 'Score Beginner',

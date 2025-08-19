@@ -384,7 +384,7 @@ export default {
 		state_saved: 'Spielstand gespeichert',
 		auto_saved: 'Automatisch gespeichert',
 		levels: {
-			1: { title: 'Starter', description: 'Finde 3 Paare - Lerne die Grundlagen' },
+			1: { title: 'Starter', description: 'Finde 2 Paare - Lerne die Grundlagen' },
 			2: { title: 'Einfach', description: 'Finde 6 Paare - Verbessere deine Fähigkeiten' },
 			3: { title: 'Mittel', description: 'Finde 8 Paare - Teste dein Gedächtnis' },
 			4: { title: 'Schwer', description: 'Finde 10 Paare - Fordere dich heraus' },
@@ -595,21 +595,21 @@ export default {
 				name: 'Gold-Merger',
 				description: '3 Sterne im Endlos-Modus erreicht',
 			},
-			time_10: {
+			time_60: {
 				name: 'Zeit-Anfänger',
-				description: '10 Sekunden in einem Spiel gespielt'
+				description: '1 Minute gespielt'
 			},
 			time_300: {
 				name: 'Zeit-Herausforderer',
-				description: '5 Minuten in einem Spiel gespielt'
+				description: '5 Minuten gespielt'
 			},
 			time_600: {
 				name: 'Zeit-Experte',
-				description: '10 Minuten in einem Spiel gespielt'
+				description: '10 Minuten gespielt'
 			},
 			time_1200: {
 				name: 'Zeit-Meister',
-				description: '20 Minuten in einem Spiel gespielt'
+				description: '20 Minuten gespielt'
 			},
 			score_2000: {
 				name: 'Punkte-Sammler',

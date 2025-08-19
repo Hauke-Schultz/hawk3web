@@ -1,16 +1,16 @@
 // Memory Game Level Configurations
 export const MEMORY_LEVELS = {
 	1: {
-		pairs: 3,
+		pairs: 2,
 		timeBonus: 150,
 		title: 'Starter',
-		description: 'Match 3 pairs - Learn the basics',
+		description: 'Match 2 pairs - Learn the basics',
 		gridCols: 2,
 		minHeight: 80,
 		starThresholds: {
-			1: { moves: 8 },
-			2: { moves: 6 },
-			3: { moves: 4 }
+			1: { moves: 4 },
+			2: { moves: 3 },
+			3: { moves: 2 }
 		}
 	},
 	2: {
