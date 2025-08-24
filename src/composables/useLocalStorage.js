@@ -68,7 +68,7 @@ const getDefaultData = () => ({
 			totalMerges: 0,
 			levels: {},
 			maxCombo: 0,
-			starsEarned: 0,
+			stars: 0,
 			completedLevels: 0,
 			totalCoinsEarned: 0,
 			totalDiamondsEarned: 0
@@ -162,7 +162,7 @@ const validateGameData = (games) => {
 			maxLevel: typeof games?.fruitMerge?.maxLevel === 'number' ? games.fruitMerge.maxLevel : defaultGames.fruitMerge.maxLevel,
 			totalMerges: typeof games?.fruitMerge?.totalMerges === 'number' ? games.fruitMerge.totalMerges : defaultGames.fruitMerge.totalMerges,
 			maxCombo: typeof games?.fruitMerge?.maxCombo === 'number' ? games.fruitMerge.maxCombo : defaultGames.fruitMerge.maxCombo,
-			starsEarned: typeof games?.fruitMerge?.starsEarned === 'number' ? games.fruitMerge.starsEarned : 0,
+			stars: typeof games?.fruitMerge?.stars === 'number' ? games.fruitMerge.stars : 0,
 			completedLevels: typeof games?.fruitMerge?.completedLevels === 'number' ? games.fruitMerge.completedLevels : 0,
 			totalCoinsEarned: typeof games?.fruitMerge?.totalCoinsEarned === 'number' ? games.fruitMerge.totalCoinsEarned : 0,
 			totalDiamondsEarned: typeof games?.fruitMerge?.totalDiamondsEarned === 'number' ? games.fruitMerge.totalDiamondsEarned : 0,
@@ -365,7 +365,6 @@ export function useLocalStorage() {
 	const updateLevelStats = (gameName, levelNumber, levelStats) => {
 		if (!gameData.games[gameName]) return false
 
-		console.log(`XXX Updating stats for ${gameName} level ${levelNumber}`, gameData.games[gameName].levels)
 		// Initialize levels object if it doesn't exist
 		if (!gameData.games[gameName].levels) {
 			gameData.games[gameName].levels = {}
@@ -396,6 +395,12 @@ export function useLocalStorage() {
 			hasImprovement = true
 		}
 
+		// Update stars (recalculate based on latest stats)
+		if (levelStats.stars > level.stars) {
+			level.stars = levelStats.stars
+			hasImprovement = true
+		}
+
 		// Update high score (only if better)
 		if (levelStats.score && levelStats.score > level.highScore) {
 			level.highScore = levelStats.score
@@ -413,27 +418,10 @@ export function useLocalStorage() {
 		// Update best moves (only if better and level completed)
 		if (levelStats.completed && levelStats.moves) {
 			if (!level.bestMoves || levelStats.moves < level.bestMoves) {
-				const previousMoves = level.bestMoves
 				level.bestMoves = levelStats.moves
 				hasImprovement = true
 			}
 		}
-
-		// Calculate stars based on current performance (using best stats)
-		const currentBestStats = {
-			score: level.highScore,
-			time: level.bestTime,
-			moves: level.bestMoves,
-			completed: level.completed
-		}
-
-		// Calculate new stars and update if better
-		const newStars = calculateLevelStars(currentBestStats, level)
-		if (newStars > level.stars) {
-			level.stars = newStars
-			hasImprovement = true
-		}
-		console.log(`XXX star for level ${levelNumber}: level.stars: ${level.stars}, newStars: ${newStars}`)
 
 		// Update best performance (comprehensive best combination)
 		if (levelStats.completed) {
@@ -446,11 +434,11 @@ export function useLocalStorage() {
 					score: levelStats.score,
 					time: levelStats.time,
 					moves: levelStats.moves,
+					stars: levelStats.stars,
 					performanceScore: currentPerformance,
 					achievedAt: new Date().toISOString()
 				}
 				hasImprovement = true
-				console.log(`XXX New best performance for level ${levelNumber}: ${currentPerformance.toFixed(2)}`)
 			}
 		}
 
@@ -896,6 +884,9 @@ export function useLocalStorage() {
 		// Check if streak continues (claimed yesterday) or resets
 		let newStreak = 1
 		if (lastClaimed) {
+			newStreak = Math.min(currentStreak + 1, REWARDS.dailyRewards.maxStreak)
+
+			/*
 			const lastClaimedDate = new Date(lastClaimed + 'T00:00:00') // Convert to proper date
 			const todayDate = new Date(today + 'T00:00:00')
 
@@ -909,6 +900,7 @@ export function useLocalStorage() {
 				// Missed days - reset streak
 				newStreak = 1
 			}
+		 	*/
 		}
 
 		// Calculate reward based on streak

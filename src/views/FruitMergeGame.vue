@@ -287,8 +287,6 @@ const handleTouchStart = (event) => {
 const dropFruit = (targetX = nextFruitPosition.value) => {
 	if (isDropping.value || dropCooldown.value || !nextFruit.value) return
 
-	console.log(`Dropping fruit at x: ${targetX}`)
-
 	isDropping.value = true
 	dropCooldown.value = true
 
@@ -548,8 +546,6 @@ const handleCollision = (event) => {
 
 				// Only merge if both fruits exist and aren't already merging
 				if (fruitA && fruitB && !fruitA.merging && !fruitB.merging) {
-					console.log(`Merging level ${levelA} fruits: ${fruitA.name} + ${fruitB.name}`)
-
 					// Mark fruits as merging to prevent multiple merges
 					fruitA.merging = true
 
@@ -557,7 +553,6 @@ const handleCollision = (event) => {
 					const centerX = (bodyA.position.x + bodyB.position.x) / 2
 					const centerY = (bodyA.position.y + bodyB.position.y) / 2
 
-					console.log(`Merging fruits at center: (${centerX}, ${centerY}) bodyA: ${bodyA.position.x}, ${bodyA.position.y} bodyB: ${bodyB.position.x}, ${bodyB.position.y}`)
 					// Remove bodies from the physics world
 					Matter.Composite.remove(engine.world, bodyA)
 					Matter.Composite.remove(engine.world, bodyB)
@@ -930,19 +925,20 @@ const completeLevel = () => {
 	const rewardCalculation = calculateLevelReward()
 	levelReward.value = rewardCalculation
 
+	// Calculate stars after updating stats
+	const starsEarned = calculateCurrentStars()
+
 	// Update level statistics
 	const levelResult = {
 		completed: true,
 		score: score.value,
-		moves: moves.value
+		moves: moves.value,
+		stars: starsEarned,
 	}
 
 	// Check if this is first time completion
 	const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
 	const isFirstTimeCompletion = !previousLevelStats?.completed
-
-	// Calculate stars after updating stats
-	const starsEarned = calculateCurrentStars()
 
 	updateLevelStats('fruitMerge', currentLevel.value, levelResult)
 
@@ -1489,11 +1485,11 @@ const gameOver = () => {
 		gameState.value = 'gameOver'
 	}
 
-	// Update game statistics für beide Modi
 	const gameStats = {
 		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
 		totalScore: gameData.games.fruitMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value)
+		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
+		stars: Math.max(gameData.games.fruitMerge.starsEarned, calculateCurrentStars()),
 	}
 
 	updateGameStats('fruitMerge', gameStats)

@@ -29,7 +29,6 @@ const levelData = computed(() => {
 		const isUnlocked = levelNumber === 1 || level.isEndless ||
 				(gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
-		const stars = calculateLevelStars(levelStats, level)
 		const title = getLevelTitle(levelNumber, 'fruitMerge', t)
 		const description = getLevelDescription(levelNumber, 'fruitMerge', t)
 
@@ -48,7 +47,7 @@ const levelData = computed(() => {
 			isCompleted: levelStats.completed || false,
 			highScore: levelStats.highScore || 0,
 			bestTime: levelStats.bestTime || null,
-			stars: stars,
+			stars: levelStats.stars || 0,
 			attempts: levelStats.attempts || 0,
 			isEndless: level.isEndless || false,
 			hasSavedState: hasSaved,

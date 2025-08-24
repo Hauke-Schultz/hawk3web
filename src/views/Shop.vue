@@ -73,18 +73,7 @@ const handlePurchaseConfirm = async () => {
 
 		if (result.success) {
 			console.log(`✅ Item purchased: ${selectedItem.value.name}`)
-
-			// Add to just purchased for animation
 			justPurchasedItems.value.push(selectedItem.value.id)
-
-			// Remove from just purchased after animation
-			setTimeout(() => {
-				const index = justPurchasedItems.value.indexOf(selectedItem.value.id)
-				if (index > -1) {
-					justPurchasedItems.value.splice(index, 1)
-				}
-			}, 2000)
-
 			await nextTick()
 			setTimeout(() => {
 				closeModal()

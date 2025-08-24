@@ -225,16 +225,6 @@ export const ACHIEVEMENTS = {
 			trigger: { type: 'score_reach', score: 35000 }
 		},
 		{
-			id: 'time_60',
-			name: 'Time Traveler',
-			description: 'Played for 1 minute',
-			category: 'fruitMerge',
-			icon: 'clock',
-			rarity: 'common',
-			rewards: { coins: 100, diamonds: 1 },
-			trigger: { type: 'time_played', seconds: 60 }
-		},
-		{
 			id: 'time_300',
 			name: 'Time Master',
 			description: 'Played for 5 minutes',
