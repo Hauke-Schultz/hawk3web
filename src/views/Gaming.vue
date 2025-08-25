@@ -23,6 +23,32 @@ const startGame = (gameId) => {
 	}
 }
 
+const memoryProgress = computed(() => {
+	const levels = gameData.games.memory.levels || {}
+	const completedLevels = Object.values(levels).filter(level => level.completed).length
+	const totalLevels = memoryConfig.levels.length
+	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
+
+	return {
+		completed: completedLevels,
+		total: totalLevels,
+		percentage: percentage
+	}
+})
+
+const fruitMergeProgress = computed(() => {
+	const levels = gameData.games.fruitMerge.levels || {}
+	const completedLevels = Object.values(levels).filter(level => level.completed).length
+	const totalLevels = fruitMergeConfig.levels.length
+	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
+
+	return {
+		completed: completedLevels,
+		total: totalLevels,
+		percentage: percentage
+	}
+})
+
 const handleMenuClick = () => {
 	router.push('/')
 }
@@ -46,39 +72,84 @@ const handleMenuClick = () => {
 		<div class="games-grid">
 			<!-- Memory Game Card -->
 			<div class="game-card">
-				<div class="game-icon">
-					<Icon :name="memoryConfig.gameIcon" size="56" />
-				</div>
-				<div class="game-info">
+				<div class="game-header">
+					<div class="game-icon">
+						<Icon :name="memoryConfig.gameIcon" size="32" />
+					</div>
 					<h3 class="game-title">{{ t('memory.title') }}</h3>
-					<p class="game-description">{{ t('memory.description') }}</p>
-					<div class="game-stats">
-						<span class="best-score">{{ t('gaming.stats.best_score', { score: gameData.games.memory.highScore }) }}</span>
-						<span class="games-played">{{ t('gaming.stats.games_played', { count: gameData.games.memory.gamesPlayed }) }}</span>
+				</div>
+
+				<p class="game-description">{{ t('memory.description') }}</p>
+
+				<div class="game-stats">
+					<div class="stat-item">
+						<span class="stat-value">{{ gameData.games.memory.gamesPlayed }}</span>
+						<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
 					</div>
 				</div>
-				<button class="btn" @click="startGame('memory')">
-					<Icon name="play" size="20" />
+
+				<!-- Progress Indicator -->
+				<div class="game-progress">
+					<div class="progress-bar">
+						<div
+							class="progress-fill"
+							:style="{ width: `${memoryProgress.percentage}%` }"
+						></div>
+					</div>
+					<span class="progress-text">{{ memoryProgress.percentage }}%</span>
+				</div>
+
+				<button class="btn btn--primary game-play-btn" @click="startGame('memory')">
+					<Icon name="play" size="16" />
 					{{ t('common.play') }}
 				</button>
 			</div>
 
 			<!-- FruitMerge Game Card -->
 			<div class="game-card">
-				<div class="game-icon">
-					<Icon :name="fruitMergeConfig.gameIcon" size="56" />
-				</div>
-				<div class="game-info">
+				<div class="game-header">
+					<div class="game-icon">
+						<Icon :name="fruitMergeConfig.gameIcon" size="32" />
+					</div>
 					<h3 class="game-title">{{ fruitMergeConfig.gameTitle }}</h3>
-					<p class="game-description">{{ fruitMergeConfig.gameDescription }}</p>
-					<div class="game-stats">
-						<span class="best-score">{{ t('gaming.stats.best_score', { score: gameData.games.fruitMerge.highScore }) }}</span>
-						<span class="games-played">{{ t('gaming.stats.games_played', { count: gameData.games.fruitMerge.gamesPlayed }) }}</span>
+				</div>
+
+				<p class="game-description">{{ fruitMergeConfig.gameDescription }}</p>
+
+				<div class="game-stats">
+					<div class="stat-item">
+						<span class="stat-value">{{ gameData.games.fruitMerge.gamesPlayed }}</span>
+						<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
 					</div>
 				</div>
-				<button class="btn" @click="startGame('fruitMerge')">
-					<Icon name="play" size="20" />
+
+				<!-- Progress Indicator -->
+				<div class="game-progress">
+					<div class="progress-bar">
+						<div
+							class="progress-fill"
+							:style="{ width: `${fruitMergeProgress.percentage}%` }"
+						></div>
+					</div>
+					<span class="progress-text">{{ fruitMergeProgress.percentage }}%</span>
+				</div>
+
+				<button class="btn btn--primary game-play-btn" @click="startGame('fruitMerge')">
+					<Icon name="play" size="16" />
 					{{ t('common.play') }}
+				</button>
+			</div>
+			<!-- NumberMerge Game Card - coming soon -->
+			<div class="game-card game-card--coming-soon">
+				<div class="game-header">
+					<div class="game-icon"></div>
+					<h3 class="game-title">NumNum Merge</h3>
+				</div>
+
+				<p class="game-description">Merge numbers to reach the highest tile!</p>
+
+				<button class="btn btn--primary game-play-btn" disabled>
+					Coming Soon
 				</button>
 			</div>
 		</div>
@@ -90,54 +161,51 @@ const handleMenuClick = () => {
 .gaming-hub {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-6);
+	gap: var(--space-4);
 	padding: var(--space-4);
 	min-height: calc(100vh - 80px);
 }
 
-// Hero Section
+// Hero Section - kompakter
 .hero-section {
 	text-align: center;
-	padding: var(--space-4) 0;
+	padding: var(--space-2) 0;
 }
 
 .hero-title {
-	font-size: var(--font-size-2xl);
+	font-size: var(--font-size-xl);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
-	margin: 0 0 var(--space-2) 0;
+	margin: 0 0 var(--space-1) 0;
 }
 
 .hero-subtitle {
-	font-size: var(--font-size-base);
+	font-size: var(--font-size-sm);
 	color: var(--text-secondary);
 	margin: 0;
 }
 
-// Games Grid
+// Games Grid - 2 Spalten nebeneinander
 .games-grid {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--space-3);
+	align-items: start;
 }
 
-// Game Cards
+// Game Cards - kompaktes vertikales Layout
 .game-card {
-	background-color: var(--card-bg);
 	border: 1px solid var(--card-border);
-	border-radius: var(--border-radius-xl);
-	padding: var(--space-4);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-3);
 	display: flex;
-	align-items: center;
-	gap: var(--space-4);
-	transition: all 0.2s ease;
+	flex-direction: column;
+	gap: var(--space-2);
+	transition: all 0.3s ease;
+	height: fit-content;
+	min-height: 200px;
 	position: relative;
-
-	&:hover:not(&--coming-soon) {
-		background-color: var(--card-bg-hover);
-		box-shadow: var(--card-shadow-hover);
-		transform: translateY(-2px);
-	}
+	overflow: hidden;
 
 	&--coming-soon {
 		opacity: 0.7;
@@ -149,47 +217,139 @@ const handleMenuClick = () => {
 	}
 }
 
+// Game Header - Icon und Title horizontal
+.game-header {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin-bottom: var(--space-1);
+}
+
 .game-icon {
-	color: white;
-	border-radius: 50%;
-	width: var(--space-14);
-	height: var(--space-14);
+	color: var(--primary-color);
+	width: var(--space-10);
+	height: var(--space-10);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-}
-
-.game-info {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-2);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-md);
 }
 
 .game-title {
-	font-size: var(--font-size-lg);
+	font-size: var(--font-size-base);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
 	margin: 0;
+	line-height: 1.2;
 }
 
 .game-description {
-	font-size: var(--font-size-sm);
+	font-size: var(--font-size-xs);
 	color: var(--text-secondary);
 	margin: 0;
-	line-height: 1.4;
+	line-height: 1.3;
+	flex: 1;
 }
 
+// Game Stats - kompakte 2-Spalten
 .game-stats {
 	display: flex;
-	gap: var(--space-3);
-	font-size: var(--font-size-xs);
-	color: var(--text-muted);
+	gap: var(--space-2);
+	margin: var(--space-2) 0 0;
+	padding: var(--space-2);
+	background-color: rgba(255, 255, 255, 0.1);
+	border-radius: var(--border-radius-md);
+	backdrop-filter: blur(2px);
 }
 
-.best-score,
-.games-played {
+.stat-item {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	gap: var(--space-3);
+	text-align: center;
+}
+
+.stat-value {
+	font-size: var(--font-size-base);
 	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	line-height: 1;
+}
+
+.stat-label {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	line-height: 1;
+}
+
+// Play Button - volle Breite
+.game-play-btn {
+	width: 100%;
+	margin-top: auto;
+	padding: var(--space-2) var(--space-3);
+	justify-content: center;
+}
+
+.game-progress {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin: var(--space-1) 0;
+}
+
+.progress-bar {
+	flex: 1;
+	height: 6px;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: var(--border-radius-sm);
+	overflow: hidden;
+	backdrop-filter: blur(2px);
+}
+
+.progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--success-color), var(--success-hover));
+	border-radius: var(--border-radius-sm);
+	transition: width 0.5s ease;
+	box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.progress-text {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	min-width: 35px;
+	text-align: center;
+	background-color: rgba(255, 255, 255, 0.1);
+	padding: var(--space-0) var(--space-1);
+	border-radius: var(--border-radius-sm);
+	backdrop-filter: blur(2px);
+}
+
+// Responsive für sehr kleine Bildschirme
+@media (max-width: 320px) {
+	.games-grid {
+		grid-template-columns: 1fr;
+		gap: var(--space-2);
+	}
+
+	.game-card {
+		min-height: 180px;
+	}
+
+	.game-stats {
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--space-1);
+		padding: var(--space-1);
+	}
+
+	.stat-value {
+		font-size: var(--font-size-sm);
+	}
 }
 </style>

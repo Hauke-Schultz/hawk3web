@@ -1,4 +1,4 @@
-## 📊 Current Status v0.3.0
+## 📊 Current Status v0.3.1
 
 ✅ **Completed:**
 - Basic Vue 3 project structure with Vite
@@ -10,7 +10,7 @@
 - LocalStorage Service with centralized data persistence and structured storage
 - Responsive mobile-first design (375px base)
 - Icon system with SVG components
-- **Gaming Hub Page** - Game selection interface with personal statistics
+- **Gaming Hub Page** - Game selection interface with dynamic progress visualization
 - **Home Page Cards** - WelcomeCard and TrophyCard with read status functionality
 - **Card Management System** - Extensible card state tracking in localStorage
 - **Trophy Page** - Achievement system with categories, progress tracking, and rarity system
@@ -18,7 +18,7 @@
 - **LocalStorage Clear** - Complete localStorage reset with user confirmation modal
 - **Fresh Start State** - Automatic return to default data after profile deletion
 - **ConfirmationModal Component** - Reusable modal for dangerous actions
-- **Memory Game Implementation** - Complete 6-level memory game with scoring
+- **Memory Game Implementation** - Complete 6-level memory game with scoring and save/restore
 - **Level Selection System** - Visual level selection with GameLevelTile components
 - **Star Rating System** - 3-star performance-based rating system
 - **Level Completion Tracking** - Individual level progress and statistics
@@ -52,41 +52,144 @@
 - **🌐 Shop Internationalization** - Complete German/English shop translations
 - **👤 Profile Inventory Display** - Visual inventory section showing owned items
 - **⚡ Boost System Foundation** - Activatable power-ups with duration tracking
+- **🔨 In-Game Shop Integration** - Direct item purchasing during gameplay (Hammer power-up)
+- **🎮 Save/Restore System** - Complete game state persistence across sessions for both games
+- **📱 Auto-Save Functionality** - Automatic game state saving via header menu
 
----
-
-## 🚀 Version 0.3.1 - Shop System Enhancements
+## 🚀 Version 0.3.1 - NumNum Merge Game
 
 ### Primary Features
 
+#### 🔢 Number Merge Game Implementation
+- **Physics-Based Number Game** - 2048-style merging with FruitMerge physics engine
+- **Progressive Number System** - 2→4→8→16→32→64→128→256→512→1024→2048+
+- **Reused Core Systems** - Leverage existing FruitMerge codebase (90% code reuse)
+- **Level & Endless Modes** - Structured levels + infinite progression mode
+- **Number-Specific Achievements** - Reach 128, 256, 512, 1024, 2048 milestones
+- **Minimalist Design** - Clean number tiles with color-coded progression
+- **Save/Restore Integration** - Full game state persistence like other games
 
+#### 🎮 Gaming Hub Enhancement
+- **Three-Game Layout** - Updated gaming hub with 3-column grid layout
+- **Unified Progress Tracking** - Cross-game statistics and completion rates
+- **Enhanced Game Cards** - Consistent progress visualization across all three games
 
+#### 🏆 Achievement System Expansion
+- **Number Game Achievements** - New category with mathematical milestones
+- **Cross-Game Rewards** - Bonus rewards for playing all three games
+- **Master Player Status** - Special achievements for completing all games
 
 ---
 
-## 🚀 Future Versions (0.4.0+)
+## 🚀 Version 0.3.2 - Polish & Enhancement
 
-#### 🎲 New Games & Content
-- **Third Mini-Game** - Arcade-style game
-- **Cross-Game Achievements** - Rewards spanning multiple games
-- **Tournament Mode** - Competitive gameplay events
+### Secondary Features
 
-#### 🌐 Social Features
-- **Friend System** - Add and compete with friends
-- **Gift System** - Send items to other players
-- **Leaderboards** - Global and friend competitions
+#### ⚡ Performance & UX Improvements
+- **Optimized Physics** - Enhanced Matter.js performance for Number Merge
+- **Smooth Animations** - Polished number merge animations and transitions
+- **Accessibility** - Screen reader support for number values and game state
+- **Tutorial Integration** - Quick tutorial for Number Merge mechanics
+
+#### 🎨 Visual Enhancements
+- **Number Tile Design** - Beautiful gradient system for different number tiers
+- **Particle Effects** - Reused FruitMerge particles for number merge celebrations
+- **Consistent Theming** - Number game integrates seamlessly with existing design system
+
+---
+
+## 🚀 Version 0.4.0 - Social & Competition Features
+
+### Primary Features
+
+#### 🏆 Tournament & Competition System
+- **Weekly Challenges** - Rotating weekly challenges across all games
+- **Leaderboard System** - Global and weekly leaderboards with rankings
+- **Competition Rewards** - Special rewards for tournament participation
+- **Achievement Milestones** - Cross-game achievement categories
+
+#### 📈 Advanced Statistics & Analytics
+- **Personal Dashboard** - Comprehensive gameplay analytics and trends
+- **Performance Tracking** - Detailed performance metrics over time
+- **Goal Setting System** - Personal challenges and target setting
+- **Progress Visualization** - Charts and graphs for performance analysis
 
 #### 🎨 Advanced Customization
-- **Avatar Editor** - Detailed character customization
-- **Personal Statistics Dashboard** - Comprehensive gameplay analytics
+- **Theme System Expansion** - Multiple theme variants beyond dark/light
+- **Avatar Customization** - Advanced avatar editor with accessories
+- **Card Frame System** - Collectible card frames and borders
+- **Profile Showcase** - Enhanced profile display with achievements
+
+---
+
+## 🚀 Version 0.5.0 - Content Expansion
+
+### Primary Features
+
+#### 🎲 Third Mini-Game Implementation
+- **Puzzle Game** - New puzzle-based game with unique mechanics
+- **Cross-Game Progression** - Unified progression system across all three games
+- **Game-Specific Achievements** - Achievements tailored to the new game
+- **Integrated Rewards** - Reward system spanning all games
+
+#### 🌟 Advanced Features
+- **Offline Mode Enhancement** - Improved offline gameplay and sync
+- **Performance Optimization** - Enhanced loading times and smooth animations
+- **Accessibility Improvements** - Better screen reader support and keyboard navigation
+- **Advanced Tutorials** - Interactive tutorials for complex game mechanics
+
+---
+
+## 🚀 Future Versions (0.6.0+)
+
+#### 🌐 Social Features (Potential)
+- **Friend System** - Add and compete with friends (if backend implemented)
+- **Gift System** - Send items to other players
+- **Community Challenges** - Global collaborative goals
+
+#### 🎯 Advanced Game Features
+- **Custom Game Modes** - User-configurable game variations
+- **Speed Run Modes** - Time-attack versions of existing games
+- **Daily Puzzles** - Unique daily challenges with special rewards
+
+#### 🏅 Prestige System
+- **Prestige Levels** - Advanced progression beyond normal levels
+- **Legacy Achievements** - Ultra-rare achievements for dedicated players
+- **Master Rankings** - Elite player classification system
 
 ---
 
 ## 💡 Innovation Ideas for Later
 
 - **Offline Tournament** - Local multiplayer competitions
-- **Achievement Marketplace** - Trade rare achievements between players
+- **Achievement Marketplace** - Trade rare achievements between players (if social features added)
 - **Community Challenges** - Global collaborative goals
+
+---
+
+## 🎯 **Version 0.3.0 Highlights**
+
+**Games & Gameplay:**
+- ✅ Memory Game (6 levels) - Vollständig implementiert mit Save/Restore
+- ✅ FruitMerge Game (6 levels inkl. Endless) - Vollständig implementiert mit Physics Engine
+- ✅ Save/Restore System - Funktioniert für beide Spiele
+- ✅ Achievement System - 20+ Achievements mit Rewards
+- ✅ Shop System - Vollständig funktionsfähig mit Inventory
+
+**Technical Excellence:**
+- ✅ Mobile-First Design (375px optimized)
+- ✅ Matter.js Physics Integration
+- ✅ Vue 3 Composition API throughout
+- ✅ Comprehensive i18n (EN/DE)
+- ✅ LocalStorage Data Persistence
+- ✅ Performance Optimized
+
+**User Experience:**
+- ✅ Dynamic Progress Visualization
+- ✅ Comprehensive Currency System
+- ✅ Daily Rewards & Streaks
+- ✅ Visual Feedback & Animations
+- ✅ Accessible Design Patterns
 
 ## 📋 Contributing
 

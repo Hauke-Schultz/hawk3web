@@ -359,7 +359,7 @@ export default {
 		other_recent_levels: 'Other Recent Levels',
 		stats: {
 			best_score: 'Best: {score}',
-			games_played: '{count} played',
+			games_played: 'played',
 			levels: 'Levels',
 			stars: 'Stars',
 			unlocked: 'Unlocked',
