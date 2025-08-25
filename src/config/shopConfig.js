@@ -29,7 +29,7 @@ export const SHOP_ITEMS = [
     name: 'Smart Glasses',
     description: 'Classic eyeglasses for the intellectual look',
     category: 'profile',
-    price: { coins: 10, diamonds: 0 },
+    price: { coins: 1000, diamonds: 0 },
     rarity: 'common',
     icon: '👓',
     type: 'cosmetic',
@@ -40,7 +40,7 @@ export const SHOP_ITEMS = [
     name: 'Baseball Cap',
     description: 'Sporty cap for casual gaming',
     category: 'profile',
-    price: { coins: 40, diamonds: 0 },
+    price: { coins: 2000, diamonds: 2 },
     rarity: 'common',
     icon: '🧢',
     type: 'cosmetic',
@@ -51,7 +51,7 @@ export const SHOP_ITEMS = [
     name: 'Cool Sunglasses',
     description: 'Look cool with stylish sunglasses',
     category: 'profile',
-    price: { coins: 100, diamonds: 2 },
+    price: { coins: 4000, diamonds: 4 },
     rarity: 'common',
     icon: '🕶️',
     type: 'cosmetic',
@@ -62,7 +62,7 @@ export const SHOP_ITEMS = [
     name: 'Top Hat',
     description: 'Elegant top hat for distinguished players',
     category: 'profile',
-    price: { coins: 1000, diamonds: 6 },
+    price: { coins: 10000, diamonds: 20 },
     rarity: 'rare',
     icon: '🎩',
     type: 'cosmetic',
@@ -73,7 +73,7 @@ export const SHOP_ITEMS = [
     name: 'Cool Car',
     description: 'Show off with your own car',
     category: 'profile',
-    price: { coins: 5000, diamonds: 10 },
+    price: { coins: 50000, diamonds: 100 },
     rarity: 'epic',
     icon: '🚗',
     type: 'cosmetic',
@@ -84,7 +84,7 @@ export const SHOP_ITEMS = [
     name: 'Golden Crown',
     description: 'Royal crown for true champions',
     category: 'profile',
-    price: { coins: 10000, diamonds: 50 },
+    price: { coins: 85000, diamonds: 250 },
     rarity: 'legendary',
     icon: '👑',
     type: 'cosmetic',
@@ -97,7 +97,7 @@ export const SHOP_ITEMS = [
     name: 'Fruit Hammer',
     description: 'Remove any fruit instantly! Perfect for clearing dangerous situations',
     category: 'items',
-    price: { coins: 100, diamonds: 1 },
+    price: { coins: 500, diamonds: 5 },
     rarity: 'common',
     icon: '🔨',
     type: 'consumable',
@@ -106,6 +106,7 @@ export const SHOP_ITEMS = [
   },
 
   // Simple Utilities
+  /*
   {
     id: 'level_skip',
     name: 'Skip Level',
@@ -117,6 +118,7 @@ export const SHOP_ITEMS = [
     type: 'consumable',
     purchaseLimit: null
   }
+  */
 ]
 
 export const RARITY_CONFIG = {

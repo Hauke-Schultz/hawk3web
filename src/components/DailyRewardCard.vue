@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import {REWARDS} from "../config/achievementsConfig.js";
 
 const props = defineProps({
 	title: {
@@ -27,11 +28,31 @@ const { t } = useI18n()
 const { gameData, claimDailyReward, canClaimDailyReward } = useLocalStorage()
 
 const canClaim = computed(() => canClaimDailyReward())
-const currentStreak = computed(() => gameData.currency.dailyRewards.streak + 1)
-const nextReward = computed(() => ({
-	coins: gameData.currency.dailyRewards.nextRewardCoins,
-	diamonds: gameData.currency.dailyRewards.nextRewardDiamonds
-}))
+const currentStreak = computed(() => {
+	const lastClaimed = gameData.currency.dailyRewards.lastClaimed
+	if (!lastClaimed || lastClaimed === '2023-01-01') {
+		return 1 // First time
+	}
+
+	const now = new Date()
+	const today = now.toISOString().split('T')[0]
+	const lastClaimedDate = new Date(lastClaimed + 'T00:00:00')
+	const todayDate = new Date(today + 'T00:00:00')
+	const daysDiff = Math.floor((todayDate - lastClaimedDate) / (1000 * 60 * 60 * 24))
+
+	// Show 2x if it would be consecutive, otherwise 1x
+	return daysDiff === 1 ? 2 : 1
+})
+
+const nextReward = computed(() => {
+	const baseReward = REWARDS.dailyRewards.base
+	const multiplier = currentStreak.value
+
+	return {
+		coins: baseReward.coins * multiplier,
+		diamonds: baseReward.diamonds * multiplier
+	}
+})
 
 // Reactive state for checkbox
 const isMarkedAsRead = ref(false)
@@ -94,12 +115,14 @@ const handleKeyDown = (event) => {
 
 			<!-- Streak Display -->
 			<div class="streak-info">
-				<div class="reward-title">{{ t('daily_rewards.day_streak', { streak: currentStreak }) }}</div>
+				<div class="reward-title">{{ currentStreak === 2 ? t('daily_rewards.consecutive_bonus') : t('daily_rewards.normal_bonus') }}</div>
 			</div>
 
 			<!-- Reward Preview -->
 			<div class="reward-preview">
-				<h2 class="streak-label">{{ title }}</h2>
+				<h2 class="streak-label">
+				  {{ t('daily_rewards.tap_to_claim') }}
+				</h2>
 
 				<div class="reward-amounts">
 					<div class="reward-item">

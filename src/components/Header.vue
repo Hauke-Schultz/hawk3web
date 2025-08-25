@@ -111,7 +111,12 @@ const handleNotificationItemRead = (cardType) => {
 	if (cardType === 'dailyRewardCard') {
 		const reward = claimDailyReward()
 		if (reward) {
-			console.log(`🎁 Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds, Streak: ${reward.streak}`)
+			const consecutiveText = reward.consecutive ? ' (2x Bonus!)' : ''
+			console.log(`🎁 Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds${consecutiveText}`)
+
+			setTimeout(() => {
+				updateNotificationCount()
+			}, 100)
 		}
 	}
 	markCardAsRead(cardType)
@@ -143,19 +148,29 @@ const notificationItems = computed(() => {
 
 	// Daily Reward Notification
 	if (canClaimDailyReward()) {
-		const currentStreak = gameData.currency.dailyRewards.streak + 1 || 1
+		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
+		let isConsecutive = false
+
+		if (lastClaimed && lastClaimed !== '2023-01-01') {
+			const now = new Date()
+			const today = now.toISOString().split('T')[0]
+			const lastClaimedDate = new Date(lastClaimed + 'T00:00:00')
+			const todayDate = new Date(today + 'T00:00:00')
+			const daysDiff = Math.floor((todayDate - lastClaimedDate) / (1000 * 60 * 60 * 24))
+			isConsecutive = daysDiff === 1
+		}
 
 		items.push({
 			id: 'dailyRewardCard',
 			type: 'daily_reward',
 			title: t('daily_rewards.title'),
-			description: t('daily_rewards.day_streak', {
-				streak: currentStreak,
-				count: currentStreak
-			}),
+			description: isConsecutive ?
+					t('daily_rewards.consecutive_bonus') :
+					t('daily_rewards.normal_bonus'),
 			icon: 'bell',
 			isDaily: true,
-			canClaim: true
+			canClaim: true,
+			consecutive: isConsecutive
 		})
 	}
 
@@ -165,22 +180,38 @@ const notificationItems = computed(() => {
 const readNotificationItems = computed(() => {
 	const items = []
 
-	// Recently read daily reward
+	// Recently read daily reward mit Belohnungsanzeige
 	if (isCardRead('dailyRewardCard')) {
 		const readAt = gameData.cardStates.dailyRewardCard?.readAt
-		const currentStreak = gameData.currency.dailyRewards.streak || 1
+
 		if (readAt) {
+			const readDate = new Date(readAt).toISOString().split('T')[0]
+			const dailyTransaction = gameData.currency.transactions
+					.filter(t => t.source === 'daily_reward')
+					.find(t => {
+						const transactionDate = new Date(t.timestamp).toISOString().split('T')[0]
+						return transactionDate === readDate
+					})
+
+			let isConsecutive = dailyTransaction.metadata?.consecutive || false
+			const currentStreak = gameData.currency.dailyRewards.streak || 1
+			const rewardInfo = currentStreak === 2 ?
+					t('daily_rewards.consecutive_bonus') :
+					t('daily_rewards.normal_bonus')
+
 			items.push({
 				id: 'dailyRewardCard-read',
 				type: 'daily_reward_read',
 				title: t('daily_rewards.title'),
-				description: t('daily_rewards.day_streak', {
-					streak: currentStreak,
-					count: currentStreak
-				}),
+				description: rewardInfo,
 				icon: 'completion-badge',
 				readAt: readAt,
-				timestamp: new Date(readAt)
+				timestamp: new Date(readAt),
+				consecutive: isConsecutive,
+				rewardDetails: dailyTransaction ? {
+					coins: dailyTransaction.amounts.coins,
+					diamonds: dailyTransaction.amounts.diamonds
+				} : null
 			})
 		}
 	}
@@ -665,9 +696,19 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 
 											<!-- Daily Reward Notification -->
 											<div v-else-if="item.type === 'daily_reward_read'" class="daily-reward-notification">
-												<div class="daily-reward-info">
+												<div class="achievement-info">
 													<div class="daily-reward-title">{{ item.description }}</div>
-													<div class="daily-reward-time">{{ formatRelativeTime(item.readAt) }}</div>
+													<div v-if="item.rewardDetails" class="achievement-rewards">
+														<span v-if="item.rewardDetails.diamonds > 0" class="reward-diamonds">
+															+{{ item.rewardDetails.diamonds }} 💎
+														</span>
+														<span v-if="item.rewardDetails.coins > 0" class="reward-coins">
+															+{{ item.rewardDetails.coins }} 💰
+														</span>
+													</div>
+													<div class="achievement-meta">
+														<span class="achievement-time">{{ formatRelativeTime(item.readAt) }}</span>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -1294,8 +1335,7 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 // Daily Reward Notification Styles
 .daily-reward-notification {
 	display: flex;
-	gap: var(--space-3);
-	padding: var(--space-3);
+	padding: var(--space-2);
 	background-color: var(--card-bg);
 	border-radius: var(--border-radius-lg);
 	border-left: 3px solid var(--success-color);
@@ -1327,10 +1367,31 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 	line-height: 1.3;
 }
 
-.daily-reward-description {
+.reward-details {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	flex-wrap: wrap;
+}
+
+.reward-amount {
 	font-size: var(--font-size-xs);
-	color: var(--text-secondary);
-	line-height: 1.3;
+	font-weight: var(--font-weight-bold);
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.reward-coins {
+	background-color: var(--warning-color);
+	color: white;
+}
+
+.reward-diamonds {
+	background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+	color: white;
 }
 
 .daily-reward-time {

@@ -83,15 +83,16 @@ export default {
 	},
 
 	daily_rewards: {
-		title: 'Tägliche Belohnunge abholen',
+		title: 'Tägliche Belohnung abholen',
 		tap_to_claim: 'Zum Abholen tippen',
-		day_streak: 'Tag {streak} Bonus!',
-		streak_bonus: 'Streak-Bonus',
+		day_streak: 'Täglicher Bonus',
+		consecutive_bonus: 'Täglicher Bonus - verdoppelt!',
+		normal_bonus: 'Täglicher Bonus',
 		claimed_today: 'Heute bereits abgeholt',
 		come_back_tomorrow: 'Komm morgen wieder!',
 		reward_claimed: 'Tägliche Belohnung abgeholt!',
-		streak_maintained: 'Streak aufrechterhalten: {streak} {streak, plural, =1 {Tag} other {Tage}}',
-		streak_broken: 'Streak zurückgesetzt - Tag verpasst'
+		streak_maintained: 'Aufeinanderfolgender Tag: Bonus verdoppelt!',
+		streak_broken: 'Neuer Tag - normaler Bonus'
 	},
 
 	// App/Header
@@ -629,7 +630,7 @@ export default {
 			},
 			perfectionist: {
 				name: 'Perfektionist',
-				description: 'Ein Spiel mit perfekter Punktzahl abgeschlossen'
+				description: 'Alle Level mit perfekter Punktzahl abgeschlossen'
 			},
 		}
 	},

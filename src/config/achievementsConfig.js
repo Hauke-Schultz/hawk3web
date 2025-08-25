@@ -10,7 +10,7 @@ export const ACHIEVEMENTS = {
 			category: 'general',
 			icon: 'play',
 			rarity: 'common',
-			rewards: { coins: 17, diamonds: 0 },
+			rewards: { coins: 100, diamonds: 1 },
 			trigger: { type: 'auto', condition: 'gamesPlayed >= 1' }
 		},
 
@@ -67,7 +67,7 @@ export const ACHIEVEMENTS = {
 			category: 'gaming',
 			icon: 'play',
 			rarity: 'uncommon',
-			rewards: { coins: 10, diamonds: 10 },
+			rewards: { coins: 1000, diamonds: 10 },
 			trigger: { type: 'auto', condition: 'gamesPlayed >= 10' }
 		},
 
@@ -79,7 +79,7 @@ export const ACHIEVEMENTS = {
 			category: 'memory',
 			icon: 'brain',
 			rarity: 'common',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 150, diamonds: 0 },
 			trigger: { type: 'level_complete', game: 'memory', level: 1 }
 		},
 		{
@@ -89,7 +89,7 @@ export const ACHIEVEMENTS = {
 			category: 'memory',
 			icon: 'brain',
 			rarity: 'uncommon',
-			rewards: { coins: 150, diamonds: 1 },
+			rewards: { coins: 500, diamonds: 1 },
 			trigger: { type: 'level_complete', game: 'memory', level: 3 }
 		},
 		{
@@ -111,7 +111,7 @@ export const ACHIEVEMENTS = {
 			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
-			rewards: { coins: 20, diamonds: 1 },
+			rewards: { coins: 100, diamonds: 1 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 1 }
 		},
 		{
@@ -141,7 +141,7 @@ export const ACHIEVEMENTS = {
 			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'legendary',
-			rewards: { coins: 15, diamonds: 0 },
+			rewards: { coins: 5000, diamonds: 20 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
 		},
 		{
@@ -151,7 +151,7 @@ export const ACHIEVEMENTS = {
 			category: 'fruitMerge',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
-			rewards: { coins: 100, diamonds: 1 },
+			rewards: { coins: 1000, diamonds: 10 },
 			trigger: { type: 'level_complete', game: 'fruitMerge', level: 6 }
 		},
 		{
@@ -191,7 +191,7 @@ export const ACHIEVEMENTS = {
 			category: 'fruitMerge',
 			icon: 'star',
 			rarity: 'common',
-			rewards: { coins: 100, diamonds: 1 },
+			rewards: { coins: 200, diamonds: 1 },
 			trigger: { type: 'score_reach', score: 2000 }
 		},
 		{
@@ -258,11 +258,11 @@ export const ACHIEVEMENTS = {
 		{
 			id: 'perfectionist',
 			name: 'Perfectionist',
-			description: 'Complete a game with perfect score',
+			description: 'Complete all levels with a perfect score',
 			category: 'special',
 			icon: 'trophy',
 			rarity: 'legendary',
-			rewards: { coins: 1500, diamonds: 20 },
+			rewards: { coins: 5000, diamonds: 20 },
 			trigger: { type: 'perfect_game' }
 		},
 	],
@@ -355,8 +355,7 @@ export const REWARDS = {
 	},
 	dailyRewards: {
 		base: { coins: 50, diamonds: 1 },
-		streakMultiplier: 1.1, // increases with streak
-		maxStreak: 7
+		consecutiveMultiplier: 2,
 	}
 }
 

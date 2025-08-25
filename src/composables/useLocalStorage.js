@@ -879,38 +879,25 @@ export function useLocalStorage() {
 		const now = new Date()
 		const today = now.toISOString().split('T')[0] // YYYY-MM-DD format
 		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
-		const currentStreak = gameData.currency.dailyRewards.streak || 0
 
-		// Check if streak continues (claimed yesterday) or resets
-		let newStreak = 1
-		if (lastClaimed) {
-			newStreak = Math.min(currentStreak + 1, REWARDS.dailyRewards.maxStreak)
-
-			/*
-			const lastClaimedDate = new Date(lastClaimed + 'T00:00:00') // Convert to proper date
+		// Check if this is a consecutive day (yesterday was claimed)
+		let isConsecutive = false
+		if (lastClaimed && lastClaimed !== '2023-01-01') {
+			const lastClaimedDate = new Date(lastClaimed + 'T00:00:00')
 			const todayDate = new Date(today + 'T00:00:00')
-
-			// Calculate difference in days
 			const daysDiff = Math.floor((todayDate - lastClaimedDate) / (1000 * 60 * 60 * 24))
 
-			if (daysDiff === 1) {
-				// Claimed yesterday - continue streak
-				newStreak = Math.min(currentStreak + 1, REWARDS.dailyRewards.maxStreak)
-			} else if (daysDiff > 1) {
-				// Missed days - reset streak
-				newStreak = 1
-			}
-		 	*/
+			isConsecutive = daysDiff === 1 // Exactly one day difference
 		}
 
-		// Calculate reward based on streak
+		// Calculate reward - doubled if consecutive, otherwise base amount
 		const baseReward = REWARDS.dailyRewards.base
-		const streakMultiplier = Math.pow(REWARDS.dailyRewards.streakMultiplier, newStreak - 1)
+		const multiplier = isConsecutive ? 2 : 1
 
 		const reward = {
-			coins: Math.floor(baseReward.coins * streakMultiplier),
-			diamonds: baseReward.diamonds + Math.floor(newStreak / 3), // Extra diamond every 3 days
-			streak: newStreak,
+			coins: baseReward.coins * multiplier,
+			diamonds: baseReward.diamonds * multiplier,
+			consecutive: isConsecutive,
 			claimedAt: now.toISOString(),
 			claimedDate: today
 		}
@@ -921,12 +908,12 @@ export function useLocalStorage() {
 
 		// Update daily rewards data - store only the date part
 		gameData.currency.dailyRewards.lastClaimed = today
-		gameData.currency.dailyRewards.streak = newStreak
+		// Keep streak simple - just track if it was consecutive for UI purposes
+		gameData.currency.dailyRewards.streak = isConsecutive ? 2 : 1
 
-		// Update next reward preview
-		const nextStreakMultiplier = Math.pow(REWARDS.dailyRewards.streakMultiplier, newStreak)
-		gameData.currency.dailyRewards.nextRewardCoins = Math.floor(baseReward.coins * nextStreakMultiplier)
-		gameData.currency.dailyRewards.nextRewardDiamonds = baseReward.diamonds + Math.floor((newStreak + 1) / 3)
+		// Update next reward preview (always show base amount for next day)
+		gameData.currency.dailyRewards.nextRewardCoins = baseReward.coins * 2 // Show potential doubled amount
+		gameData.currency.dailyRewards.nextRewardDiamonds = baseReward.diamonds * 2
 
 		// Add transaction record
 		const transaction = {
@@ -934,7 +921,9 @@ export function useLocalStorage() {
 			timestamp: now.toISOString(),
 			type: 'earn',
 			source: 'daily_reward',
-			description: t('currency.daily_reward'),
+			description: isConsecutive ?
+					t('daily_rewards.consecutive_bonus') :
+					t('daily_rewards.normal_bonus'),
 			amounts: {
 				coins: reward.coins,
 				diamonds: reward.diamonds
@@ -944,15 +933,19 @@ export function useLocalStorage() {
 				diamonds: gameData.player.diamonds
 			},
 			metadata: {
-				streak: newStreak,
-				streakMultiplier: streakMultiplier.toFixed(2),
-				claimedDate: today
+				consecutive: isConsecutive,
+				multiplier: multiplier,
+				claimedDate: today,
+				baseCoins: baseReward.coins,
+				baseDiamonds: baseReward.diamonds,
+				rewardType: 'daily_reward',
+				bonusApplied: isConsecutive
 			}
 		}
 
 		gameData.currency.transactions.push(transaction)
 
-		console.log(`🎁 Daily reward claimed! Date: ${today}, Streak: ${newStreak}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
+		console.log(`🎁 Daily reward claimed! Date: ${today}, Consecutive: ${isConsecutive}, Multiplier: ${multiplier}x, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
 
 		return reward
 	}

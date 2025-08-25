@@ -86,13 +86,14 @@ export default {
 	daily_rewards: {
 		title: 'Claim your daily bonus!',
 		tap_to_claim: 'Tap to claim',
-		day_streak: 'Day {streak} Streak',
-		streak_bonus: 'Streak Bonus',
+		day_streak: 'Daily Bonus',
+		consecutive_bonus: 'Daily Bonus - doubled!',
+		normal_bonus: 'Daily Bonus',
 		claimed_today: 'Already claimed today',
 		come_back_tomorrow: 'Come back tomorrow!',
 		reward_claimed: 'Daily reward claimed!',
-		streak_maintained: 'Streak maintained: {streak} {streak, plural, =1 {day} other {days}}',
-		streak_broken: 'Streak reset - missed a day'
+		streak_maintained: 'Consecutive day: Bonus doubled!',
+		streak_broken: 'New day - normal bonus'
 	},
 
 	// App/Header
@@ -629,7 +630,7 @@ export default {
 			},
 			perfectionist: {
 				name: 'Perfectionist',
-				description: 'Complete a game with perfect score'
+				description: 'Complete all levels with perfect scores'
 			},
 		}
 	},
