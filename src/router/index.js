@@ -61,6 +61,25 @@ const routes = [
     }
   },
   {
+    path: '/games/numnummerge',
+    name: 'NumNumMergeLevels',
+    component: () => import('../games/numnummerge/NumNumMergeLevels.vue')
+  },
+  {
+    path: '/games/numnummerge/:level',
+    name: 'NumNumMergeGame',
+    component: () => import('../games/numnummerge/NumNumMergeGame.vue'),
+    props: route => ({ level: parseInt(route.params.level) || 1 }),
+    beforeEnter: (to, from, next) => {
+      const level = parseInt(to.params.level)
+      if (isNaN(level) || level < 1 || level > 6) {
+        next('/games/numnummerge')
+      } else {
+        next()
+      }
+    }
+  },
+  {
     path: '/shop',
     name: 'Shop',
     component: Shop

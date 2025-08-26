@@ -5,6 +5,7 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
 import { memoryConfig } from '../games/memory/memoryConfig.js'
 import { fruitMergeConfig } from '../games/fruitmerge/fruitMergeConfig.js'
+import { numNumMergeConfig } from '../games/numnummerge/numNumMergeConfig.js'
 import Icon from '../components/Icon.vue'
 import Header from "../components/Header.vue";
 
@@ -20,6 +21,8 @@ const startGame = (gameId) => {
 		router.push('/games/memory')
 	} else if (gameId === 'fruitMerge') {
 		router.push('/games/fruitmerge')
+	} else if (gameId === 'numNumMerge') {
+		router.push('/games/numnummerge')
 	}
 }
 
@@ -40,6 +43,19 @@ const fruitMergeProgress = computed(() => {
 	const levels = gameData.games.fruitMerge.levels || {}
 	const completedLevels = Object.values(levels).filter(level => level.completed).length
 	const totalLevels = fruitMergeConfig.levels.length
+	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
+
+	return {
+		completed: completedLevels,
+		total: totalLevels,
+		percentage: percentage
+	}
+})
+
+const numNumMergeProgress = computed(() => {
+	const levels = gameData.games.numNumMerge.levels || {}
+	const completedLevels = Object.values(levels).filter(level => level.completed).length
+	const totalLevels = numNumMergeConfig.levels.length
 	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
 
 	return {
@@ -139,17 +155,36 @@ const handleMenuClick = () => {
 					{{ t('common.play') }}
 				</button>
 			</div>
-			<!-- NumberMerge Game Card - coming soon -->
-			<div class="game-card game-card--coming-soon">
+
+			<!-- NumberMerge Game Card -->
+			<div class="game-card">
 				<div class="game-header">
-					<div class="game-icon"></div>
-					<h3 class="game-title">NumNum Merge</h3>
+					<div class="game-icon">
+						<Icon :name="numNumMergeConfig.gameIcon" size="32" />
+					</div>
+					<h3 class="game-title">{{ numNumMergeConfig.gameTitle }}</h3>
+				</div>
+				<p class="game-description">{{ numNumMergeConfig.gameDescription }}</p>
+				<div class="game-stats">
+					<div class="stat-item">
+						<span class="stat-value">{{ gameData.games.numNumMerge.gamesPlayed }}</span>
+						<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
+					</div>
+				</div>
+				<!-- Progress Indicator -->
+				<div class="game-progress">
+					<div class="progress-bar">
+						<div
+							class="progress-fill"
+							:style="{ width: `${numNumMergeProgress.percentage}%` }"
+						></div>
+					</div>
+					<span class="progress-text">{{ numNumMergeProgress.percentage }}%</span>
 				</div>
 
-				<p class="game-description">Merge numbers to reach the highest tile!</p>
-
-				<button class="btn btn--primary game-play-btn" disabled>
-					Coming Soon
+				<button class="btn btn--primary game-play-btn" @click="startGame('numNumMerge')">
+					<Icon name="play" size="16" />
+					{{ t('common.play') }}
 				</button>
 			</div>
 		</div>

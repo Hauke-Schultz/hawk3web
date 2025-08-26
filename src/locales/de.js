@@ -486,6 +486,79 @@ export default {
 		}
 	},
 
+
+  // NumNumMerge Game
+  numNumMerge: {
+    title: 'Num Num Merge',
+    description: 'Merge numbers to reach the target score!',
+    target: 'Ziel',
+    level_title: 'Level {level}',
+    endless_mode: 'Endlos-Modus',
+    game_paused: 'Spiel pausiert',
+    level_complete: 'Level abgeschlossen!',
+    game_complete: 'Spiel abgeschlossen!',
+    back_to_levels: 'Zurück',
+    play_again: 'Nochmal spielen',
+    next_level: 'Nächstes Level',
+    game_over: 'Spiel Vorbei',
+    game_over_message: 'Die Zahlen haben die Gefahrenzone erreicht! Versuche eine andere Strategie.',
+    try_again: 'Nochmal versuchen',
+    combo: 'Combo',
+    multiplier: 'Multiplikator',
+    combo_break: 'Combo unterbrochen!',
+    amazing_combo: 'Fantastische Combo!',
+    incredible_combo: 'Unglaubliche Combo!',
+    state_restored: 'Spielstand wiederhergestellt',
+    state_saved: 'Spielstand gespeichert',
+    save_game: 'Spiel speichern',
+    auto_saved: 'Automatisch gespeichert',
+
+    // Endless Mode spezifische Übersetzungen
+    endless: {
+      merges: 'Merges',
+      time: 'Zeit',
+      score_goal_1: '2.000 Punkte für 1 Stern',
+      score_goal_2: '5.000 Punkte für 2 Sterne',
+      score_goal_3: '10.000 Punkte für 3 Sterne',
+      merge_goal_1: '30 Merges für 1 Stern',
+      merge_goal_2: '80 Merges für 2 Sterne',
+      merge_goal_3: '150 Merges für 3 Sterne',
+      milestone_score: '{score} Punkte erreicht!',
+      milestone_time: '{minutes} Minuten gespielt!',
+      milestone_combo: '{combo}er Combo erreicht!',
+      session_stats: 'Session-Statistiken',
+      best_combo: 'Beste Combo',
+      total_time: 'Gesamtzeit',
+      achievements_unlocked: 'Erfolge freigeschaltet'
+    },
+    levels: {
+      1: {
+        title: 'Nummer Anfänger',
+        description: 'Erreiche Nummer 128'
+      },
+      2: {
+        title: 'Nummer Aufsteiger',
+        description: 'Erreiche Nummer 256'
+      },
+      3: {
+        title: 'Nummer Profi',
+        description: 'Erreiche Nummer 512'
+      },
+      4: {
+        title: 'Nummer Experte',
+        description: 'Erreiche Nummer 1024'
+      },
+      5: {
+        title: 'Nummer Meister',
+        description: 'Erreiche Nummer 2048'
+      },
+      6: {
+        title: 'Nummer Legende',
+        description: 'Erreiche die ultimative Nummer-Herausforderung'
+      }
+    }
+  },
+
 	// Leistungsstatistiken
 	stats: {
 		score: 'Punkte',

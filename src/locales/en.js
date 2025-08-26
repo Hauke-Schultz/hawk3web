@@ -487,6 +487,78 @@ export default {
 		}
 	},
 
+  // NumNumMerge Game
+  numNumMerge: {
+    title: 'Num Num Merge',
+    description: 'Merge numbers to reach the target score!',
+    target: 'Target',
+    level_title: 'Level {level}',
+    endless_mode: 'Endless Mode',
+    game_paused: 'Game Paused',
+    level_complete: 'Level Complete!',
+    game_complete: 'Game Complete!',
+    back_to_levels: 'Back',
+    play_again: 'Play Again',
+    next_level: 'Next Level',
+    game_over: 'Game Over',
+    game_over_message: 'No more moves available! Try a different strategy.',
+    try_again: 'Try Again',
+    combo: 'Combo',
+    multiplier: 'Multiplier',
+    combo_break: 'Combo broken!',
+    amazing_combo: 'Amazing Combo!',
+    incredible_combo: 'Incredible Combo!',
+    state_restored: 'Game state restored',
+    state_saved: 'Game state saved',
+    save_game: 'Save game',
+    auto_saved: 'Auto-saved',
+
+    endless: {
+      merges: 'Merges',
+      time: 'Time',
+      score_goal_1: '2,000 points for 1 star',
+      score_goal_2: '5,000 points for 2 stars',
+      score_goal_3: '15,000 points for 3 stars',
+      merge_goal_1: '30 merges for 1 star',
+      merge_goal_2: '80 merges for 2 stars',
+      merge_goal_3: '200 merges for 3 stars',
+      milestone_score: '{score} points reached!',
+      milestone_time: '{minutes} minutes played!',
+      milestone_combo: '{combo} combo achieved!',
+      session_stats: 'Session Statistics',
+      best_combo: 'Best Combo',
+      total_time: 'Total Time',
+      achievements_unlocked: 'Achievements Unlocked'
+    },
+
+    levels: {
+      1: {
+        title: 'Novice',
+        description: 'Reach Number 128'
+      },
+      2: {
+        title: 'Apprentice',
+        description: 'Reach Number 256'
+      },
+      3: {
+        title: 'Adept',
+        description: 'Reach Number 512'
+      },
+      4: {
+        title: 'Expert',
+        description: 'Reach Number 1024'
+      },
+      5: {
+        title: 'Master',
+        description: 'Reach Number 2048'
+      },
+      6: {
+        title: 'Endless Mode',
+        description: 'Merge numbers as high as you can'
+      }
+    }
+  },
+
 	// Performance Stats
 	stats: {
 		score: 'Score',

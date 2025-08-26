@@ -70,10 +70,19 @@ const getDefaultData = () => ({
 			levels: {},
 			maxCombo: 0,
 			stars: 0,
-			completedLevels: 0,
-			totalCoinsEarned: 0,
-			totalDiamondsEarned: 0
-		}
+			completedLevels: 0
+		},
+    numNumMerge: {
+      highScore: 0,
+      gamesPlayed: 0,
+      totalScore: 0,
+      maxLevel: 1,
+      totalMerges: 0,
+      levels: {},
+      maxCombo: 0,
+      stars: 0,
+      completedLevels: 0
+    }
 	},
 	currency: {
 		transactions: [],
@@ -166,10 +175,19 @@ const validateGameData = (games) => {
 			maxCombo: typeof games?.fruitMerge?.maxCombo === 'number' ? games.fruitMerge.maxCombo : defaultGames.fruitMerge.maxCombo,
 			stars: typeof games?.fruitMerge?.stars === 'number' ? games.fruitMerge.stars : 0,
 			completedLevels: typeof games?.fruitMerge?.completedLevels === 'number' ? games.fruitMerge.completedLevels : 0,
-			totalCoinsEarned: typeof games?.fruitMerge?.totalCoinsEarned === 'number' ? games.fruitMerge.totalCoinsEarned : 0,
-			totalDiamondsEarned: typeof games?.fruitMerge?.totalDiamondsEarned === 'number' ? games.fruitMerge.totalDiamondsEarned : 0,
 			levels: typeof games?.fruitMerge?.levels === 'object' ? games.fruitMerge.levels : {}
-		}
+		},
+    numNumMerge: {
+      highScore: typeof games?.numNumMerge?.highScore === 'number' ? games.numNumMerge.highScore : defaultGames.numNumMerge.highScore,
+      totalScore: typeof games?.numNumMerge?.totalScore === 'number' ? games.numNumMerge.totalScore : defaultGames.numNumMerge.totalScore,
+      gamesPlayed: typeof games?.numNumMerge?.gamesPlayed === 'number' ? games.numNumMerge.gamesPlayed : defaultGames.numNumMerge.gamesPlayed,
+      maxLevel: typeof games?.numNumMerge?.maxLevel === 'number' ? games.numNumMerge.maxLevel : defaultGames.numNumMerge.maxLevel,
+      totalMerges: typeof games?.numNumMerge?.totalMerges === 'number' ? games.numNumMerge.totalMerges : defaultGames.numNumMerge.totalMerges,
+      maxCombo: typeof games?.numNumMerge?.maxCombo === 'number' ? games.numNumMerge.maxCombo : defaultGames.numNumMerge.maxCombo,
+      stars: typeof games?.numNumMerge?.stars === 'number' ? games.numNumMerge.stars : 0,
+      completedLevels: typeof games?.numNumMerge?.completedLevels === 'number' ? games.numNumMerge.completedLevels : 0,
+      levels: typeof games?.numNumMerge?.levels === 'object' ? games.numNumMerge.levels : {}
+    }
 	}
 }
 
@@ -1243,7 +1261,6 @@ export function useLocalStorage() {
 		gameData.notifications.unreadCount = count
 		gameData.notifications.lastUpdated = new Date().toISOString()
 
-		console.log(`📱 Notification count updated: ${count}`, gameData.notifications)
 		return count
 	}
 

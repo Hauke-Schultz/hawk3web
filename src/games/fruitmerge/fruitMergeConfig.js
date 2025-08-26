@@ -83,9 +83,6 @@ export const FRUIT_TYPES = {
 		nextType: 'STRAWBERRY',
 		color: '#4c6ef5',
 		scoreValue: 10,
-		gradient: ['#748ffc', '#4c6ef5', '#364fc7'],
-		shadow: '0 2px 8px rgba(54, 79, 199, 0.4)',
-		glowColor: 'rgba(76, 110, 245, 0.6)',
 		sparkleColor: '#9C27B0',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -147,9 +144,6 @@ export const FRUIT_TYPES = {
 		nextType: 'LEMON',
 		color: '#ff8787',
 		scoreValue: 25,
-		gradient: ['#ffab91', '#ff8787', '#f4511e'],
-		shadow: '0 2px 8px rgba(244, 81, 30, 0.4)',
-		glowColor: 'rgba(255, 135, 135, 0.6)',
 		sparkleColor: '#E91E63',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -208,9 +202,6 @@ export const FRUIT_TYPES = {
 		nextType: 'ORANGE',
 		color: '#fdd835',
 		scoreValue: 50,
-		gradient: ['#fff176', '#fdd835', '#fbc02d'],
-		shadow: '0 2px 8px rgba(255, 235, 59, 0.4)',
-		glowColor: 'rgba(253, 216, 53, 0.6)',
 		sparkleColor: '#FFEB3B',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -262,9 +253,6 @@ export const FRUIT_TYPES = {
 		nextType: 'APPLE',
 		color: '#ffa726',
 		scoreValue: 100,
-		gradient: ['#ffcc02', '#ffa726', '#ff9800'],
-		shadow: '0 2px 8px rgba(255, 152, 0, 0.4)',
-		glowColor: 'rgba(255, 167, 38, 0.6)',
 		sparkleColor: '#FF9800',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -318,9 +306,6 @@ export const FRUIT_TYPES = {
 		nextType: 'DRAGON_FRUIT',
 		color: '#e53e3e',
 		scoreValue: 200,
-		gradient: ['#ef5350', '#e53e3e', '#c62828'],
-		shadow: '0 3px 12px rgba(198, 40, 40, 0.5)',
-		glowColor: 'rgba(229, 62, 62, 0.7)',
 		sparkleColor: '#36c904',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -377,9 +362,6 @@ export const FRUIT_TYPES = {
 		nextType: 'PINEAPPLE',
 		color: '#ff7043',
 		scoreValue: 400,
-		gradient: ['#ffab91', '#ff7043', '#d84315'],
-		shadow: '0 3px 12px rgba(216, 158, 46, 0.5)',
-		glowColor: 'rgba(255, 112, 67, 0.7)',
 		sparkleColor: '#FFAB91',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -419,9 +401,6 @@ export const FRUIT_TYPES = {
 		nextType: 'COCONUT',
 		color: '#d69e2e',
 		scoreValue: 800,
-		gradient: ['#ffd54f', '#d69e2e', '#f57f17'],
-		shadow: '0 4px 16px rgba(245, 127, 23, 0.6)',
-		glowColor: 'rgba(214, 158, 46, 0.8)',
 		sparkleColor: '#FDD835',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -477,9 +456,6 @@ export const FRUIT_TYPES = {
 		nextType: 'MELON',
 		color: '#8b4513',
 		scoreValue: 3200,
-		gradient: ['#a1887f', '#8b4513', '#5d4037'],
-		shadow: '0 5px 20px rgba(93, 64, 55, 0.7)',
-		glowColor: 'rgba(139, 69, 19, 0.9)',
 		sparkleColor: '#8D6E63',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -519,9 +495,6 @@ export const FRUIT_TYPES = {
 		nextType: 'DRAGON_FRUIT',
 		color: '#38b2ac',
 		scoreValue: 1600,
-		gradient: ['#4db6ac', '#38b2ac', '#00695c'],
-		shadow: '0 4px 16px rgba(0, 105, 92, 0.6)',
-		glowColor: 'rgba(56, 178, 172, 0.8)',
 		sparkleColor: '#b2dfdb',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -561,9 +534,6 @@ export const FRUIT_TYPES = {
 		nextType: 'PUMPKIN',
 		color: '#e91e63',
 		scoreValue: 3200,
-		gradient: ['#f48fb1', '#e91e63', '#ad1457'],
-		shadow: '0 6px 24px rgba(173, 20, 87, 0.8)',
-		glowColor: 'rgba(233, 30, 99, 1.0)',
 		sparkleColor: '#f8bbd9',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -629,9 +599,6 @@ export const FRUIT_TYPES = {
 		nextType: null,
 		color: '#ff8c00',
 		scoreValue: 3200,
-		gradient: ['#ffa726', '#ff8c00', '#ef6c00'],
-		shadow: '0 6px 24px rgba(239, 108, 0, 0.8)',
-		glowColor: 'rgba(255, 140, 0, 1.0)',
 		sparkleColor: '#ffcc02',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -684,15 +651,6 @@ export const FRUIT_TYPES = {
     <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
 </svg>`
 	}
-}
-
-// Fruit spawning probability (for random drops)
-export const FRUIT_SPAWN_WEIGHTS = {
-	BLUEBERRY: 0.4,    // 40% chance
-	STRAWBERRY: 0.3,   // 30% chance
-	GRAPE: 0.2,        // 20% chance
-	ORANGE: 0.1        // 10% chance
-	// Higher fruits only through merging
 }
 
 export const POINTS_CONFIG = {
