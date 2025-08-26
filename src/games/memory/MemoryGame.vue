@@ -1,22 +1,22 @@
 <script setup>
 import {ref, computed, onMounted, onUnmounted, nextTick} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useI18n } from '../composables/useI18n.js'
+import { useLocalStorage } from '../../composables/useLocalStorage.js'
+import { useI18n } from '../../composables/useI18n.js'
 import {
 	memoryConfig,
 	getMemoryLevel,
 	getGridConfig,
 	MEMORY_LEVELS
-} from '../config/memoryConfig.js'
-import { REWARDS } from '../config/achievementsConfig.js'
-import { calculateLevelStars } from '../config/levelUtils.js'
-import { useComboSystem } from '../composables/useComboSystem.js'
-import Icon from '../components/Icon.vue'
-import ProgressOverview from "../components/ProgressOverview.vue";
-import GameCompletedModal from "../components/GameCompletedModal.vue";
-import PerformanceStats from "../components/PerformanceStats.vue";
-import Header from "../components/Header.vue";
+} from './memoryConfig.js'
+import { REWARDS } from '../../config/achievementsConfig.js'
+import { calculateLevelStars } from '../../config/levelUtils.js'
+import { useComboSystem } from '../../composables/useComboSystem.js'
+import Icon from '../../components/Icon.vue'
+import ProgressOverview from "../../components/ProgressOverview.vue";
+import GameCompletedModal from "../../components/GameCompletedModal.vue";
+import PerformanceStats from "../../components/PerformanceStats.vue";
+import Header from "../../components/Header.vue";
 
 // Router
 const router = useRouter()
@@ -382,15 +382,9 @@ const completeGame = () => {
 		completed: true,
 		score: gameScore,
 		time: timeElapsed.value,
-		moves: moves.value
+		moves: moves.value,
+		stars: calculateCurrentStars()
 	}
-
-	// Check if this is first time completion
-	const previousLevelStats = getLevelStats('memory', currentLevel.value)
-	const isFirstTimeCompletion = !previousLevelStats?.completed
-
-	// Calculate stars after updating stats
-	const starsEarned = calculateCurrentStars()
 
 	// Update level statistics
 	updateLevelStats('memory', currentLevel.value, levelResult)
@@ -408,10 +402,12 @@ const completeGame = () => {
 				timeElapsed.value,
 		maxCombo: Math.max(
 				gameData.games.memory.maxCombo || 0,
-				comboSystem.comboCount.value
-		)
+				comboSystem.comboCount.value,
+		),
+		stars: Math.max(gameData.games.memory.stars, calculateCurrentStars()),
 	}
 
+	console.log('Updating memory game stats:', gameStats)
 	updateGameStats('memory', gameStats)
 
 	// Check for achievements and track new ones

@@ -1,24 +1,24 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
-import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG, POINTS_CONFIG} from '../config/fruitMergeConfig.js'
+import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG, POINTS_CONFIG} from './fruitMergeConfig.js'
 import { useRouter } from 'vue-router'
-import PerformanceStats from "../components/PerformanceStats.vue";
-import ProgressOverview from "../components/ProgressOverview.vue";
-import {calculateLevelStars} from "../config/levelUtils.js";
-import GameCompletedModal from "../components/GameCompletedModal.vue";
-import {useComboSystem} from "../composables/useComboSystem.js";
-import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useInventory } from '../composables/useInventory.js'
-import { useI18n } from '../composables/useI18n.js'
-import Header from "../components/Header.vue";
-import {REWARDS} from "../config/achievementsConfig.js";
-import {COMBO_CONFIG} from "../config/comboConfig.js";
-import { ACHIEVEMENTS } from '../config/achievementsConfig.js'
-import GameOverModal from "../components/GameOverModal.vue";
-import Icon from "../components/Icon.vue";
-import ShopModal from "../components/ShopModal.vue";
-import { SHOP_ITEMS } from '../config/shopConfig.js'
+import PerformanceStats from "../../components/PerformanceStats.vue";
+import ProgressOverview from "../../components/ProgressOverview.vue";
+import {calculateLevelStars} from "../../config/levelUtils.js";
+import GameCompletedModal from "../../components/GameCompletedModal.vue";
+import {useComboSystem} from "../../composables/useComboSystem.js";
+import { useLocalStorage } from '../../composables/useLocalStorage.js'
+import { useInventory } from '../../composables/useInventory.js'
+import { useI18n } from '../../composables/useI18n.js'
+import Header from "../../components/Header.vue";
+import {REWARDS} from "../../config/achievementsConfig.js";
+import {COMBO_CONFIG} from "../../config/comboConfig.js";
+import { ACHIEVEMENTS } from '../../config/achievementsConfig.js'
+import GameOverModal from "../../components/GameOverModal.vue";
+import Icon from "../../components/Icon.vue";
+import ShopModal from "../../components/ShopModal.vue";
+import { SHOP_ITEMS } from '../../config/shopConfig.js'
 
 // Props
 const props = defineProps({
@@ -1489,7 +1489,7 @@ const gameOver = () => {
 		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
 		totalScore: gameData.games.fruitMerge.totalScore + score.value,
 		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
-		stars: Math.max(gameData.games.fruitMerge.starsEarned, calculateCurrentStars()),
+		stars: Math.max(gameData.games.fruitMerge.stars, calculateCurrentStars()),
 	}
 
 	updateGameStats('fruitMerge', gameStats)

@@ -58,6 +58,7 @@ const getDefaultData = () => ({
 			bestTime: null,
 			averageTime: null,
 			maxCombo: 0,
+      stars: 0,
 			levels: {}
 		},
 		fruitMerge: {
@@ -153,6 +154,7 @@ const validateGameData = (games) => {
 			bestTime: typeof games?.memory?.bestTime === 'number' ? games.memory.bestTime : defaultGames.memory.bestTime,
 			averageTime: typeof games?.memory?.averageTime === 'number' ? games.memory.averageTime : defaultGames.memory.averageTime,
 			maxCombo: typeof games?.memory?.maxCombo === 'number' ? games.memory.maxCombo : defaultGames.memory.maxCombo,
+      stars: typeof games?.memory?.stars === 'number' ? games.memory.stars : 0,
 			levels: typeof games?.memory?.levels === 'object' ? games.memory.levels : {}
 		},
 		fruitMerge: {
