@@ -1413,17 +1413,6 @@ watch(() => props.level, (newLevel) => {
 	}
 }
 
-.game-instructions {
-	text-align: center;
-	margin-bottom: var(--space-2);
-}
-
-.instruction-text {
-	font-size: var(--font-size-sm);
-	color: var(--text-secondary);
-	font-weight: var(--font-weight-bold);
-}
-
 .num-grid {
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
@@ -1576,34 +1565,6 @@ watch(() => props.level, (newLevel) => {
 	font-size: 14px;
 	font-weight: bold;
 	box-shadow: 0 0 25px rgba(0, 0, 0, 1);
-}
-
-.controls-hint {
-	text-align: center;
-	margin-top: var(--space-2);
-}
-
-.hint-desktop,
-.hint-mobile {
-	font-size: var(--font-size-xs);
-	color: var(--text-secondary);
-	margin: var(--space-1) 0;
-}
-
-.hint-mobile {
-	display: block;
-
-	@media (min-width: 768px) {
-		display: none;
-	}
-}
-
-.hint-desktop {
-	display: none;
-
-	@media (min-width: 768px) {
-		display: block;
-	}
 }
 
 // Animations
