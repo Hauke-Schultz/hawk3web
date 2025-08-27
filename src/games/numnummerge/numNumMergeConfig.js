@@ -72,6 +72,46 @@ export const PHYSICS_CONFIG = {
 	stopPhysicsDelay: 200,
 	showCompletionDelay: 1000,
 }
+export const GRID_CONFIG = {
+  // Grid Dimensions
+  rows: 5,
+  cols: 4,
+
+  // Board Dimensions
+  boardWidth: 320,
+  boardHeight: 400,
+
+  // Cell Calculations
+  cellSize: 70,
+  cellGap: 6,
+
+  // Board Padding
+  paddingX: 8,
+  paddingY: 8,
+
+  // Touch Standards
+  minTouchTarget: 44,
+}
+
+export const GRID_UTILS = {
+  // Convert grid position to pixel coordinates
+  gridToPixel: (row, col) => ({
+    x: GRID_CONFIG.paddingX + (col * (GRID_CONFIG.cellSize + GRID_CONFIG.cellGap)),
+    y: GRID_CONFIG.paddingY + (row * (GRID_CONFIG.cellSize + GRID_CONFIG.cellGap))
+  }),
+
+  // Convert pixel coordinates to grid position
+  pixelToGrid: (x, y) => ({
+    row: Math.floor((y - GRID_CONFIG.paddingY) / (GRID_CONFIG.cellSize + GRID_CONFIG.cellGap)),
+    col: Math.floor((x - GRID_CONFIG.paddingX) / (GRID_CONFIG.cellSize + GRID_CONFIG.cellGap))
+  }),
+
+  // Check if grid position is valid
+  isValidPosition: (row, col) => {
+    return row >= 0 && row < GRID_CONFIG.rows &&
+        col >= 0 && col < GRID_CONFIG.cols;
+  }
+}
 
 export const NUMBER_TYPES = {
   NUM_2: {
