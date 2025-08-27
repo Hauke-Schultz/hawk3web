@@ -7,6 +7,8 @@ import Icon from "../../components/Icon.vue";
 import {NUM_NUM_MERGE_LEVELS} from "./numNumMergeConfig.js";
 import {useRouter} from "vue-router";
 import ProgressOverview from "../../components/ProgressOverview.vue";
+import PerformanceStats from "../../components/PerformanceStats.vue";
+import {useComboSystem} from "../../composables/useComboSystem.js";
 
 // Props
 const props = defineProps({
@@ -25,12 +27,22 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const score = ref(0)
+const moves = ref(0)
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
 const currentLevel = ref(props.level || 1)
 const currentLevelConfig = computed(() => NUM_NUM_MERGE_LEVELS[currentLevel.value])
 
+// Combo system setup
+const comboSystem = useComboSystem({
+	minComboLength: 2,
+	maxComboLength: 15,
+	comboTimeout: 3000,
+	baseMultiplier: 1.4,
+	multiplierIncrement: 0.4
+})
+
 const numNums = [
-	[null, null, null, null],
 	[null, null, null, null],
 	[null, null, null, null],
 	[4, null, null, null],
@@ -40,20 +52,6 @@ const numNums = [
 // Services
 const {
 	gameData,
-	updateGameStats,
-	updateLevelStats,
-	addScore,
-	checkGameLevelAchievements,
-	checkAutoAchievements,
-	getLevelStats,
-	saveLevelState,
-	loadLevelState,
-	clearLevelState,
-	hasLevelState,
-	addAchievement,
-	hasAchievement,
-	buyItem,
-	removeItemFromInventory,
 } = useLocalStorage()
 const { t } = useI18n()
 
@@ -129,13 +127,39 @@ const handleMenuSaveGame = () => {
 						:show-percentage="false"
 						:complete-label="t('numNumMerge.target')"
 				/>
+				<!-- Game Performance Stats -->
+				<PerformanceStats
+						:score="score"
+						:time-elapsed="isEndlessMode ? sessionTime : 0"
+						:moves="moves"
+						:matches="0"
+						:total-pairs="0"
+						:combo-count="comboSystem.comboLevel.value"
+						:combo-multiplier="comboSystem.comboMultiplier.value"
+						:max-combo="gameData.games.numNumMerge.maxCombo || 0"
+						:combo-time-remaining="comboSystem.timeRemaining.value"
+						:combo-time-max="comboSystem.config.comboTimeout"
+						:is-combo-active="comboSystem.isComboActive.value"
+						layout="horizontal"
+						theme="card"
+						size="normal"
+						:show-score="true"
+						:show-time="isEndlessMode"
+						:show-moves="true"
+						:show-matches="false"
+						:show-combo="true"
+						:score-label="t('stats.score')"
+						:time-label="t('stats.time')"
+						:moves-label="t('stats.moves')"
+						:combo-label="t('stats.combo')"
+				/>
 			</div>
 		</div>
 		<!-- Game Board -->
 		<div class="game-board">
 			<div class="num-grid">
 				<div
-					v-for="(row, rowIndex) in 5"
+					v-for="(row, rowIndex) in 4"
 					:key="`row-${rowIndex}`"
 					class="grid-row"
 				>
@@ -229,7 +253,7 @@ const handleMenuSaveGame = () => {
 
 .num-grid {
 	display: grid;
-	grid-template-rows: repeat(5, 1fr);
+	grid-template-rows: repeat(4, 1fr);
 	grid-template-columns: repeat(4, 1fr);
 	gap: var(--space-1);
 	width: 100%;
