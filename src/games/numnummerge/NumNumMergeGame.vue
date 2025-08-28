@@ -33,7 +33,7 @@ const props = defineProps({
 const router = useRouter()
 
 // Emits
-const emit = defineEmits(['game-complete', 'menu-click', 'save-game'])
+const emit = defineEmits(['game-complete', 'menu-click', 'start-game', 'profile-click', 'trophy-click', 'settings-click', 'about-click', 'shop-click', 'theme-change', 'language-change', 'font-size-change', 'back-to-home'])
 
 // Services
 const {
@@ -1223,7 +1223,6 @@ watch(() => props.level, (newLevel) => {
 						:score-label="t('stats.score')"
 						:time-label="t('stats.time')"
 						:moves-label="t('stats.moves')"
-						:matches-label="t('numNumMerge.merges')"
 						:combo-label="t('stats.combo')"
 				/>
 			</div>
@@ -1325,9 +1324,16 @@ watch(() => props.level, (newLevel) => {
 	gap: var(--space-4);
 	padding: var(--space-4);
 	min-height: calc(100vh - 80px);
-	width: 100%;
-	max-width: 440px;
-	margin: 0 auto;
+	touch-action: manipulation;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	overscroll-behavior: contain;
+	overscroll-behavior-y: contain;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-overflow-scrolling: touch;
 }
 
 // Game Header
@@ -1348,6 +1354,15 @@ watch(() => props.level, (newLevel) => {
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
 	margin: 0;
+}
+
+.game-header,
+.game-stats-container {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	touch-action: manipulation;
 }
 
 .level-indicator {
@@ -1395,11 +1410,13 @@ watch(() => props.level, (newLevel) => {
 	align-items: center;
 	width: 100%;
 	gap: var(--space-4);
-	background-color: var(--bg-secondary);
-	border-radius: var(--border-radius-xl);
-	padding: var(--space-4);
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	transition: all 0.3s ease;
+	position: relative;
+	touch-action: manipulation;
+	overscroll-behavior: contain;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 
 	&--endless {
 		border: 2px solid var(--primary-color);
@@ -1413,6 +1430,14 @@ watch(() => props.level, (newLevel) => {
 	}
 }
 
+.game-grid {
+	touch-action: manipulation;
+	-webkit-touch-callout: none;
+	-webkit-user-drag: none;
+	-moz-user-drag: none;
+	user-drag: none;
+}
+
 .num-grid {
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
@@ -1423,6 +1448,16 @@ watch(() => props.level, (newLevel) => {
 	border-radius: var(--border-radius-lg);
 	padding: var(--space-2);
 	box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.number-tile {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .grid-row {
