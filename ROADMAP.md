@@ -69,8 +69,10 @@
 
 ### Primary Features
 
-- **Perfect Score Achievements** - Complete all levels with a perfect score
+- **Perfect Score Achievements** - Complete all levels with a perfect 3 star score (all games)
 - **NumNum Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
+- **Undo Item** - Shop item to undo last move in NumNum game
+- **In-Game Shop Integration** - Direct item purchasing during gameplay (Undo item)
 
 ---
 
