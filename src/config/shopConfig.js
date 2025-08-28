@@ -101,8 +101,18 @@ export const SHOP_ITEMS = [
     rarity: 'common',
     icon: '🔨',
     type: 'consumable',
-    purchaseLimit: null,
-    uses: 1
+    purchaseLimit: null
+  },
+  {
+    id: 'undo_move',
+    name: 'Undo Move',
+    description: 'Take back your last move. Use wisely!',
+    category: 'items',
+    price: { coins: 1000, diamonds: 10 },
+    rarity: 'common',
+    icon: '↩️',
+    type: 'consumable',
+    purchaseLimit: null
   },
 
   // Simple Utilities

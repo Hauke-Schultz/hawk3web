@@ -327,11 +327,13 @@ const handleMenuClick = () => {
 	&.rarity--common {
 		background-color: var(--info-color);
 		color: white;
+		display: none;
 	}
 
 	&.rarity--uncommon {
 		background-color: var(--success-color);
 		color: white;
+		display: none;
 	}
 
 	&.rarity--rare {

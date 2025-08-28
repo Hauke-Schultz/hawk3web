@@ -11,7 +11,7 @@ import PerformanceStats from "../../components/PerformanceStats.vue";
 import {useComboSystem} from "../../composables/useComboSystem.js";
 import GameCompletedModal from "../../components/GameCompletedModal.vue";
 import GameOverModal from "../../components/GameOverModal.vue";
-import {REWARDS} from "../../config/achievementsConfig.js";
+import {ACHIEVEMENTS, REWARDS} from "../../config/achievementsConfig.js";
 import {calculateLevelStars} from "../../config/levelUtils.js";
 
 // Props
@@ -389,6 +389,7 @@ const moveLeft = () => {
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
+			handleAutoSave()
 		}, 150)
 
 		return true
@@ -464,6 +465,7 @@ const moveRight = () => {
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
+			handleAutoSave()
 		}, 150)
 
 		return true
@@ -539,6 +541,7 @@ const moveUp = () => {
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
+			handleAutoSave()
 		}, 150)
 
 		return true
@@ -615,6 +618,7 @@ const moveDown = () => {
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
+			handleAutoSave()
 		}, 150)
 
 		return true
@@ -624,20 +628,38 @@ const moveDown = () => {
 	}
 }
 
+const handleAutoSave = () => {
+	if (gameState.value !== 'playing' || isRestoringState.value) return
+
+	try {
+		const currentState = captureCurrentState()
+		if (currentState) {
+			saveLevelState('numNumMerge', currentLevel.value, currentState)
+			console.log(`💾 Auto-saved after move ${moves.value} for level ${currentLevel.value}`)
+		}
+	} catch (error) {
+		console.error('Error auto-saving game state:', error)
+	}
+}
+
 // Touch/Swipe handling
 const handleTouchStart = (event) => {
 	if (event.touches.length !== 1) return
-
+	if (event.touches[0].clientY < 100) {
+		event.preventDefault()
+	}
 	touchStartX.value = event.touches[0].clientX
 	touchStartY.value = event.touches[0].clientY
 }
 
+const handleTouchMove = (event) => {
+	event.preventDefault()
+}
+
 const handleTouchEnd = (event) => {
 	if (event.changedTouches.length !== 1) return
-
 	touchEndX.value = event.changedTouches[0].clientX
 	touchEndY.value = event.changedTouches[0].clientY
-
 	handleSwipe()
 }
 
@@ -758,15 +780,23 @@ const completeLevel = () => {
 
 	updateGameStats('numNumMerge', gameStats)
 
-	// Add currency rewards
-	if (levelReward.value.coins > 0 || levelReward.value.diamonds > 0) {
-		gameData.player.coins = (gameData.player.coins || 0) + levelReward.value.coins
-		gameData.player.diamonds = (gameData.player.diamonds || 0) + levelReward.value.diamonds
-	}
-
 	// Check achievements
 	const achievementsBefore = [...gameData.achievements]
 	checkGameLevelAchievements('numNumMerge', currentLevel.value)
+
+	const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
+		maxCombo: comboSystem.comboCount.value,
+		moves: moves.value,
+		totalMerges: totalMerges.value
+	})
+
+	numNumAchievements.forEach(achievement => {
+		const wasAdded = addAchievement(achievement)
+		if (wasAdded) {
+			console.log(`🎉 NumNum achievement unlocked: ${achievement.name}`)
+		}
+	})
+
 	checkAutoAchievements()
 	const achievementsAfter = [...gameData.achievements]
 
@@ -814,6 +844,64 @@ const completeLevel = () => {
 	})
 }
 
+const checkNumNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
+	const achievements = []
+
+	// Check for number milestone achievements
+	const highestNumber = getHighestNumberFromGrid(finalGrid)
+	const numberAchievements = ACHIEVEMENTS.definitions.filter(
+			achievement =>
+					achievement.trigger.type === 'number_reach' &&
+					achievement.trigger.game === 'numNumMerge' &&
+					achievement.trigger.number <= highestNumber
+	)
+
+	numberAchievements.forEach(achievement => {
+		if (!gameData.achievements.some(a => a.id === achievement.id && a.earned)) {
+			achievements.push(achievement)
+		}
+	})
+
+	// Check for combo achievements
+	if (gameStats.maxCombo >= 10) {
+		const comboAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'numnum_combo_master')
+		if (comboAchievement && !gameData.achievements.some(a => a.id === comboAchievement.id && a.earned)) {
+			achievements.push(comboAchievement)
+		}
+	}
+
+	// Check for moves-based achievements
+	if (gameStats.moves <= 50) {
+		const speedAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'numnum_speedster')
+		if (speedAchievement && !gameData.achievements.some(a => a.id === speedAchievement.id && a.earned)) {
+			achievements.push(speedAchievement)
+		}
+	}
+
+	// Check for total merges across all games
+	const totalMerges = gameData.games.numNumMerge.totalMerges || 0
+	if (totalMerges >= 100) {
+		const mergeAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'numnum_merge_master')
+		if (mergeAchievement && !gameData.achievements.some(a => a.id === mergeAchievement.id && a.earned)) {
+			achievements.push(mergeAchievement)
+		}
+	}
+
+	return achievements
+}
+
+const getHighestNumberFromGrid = (grid) => {
+	let highest = 0
+	for (let row = 0; row < 4; row++) {
+		for (let col = 0; col < 4; col++) {
+			if (grid[row][col] && grid[row][col] > highest) {
+				highest = grid[row][col]
+			}
+		}
+	}
+	return highest
+}
+
 const gameOver = () => {
 	pauseGame()
 	clearLevelState('numNumMerge', currentLevel.value)
@@ -829,6 +917,21 @@ const gameOver = () => {
 	}
 
 	updateGameStats('numNumMerge', gameStats)
+
+	const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
+		maxCombo: comboSystem.comboCount.value,
+		moves: moves.value,
+		totalMerges: totalMerges.value
+	})
+
+	numNumAchievements.forEach(achievement => {
+		const wasAdded = addAchievement(achievement)
+		if (wasAdded) {
+			console.log(`🎉 NumNum achievement unlocked: ${achievement.name}`)
+		}
+	})
+
+	checkAutoAchievements()
 	addScore(score.value)
 }
 
@@ -1052,27 +1155,6 @@ const restoreGameState = (savedState) => {
 	}
 }
 
-const handleManualSave = async () => {
-	if (gameState.value !== 'playing' || isSaving.value) return
-
-	isSaving.value = true
-
-	try {
-		const currentState = captureCurrentState()
-		if (currentState) {
-			saveLevelState('numNumMerge', currentLevel.value, currentState)
-			console.log(`✅ Game manually saved for level ${currentLevel.value}`)
-
-			setTimeout(() => {
-				isSaving.value = false
-			}, 800)
-		}
-	} catch (error) {
-		console.error('Error saving game state:', error)
-		isSaving.value = false
-	}
-}
-
 // Helper functions for tile styling
 const getTileClass = (value) => {
 	if (!value) return ''
@@ -1140,10 +1222,15 @@ const backToGaming = () => {
 onMounted(() => {
 	initializeGame()
 	document.addEventListener('keydown', handleKeyDown)
+	if (gameBoard.value) {
+		gameBoard.value.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false })
+	}
+	document.addEventListener('contextmenu', (e) => e.preventDefault())
 })
 
 onUnmounted(() => {
 	document.removeEventListener('keydown', handleKeyDown)
+	document.removeEventListener('contextmenu', (e) => e.preventDefault())
 	stopSessionTimer()
 	comboSystem.cleanup()
 })
@@ -1156,12 +1243,12 @@ watch(() => props.level, (newLevel) => {
 </script>
 <template>
 	<Header
-			:game-data="gameData"
-			:player="gameData.player"
-			:achievements="gameData.achievements"
-			:show-menu-button="true"
-			@menu-click="handleMenuClick"
-			@save-game="handleMenuSaveGame"
+		:game-data="gameData"
+		:player="gameData.player"
+		:achievements="gameData.achievements"
+		:show-menu-button="true"
+		@menu-click="handleMenuClick"
+		@save-game="handleMenuSaveGame"
 	/>
 	<main class="num-num-merge-game">
 		<!-- Game Header -->
@@ -1170,16 +1257,6 @@ watch(() => props.level, (newLevel) => {
 				<h2 class="game-title">{{ t('numNumMerge.title') }}</h2>
 				<div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
 					{{ isEndlessMode ? t('numNumMerge.endless_mode') : t('numNumMerge.level_title', { level: currentLevel }) }}
-				</div>
-				<div v-if="gameState === 'playing'" class="manual-save">
-					<button
-							class="btn btn--small"
-							@click="handleManualSave"
-							:disabled="isSaving"
-							:title="t('numNumMerge.save_game')"
-					>
-						<Icon :name="isSaving ? 'loading' : 'save'" size="22" />
-					</button>
 				</div>
 			</div>
 
@@ -1229,14 +1306,15 @@ watch(() => props.level, (newLevel) => {
 		<!-- Game Board -->
 		<div class="game-container">
 			<div
-					ref="gameBoard"
-					class="game-board"
-					:class="{
-				'game-board--endless': isEndlessMode,
-				'game-board--animating': isAnimating
-			}"
-					@touchstart.passive="handleTouchStart"
-					@touchend.passive="handleTouchEnd"
+				ref="gameBoard"
+				class="game-board"
+				:class="{
+					'game-board--endless': isEndlessMode,
+					'game-board--animating': isAnimating
+				}"
+				@touchstart.passive="handleTouchStart"
+				@touchmove.prevent="handleTouchMove"
+				@touchend.passive="handleTouchEnd"
 			>
 
 				<!-- Grid -->
@@ -1376,12 +1454,6 @@ watch(() => props.level, (newLevel) => {
 		background: linear-gradient(135deg, var(--info-color), var(--primary-color));
 		animation: endlessGlow 2s ease-in-out infinite alternate;
 	}
-}
-
-.manual-save {
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 
 .game-stats-container {

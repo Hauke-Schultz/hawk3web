@@ -245,14 +245,6 @@ watch(() => gameData, (newData) => {
 					<div class="item-info">
 						<h4 class="item-name">{{ item.name }}</h4>
 						<p class="item-description">{{ item.description }}</p>
-
-						<!-- Item Rarity -->
-						<div
-								class="item-rarity"
-								:style="{ color: RARITY_CONFIG[item.rarity]?.color }"
-						>
-							{{ t(`shop.rarities.${item.rarity}`) }}
-						</div>
 					</div>
 
 					<!-- Item Price & Action -->
@@ -492,13 +484,6 @@ watch(() => gameData, (newData) => {
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
-}
-
-.item-rarity {
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
 }
 
 // Item Action

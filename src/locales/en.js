@@ -590,6 +590,7 @@ export default {
 			special: 'Special',
 			memory: 'Memory Game',
 			fruitMerge: 'Fruit Merge Game',
+      numNumMerge: 'Num Num Merge Game',
 		},
 		rarities: {
 			common: 'Common',
@@ -700,6 +701,49 @@ export default {
 				name: 'Score Master',
 				description: 'Reached 35,000 points in a single game'
 			},
+
+      numnum_beginner: {
+        name: 'Number Novice',
+        description: 'Completed first NumNumMerge level'
+      },
+      numnum_intermediate: {
+        name: 'Number Apprentice',
+        description: 'Completed NumNumMerge Level 3'
+      },
+      numnum_expert: {
+        name: 'Number Expert',
+        description: 'Completed NumNumMerge Level 5'
+      },
+      numnum_master: {
+        name: 'Number Master',
+        description: 'Completed the ultimate NumNumMerge challenge'
+      },
+
+      reach_128: {
+        name: '128 Achiever',
+        description: 'Created the number 128'
+      },
+      reach_256: {
+        name: '256 Achiever',
+        description: 'Created the number 256'
+      },
+      reach_512: {
+        name: '512 Achiever',
+        description: 'Created the number 512'
+      },
+      reach_1024: {
+        name: '1024 Achiever',
+        description: 'Created the number 1024'
+      },
+      reach_2048: {
+        name: '2048 Achiever',
+        description: 'Created the number 2048'
+      },
+      reach_4096: {
+        name: '4096 Achiever',
+        description: 'Created the number 4096'
+      },
+
 			perfectionist: {
 				name: 'Perfectionist',
 				description: 'Complete all levels with perfect scores'

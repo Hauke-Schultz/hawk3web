@@ -591,6 +591,7 @@ export default {
 			special: 'Besonders',
 			memory: 'Memory-Spiel',
 			fruitMerge: 'Fruit Merge-Spiel',
+      numNumMerge: 'Num Num Merge-Spiel',
 		},
 		rarities: {
 			common: 'Häufig',
@@ -701,6 +702,49 @@ export default {
 				name: 'Punkte-Meister',
 				description: '35.000 Punkte in einem Spiel erreicht'
 			},
+
+      numnum_beginner: {
+        name: 'Nummer Anfänger',
+        description: 'Erstes NumNumMerge Level abgeschlossen'
+      },
+      numnum_intermediate: {
+        name: 'Nummer Aufsteiger',
+        description: 'NumNumMerge Level 3 abgeschlossen'
+      },
+      numnum_expert: {
+        name: 'Nummer Experte',
+        description: 'NumNumMerge Level 5 abgeschlossen'
+      },
+      numnum_master: {
+        name: 'Nummer Meister',
+        description: 'Die ultimative NumNumMerge Herausforderung abgeschlossen'
+      },
+
+      reach_128: {
+        name: 'Nummer 128',
+        description: 'Erreiche Nummer 128'
+      },
+      reach_256: {
+        name: 'Nummer 256',
+        description: 'Erreiche Nummer 256'
+      },
+      reach_512: {
+        name: 'Nummer 512',
+        description: 'Erreiche Nummer 512'
+      },
+      reach_1024: {
+        name: 'Nummer 1024',
+        description: 'Erreiche Nummer 1024'
+      },
+      reach_2048: {
+        name: 'Nummer 2048',
+        description: 'Erreiche Nummer 2048'
+      },
+      reach_4096: {
+        name: 'Nummer 4096',
+        description: 'Erreiche Nummer 4096'
+      },
+
 			perfectionist: {
 				name: 'Perfektionist',
 				description: 'Alle Level mit perfekter Punktzahl abgeschlossen'

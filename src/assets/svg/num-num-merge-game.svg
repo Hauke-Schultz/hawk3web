@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <!-- Gradients für die Zahlen -->
+        <radialGradient id="num2Grad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFE0B2"/>
+            <stop offset="100%" style="stop-color:#FF9800"/>
+        </radialGradient>
+
+        <radialGradient id="num4Grad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFCDD2"/>
+            <stop offset="100%" style="stop-color:#F44336"/>
+        </radialGradient>
+
+        <radialGradient id="num8Grad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#C8E6C9"/>
+            <stop offset="100%" style="stop-color:#4CAF50"/>
+        </radialGradient>
+
+        <radialGradient id="num16Grad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#E1BEE7"/>
+            <stop offset="100%" style="stop-color:#9C27B0"/>
+        </radialGradient>
+
+        <!-- Highlight gradient -->
+        <radialGradient id="highlightGrad" cx="0.2" cy="0.2">
+            <stop offset="0%" style="stop-color:#FFFFFF" stop-opacity="0.8"/>
+            <stop offset="100%" style="stop-color:#FFFFFF" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+
+    <!-- Top Left: Number 2 -->
+    <rect x="15" y="15" width="30" height="30" rx="6" fill="url(#num2Grad)" stroke="#E65100" stroke-width="1.5"/>
+    <ellipse cx="22" cy="22" rx="3" ry="2" fill="url(#highlightGrad)"/>
+    <!-- Number 2 -->
+    <text x="30" y="36" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="16" font-weight="bold" fill="white" stroke="#E65100" stroke-width="0.5">2</text>
+
+
+    <!-- Top Right: Number 4 -->
+    <rect x="55" y="15" width="30" height="30" rx="6" fill="url(#num4Grad)" stroke="#C62828" stroke-width="1.5"/>
+    <ellipse cx="62" cy="22" rx="3" ry="2" fill="url(#highlightGrad)"/>
+    <!-- Number 4 -->
+    <text x="70" y="36" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="16" font-weight="bold" fill="white" stroke="#C62828" stroke-width="0.5">4</text>
+
+
+    <!-- Bottom Left: Number 8 -->
+    <rect x="15" y="55" width="30" height="30" rx="6" fill="url(#num8Grad)" stroke="#2E7D32" stroke-width="1.5"/>
+    <ellipse cx="22" cy="62" rx="3" ry="2" fill="url(#highlightGrad)"/>
+    <!-- Number 8 -->
+    <text x="30" y="76" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="16" font-weight="bold" fill="white" stroke="#2E7D32" stroke-width="0.5">8</text>
+
+
+    <!-- Bottom Right: Number 16 -->
+    <rect x="55" y="55" width="30" height="30" rx="6" fill="url(#num16Grad)" stroke="#6A1B9A" stroke-width="1.5"/>
+    <ellipse cx="62" cy="62" rx="3" ry="2" fill="url(#highlightGrad)"/>
+    <!-- Number 16 -->
+    <text x="70" y="73" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="11" font-weight="bold" fill="white" stroke="#6A1B9A" stroke-width="0.5">16</text>
+
+</svg>

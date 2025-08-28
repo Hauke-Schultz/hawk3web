@@ -254,7 +254,113 @@ export const ACHIEVEMENTS = {
 			rewards: { coins: 2000, diamonds: 20 },
 			trigger: { type: 'time_played', seconds: 1200 }
 		},
-		// Special achievements
+
+
+    // NumNum Merge specific achievements
+    {
+      id: 'numnum_beginner',
+      name: 'Number Beginner',
+      description: 'Completed first NumNum level',
+      category: 'numNumMerge',
+      icon: 'num-num-merge-game',
+      rarity: 'common',
+      rewards: { coins: 150, diamonds: 1 },
+      trigger: { type: 'level_complete', game: 'numNumMerge', level: 1 }
+    },
+    {
+      id: 'numnum_intermediate',
+      name: 'Number Crusher',
+      description: 'Completed NumNum Level 3',
+      category: 'numNumMerge',
+      icon: 'num-num-merge-game',
+      rarity: 'uncommon',
+      rewards: { coins: 500, diamonds: 2 },
+      trigger: { type: 'level_complete', game: 'numNumMerge', level: 3 }
+    },
+    {
+      id: 'numnum_expert',
+      name: 'Number Expert',
+      description: 'Completed NumNum Level 5',
+      category: 'numNumMerge',
+      icon: 'num-num-merge-game',
+      rarity: 'epic',
+      rewards: { coins: 1500, diamonds: 8 },
+      trigger: { type: 'level_complete', game: 'numNumMerge', level: 5 }
+    },
+    {
+      id: 'numnum_master',
+      name: 'Number Master',
+      description: 'Mastered all NumNum challenges',
+      category: 'numNumMerge',
+      icon: 'num-num-merge-game',
+      rarity: 'legendary',
+      rewards: { coins: 3000, diamonds: 15 },
+      trigger: { type: 'level_complete', game: 'numNumMerge', level: 6 }
+    },
+
+    // Number milestone achievements
+    {
+      id: 'reach_128',
+      name: 'Triple Digit',
+      description: 'Reached number 128',
+      category: 'numNumMerge',
+      icon: 'star',
+      rarity: 'common',
+      rewards: { coins: 300, diamonds: 1 },
+      trigger: { type: 'number_reach', game: 'numNumMerge', number: 128 }
+    },
+    {
+      id: 'reach_256',
+      name: 'Power of Two',
+      description: 'Reached number 256',
+      category: 'numNumMerge',
+      icon: 'star',
+      rarity: 'uncommon',
+      rewards: { coins: 600, diamonds: 3 },
+      trigger: { type: 'number_reach', game: 'numNumMerge', number: 256 }
+    },
+    {
+      id: 'reach_512',
+      name: 'Half Thousand',
+      description: 'Reached number 512',
+      category: 'numNumMerge',
+      icon: 'star-filled',
+      rarity: 'uncommon',
+      rewards: { coins: 1000, diamonds: 5 },
+      trigger: { type: 'number_reach', game: 'numNumMerge', number: 512 }
+    },
+    {
+      id: 'reach_1024',
+      name: 'Kilobyte Master',
+      description: 'Reached number 1024',
+      category: 'numNumMerge',
+      icon: 'star-filled',
+      rarity: 'rare',
+      rewards: { coins: 2000, diamonds: 8 },
+      trigger: { type: 'number_reach', game: 'numNumMerge', number: 1024 }
+    },
+    {
+      id: 'reach_2048',
+      name: 'The Ultimate Goal',
+      description: 'Reached the legendary 2048!',
+      category: 'numNumMerge',
+      icon: 'trophy',
+      rarity: 'epic',
+      rewards: { coins: 4000, diamonds: 15 },
+      trigger: { type: 'number_reach', game: 'numNumMerge', number: 2048 }
+    },
+    {
+      id: 'reach_4096',
+      name: 'Beyond Limits',
+      description: 'Reached number 4096 - Amazing!',
+      category: 'numNumMerge',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 8000, diamonds: 25 },
+      trigger: { type: 'number_reach', game: 'numNumMerge', number: 4096 }
+    },
+
+    // Special achievements
 		{
 			id: 'perfectionist',
 			name: 'Perfectionist',
@@ -293,6 +399,12 @@ export const ACHIEVEMENTS = {
 			color: 'orange',
 			description: 'Achievements for the Fruit Merge Game'
 		},
+    {
+      id: 'numNumMerge',
+      name: 'NumNum Merge Game',
+      color: 'warning',
+      description: 'Achievements for the NumNum Merge Game'
+    },
 		{
 			id: 'special',
 			name: 'Special',
