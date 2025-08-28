@@ -1076,9 +1076,7 @@ const handleManualSave = async () => {
 // Helper functions for tile styling
 const getTileClass = (value) => {
 	if (!value) return ''
-
-	const numberType = Object.values(NUMBER_TYPES).find(type => type.number === value)
-	return numberType ? `tile--${numberType.type.toLowerCase()}` : 'tile--default'
+	return 'cell-number'
 }
 
 const getTileStyle = (value) => {
@@ -1087,12 +1085,33 @@ const getTileStyle = (value) => {
 	const numberType = Object.values(NUMBER_TYPES).find(type => type.number === value)
 	if (!numberType) return {}
 
-	return {
+	const baseStyle = {
 		backgroundColor: numberType.color,
 		color: numberType.textColor,
 		fontSize: `${numberType.fontSize}px`,
 		fontWeight: numberType.fontWeight
 	}
+
+	// Spezielle Effekte für höhere Zahlen
+	if (numberType.glowEffect) {
+		const glowIntensity = 8 + (numberType.index - 7) * 2
+		baseStyle.boxShadow = `0 0 ${glowIntensity}px ${numberType.color}80`
+	}
+
+	// Spezial-Animationen
+	if (numberType.specialEffect === 'pulse' && numberType.number === 2048) {
+		baseStyle.animation = 'tile2048Glow 1s ease-in-out infinite alternate'
+	}
+
+	if (numberType.specialEffect === 'elite') {
+		baseStyle.boxShadow = '0 0 20px rgba(60, 58, 50, 0.9)'
+	}
+
+	if (numberType.specialEffect === 'legendary') {
+		baseStyle.boxShadow = '0 0 25px rgba(0, 0, 0, 1)'
+	}
+
+	return baseStyle
 }
 
 const isNewTile = (row, col) => {
@@ -1508,99 +1527,6 @@ watch(() => props.level, (newLevel) => {
 	transition: all 0.15s ease;
 }
 
-// Number tile styling
-.tile--num_2 {
-	background-color: #eee4da;
-	color: #776e65;
-	font-size: 24px;
-}
-
-.tile--num_4 {
-	background-color: #ede0c8;
-	color: #776e65;
-	font-size: 24px;
-}
-
-.tile--num_8 {
-	background-color: #f2b179;
-	color: #f9f6f2;
-	font-size: 24px;
-}
-
-.tile--num_16 {
-	background-color: #f59563;
-	color: #f9f6f2;
-	font-size: 22px;
-}
-
-.tile--num_32 {
-	background-color: #f67c5f;
-	color: #f9f6f2;
-	font-size: 22px;
-}
-
-.tile--num_64 {
-	background-color: #f65e3b;
-	color: #f9f6f2;
-	font-size: 22px;
-}
-
-.tile--num_128 {
-	background-color: #edcf72;
-	color: #f9f6f2;
-	font-size: 20px;
-	font-weight: bold;
-	box-shadow: 0 0 8px rgba(237, 207, 114, 0.5);
-}
-
-.tile--num_256 {
-	background-color: #edcc61;
-	color: #f9f6f2;
-	font-size: 20px;
-	font-weight: bold;
-	box-shadow: 0 0 8px rgba(237, 204, 97, 0.5);
-}
-
-.tile--num_512 {
-	background-color: #edc850;
-	color: #f9f6f2;
-	font-size: 18px;
-	font-weight: bold;
-	box-shadow: 0 0 10px rgba(237, 200, 80, 0.6);
-}
-
-.tile--num_1024 {
-	background-color: #edc53f;
-	color: #f9f6f2;
-	font-size: 16px;
-	font-weight: bold;
-	box-shadow: 0 0 12px rgba(237, 197, 63, 0.7);
-}
-
-.tile--num_2048 {
-	background-color: #edc22e;
-	color: #f9f6f2;
-	font-size: 16px;
-	font-weight: bold;
-	box-shadow: 0 0 15px rgba(237, 194, 46, 0.8);
-	animation: tile2048Glow 1s ease-in-out infinite alternate;
-}
-
-.tile--num_4096 {
-	background-color: #3c3a32;
-	color: #f9f6f2;
-	font-size: 14px;
-	font-weight: bold;
-	box-shadow: 0 0 20px rgba(60, 58, 50, 0.9);
-}
-
-.tile--num_8192 {
-	background-color: #000000;
-	color: #f9f6f2;
-	font-size: 14px;
-	font-weight: bold;
-	box-shadow: 0 0 25px rgba(0, 0, 0, 1);
-}
 
 // Animations
 @keyframes tileAppear {
