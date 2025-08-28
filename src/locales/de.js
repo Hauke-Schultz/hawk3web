@@ -517,6 +517,7 @@ export default {
     endless: {
       merges: 'Merges',
       time: 'Zeit',
+      goals: 'Ziele',
       score_goal_1: '2.000 Punkte für 1 Stern',
       score_goal_2: '5.000 Punkte für 2 Sterne',
       score_goal_3: '10.000 Punkte für 3 Sterne',
@@ -745,10 +746,22 @@ export default {
         description: 'Erreiche Nummer 4096'
       },
 
-			perfectionist: {
-				name: 'Perfektionist',
-				description: 'Alle Level mit perfekter Punktzahl abgeschlossen'
-			},
+      memory_perfectionist: {
+        name: 'Memory Perfektionist',
+        description: 'Alle Memory-Level mit 3 Sternen abgeschlossen'
+      },
+      fruitMerge_perfectionist: {
+        name: 'Fruit Merge Perfektionist',
+        description: 'Alle Fruit Merge-Level mit 3 Sternen abgeschlossen'
+      },
+      numNumMerge_perfectionist: {
+        name: 'NumNum Merge Perfektionist',
+        description: 'Alle NumNum Merge-Level mit 3 Sternen abgeschlossen'
+      },
+      ultimate_perfectionist: {
+        name: 'Ultimativer Perfektionist',
+        description: 'ALLE Spiele-Level mit perfekten 3-Stern-Bewertungen abgeschlossen'
+      }
 		}
 	},
 

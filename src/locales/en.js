@@ -516,6 +516,7 @@ export default {
     endless: {
       merges: 'Merges',
       time: 'Time',
+      goals: 'Goals',
       score_goal_1: '2,000 points for 1 star',
       score_goal_2: '5,000 points for 2 stars',
       score_goal_3: '15,000 points for 3 stars',
@@ -744,10 +745,22 @@ export default {
         description: 'Created the number 4096'
       },
 
-			perfectionist: {
-				name: 'Perfectionist',
-				description: 'Complete all levels with perfect scores'
-			},
+      memory_perfectionist: {
+        name: 'Memory Perfectionist',
+        description: 'Complete all Memory levels with 3 stars'
+      },
+      fruitMerge_perfectionist: {
+        name: 'Fruit Merge Perfectionist',
+        description: 'Complete all Fruit Merge levels with 3 stars'
+      },
+      numNumMerge_perfectionist: {
+        name: 'NumNum Merge Perfectionist',
+        description: 'Complete all NumNum Merge levels with 3 stars'
+      },
+      ultimate_perfectionist: {
+        name: 'Ultimate Perfectionist',
+        description: 'Complete ALL game levels with perfect 3-star scores'
+      }
 		}
 	},
 

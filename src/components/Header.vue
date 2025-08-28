@@ -180,7 +180,6 @@ const notificationItems = computed(() => {
 const readNotificationItems = computed(() => {
 	const items = []
 
-	// Recently read daily reward mit Belohnungsanzeige
 	if (isCardRead('dailyRewardCard')) {
 		const readAt = gameData.cardStates.dailyRewardCard?.readAt
 
@@ -220,7 +219,7 @@ const readNotificationItems = computed(() => {
 	const recentAchievements = props.achievements
 			.filter(achievement => achievement.earned && achievement.earnedAt)
 			.sort((a, b) => new Date(b.earnedAt) - new Date(a.earnedAt))
-			.slice(0, 3)
+			.slice(0, 5)
 
 	recentAchievements.forEach(achievement => {
 		items.push({
@@ -1255,6 +1254,7 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
 	line-height: 1.3;
+	max-width: 50%;
 }
 
 .achievement-description {

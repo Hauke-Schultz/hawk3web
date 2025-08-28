@@ -195,11 +195,9 @@ const initializeGame = () => {
 	console.log('🆕 Starting fresh game')
 	resetGame()
 
-	// Add initial numbers based on level config
-	const initialNumbers = currentLevelConfig.value.initialNumbers || ['NUM_2', 'NUM_2']
-	initialNumbers.forEach(() => {
-		addRandomNumber()
-	})
+	// Add initial two random numbers
+	addRandomNumber()
+	addRandomNumber()
 
 	if (isEndlessMode.value) {
 		startSessionTimer()
@@ -783,6 +781,31 @@ const checkGameStatus = () => {
 	}
 }
 
+const calculateEndlessStars = () => {
+	if (!isEndlessMode.value) return 0
+
+	const config = currentLevelConfig.value.endless
+	let stars = 0
+
+	// Check score milestones
+	if (score.value >= config.scoreMilestones[2]) stars = 3 // 15000 points
+	else if (score.value >= config.scoreMilestones[1]) stars = 2 // 5000 points
+	else if (score.value >= config.scoreMilestones[0]) stars = 1 // 2000 points
+
+	// Check time milestones (bonus stars)
+	const timeMinutes = sessionTime.value / 60
+	if (timeMinutes >= 20) stars = Math.max(stars, 3)
+	else if (timeMinutes >= 15) stars = Math.max(stars, 2)
+	else if (timeMinutes >= 10) stars = Math.max(stars, 1)
+
+	// Check merge milestones
+	if (totalMerges.value >= 500) stars = Math.max(stars, 3)
+	else if (totalMerges.value >= 200) stars = Math.max(stars, 2)
+	else if (totalMerges.value >= 80) stars = Math.max(stars, 1)
+
+	return Math.min(stars, 3)
+}
+
 const completeLevel = () => {
 	if (gameState.value !== 'playing') return
 
@@ -796,6 +819,132 @@ const completeLevel = () => {
 	// Calculate stars
 	const starsEarned = calculateCurrentStars()
 
+	// Special handling for endless mode
+	if (isEndlessMode.value) {
+		// Update endless mode statistics
+		const endlessStats = {
+			gamesPlayed: gameData.games.numNumMerge.gamesPlayed + 1,
+			totalScore: gameData.games.numNumMerge.totalScore + score.value,
+			highScore: Math.max(gameData.games.numNumMerge.highScore, score.value),
+			stars: gameData.games.numNumMerge.stars + starsEarned,
+			maxCombo: Math.max(gameData.games.numNumMerge.maxCombo || 0, comboSystem.comboCount.value),
+			totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value,
+			// Endless specific stats
+			longestSession: Math.max(gameData.games.numNumMerge.longestSession || 0, sessionTime.value),
+			bestEndlessScore: Math.max(gameData.games.numNumMerge.bestEndlessScore || 0, score.value)
+		}
+
+		updateGameStats('numNumMerge', endlessStats)
+
+		// Check endless achievements
+		const achievementsBefore = [...gameData.achievements]
+
+		const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
+			maxCombo: comboSystem.comboCount.value,
+			moves: moves.value,
+			totalMerges: totalMerges.value,
+			sessionTime: sessionTime.value,
+			endlessScore: score.value
+		})
+
+		numNumAchievements.forEach(achievement => {
+			const wasAdded = addAchievement(achievement)
+			if (wasAdded) {
+				console.log(`🎉 NumNum endless achievement unlocked: ${achievement.name}`)
+			}
+		})
+
+		checkAutoAchievements()
+		const achievementsAfter = [...gameData.achievements]
+
+		earnedAchievements.value = achievementsAfter.filter(after =>
+				!achievementsBefore.some(before => before.id === after.id && before.earned)
+		)
+
+		// Create reward breakdown for endless
+		const achievementBreakdown = earnedAchievements.value.map(achievement => ({
+			type: 'achievement',
+			source: t('rewards.breakdown.achievement_reward', { name: achievement.name }),
+			coins: achievement.rewards.coins,
+			diamonds: achievement.rewards.diamonds,
+			icon: achievement.icon,
+			style: 'achievement'
+		}))
+
+		// Endless mode specific rewards
+		const endlessRewardBreakdown = [
+			{
+				type: 'endless_session',
+				source: t('rewards.breakdown.endless_session'),
+				coins: rewardCalculation.coins,
+				diamonds: rewardCalculation.diamonds,
+				icon: 'clock',
+				style: 'special'
+			}
+		]
+
+		if (sessionTime.value >= 600) { // 10+ minutes bonus
+			const timeBonus = Math.floor(sessionTime.value / 60) * 10
+			endlessRewardBreakdown.push({
+				type: 'time_bonus',
+				source: t('rewards.breakdown.time_bonus', { minutes: Math.floor(sessionTime.value / 60) }),
+				coins: timeBonus,
+				diamonds: 0,
+				icon: 'clock',
+				style: 'performance'
+			})
+		}
+
+		if (totalMerges.value >= 50) { // Merge bonus
+			const mergeBonus = totalMerges.value * 2
+			endlessRewardBreakdown.push({
+				type: 'merge_bonus',
+				source: t('rewards.breakdown.merge_bonus', { merges: totalMerges.value }),
+				coins: mergeBonus,
+				diamonds: 0,
+				icon: 'fruit-merge-game',
+				style: 'performance'
+			})
+		}
+
+		rewardBreakdown.value = {
+			items: [
+				...endlessRewardBreakdown,
+				...achievementBreakdown
+			],
+			total: {
+				coins: rewardCalculation.coins + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0),
+				diamonds: rewardCalculation.diamonds + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
+			}
+		}
+
+		// Update player currency
+		if (rewardBreakdown.value.total.coins > 0 || rewardBreakdown.value.total.diamonds > 0) {
+			gameData.player.coins = (gameData.player.coins || 0) + rewardBreakdown.value.total.coins
+			gameData.player.diamonds = (gameData.player.diamonds || 0) + rewardBreakdown.value.total.diamonds
+		}
+
+		addScore(score.value)
+		// Update endless mode session stats
+		updateEndlessStats()
+
+		emit('game-complete', {
+			level: currentLevel.value,
+			score: score.value,
+			moves: moves.value,
+			sessionTime: sessionTime.value,
+			totalMerges: totalMerges.value,
+			coins: rewardBreakdown.value.total.coins || 0,
+			diamonds: rewardBreakdown.value.total.diamonds || 0,
+			completed: true,
+			endless: true,
+			starsEarned: starsEarned
+		})
+
+		return // Exit early for endless mode
+	}
+
+	// Regular level completion (non-endless)
 	// Update level statistics
 	const levelResult = {
 		completed: true,
@@ -884,8 +1033,22 @@ const completeLevel = () => {
 		coins: levelReward.value?.coins || 0,
 		diamonds: levelReward.value?.diamonds || 0,
 		completed: true,
-		firstTime: isFirstTimeCompletion
+		firstTime: isFirstTimeCompletion,
+		starsEarned: starsEarned
 	})
+}
+
+const updateEndlessStats = () => {
+	const levelResult = {
+		completed: true,
+		score: score.value,
+		time: sessionTime.value,
+		moves: moves.value,
+		merges: totalMerges.value,
+		stars: calculateCurrentStars()
+	}
+	updateLevelStats('numNumMerge', currentLevel.value, levelResult)
+
 }
 
 const checkNumNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
@@ -958,6 +1121,11 @@ const gameOver = () => {
 		highScore: Math.max(gameData.games.numNumMerge.highScore, score.value),
 		maxCombo: Math.max(gameData.games.numNumMerge.maxCombo || 0, comboSystem.comboCount.value),
 		totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value
+	}
+
+	if (isEndlessMode.value) {
+		gameStats.longestSession = Math.max(gameData.games.numNumMerge.longestSession || 0, sessionTime.value)
+		gameStats.bestEndlessScore = Math.max(gameData.games.numNumMerge.bestEndlessScore || 0, score.value)
 	}
 
 	updateGameStats('numNumMerge', gameStats)
@@ -1106,6 +1274,10 @@ const calculateLevelReward = () => {
 }
 
 const calculateCurrentStars = () => {
+	if (isEndlessMode.value) {
+		return calculateEndlessStars()
+	}
+
 	if (!gameProgress.value.completed) return 0
 
 	return calculateLevelStars(
@@ -1352,7 +1524,12 @@ watch(() => props.level, (newLevel) => {
 		</div>
 
 		<!-- Game Board -->
-		<div class="game-container">
+		<div
+			class="game-container"
+			@touchstart.passive="handleTouchStart"
+			@touchmove.prevent="handleTouchMove"
+			@touchend.passive="handleTouchEnd"
+		>
 			<div
 				ref="gameBoard"
 				class="game-board"
@@ -1360,11 +1537,22 @@ watch(() => props.level, (newLevel) => {
 					'game-board--endless': isEndlessMode,
 					'game-board--animating': isAnimating
 				}"
-				@touchstart.passive="handleTouchStart"
-				@touchmove.prevent="handleTouchMove"
-				@touchend.passive="handleTouchEnd"
 			>
-
+				<!-- Endless Mode Info Overlay -->
+				<div v-if="isEndlessMode" class="endless-overlay">
+					<div class="stars-preview">
+						<Icon
+							v-for="starIndex in 3"
+							:key="starIndex"
+							:name="starIndex <= calculateCurrentStars() ? 'star-filled' : 'star'"
+							size="16"
+							:class="{
+			          'star--earned': starIndex <= calculateCurrentStars(),
+			          'star--empty': starIndex > calculateCurrentStars()
+			        }"
+						/>
+					</div>
+				</div>
 				<!-- Grid -->
 				<div class="num-grid">
 					<div
@@ -1442,6 +1630,16 @@ watch(() => props.level, (newLevel) => {
 				@back-to-games="backToGaming"
 				@close="backToGaming"
 		/>
+
+		<div class="button-row">
+			<button
+				class="btn btn--small btn--danger"
+				@click="handleTryAgain()"
+			>
+				<Icon name="refresh" size="16" class="icon--left" />
+				{{ t('numNumMerge.try_again') }}
+			</button>
+		</div>
 	</main>
 </template>
 <style lang="scss" scoped>
@@ -1522,6 +1720,12 @@ watch(() => props.level, (newLevel) => {
 	gap: var(--space-2);
 	position: relative;
 	flex: 1;
+	touch-action: manipulation;
+	overscroll-behavior: contain;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 .game-board {
@@ -1572,10 +1776,9 @@ watch(() => props.level, (newLevel) => {
 	grid-template-rows: repeat(4, 1fr);
 	gap: var(--space-2);
 	width: 100%;
-	max-width: 320px;
 	background-color: var(--card-bg);
 	border-radius: var(--border-radius-lg);
-	padding: var(--space-2);
+	padding: var(--space-12) var(--space-4);
 	box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -1656,6 +1859,24 @@ watch(() => props.level, (newLevel) => {
 		color: var(--warning-color);
 		text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
 	}
+}
+
+.endless-overlay {
+	position: absolute;
+	top: var(--space-3);
+	right: var(--space-4);
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.stars-preview {
+	display: flex;
+	gap: var(--space-1);
+	background-color: rgba(0, 0, 0, 0.7);
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-md);
 }
 
 // Animations
@@ -1752,6 +1973,7 @@ watch(() => props.level, (newLevel) => {
 
 // Touch feedback
 @media (hover: none) {
+	.game-container,
 	.game-board {
 		user-select: none;
 		-webkit-user-select: none;

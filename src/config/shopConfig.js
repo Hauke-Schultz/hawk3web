@@ -112,7 +112,12 @@ export const SHOP_ITEMS = [
     rarity: 'common',
     icon: '↩️',
     type: 'consumable',
-    purchaseLimit: null
+    purchaseLimit: null,
+    gameSupport: ['numNumMerge'],
+    effect: {
+      type: 'undo_move',
+      description: 'Reverts the last move made in NumNum Merge game'
+    }
   },
 
   // Simple Utilities

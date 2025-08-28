@@ -361,16 +361,46 @@ export const ACHIEVEMENTS = {
     },
 
     // Special achievements
-		{
-			id: 'perfectionist',
-			name: 'Perfectionist',
-			description: 'Complete all levels with a perfect score',
-			category: 'special',
-			icon: 'trophy',
-			rarity: 'legendary',
-			rewards: { coins: 5000, diamonds: 20 },
-			trigger: { type: 'perfect_game' }
-		},
+    {
+      id: 'memory_perfectionist',
+      name: 'Memory Perfectionist',
+      description: 'Complete all Memory levels with 3 stars',
+      category: 'memory',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 2500, diamonds: 15 },
+      trigger: { type: 'perfect_all_levels', game: 'memory' }
+    },
+    {
+      id: 'fruitMerge_perfectionist',
+      name: 'Fruit Merge Perfectionist',
+      description: 'Complete all Fruit Merge levels with 3 stars',
+      category: 'fruitMerge',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 3000, diamonds: 20 },
+      trigger: { type: 'perfect_all_levels', game: 'fruitMerge' }
+    },
+    {
+      id: 'numNumMerge_perfectionist',
+      name: 'NumNum Merge Perfectionist',
+      description: 'Complete all NumNum Merge levels with 3 stars',
+      category: 'numNumMerge',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 2800, diamonds: 18 },
+      trigger: { type: 'perfect_all_levels', game: 'numNumMerge' }
+    },
+    {
+      id: 'ultimate_perfectionist',
+      name: 'Ultimate Perfectionist',
+      description: 'Complete ALL game levels with perfect 3-star scores',
+      category: 'special',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 10000, diamonds: 50 },
+      trigger: { type: 'perfect_all_games' }
+    }
 	],
 
 	// Achievement categories

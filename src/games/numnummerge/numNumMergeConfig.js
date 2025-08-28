@@ -229,8 +229,7 @@ export const NUMBER_TYPES = {
 export const NUM_NUM_MERGE_LEVELS = {
 	1: {
     targetNum: 'NUM_128',
-    initialNumbers: ['NUM_2', 'NUM_2', 'NUM_4'],
-    randomNumbers: [2, 2, 4],
+    randomNumbers: [2, 2, 2, 4],
     starThresholds: {
       1: { score: 100, moves: 20 },
       2: { score: 200, moves: 15 },
@@ -239,8 +238,7 @@ export const NUM_NUM_MERGE_LEVELS = {
 	},
   2: {
     targetNum: 'NUM_256',
-    initialNumbers: ['NUM_2', 'NUM_2', 'NUM_4'],
-    randomNumbers: [2, 2, 4],
+    randomNumbers: [2, 2, 2, 4],
     starThresholds: {
       1: { score: 300, moves: 25 },
       2: { score: 500, moves: 20 },
@@ -249,8 +247,7 @@ export const NUM_NUM_MERGE_LEVELS = {
   },
   3: {
     targetNum: 'NUM_512',
-    initialNumbers: ['NUM_2', 'NUM_2', 'NUM_4'],
-    randomNumbers: [2, 2, 4],
+    randomNumbers: [2, 2, 2, 4],
     starThresholds: {
       1: { score: 500, moves: 30 },
       2: { score: 800, moves: 25 },
@@ -259,8 +256,7 @@ export const NUM_NUM_MERGE_LEVELS = {
   },
   4: {
     targetNum: 'NUM_1024',
-    initialNumbers: ['NUM_2', 'NUM_2', 'NUM_4', 'NUM_8'],
-    randomNumbers: [2, 2, 4],
+    randomNumbers: [2, 2, 2, 4],
     starThresholds: {
       1: { score: 800, moves: 35 },
       2: { score: 1200, moves: 30 },
@@ -269,8 +265,7 @@ export const NUM_NUM_MERGE_LEVELS = {
   },
   5: {
     targetNum: 'NUM_2048',
-    initialNumbers: ['NUM_2', 'NUM_2', 'NUM_4', 'NUM_8'],
-    randomNumbers: [2, 2, 4],
+    randomNumbers: [2, 2, 2, 4],
     starThresholds: {
       1: { score: 1200, moves: 40 },
       2: { score: 1800, moves: 35 },
@@ -279,8 +274,7 @@ export const NUM_NUM_MERGE_LEVELS = {
   },
   6: {
     targetFruit: null,
-    initialNumbers: ['NUM_2', 'NUM_2', 'NUM_4', 'NUM_8'],
-    randomNumbers: [2, 2, 4],
+    randomNumbers: [2, 2, 2, 4],
     starThresholds: {
       1: { score: 1600, moves: 45 },
       2: { score: 2400, moves: 40 },
@@ -289,6 +283,8 @@ export const NUM_NUM_MERGE_LEVELS = {
     isEndless: true,
     endless: {
       scoreMilestones: [2000, 5000, 15000, 35000],
+      timeMilestones: [300, 600, 900, 1200],
+      mergeMilestones: [30, 80, 200, 500]
     }
   }
 };

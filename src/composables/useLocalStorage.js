@@ -462,6 +462,14 @@ export function useLocalStorage() {
 			}
 		}
 
+    const perfectAchievements = checkPerfectScoreAchievements()
+    perfectAchievements.forEach(achievement => {
+      const wasAdded = addAchievement(achievement)
+      if (wasAdded) {
+        console.log(`🏆 Perfect Score Achievement unlocked: ${achievement.name}`)
+      }
+    })
+
 		// Save data only if there was an improvement
 		if (hasImprovement) {
 			saveData()
@@ -884,6 +892,55 @@ export function useLocalStorage() {
 			console.log(`🏆 Level ${levelNumber} completion: ${newAchievements} achievements unlocked!`)
 		}
 	}
+
+  const checkPerfectScoreAchievements = () => {
+    const achievements = []
+
+    // Check individual game perfectionist achievements
+    const gameIds = ['memory', 'fruitMerge', 'numNumMerge']
+
+    gameIds.forEach(gameId => {
+      const achievementId = `${gameId}_perfectionist`
+      const alreadyEarned = gameData.achievements.some(a => a.id === achievementId && a.earned)
+
+      if (!alreadyEarned && isPerfectGame(gameId)) {
+        const achievement = ACHIEVEMENTS.definitions.find(a => a.id === achievementId)
+        if (achievement) {
+          achievements.push(achievement)
+        }
+      }
+    })
+
+    // Check ultimate perfectionist
+    if (!gameData.achievements.some(a => a.id === 'ultimate_perfectionist' && a.earned)) {
+      if (gameIds.every(gameId => isPerfectGame(gameId))) {
+        const ultimateAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'ultimate_perfectionist')
+        if (ultimateAchievement) {
+          achievements.push(ultimateAchievement)
+        }
+      }
+    }
+
+    return achievements
+  }
+
+  const isPerfectGame = (gameId) => {
+    const gameStats = gameData.games[gameId]
+    if (!gameStats || !gameStats.levels) return false
+
+    // Check if all levels completed with 3 stars (excluding endless levels)
+    const levels = Object.keys(gameStats.levels)
+    if (levels.length === 0) return false
+
+    // For each game, check levels 1-5 (level 6 is endless)
+    const regularLevels = levels.filter(level => parseInt(level) <= 5)
+    if (regularLevels.length < 5) return false
+
+    return regularLevels.every(level => {
+      const levelStats = gameStats.levels[level]
+      return levelStats && levelStats.completed && levelStats.stars === 3
+    })
+  }
 
 	const canClaimDailyReward = () => {
 		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
