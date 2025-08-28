@@ -1085,33 +1085,12 @@ const getTileStyle = (value) => {
 	const numberType = Object.values(NUMBER_TYPES).find(type => type.number === value)
 	if (!numberType) return {}
 
-	const baseStyle = {
+	return {
 		backgroundColor: numberType.color,
 		color: numberType.textColor,
-		fontSize: `${numberType.fontSize}px`,
+		fontSize: numberType.fontSize,
 		fontWeight: numberType.fontWeight
 	}
-
-	// Spezielle Effekte für höhere Zahlen
-	if (numberType.glowEffect) {
-		const glowIntensity = 8 + (numberType.index - 7) * 2
-		baseStyle.boxShadow = `0 0 ${glowIntensity}px ${numberType.color}80`
-	}
-
-	// Spezial-Animationen
-	if (numberType.specialEffect === 'pulse' && numberType.number === 2048) {
-		baseStyle.animation = 'tile2048Glow 1s ease-in-out infinite alternate'
-	}
-
-	if (numberType.specialEffect === 'elite') {
-		baseStyle.boxShadow = '0 0 20px rgba(60, 58, 50, 0.9)'
-	}
-
-	if (numberType.specialEffect === 'legendary') {
-		baseStyle.boxShadow = '0 0 25px rgba(0, 0, 0, 1)'
-	}
-
-	return baseStyle
 }
 
 const isNewTile = (row, col) => {
@@ -1553,15 +1532,6 @@ watch(() => props.level, (newLevel) => {
 	}
 	100% {
 		transform: scale(1);
-	}
-}
-
-@keyframes tile2048Glow {
-	0% {
-		box-shadow: 0 0 15px rgba(237, 194, 46, 0.8);
-	}
-	100% {
-		box-shadow: 0 0 25px rgba(237, 194, 46, 1);
 	}
 }
 

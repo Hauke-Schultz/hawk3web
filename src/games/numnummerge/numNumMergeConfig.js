@@ -52,10 +52,8 @@ export const NUMBER_TYPES = {
     scoreValue: 2,
     gradient: ['#eee4da', '#ede0c8'],
     sparkleColor: '#8f7a66',
-    fontSize: 16,
+    fontSize: 'var(--font-size-lg)',
     fontWeight: 'bold',
-    glowEffect: false,
-    specialEffect: null
   },
   NUM_4: {
     index: 2,
@@ -68,10 +66,8 @@ export const NUMBER_TYPES = {
     scoreValue: 4,
     gradient: ['#ede0c8', '#e6d5b7'],
     sparkleColor: '#8f7a66',
-    fontSize: 16,
+    fontSize: 'var(--font-size-lg)',
     fontWeight: 'bold',
-    glowEffect: false,
-    specialEffect: null
   },
   NUM_8: {
     index: 3,
@@ -84,10 +80,8 @@ export const NUMBER_TYPES = {
     scoreValue: 8,
     gradient: ['#f2b179', '#ec9853'],
     sparkleColor: '#f9f6f2',
-    fontSize: 16,
+    fontSize: 'var(--font-size-lg)',
     fontWeight: 'bold',
-    glowEffect: false,
-    specialEffect: null
   },
   NUM_16: {
     index: 4,
@@ -100,10 +94,8 @@ export const NUMBER_TYPES = {
     scoreValue: 16,
     gradient: ['#f59563', '#f57c5f'],
     sparkleColor: '#f9f6f2',
-    fontSize: 14,
+    fontSize: 'var(--font-size-lg)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'glow'
   },
   NUM_32: {
     index: 5,
@@ -116,10 +108,8 @@ export const NUMBER_TYPES = {
     scoreValue: 32,
     gradient: ['#f67c5f', '#f65e3b'],
     sparkleColor: '#f9f6f2',
-    fontSize: 14,
+    fontSize: 'var(--font-size-lg)',
     fontWeight: 'bold',
-    glowEffect: false,
-    specialEffect: 'glow'
   },
   NUM_64: {
     index: 6,
@@ -132,10 +122,8 @@ export const NUMBER_TYPES = {
     scoreValue: 64,
     gradient: ['#f65e3b', '#edcf72'],
     sparkleColor: '#f9f6f2',
-    fontSize: 14,
+    fontSize: 'var(--font-size-lg)',
     fontWeight: 'bold',
-    glowEffect: false,
-    specialEffect: 'glow'
   },
   NUM_128: {
     index: 7,
@@ -148,10 +136,8 @@ export const NUMBER_TYPES = {
     scoreValue: 128,
     gradient: ['#edcf72', '#edcc61'],
     sparkleColor: '#f9f6f2',
-    fontSize: 12,
+    fontSize: 'var(--font-size-lg)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'glow'
   },
   NUM_256: {
     index: 8,
@@ -164,10 +150,8 @@ export const NUMBER_TYPES = {
     scoreValue: 256,
     gradient: ['#edcc61', '#edc850'],
     sparkleColor: '#f9f6f2',
-    fontSize: 12,
+    fontSize: 'var(--font-size-base)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'glow'
   },
   NUM_512: {
     index: 9,
@@ -180,10 +164,8 @@ export const NUMBER_TYPES = {
     scoreValue: 512,
     gradient: ['#edc850', '#edc53f'],
     sparkleColor: '#f9f6f2',
-    fontSize: 12,
+    fontSize: 'var(--font-size-base)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'pulse'
   },
   NUM_1024: {
     index: 10,
@@ -196,10 +178,8 @@ export const NUMBER_TYPES = {
     scoreValue: 1024,
     gradient: ['#edc53f', '#edc22e'],
     sparkleColor: '#f9f6f2',
-    fontSize: 10,
+    fontSize: 'var(--font-size-base)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'pulse'
   },
   NUM_2048: {
     index: 11,
@@ -212,10 +192,8 @@ export const NUMBER_TYPES = {
     scoreValue: 2048,
     gradient: ['#edc22e', '#3c3a32'],
     sparkleColor: '#f9f6f2',
-    fontSize: 10,
+    fontSize: 'var(--font-size-base)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'pulse'
   },
   NUM_4096: {
     index: 12,
@@ -228,10 +206,8 @@ export const NUMBER_TYPES = {
     scoreValue: 4096,
     gradient: ['#3c3a32', '#000000'],
     sparkleColor: '#f9f6f2',
-    fontSize: 10,
+    fontSize: 'var(--font-size-base)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'elite'
   },
   NUM_8192: {
     index: 13,
@@ -244,10 +220,8 @@ export const NUMBER_TYPES = {
     scoreValue: 8192,
     gradient: ['#000000', '#000000'],
     sparkleColor: '#f9f6f2',
-    fontSize: 10,
+    fontSize: 'var(--font-size-base)',
     fontWeight: 'bold',
-    glowEffect: true,
-    specialEffect: 'legendary'
   }
 }
 
