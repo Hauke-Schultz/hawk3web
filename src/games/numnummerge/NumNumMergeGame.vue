@@ -248,7 +248,7 @@ const addRandomNumber = () => {
 	if (emptyCells.length === 0) return false
 
 	const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)]
-	const randomValue = Math.random() < 0.9 ? 2 : 4 // 90% chance of 2, 10% chance of 4
+	const randomValue = currentLevelConfig.value.randomNumbers[Math.floor(Math.random() * currentLevelConfig.value.randomNumbers.length)]
 
 	setNumberAt(randomCell.row, randomCell.col, randomValue)
 
@@ -384,13 +384,24 @@ const moveLeft = () => {
 		score.value += scoreGained
 		moves.value++
 
+		if (scoreGained > 0) {
+			// Trigger score pop animation
+			const scoreElement = document.querySelector('.stat-value')
+			if (scoreElement) {
+				scoreElement.classList.add('score-pop')
+				setTimeout(() => {
+					scoreElement.classList.remove('score-pop')
+				}, 500)
+			}
+		}
+
 		setTimeout(() => {
 			addRandomNumber()
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
 			handleAutoSave()
-		}, 150)
+		}, 200)
 
 		return true
 	} else {
@@ -460,13 +471,24 @@ const moveRight = () => {
 		score.value += scoreGained
 		moves.value++
 
+		if (scoreGained > 0) {
+			// Trigger score pop animation
+			const scoreElement = document.querySelector('.stat-value')
+			if (scoreElement) {
+				scoreElement.classList.add('score-pop')
+				setTimeout(() => {
+					scoreElement.classList.remove('score-pop')
+				}, 500)
+			}
+		}
+
 		setTimeout(() => {
 			addRandomNumber()
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
 			handleAutoSave()
-		}, 150)
+		}, 200)
 
 		return true
 	} else {
@@ -536,13 +558,24 @@ const moveUp = () => {
 		score.value += scoreGained
 		moves.value++
 
+		if (scoreGained > 0) {
+			// Trigger score pop animation
+			const scoreElement = document.querySelector('.stat-value')
+			if (scoreElement) {
+				scoreElement.classList.add('score-pop')
+				setTimeout(() => {
+					scoreElement.classList.remove('score-pop')
+				}, 500)
+			}
+		}
+
 		setTimeout(() => {
 			addRandomNumber()
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
 			handleAutoSave()
-		}, 150)
+		}, 200)
 
 		return true
 	} else {
@@ -613,13 +646,24 @@ const moveDown = () => {
 		score.value += scoreGained
 		moves.value++
 
+		if (scoreGained > 0) {
+			// Trigger score pop animation
+			const scoreElement = document.querySelector('.stat-value')
+			if (scoreElement) {
+				scoreElement.classList.add('score-pop')
+				setTimeout(() => {
+					scoreElement.classList.remove('score-pop')
+				}, 500)
+			}
+		}
+
 		setTimeout(() => {
 			addRandomNumber()
 			isAnimating.value = false
 			mergingTiles.value = []
 			checkGameStatus()
 			handleAutoSave()
-		}, 150)
+		}, 200)
 
 		return true
 	} else {
@@ -1070,6 +1114,10 @@ const calculateCurrentStars = () => {
 	)
 }
 
+const isTargetTile = (row, col) => {
+	return grid.value[row][col] === getTargetNumber()
+}
+
 // Save/Restore system
 const captureCurrentState = () => {
 	if (gameState.value !== 'playing') return null
@@ -1325,14 +1373,17 @@ watch(() => props.level, (newLevel) => {
 							class="grid-row"
 					>
 						<div
-								v-for="(col, colIndex) in 4"
-								:key="`cell-${rowIndex}-${colIndex}`"
-								class="grid-cell"
-								:class="{
-							'grid-cell--occupied': hasNumberAt(rowIndex, colIndex),
-							'grid-cell--new': isNewTile(rowIndex, colIndex),
-							'grid-cell--merging': isMergingTile(rowIndex, colIndex)
-						}"
+							v-for="(col, colIndex) in 4"
+							:key="`cell-${rowIndex}-${colIndex}`"
+							class="grid-cell"
+							:class="{
+						    'grid-cell--occupied': hasNumberAt(rowIndex, colIndex),
+						    'grid-cell--new': isNewTile(rowIndex, colIndex),
+						    'grid-cell--merging': isMergingTile(rowIndex, colIndex),
+						    'grid-cell--target-reached': isTargetTile(rowIndex, colIndex)
+						  }"
+							:data-row="rowIndex"
+							:data-col="colIndex"
 						>
 							<div
 									v-if="hasNumberAt(rowIndex, colIndex)"
@@ -1487,10 +1538,18 @@ watch(() => props.level, (newLevel) => {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+	&--animating {
+		.grid-cell {
+			transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		}
+	}
 
 	&--endless {
-		border: 2px solid var(--primary-color);
-		box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
+		.num-grid {
+			box-shadow: inset 0 0 8px var(--primary-color);
+		}
 	}
 
 	&--animating {
@@ -1546,7 +1605,7 @@ watch(() => props.level, (newLevel) => {
 	position: relative;
 	background-color: var(--bg-secondary);
 	border-radius: var(--border-radius-sm);
-	transition: all 0.15s ease;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
 	&--occupied {
 		background-color: transparent;
@@ -1554,13 +1613,19 @@ watch(() => props.level, (newLevel) => {
 
 	&--new {
 		.cell-number {
-			animation: tileAppear 0.3s ease-out;
+			animation: tileAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 		}
 	}
 
 	&--merging {
 		.cell-number {
-			animation: tileMerge 0.15s ease-out;
+			animation: tileMerge 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+	}
+
+	&--target-reached {
+		.cell-number {
+			box-shadow: 0 0 2px 6px var(--success-color);
 		}
 	}
 }
@@ -1575,35 +1640,104 @@ watch(() => props.level, (newLevel) => {
 	align-items: center;
 	justify-content: center;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	transition: all 0.15s ease;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	transform-origin: center;
 }
 
+.score-pop {
+	animation: scorePop 0.5s ease-out;
+}
+
+.combo-display {
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+	&.combo-active {
+		transform: scale(1.05);
+		color: var(--warning-color);
+		text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+	}
+}
 
 // Animations
 @keyframes tileAppear {
 	0% {
-		transform: scale(0);
+		transform: scale(0) rotate(-5deg);
 		opacity: 0;
 	}
-	50% {
-		transform: scale(1.1);
-		opacity: 0.8;
+	60% {
+		transform: scale(1.15) rotate(2deg);
+		opacity: 0.9;
 	}
 	100% {
-		transform: scale(1);
+		transform: scale(1) rotate(0deg);
 		opacity: 1;
 	}
 }
 
 @keyframes tileMerge {
 	0% {
+		transform: scale(1) rotate(0deg);
+	}
+	25% {
+		transform: scale(0.95) rotate(-1deg);
+	}
+	50% {
+		transform: scale(1.2) rotate(1deg);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+	75% {
+		transform: scale(1.05) rotate(-0.5deg);
+	}
+	100% {
+		transform: scale(1) rotate(0deg);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+}
+
+@keyframes tileSlide {
+	0% {
+		transform: translateX(0) translateY(0);
+	}
+	100% {
+		transform: translateX(var(--slide-x, 0)) translateY(var(--slide-y, 0));
+	}
+}
+
+@keyframes scorePop {
+	0% {
 		transform: scale(1);
+		color: var(--text-color);
 	}
 	50% {
 		transform: scale(1.1);
+		color: var(--success-color);
 	}
 	100% {
 		transform: scale(1);
+		color: var(--text-color);
+	}
+}
+
+@keyframes levelComplete {
+	0% {
+		transform: scale(1) rotate(0deg);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+	25% {
+		transform: scale(1.05) rotate(1deg);
+		box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+	}
+	50% {
+		transform: scale(1.1) rotate(-1deg);
+		box-shadow: 0 6px 16px rgba(79, 70, 229, 0.5);
+	}
+	75% {
+		transform: scale(1.05) rotate(0.5deg);
+		box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+	}
+	100% {
+		transform: scale(1) rotate(0deg);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}
 }
 

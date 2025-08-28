@@ -1,4 +1,4 @@
-## 📊 Current Status v0.3.1
+## 📊 Current Status v0.3.2
 
 ✅ **Completed:**
 - Basic Vue 3 project structure with Vite
@@ -42,54 +42,35 @@
 - **FruitMerge Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
 - **Endless Mode Statistics** - Time-based play tracking, merge counting, and score milestones
 - **Enhanced Reward System** - Detailed reward breakdown with difficulty multipliers and achievement integration
-- **🛒 Shop System Implementation** - Complete shop page with category navigation and item display
-- **💎 Shop Categories & Items** - Cosmetics, Power-ups, and Utilities with rarity system
-- **💰 Currency Integration** - Full coins and diamonds purchasing with transaction history
-- **🎒 Inventory System** - Complete item ownership tracking and management
-- **🛍️ Purchase System** - Buy, own, and equip items with purchase confirmation
-- **📦 Shop Item Components** - Detailed item cards with rarity, pricing, and ownership status
-- **🔗 Shop Navigation** - Integrated shop access from home screen with full routing
-- **🌐 Shop Internationalization** - Complete German/English shop translations
-- **👤 Profile Inventory Display** - Visual inventory section showing owned items
-- **⚡ Boost System Foundation** - Activatable power-ups with duration tracking
-- **🔨 In-Game Shop Integration** - Direct item purchasing during gameplay (Hammer power-up)
-- **🎮 Save/Restore System** - Complete game state persistence across sessions for both games
-- **📱 Auto-Save Functionality** - Automatic game state saving via header menu
-
-## 🚀 Version 0.3.1 - NumNum Merge Game
+- **Shop System Implementation** - Complete shop page with category navigation and item display
+- **Shop Categories & Items** - Cosmetics, Power-ups, and Utilities with rarity system
+- **Currency Integration** - Full coins and diamonds purchasing with transaction history
+- **Inventory System** - Complete item ownership tracking and management
+- **Purchase System** - Buy, own, and equip items with purchase confirmation
+- **Shop Item Components** - Detailed item cards with rarity, pricing, and ownership status
+- **Shop Navigation** - Integrated shop access from home screen with full routing
+- **Shop Internationalization** - Complete German/English shop translations
+- **Profile Inventory Display** - Visual inventory section showing owned items
+- **Boost System Foundation** - Activatable power-ups with duration tracking
+- **In-Game Shop Integration** - Direct item purchasing during gameplay (Hammer power-up)
+- **Save/Restore System** - Complete game state persistence across sessions for both games
+- **Auto-Save Functionality** - Automatic game state saving via header menu
+- **NumNum Merge Game Implementation** - Complete 2048-style number merge game
+- **Progressive Number System** - 2→4→8→16→32→64→128→256→512→1024→2048+ progression
+- **Level & Endless Modes** - 6 structured levels plus infinite progression mode
+- **Number-Specific Achievements** - Reach 128, 256, 512, 1024, 2048+ milestones
+- **NumNum Save/Restore Integration** - Full game state persistence like other games
+- **Touch & Keyboard Controls** - WASD + Arrow keys + Swipe gestures for 4x4 grid
+- **NumNum Star System** - Performance-based 3-star rating for each level
+- **Dynamic Number Styling** - Color-coded number tiles with smooth animations
+- **Smooth Animations** - Polished number merge animations and transitions
+- 
+## 🚀 Version 0.3.2 - Polish & Enhancement
 
 ### Primary Features
 
-#### 🔢 Number Merge Game Implementation
-- **Based 2048 Number Game** - 2048-style Game
-- **Progressive Number System** - 2→4→8→16→32→64→128→256→512→1024→2048+
-- **Level & Endless Modes** - Structured levels + infinite progression mode
-- **Number-Specific Achievements** - Reach 128, 256, 512, 1024, 2048 milestones
-- **Minimalist Design** - Clean number tiles with color-coded progression
-- **Save/Restore Integration** - Full game state persistence like other games
-
-#### 🎮 Gaming Hub Enhancement
-- **Unified Progress Tracking** - Cross-game statistics and completion rates
-- **Enhanced Game Cards** - Consistent progress visualization across all three games
-
-#### 🏆 Achievement System Expansion
-- **Number Game Achievements** - New category with mathematical milestones
-- **Cross-Game Rewards** - Bonus rewards for playing all three games
-- **Master Player Status** - Special achievements for completing all games
-
----
-
-## 🚀 Version 0.3.2 - Polish & Enhancement
-
-### Secondary Features
-
-#### ⚡ Performance & UX Improvements
-- **Smooth Animations** - Polished number merge animations and transitions
-
-#### 🎨 Visual Enhancements
-- **Number Tile Design** - Beautiful gradient system for different number tiers
-- **Particle Effects** - Reused FruitMerge particles for number merge celebrations
-- **Consistent Theming** - Number game integrates seamlessly with existing design system
+- **Perfect Score Achievements** - Complete all levels with a perfect score
+- **NumNum Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
 
 ---
 
@@ -176,7 +157,7 @@
 **User Experience:**
 - ✅ Dynamic Progress Visualization
 - ✅ Comprehensive Currency System
-- ✅ Daily Rewards & Streaks
+- ✅ Daily Rewards
 - ✅ Visual Feedback & Animations
 - ✅ Accessible Design Patterns
 
