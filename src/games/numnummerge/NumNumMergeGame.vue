@@ -13,6 +13,9 @@ import GameCompletedModal from "../../components/GameCompletedModal.vue";
 import GameOverModal from "../../components/GameOverModal.vue";
 import {ACHIEVEMENTS, REWARDS} from "../../config/achievementsConfig.js";
 import {calculateLevelStars} from "../../config/levelUtils.js";
+import { useInventory } from '../../composables/useInventory.js'
+import ShopModal from "../../components/ShopModal.vue";
+import { SHOP_ITEMS } from '../../config/shopConfig.js'
 
 // Props
 const props = defineProps({
@@ -49,8 +52,10 @@ const {
 	clearLevelState,
 	hasLevelState,
 	addAchievement,
+	buyItem,
 } = useLocalStorage()
 const { t } = useI18n()
+const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
 
 // Game State
 const score = ref(0)
@@ -91,6 +96,11 @@ const touchEndX = ref(0)
 const touchEndY = ref(0)
 const gameBoard = ref(null)
 
+const undoStack = ref([])
+const undoRemaining = ref(gameData.player.inventory.items?.undo_move?.quantity || 0)
+const showShopModal = ref(false)
+const modalType = ref('purchase')
+
 // Combo system setup
 const comboSystem = useComboSystem({
 	minComboLength: 2,
@@ -123,6 +133,25 @@ const canMove = computed(() => {
 
 const isGameOver = computed(() => {
 	return !canMove.value && !hasEmptyCell()
+})
+
+const undoItem = computed(() => {
+	return SHOP_ITEMS.find(item => item.id === 'undo_move')
+})
+
+const playerBalance = computed(() => ({
+	coins: gameData.player.coins || 0,
+	diamonds: gameData.player.diamonds || 0
+}))
+
+const canAffordUndo = computed(() => {
+	if (!undoItem.value) return false
+	return playerBalance.value.coins >= undoItem.value.price.coins &&
+			playerBalance.value.diamonds >= undoItem.value.price.diamonds
+})
+
+const canUndo = computed(() => {
+	return undoStack.value.length > 0 && undoRemaining.value > 0
 })
 
 // Grid helper functions
@@ -195,6 +224,9 @@ const initializeGame = () => {
 	console.log('🆕 Starting fresh game')
 	resetGame()
 
+	undoStack.value = []
+	undoRemaining.value = getItemQuantity('undo_move')
+
 	// Add initial two random numbers
 	addRandomNumber()
 	addRandomNumber()
@@ -202,6 +234,76 @@ const initializeGame = () => {
 	if (isEndlessMode.value) {
 		startSessionTimer()
 	}
+}
+
+const saveStateToUndoStack = () => {
+	// Speichere aktuellen Zustand vor einem Zug
+	const currentState = {
+		grid: grid.value.map(row => [...row]),
+		score: score.value,
+		moves: moves.value,
+		totalMerges: totalMerges.value,
+		comboState: {
+			count: comboSystem.comboCount.value,
+			multiplier: comboSystem.comboMultiplier.value,
+			isActive: comboSystem.isComboActive.value,
+			timeRemaining: comboSystem.timeRemaining.value
+		}
+	}
+
+	undoStack.value.push(currentState)
+
+	// Begrenze Undo-Stack auf 10 Züge
+	if (undoStack.value.length > 10) {
+		undoStack.value.shift()
+	}
+}
+
+const performUndo = () => {
+	if (!canUndo.value || undoStack.value.length === 0) return false
+
+	console.log('🔄 Performing undo...')
+
+	// Hole letzten Zustand vom Stack
+	const previousState = undoStack.value.pop()
+
+	// Stelle Zustand wieder her
+	for (let row = 0; row < 4; row++) {
+		for (let col = 0; col < 4; col++) {
+			grid.value[row][col] = previousState.grid[row][col]
+		}
+	}
+
+	score.value = previousState.score
+	moves.value = previousState.moves
+	totalMerges.value = previousState.totalMerges
+
+	// Combo-System wiederherstellen
+	comboSystem.comboCount.value = previousState.comboState.count
+	comboSystem.comboMultiplier.value = previousState.comboState.multiplier
+	comboSystem.isComboActive.value = previousState.comboState.isActive
+	comboSystem.timeRemaining.value = previousState.comboState.timeRemaining
+
+	// Verwende Undo Item
+	const used = useConsumableItem('undo_move')
+	if (used) {
+		const remaining = getItemQuantity('undo_move')
+		undoRemaining.value = remaining
+		console.log(`✅ Undo used! Remaining: ${remaining}`)
+
+		// Visuelles Feedback
+		const scoreElement = document.querySelector('.stat-value')
+		if (scoreElement) {
+			scoreElement.classList.add('undo-feedback')
+			setTimeout(() => {
+				scoreElement.classList.remove('undo-feedback')
+			}, 500)
+		}
+
+		return true
+	}
+
+	return false
 }
 
 const resetGame = () => {
@@ -218,6 +320,8 @@ const resetGame = () => {
 	levelReward.value = null
 	rewardBreakdown.value = null
 	hasSavedState.value = false
+	undoStack.value = []
+	undoRemaining.value = getItemQuantity('undo_move')
 
 	// Clear grid
 	for (let row = 0; row < 4; row++) {
@@ -325,6 +429,8 @@ const canMoveDown = () => {
 const moveLeft = () => {
 	if (!canMoveLeft() || isAnimating.value) return false
 
+	saveStateToUndoStack()
+
 	isAnimating.value = true
 	let moved = false
 	let scoreGained = 0
@@ -410,6 +516,8 @@ const moveLeft = () => {
 
 const moveRight = () => {
 	if (!canMoveRight() || isAnimating.value) return false
+
+	saveStateToUndoStack()
 
 	isAnimating.value = true
 	let moved = false
@@ -498,6 +606,8 @@ const moveRight = () => {
 const moveUp = () => {
 	if (!canMoveUp() || isAnimating.value) return false
 
+	saveStateToUndoStack()
+
 	isAnimating.value = true
 	let moved = false
 	let scoreGained = 0
@@ -585,6 +695,8 @@ const moveUp = () => {
 const moveDown = () => {
 	if (!canMoveDown() || isAnimating.value) return false
 
+	saveStateToUndoStack()
+
 	isAnimating.value = true
 	let moved = false
 	let scoreGained = 0
@@ -670,6 +782,45 @@ const moveDown = () => {
 	}
 }
 
+
+const handleBuyUndoClick = () => {
+	if (!undoItem.value) return
+
+	if (!canAffordUndo.value) {
+		modalType.value = 'insufficient'
+	} else {
+		modalType.value = 'purchase'
+	}
+
+	showShopModal.value = true
+}
+
+const handleUndoPurchaseConfirm = async () => {
+	if (!undoItem.value || modalType.value !== 'purchase') {
+		closeShopModal()
+		return
+	}
+
+	const result = buyItem(undoItem.value)
+	if (result.success) {
+		setTimeout(() => {
+			const newQuantity = gameData.player.inventory.items?.undo_move?.quantity || 0
+			undoRemaining.value = newQuantity
+			console.log(`🔄 Purchased undo! New count: ${newQuantity}`)
+			closeShopModal()
+		}, 200)
+	}
+}
+
+const handleShopModalCancel = () => {
+	closeShopModal()
+}
+
+const closeShopModal = () => {
+	showShopModal.value = false
+	modalType.value = 'purchase'
+}
+
 const handleAutoSave = () => {
 	if (gameState.value !== 'playing' || isRestoringState.value) return
 
@@ -677,7 +828,6 @@ const handleAutoSave = () => {
 		const currentState = captureCurrentState()
 		if (currentState) {
 			saveLevelState('numNumMerge', currentLevel.value, currentState)
-			console.log(`💾 Auto-saved after move ${moves.value} for level ${currentLevel.value}`)
 		}
 	} catch (error) {
 		console.error('Error auto-saving game state:', error)
@@ -925,7 +1075,6 @@ const completeLevel = () => {
 		}
 
 		addScore(score.value)
-		// Update endless mode session stats
 		updateEndlessStats()
 
 		emit('game-complete', {
@@ -944,7 +1093,6 @@ const completeLevel = () => {
 		return // Exit early for endless mode
 	}
 
-	// Regular level completion (non-endless)
 	// Update level statistics
 	const levelResult = {
 		completed: true,
@@ -1047,8 +1195,8 @@ const updateEndlessStats = () => {
 		merges: totalMerges.value,
 		stars: calculateCurrentStars()
 	}
+	console.log('updateEndlessStats', levelResult);
 	updateLevelStats('numNumMerge', currentLevel.value, levelResult)
-
 }
 
 const checkNumNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
@@ -1145,21 +1293,13 @@ const gameOver = () => {
 
 	checkAutoAchievements()
 	addScore(score.value)
+	updateEndlessStats()
 }
 
 const pauseGame = () => {
 	if (gameState.value === 'playing') {
 		gameState.value = 'paused'
 		stopSessionTimer()
-	}
-}
-
-const resumeGame = () => {
-	if (gameState.value === 'paused') {
-		gameState.value = 'playing'
-		if (isEndlessMode.value) {
-			startSessionTimer()
-		}
 	}
 }
 
@@ -1295,11 +1435,18 @@ const captureCurrentState = () => {
 	if (gameState.value !== 'playing') return null
 
 	const currentState = {
-		// Game progress
 		score: score.value,
 		moves: moves.value,
 		sessionTime: sessionTime.value,
 		totalMerges: totalMerges.value,
+
+		undoStack: undoStack.value.map(state => ({
+			grid: state.grid.map(row => [...row]),
+			score: state.score,
+			moves: state.moves,
+			totalMerges: state.totalMerges,
+			comboState: { ...state.comboState }
+		})),
 
 		// Grid state
 		gridState: grid.value.map(row => [...row]),
@@ -1340,6 +1487,21 @@ const restoreGameState = (savedState) => {
 		sessionTime.value = savedState.sessionTime || 0
 		totalMerges.value = savedState.totalMerges || 0
 		gameState.value = savedState.gameStateValue || 'playing'
+
+		if (savedState.undoStack && Array.isArray(savedState.undoStack)) {
+			undoStack.value = savedState.undoStack.map(state => ({
+				grid: state.grid.map(row => [...row]),
+				score: state.score,
+				moves: state.moves,
+				totalMerges: state.totalMerges,
+				comboState: { ...state.comboState }
+			}))
+		} else {
+			undoStack.value = []
+		}
+
+		// Update undo count
+		undoRemaining.value = getItemQuantity('undo_move')
 
 		// Restore grid state
 		if (savedState.gridState) {
@@ -1520,6 +1682,44 @@ watch(() => props.level, (newLevel) => {
 						:moves-label="t('stats.moves')"
 						:combo-label="t('stats.combo')"
 				/>
+
+				<div class="undo-control">
+					<button
+							v-if="undoRemaining > 0"
+							class="btn btn--small btn--circle undo-btn"
+							:class="{
+      'btn--info': canUndo,
+      'btn--ghost': !canUndo
+    }"
+							@click="performUndo()"
+							:disabled="!canUndo"
+							:title="canUndo ? t('numNumMerge.undo_move') : t('numNumMerge.no_undos')"
+					>
+						<span class="undo-icon">↩️</span>
+						<span class="notification-badge">{{ undoRemaining }}</span>
+					</button>
+
+					<button
+						v-if="undoRemaining === 0 && undoItem"
+						class="btn btn--small buy-undo-btn"
+						:class="{
+				      'btn--success': canAffordUndo,
+				      'btn--ghost': !canAffordUndo
+				    }"
+						@click="handleBuyUndoClick"
+						:title="t('numNumMerge.no_undos')"
+					>
+						<span class="undo-icon">↩️</span>
+						<div class="undo-price">
+				      <span v-if="undoItem.price.coins > 0" class="price-coins">
+				        💰{{ undoItem.price.coins }}
+				      </span>
+							<span v-if="undoItem.price.diamonds > 0" class="price-diamonds">
+				        💎{{ undoItem.price.diamonds }}
+				      </span>
+						</div>
+					</button>
+				</div>
 			</div>
 		</div>
 
@@ -1629,6 +1829,16 @@ watch(() => props.level, (newLevel) => {
 				@try-again="handleTryAgain"
 				@back-to-games="backToGaming"
 				@close="backToGaming"
+		/>
+
+		<ShopModal
+				:visible="showShopModal"
+				:item="undoItem"
+				:player-balance="playerBalance"
+				:type="modalType"
+				@confirm="handleUndoPurchaseConfirm"
+				@cancel="handleShopModalCancel"
+				@close="closeShopModal"
 		/>
 
 		<div class="button-row">
@@ -1879,6 +2089,64 @@ watch(() => props.level, (newLevel) => {
 	border-radius: var(--border-radius-md);
 }
 
+
+.undo-control {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	.undo-icon {
+		font-size: var(--font-size-lg);
+	}
+}
+
+.undo-btn {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	padding: var(--space-1);
+	position: relative;
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+}
+
+.buy-undo-btn {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-1);
+	position: relative;
+	height: 100%;
+
+	.undo-price {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-1);
+		font-size: var(--font-size-xs);
+		line-height: 1;
+	}
+
+	.price-coins,
+	.price-diamonds {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		white-space: nowrap;
+	}
+
+	&:hover {
+		transform: translateY(-1px);
+	}
+}
+
+.undo-feedback {
+	animation: undoFeedback 0.5s ease-out;
+}
+
 // Animations
 @keyframes tileAppear {
 	0% {
@@ -1968,6 +2236,21 @@ watch(() => props.level, (newLevel) => {
 	}
 	100% {
 		box-shadow: 0 0 15px rgba(79, 70, 229, 0.6);
+	}
+}
+
+@keyframes undoFeedback {
+	0% {
+		transform: scale(1);
+		color: var(--text-color);
+	}
+	50% {
+		transform: scale(1.1);
+		color: var(--info-color);
+	}
+	100% {
+		transform: scale(1);
+		color: var(--text-color);
 	}
 }
 

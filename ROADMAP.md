@@ -10,7 +10,7 @@
 - LocalStorage Service with centralized data persistence and structured storage
 - Responsive mobile-first design (375px base)
 - Icon system with SVG components
-- **Gaming Hub Page** - Game selection interface with dynamic progress visualization
+- **Gaming Page** - Game selection interface with dynamic progress visualization
 - **Home Page Cards** - WelcomeCard and TrophyCard with read status functionality
 - **Card Management System** - Extensible card state tracking in localStorage
 - **Trophy Page** - Achievement system with categories, progress tracking, and rarity system
@@ -35,7 +35,6 @@
 - **Game Over Detection** - Height-based game over when fruits reach warning zone
 - **FruitMerge Achievements** - Game-specific achievements integration
 - **Achievement Rewards Integration** - Automatic coin rewards for achievements
-- **Welcome Card Achievement** - Coin reward for reading welcome message
 - **Daily Reward System** - Streak-based daily bonus cards with coins and diamonds
 - **Daily Reward Card** - Interactive daily reward claiming with checkbox functionality
 - **Enhanced Currency System** - Expanded coin and diamond economy with transaction tracking
@@ -64,15 +63,21 @@
 - **NumNum Star System** - Performance-based 3-star rating for each level
 - **Dynamic Number Styling** - Color-coded number tiles with smooth animations
 - **Smooth Animations** - Polished number merge animations and transitions
-- 
-## 🚀 Version 0.3.2 - Polish & Enhancement
-
-### Primary Features
-
 - **Perfect Score Achievements** - Complete all levels with a perfect 3 star score (all games)
 - **NumNum Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
 - **Undo Item** - Shop item to undo last move in NumNum game
 - **In-Game Shop Integration** - Direct item purchasing during gameplay (Undo item)
+
+## 🚀 Version 0.3.2 - Polish & Enhancement
+
+### Primary Features
+
+🍄 FruitMerge Mold Fruit System
+
+- **Mold Fruit Mechanic** - Special fruit that randomly spawns and disappears after 5 minutes
+- **Time-based Shrinking** - Mold fruit visually shrinks over time before disappearing
+- **Unique Presence** - Only one mold fruit can exist on the game board at a time
+- **Random Spawning** - Mold fruit appears at irregular intervals during gameplay
 
 ---
 

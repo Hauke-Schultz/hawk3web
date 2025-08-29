@@ -512,6 +512,11 @@ export default {
     state_saved: 'Game state saved',
     save_game: 'Save game',
     auto_saved: 'Auto-saved',
+    undo_move: 'Undo Move',
+    no_undos: 'No undos available',
+    undo_used: 'Undo used!',
+    buy_undo: 'Buy Undo',
+    buy_undo_ingame: 'Buy undo directly',
 
     endless: {
       merges: 'Merges',

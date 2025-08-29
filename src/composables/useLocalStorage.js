@@ -1074,10 +1074,8 @@ export function useLocalStorage() {
 				levelNumber
 			}
 
-			// Speichere zurück in localStorage
 			localStorage.setItem(LEVEL_STATE_KEY, JSON.stringify(existingStates))
 
-			console.log(`✅ Level state saved for ${gameId} level ${levelNumber}`)
 			return true
 		} catch (error) {
 			console.error('Error saving level state:', error)

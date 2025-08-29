@@ -512,6 +512,11 @@ export default {
     state_saved: 'Spielstand gespeichert',
     save_game: 'Spiel speichern',
     auto_saved: 'Automatisch gespeichert',
+    undo_move: 'Zug rückgängig',
+    no_undos: 'Keine Rückgängig-Aktionen verfügbar',
+    undo_used: 'Rückgängig verwendet!',
+    buy_undo: 'Rückgängig kaufen',
+    buy_undo_ingame: 'Rückgängig direkt kaufen',
 
     // Endless Mode spezifische Übersetzungen
     endless: {

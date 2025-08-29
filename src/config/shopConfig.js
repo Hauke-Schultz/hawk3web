@@ -108,16 +108,11 @@ export const SHOP_ITEMS = [
     name: 'Undo Move',
     description: 'Take back your last move. Use wisely!',
     category: 'items',
-    price: { coins: 1000, diamonds: 10 },
+    price: { coins: 500, diamonds: 5 },
     rarity: 'common',
     icon: '↩️',
     type: 'consumable',
     purchaseLimit: null,
-    gameSupport: ['numNumMerge'],
-    effect: {
-      type: 'undo_move',
-      description: 'Reverts the last move made in NumNum Merge game'
-    }
   },
 
   // Simple Utilities
