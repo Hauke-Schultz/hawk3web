@@ -112,6 +112,7 @@ const modalType = ref('purchase')
 
 const moldFruitTimer = ref(null)
 const moldFruitSpawnTimer = ref(null)
+const moldFruitShrinkDelay = ref(false)
 const currentMoldFruit = ref(null)
 const moldFruitLifeRemaining = ref(0)
 const moldFruitWarningActive = ref(false)
@@ -578,7 +579,21 @@ const handleCollision = (event) => {
 
 			// Mold fruits don't merge with anything
 			if (isMoldA || isMoldB) {
-				console.log('🟫 Collision with mold fruit - no merging')
+				if (isMoldA) {
+					const fruitA = fruits.value.find(f => f.id === idA)
+					if (fruitA && !moldFruitShrinkDelay.value) {
+						moldFruitShrinkDelay.value = true;
+						fruitA.size = Math.max(fruitA.size - 1, MOLD_FRUIT_CONFIG.minSize)
+						Matter.Body.scale(fruitA.body, (fruitA.size / (fruitA.size + 1)), (fruitA.size / (fruitA.size + 1)))
+						setTimeout(() => {
+							moldFruitShrinkDelay.value = false;
+						}, 1000);
+						if (fruitA.size <= MOLD_FRUIT_CONFIG.minSize) {
+							removeMoldFruit(fruitA, 'natural')
+						}
+					}
+				}
+
 				continue
 			}
 

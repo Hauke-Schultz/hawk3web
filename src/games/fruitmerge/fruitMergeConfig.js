@@ -651,6 +651,49 @@ export const FRUIT_TYPES = {
     <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
 </svg>`
 	},
+  BOMB_FRUIT: {
+    index: 98, // Special index
+    type: 'BOMB_FRUIT',
+    emoji: '💣',
+    radius: 30,
+    nextType: null,
+    color: '#FF4444',
+    scoreValue: 0,
+    sparkleColor: '#FF6B6B',
+    isBomb: true,
+    explosionRadius: 80, // 3x3 area roughly
+    spawnChance: 0.03, // 3% chance
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="bombGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#555"/>
+            <stop offset="60%" style="stop-color:#333"/>
+            <stop offset="100%" style="stop-color:#111"/>
+        </radialGradient>
+        <linearGradient id="fuseGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" style="stop-color:#ccc"/>
+            <stop offset="100%" style="stop-color:#666"/>
+        </linearGradient>
+        <radialGradient id="sparkGrad" cx="0.5" cy="0.5">
+            <stop offset="0%" style="stop-color:#ff0"/>
+            <stop offset="70%" style="stop-color:#f90"/>
+            <stop offset="100%" style="stop-color:transparent"/>
+        </radialGradient>
+    </defs>
+    <circle cx="32" cy="36" r="24" fill="url(#bombGrad)" stroke="#000" stroke-width="2"/>
+    <path d="M32 15 Q30 8 26 6" stroke="url(#fuseGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="25" cy="6" r="5" fill="url(#sparkGrad)">
+        <animate attributeName="r" values="4;6;4" dur="0.8s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0.5;1" dur="0.8s" repeatCount="indefinite"/>
+    </circle>
+    <g fill="white" stroke="black" stroke-width="1.5">
+        <circle cx="24" cy="30" r="5"/>
+        <circle cx="40" cy="29" r="6"/>
+    </g>
+    <circle cx="24" cy="30" r="2" fill="black"/>
+    <circle cx="40" cy="30" r="3" fill="black"/>
+</svg>`
+  },
   MOLD_FRUIT: {
     index: 99, // Special index to avoid conflicts
     type: 'MOLD_FRUIT',
@@ -710,13 +753,14 @@ export const FRUIT_TYPES = {
 
 export const MOLD_FRUIT_CONFIG = {
   spawnChance: 0.05, // 5% chance per fruit drop in endless mode
-  minSpawnDelay: 30000, // Minimum 30 seconds between spawns
+  minSpawnDelay: 60000, // Minimum 1 minute between spawns
   maxSpawnDelay: 120000, // Maximum 2 minutes between spawns
-  lifespan: 300000, // 5 minutes total lifespan
-  shrinkStartTime: 240000, // Start shrinking at 4 minutes (last minute)
-  warningFlashTime: 60000, // Flash warning in last minute
+  lifespan: 180000, // 3 minutes lifespan
+  shrinkStartTime: 120000, // Start shrinking at 2 minutes
+  warningFlashTime: 30000, // Flash warning in last 30 seconds
   scoreEffect: -1000, // Negative points when touched/removed
   maxConcurrent: 1, // Only one mold fruit at a time
+  minSize: 50,
 
   // Visual effects
   spawnEffect: {
