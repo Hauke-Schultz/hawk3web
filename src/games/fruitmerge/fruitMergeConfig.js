@@ -650,7 +650,92 @@ export const FRUIT_TYPES = {
     <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
     <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
 </svg>`
-	}
+	},
+  MOLD_FRUIT: {
+    index: 99, // Special index to avoid conflicts
+    type: 'MOLD_FRUIT',
+    emoji: '🟫',
+    radius: 35,
+    nextType: null, // Disappears instead of merging
+    color: '#5D4037',
+    scoreValue: -50, // Negative score for risk/reward
+    sparkleColor: '#8D6E63',
+    isMold: true, // Special property
+    lifespan: 300000, // 5 minutes in milliseconds
+    shrinkDuration: 60000, // Last minute shrinking effect
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="moldGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#6D4C41"/>
+            <stop offset="50%" style="stop-color:#5D4037"/>
+            <stop offset="100%" style="stop-color:#3E2723"/>
+        </radialGradient>
+    </defs>
+
+    <!-- Mold base -->
+    <circle cx="32" cy="32" r="28" fill="url(#moldGrad)" stroke="#3E2723" stroke-width="2"/>
+
+    <!-- Mold spots pattern -->
+    <g fill="#4CAF50" opacity="0.7">
+        <circle cx="20" cy="18" r="3" opacity="0.6"/>
+        <circle cx="47" cy="22" r="2.5" opacity="0.5"/>
+        <circle cx="18" cy="40" r="2" opacity="0.4"/>
+        <circle cx="48" cy="42" r="3.5" opacity="0.7"/>
+        <circle cx="32" cy="48" r="2" opacity="0.5"/>
+        <circle cx="28" cy="16" r="1.5" opacity="0.6"/>
+        <circle cx="51" cy="36" r="2.5" opacity="0.8"/>
+        <circle cx="24" cy="44" r="1.8" opacity="0.4"/>
+        <circle cx="40" cy="16" r="1.2" opacity="0.3"/>
+    </g>
+
+    <!-- X eyes (dead/moldy) -->
+    <g stroke="#000000" stroke-width="2.5" stroke-linecap="round">
+        <line x1="20" y1="22" x2="28" y2="30"/>
+        <line x1="28" y1="22" x2="20" y2="30"/>
+        <line x1="36" y1="22" x2="44" y2="30"/>
+        <line x1="44" y1="22" x2="36" y2="30"/>
+    </g>
+
+    <!-- Droopy mouth -->
+    <path d="M26,40 Q32,36 38,40" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Warning glow effect (animated) -->
+    <circle cx="32" cy="32" r="28" fill="none" stroke="#4CAF50" stroke-width="1" opacity="0.6">
+        <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-width" values="2;4;2" dur="2s" repeatCount="indefinite"/>
+    </circle>
+</svg>`
+  }
+}
+
+export const MOLD_FRUIT_CONFIG = {
+  spawnChance: 0.05, // 5% chance per fruit drop in endless mode
+  minSpawnDelay: 30000, // Minimum 30 seconds between spawns
+  maxSpawnDelay: 120000, // Maximum 2 minutes between spawns
+  lifespan: 300000, // 5 minutes total lifespan
+  shrinkStartTime: 240000, // Start shrinking at 4 minutes (last minute)
+  warningFlashTime: 60000, // Flash warning in last minute
+  scoreEffect: -1000, // Negative points when touched/removed
+  maxConcurrent: 1, // Only one mold fruit at a time
+
+  // Visual effects
+  spawnEffect: {
+    particles: 8,
+    color: '#5D4037',
+    duration: 1000
+  },
+  disappearEffect: {
+    particles: 12,
+    color: '#8D6E63',
+    duration: 1500
+  },
+
+  // Audio cues (for future implementation)
+  sounds: {
+    spawn: 'mold_spawn',
+    warning: 'mold_warning',
+    disappear: 'mold_disappear'
+  }
 }
 
 export const POINTS_CONFIG = {

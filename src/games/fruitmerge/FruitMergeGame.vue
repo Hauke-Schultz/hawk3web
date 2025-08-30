@@ -1,7 +1,7 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
-import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG, POINTS_CONFIG} from './fruitMergeConfig.js'
+import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG, POINTS_CONFIG, MOLD_FRUIT_CONFIG} from './fruitMergeConfig.js'
 import { useRouter } from 'vue-router'
 import PerformanceStats from "../../components/PerformanceStats.vue";
 import ProgressOverview from "../../components/ProgressOverview.vue";
@@ -109,6 +109,13 @@ const isUsingHammer = ref(false)
 
 const showShopModal = ref(false)
 const modalType = ref('purchase')
+
+const moldFruitTimer = ref(null)
+const moldFruitSpawnTimer = ref(null)
+const currentMoldFruit = ref(null)
+const moldFruitLifeRemaining = ref(0)
+const moldFruitWarningActive = ref(false)
+const lastMoldSpawnTime = ref(0)
 
 const hammerItem = computed(() => {
 	return SHOP_ITEMS.find(item => item.id === 'hammer_powerup')
@@ -287,6 +294,7 @@ const handleTouchStart = (event) => {
 const dropFruit = (targetX = nextFruitPosition.value) => {
 	if (isDropping.value || dropCooldown.value || !nextFruit.value) return
 
+	// Original drop logic...
 	isDropping.value = true
 	dropCooldown.value = true
 
@@ -321,6 +329,13 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
 	fruits.value = [...fruits.value, fruit]
 
 	moves.value++
+
+	// Check for mold fruit spawn after dropping normal fruit
+	if (isEndlessMode.value && shouldSpawnMoldFruit()) {
+		setTimeout(() => {
+			spawnMoldFruit()
+		}, 1000) // Small delay after normal fruit drop
+	}
 
 	setTimeout(() => {
 		nextFruit.value = generateNextFruit()
@@ -359,36 +374,55 @@ const deactivateHammerMode = () => {
 }
 
 const handleFruitClick = (fruit) => {
-	if (!hammerMode.value || isUsingHammer.value || !fruit) return
+	if (hammerMode.value && isUsingHammer.value) return
 
-	console.log(`🔨 Hammering fruit: ${fruit.name} (ID: ${fruit.id})`)
-	isUsingHammer.value = true
+	if (hammerMode.value && !isUsingHammer.value && fruit) {
+		if (fruit.isMold) {
+			console.log(`🔨 Hammering mold fruit: ${fruit.name} (ID: ${fruit.id})`)
+			isUsingHammer.value = true
+			selectedFruitForHammer.value = fruit.id
 
-	// Visual effect - mark as being destroyed
-	selectedFruitForHammer.value = fruit.id
+			// Apply negative score for removing mold fruit
+			score.value = Math.max(0, score.value + MOLD_FRUIT_CONFIG.scoreEffect)
 
-	// Create destruction effect at fruit center
-	const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
-	const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
-	createDestructionEffect(centerX, centerY, fruit)
+			// Create score point for negative score
+			const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
+			const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
+			createScorePoint(centerX, centerY, MOLD_FRUIT_CONFIG.scoreEffect, 1, 0)
 
-	// Remove from physics world
-	Matter.Composite.remove(engine.world, fruit.body)
+			// Remove mold fruit
+			removeMoldFruit(fruit, 'hammered')
 
-	// Remove from fruits array
-	fruits.value = fruits.value.filter(f => f.id !== fruit.id)
+			// Use hammer
+			const used = useConsumableItem('hammer_powerup')
+			removeItemFromInventory('hammer_powerup', 1)
+			const remaining = getItemQuantity('hammer_powerup')
+			hammerRemaining.value = remaining
 
-	const used = useConsumableItem('hammer_powerup')
-	removeItemFromInventory('hammer_powerup', 1);
-	console.log(`hammerRemaining: ${hammerRemaining.value} used: ${used}`)
-	const remaining = getItemQuantity('hammer_powerup')
-	hammerRemaining.value = remaining
-	console.log(`✅ Hammer used! Remaining: ${remaining}`)
+			selectedFruitForHammer.value = null
+			isUsingHammer.value = false
+			deactivateHammerMode()
+			return
+		}
 
-	// Reset states
-	selectedFruitForHammer.value = null
-	isUsingHammer.value = false
-	deactivateHammerMode()
+		// Original hammer logic for normal fruits
+		console.log(`🔨 Hammering fruit: ${fruit.name} (ID: ${fruit.id})`)
+		isUsingHammer.value = true
+		selectedFruitForHammer.value = fruit.id
+
+		createDestructionEffect(centerX, centerY, fruit)
+		Matter.Composite.remove(engine.world, fruit.body)
+		fruits.value = fruits.value.filter(f => f.id !== fruit.id)
+
+		const used = useConsumableItem('hammer_powerup')
+		removeItemFromInventory('hammer_powerup', 1)
+		const remaining = getItemQuantity('hammer_powerup')
+		hammerRemaining.value = remaining
+
+		selectedFruitForHammer.value = null
+		isUsingHammer.value = false
+		deactivateHammerMode()
+	}
 }
 
 const createDestructionEffect = (x, y, fruit) => {
@@ -529,7 +563,7 @@ const handleCollision = (event) => {
 
 		// Check if both bodies are fruits
 		if (bodyA.label.startsWith('fruit-') && bodyB.label.startsWith('fruit-')) {
-			// Extract information from labels: fruit-{id}-{color}-{level}
+			// Extract information from labels
 			const labelPartsA = bodyA.label.split('-')
 			const labelPartsB = bodyB.label.split('-')
 
@@ -538,45 +572,45 @@ const handleCollision = (event) => {
 			const levelA = parseInt(labelPartsA[3])
 			const levelB = parseInt(labelPartsB[3])
 
-			// If fruits have the same level, merge them
+			// Check for mold fruit collision
+			const isMoldA = bodyA.label.includes('mold')
+			const isMoldB = bodyB.label.includes('mold')
+
+			// Mold fruits don't merge with anything
+			if (isMoldA || isMoldB) {
+				console.log('🟫 Collision with mold fruit - no merging')
+				continue
+			}
+
+			// Regular merge logic for non-mold fruits
 			if (levelA === levelB) {
-				// Find the fruit objects
 				const fruitA = fruits.value.find(f => f.id === idA)
 				const fruitB = fruits.value.find(f => f.id === idB)
 
-				// Only merge if both fruits exist and aren't already merging
-				if (fruitA && fruitB && !fruitA.merging && !fruitB.merging) {
-					// Mark fruits as merging to prevent multiple merges
+				if (fruitA && fruitB && !fruitA.merging && !fruitB.merging && !fruitA.isMold && !fruitB.isMold) {
+					// Original merge logic continues...
 					fruitA.merging = true
 
-					// Calculate center position for the new fruit
 					const centerX = (bodyA.position.x + bodyB.position.x) / 2
 					const centerY = (bodyA.position.y + bodyB.position.y) / 2
 
-					// Remove bodies from the physics world
 					Matter.Composite.remove(engine.world, bodyA)
 					Matter.Composite.remove(engine.world, bodyB)
 
-					// Remove fruits from the array
 					fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB)
 
-					// Find current fruit type in config
 					const currentFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA)
 					if (currentFruitType) {
-						// Add combo for successful merge
 						const comboResult = comboSystem.addCombo()
-
-						// Calculate score with combo multiplier
 						const baseScore = currentFruitType.scoreValue
 						const comboMultipliedScore = Math.round(baseScore * comboResult.multiplier)
 						score.value += comboMultipliedScore
 						checkEndlessAchievements()
-						checkScoreAchievements()
+						checkScoreMilestones()
 
-						// Find next fruit type
 						const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === levelA + 1)
 
-						createMergeVisualEffects(centerX, centerY, nextFruitType);
+						createMergeVisualEffects(centerX, centerY, nextFruitType)
 						createScorePoint(centerX, centerY, comboMultipliedScore, comboResult.multiplier, comboResult.comboLevel)
 
 						if (nextFruitType) {
@@ -591,10 +625,10 @@ const handleCollision = (event) => {
 								y: centerY - nextFruitType.radius,
 								rotation: 0,
 								body: null,
-								merging: false
+								merging: false,
+								isMold: false // Ensure merged fruits are not mold
 							}
 
-							// Add the new fruit to the world
 							addMergedFruit(newFruit, centerX, centerY)
 
 							if (isEndlessMode.value) {
@@ -603,18 +637,14 @@ const handleCollision = (event) => {
 								checkEndlessAchievements()
 							}
 
-							// Check if this merge completes the level goal
 							if (newFruit.name === currentLevelConfig.value.targetFruit) {
 								console.log(`🎯 Level goal reached! Created ${newFruit.name}`)
-
-								// Stop physics
 								setTimeout(() => {
 									showNextFruit.value = false
 									nextFruit.value = null
 									pausePhysics()
 									stopAllFruits()
 								}, PHYSICS_CONFIG.stopPhysicsDelay)
-
 								return
 							}
 						}
@@ -858,6 +888,16 @@ const cleanup = () => {
 	}
 
 	stopGameOverChecking()
+
+	// Clean up mold fruit timers
+	if (moldFruitTimer.value) {
+		clearInterval(moldFruitTimer.value)
+		moldFruitTimer.value = null
+	}
+	if (moldFruitSpawnTimer.value) {
+		clearInterval(moldFruitSpawnTimer.value)
+		moldFruitSpawnTimer.value = null
+	}
 
 	if (runner) {
 		Matter.Runner.stop(runner)
@@ -1316,9 +1356,6 @@ const startLevel = (level) => {
 }
 
 const resetGame = () => {
-	// Clear saved state when resetting
-	clearLevelState('fruitMerge', currentLevel.value)
-
 	cleanup()
 	comboSystem.resetCombo()
 	isPhysicsPaused.value = false
@@ -1335,6 +1372,20 @@ const resetGame = () => {
 	hammerMode.value = false
 	selectedFruitForHammer.value = null
 	isUsingHammer.value = false
+
+	// Reset mold fruit state
+	if (moldFruitTimer.value) {
+		clearInterval(moldFruitTimer.value)
+		moldFruitTimer.value = null
+	}
+	if (moldFruitSpawnTimer.value) {
+		clearInterval(moldFruitSpawnTimer.value)
+		moldFruitSpawnTimer.value = null
+	}
+	currentMoldFruit.value = null
+	moldFruitLifeRemaining.value = 0
+	moldFruitWarningActive.value = false
+	lastMoldSpawnTime.value = 0
 
 	if (isEndlessMode.value) {
 		totalMerges.value = 0
@@ -1355,7 +1406,12 @@ const handleMenuSaveGame = () => {
 		const currentState = captureCurrentState()
 		if (currentState) {
 			saveLevelState('fruitMerge', currentLevel.value, currentState)
-			console.log(`✅ Game manually saved via menu for level ${currentLevel.value}`)
+
+			const moldInfo = currentMoldFruit.value ?
+					`Mold Fruit: ${Math.floor(moldFruitLifeRemaining.value / 1000)}s remaining` :
+					'No Mold Fruit'
+
+			console.log(`✅ Game manually saved via menu for level ${currentLevel.value}. ${moldInfo}`)
 		}
 	}
 }
@@ -1541,15 +1597,15 @@ const captureCurrentState = () => {
 	if (gameState.value !== 'playing') return null
 
 	const currentState = {
-		// Game progress
+		// Existing game progress...
 		score: score.value,
 		moves: moves.value,
-		timeElapsed: sessionTime.value, // FIX: sessionTime statt timeElapsed verwenden
+		timeElapsed: sessionTime.value,
 		totalMerges: totalMerges.value,
 		sessionTime: sessionTime.value,
 		milestones: [...milestones.value],
 
-		// Combo system state
+		// Existing combo system state...
 		comboData: {
 			count: comboSystem.comboCount.value,
 			level: comboSystem.comboLevel.value,
@@ -1558,7 +1614,7 @@ const captureCurrentState = () => {
 			timeRemaining: comboSystem.timeRemaining.value
 		},
 
-		// Fruits state
+		// Enhanced fruits state with mold support
 		fruitsState: fruits.value.map(fruit => ({
 			id: fruit.id,
 			color: fruit.color,
@@ -1572,6 +1628,13 @@ const captureCurrentState = () => {
 			merging: fruit.merging,
 			inDanger: fruit.inDanger,
 			dangerZoneTime: fruit.dangerZoneTime,
+
+			// Mold fruit specific properties
+			isMold: fruit.isMold || false,
+			spawnedAt: fruit.spawnedAt || null,
+			lifespan: fruit.lifespan || null,
+			shrinkStartTime: fruit.shrinkStartTime || null,
+
 			// Physics body properties
 			bodyPosition: fruit.body ? {
 				x: fruit.body.position.x,
@@ -1585,7 +1648,20 @@ const captureCurrentState = () => {
 			bodyAngularVelocity: fruit.body ? fruit.body.angularVelocity : 0
 		})),
 
-		// Next fruit
+		// Mold Fruit System State
+		moldFruitState: {
+			hasMoldFruit: hasMoldFruit.value,
+			currentMoldFruitId: currentMoldFruit.value ? currentMoldFruit.value.id : null,
+			moldFruitLifeRemaining: moldFruitLifeRemaining.value,
+			moldFruitWarningActive: moldFruitWarningActive.value,
+			lastMoldSpawnTime: lastMoldSpawnTime.value,
+
+			// Calculate remaining time more precisely
+			moldFruitRemainingTime: currentMoldFruit.value && currentMoldFruit.value.spawnedAt ?
+					Math.max(0, (currentMoldFruit.value.spawnedAt + MOLD_FRUIT_CONFIG.lifespan) - Date.now()) : 0
+		},
+
+		// Existing next fruit and game settings...
 		nextFruitState: nextFruit.value ? {
 			id: nextFruit.value.id,
 			color: nextFruit.value.color,
@@ -1595,26 +1671,29 @@ const captureCurrentState = () => {
 			svg: nextFruit.value.svg
 		} : null,
 
-		// Game settings
 		nextFruitId: nextFruitId.value,
 		gameStateValue: gameState.value,
-
-		// Timestamp
 		savedAt: new Date().toISOString(),
-		version: '1.0'
+		version: '1.1' // Updated version for mold fruit support
 	}
+
+	console.log('💾 Capturing game state with mold fruit data:', {
+		hasMoldFruit: currentState.moldFruitState.hasMoldFruit,
+		moldFruitId: currentState.moldFruitState.currentMoldFruitId,
+		timeRemaining: Math.floor(currentState.moldFruitState.moldFruitRemainingTime / 1000)
+	})
 
 	return currentState
 }
 
 const restoreGameState = async (savedState) => {
-	if (!savedState || savedState.version !== '1.0') {
-		console.warn('Invalid or incompatible saved state')
+	if (!savedState || !['1.0', '1.1'].includes(savedState.version)) {
+		console.warn('Invalid or incompatible saved state version:', savedState.version)
 		return false
 	}
 
 	try {
-		console.log('Restoring game state...', savedState)
+		console.log('Restoring game state with mold fruit support...', savedState)
 		isRestoringState.value = true
 
 		// Stop current game
@@ -1633,11 +1712,9 @@ const restoreGameState = async (savedState) => {
 			milestones.value = [...(savedState.milestones || [])]
 		}
 
-		// Initialize physics first and wait for it to be ready
+		// Initialize physics
 		await nextTick()
 		initPhysics()
-
-		// Wait a bit more to ensure physics engine is fully initialized
 		await new Promise(resolve => setTimeout(resolve, 100))
 
 		// Restore combo system
@@ -1648,11 +1725,10 @@ const restoreGameState = async (savedState) => {
 			comboSystem.timeRemaining.value = savedState.comboData.timeRemaining || 0
 		}
 
-		// Restore fruits with proper physics body recreation
+		// Restore fruits with mold fruit support
 		if (savedState.fruitsState && savedState.fruitsState.length > 0) {
 			fruits.value = []
 
-			// Restore fruits one by one with proper timing
 			for (let i = 0; i < savedState.fruitsState.length; i++) {
 				const fruitState = savedState.fruitsState[i]
 
@@ -1670,24 +1746,38 @@ const restoreGameState = async (savedState) => {
 					merging: fruitState.merging || false,
 					inDanger: fruitState.inDanger || false,
 					dangerZoneStartTime: null,
-					dangerZoneTime: fruitState.dangerZoneTime || 0
+					dangerZoneTime: fruitState.dangerZoneTime || 0,
+
+					// Restore mold fruit properties
+					isMold: fruitState.isMold || false,
+					spawnedAt: fruitState.spawnedAt || null,
+					lifespan: fruitState.lifespan || null,
+					shrinkStartTime: fruitState.shrinkStartTime || null
 				}
 
-				// Create physics body with saved position
+				// Create physics body with correct type
 				if (fruitState.bodyPosition) {
-					const fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruitState.level)
+					const fruitConfig = restoredFruit.isMold ?
+							FRUIT_TYPES.MOLD_FRUIT :
+							Object.values(FRUIT_TYPES).find(f => f.index === fruitState.level)
+
 					const radius = fruitConfig ? fruitConfig.radius : fruitState.size / 2
+
+					// Special label for mold fruit
+					const label = restoredFruit.isMold ?
+							`fruit-${fruitState.id}-${fruitState.color}-${fruitState.level}-mold` :
+							`fruit-${fruitState.id}-${fruitState.color}-${fruitState.level}`
 
 					const body = Matter.Bodies.circle(
 							fruitState.bodyPosition.x,
 							fruitState.bodyPosition.y,
 							radius,
 							{
-								restitution: 0.3,
-								friction: 0.05,
+								restitution: restoredFruit.isMold ? 0.4 : 0.3,
+								friction: restoredFruit.isMold ? 0.06 : 0.05,
 								frictionAir: 0.005,
-								density: 0.001,
-								label: `fruit-${fruitState.id}-${fruitState.color}-${fruitState.level}`,
+								density: restoredFruit.isMold ? 0.002 : 0.001,
+								label: label,
 								render: {
 									sprite: {
 										xScale: 1,
@@ -1697,10 +1787,9 @@ const restoreGameState = async (savedState) => {
 							}
 					)
 
-					// Restore physics properties with small delay to ensure stability
+					// Restore physics properties with dampening
 					setTimeout(() => {
 						if (fruitState.bodyVelocity) {
-							// Reduce velocity to prevent chaotic movement on restore
 							const dampedVelocity = {
 								x: fruitState.bodyVelocity.x * 0.3,
 								y: fruitState.bodyVelocity.y * 0.3
@@ -1711,20 +1800,47 @@ const restoreGameState = async (savedState) => {
 							Matter.Body.setAngle(body, fruitState.bodyAngle)
 						}
 						if (fruitState.bodyAngularVelocity) {
-							// Dampen angular velocity too
 							Matter.Body.setAngularVelocity(body, fruitState.bodyAngularVelocity * 0.3)
 						}
-					}, 50 * i) // Staggered restoration to prevent conflicts
+					}, 50 * i)
 
 					restoredFruit.body = body
 					Matter.Composite.add(engine.world, body)
 
-					// Update visual position immediately
+					// Update visual position
 					restoredFruit.x = fruitState.bodyPosition.x - fruitState.size / 2
 					restoredFruit.y = fruitState.bodyPosition.y - fruitState.size / 2
 				}
 
 				fruits.value.push(restoredFruit)
+			}
+		}
+
+		// Restore Mold Fruit System State
+		if (savedState.moldFruitState && savedState.version === '1.1') {
+			const moldState = savedState.moldFruitState
+
+			// Restore mold fruit references
+			lastMoldSpawnTime.value = moldState.lastMoldSpawnTime || 0
+
+			if (moldState.hasMoldFruit && moldState.currentMoldFruitId) {
+				// Find the restored mold fruit
+				const moldFruit = fruits.value.find(f =>
+						f.id === moldState.currentMoldFruitId && f.isMold
+				)
+
+				if (moldFruit && moldState.moldFruitRemainingTime > 0) {
+					currentMoldFruit.value = moldFruit
+					moldFruitLifeRemaining.value = moldState.moldFruitRemainingTime
+					moldFruitWarningActive.value = moldState.moldFruitWarningActive || false
+
+					// Restart mold fruit lifecycle with remaining time
+					restartMoldFruitLifecycle(moldFruit, moldState.moldFruitRemainingTime)
+
+					console.log('🟫 Mold Fruit restored with', Math.floor(moldState.moldFruitRemainingTime / 1000), 'seconds remaining')
+				} else {
+					console.log('🟫 Mold Fruit expired during save/restore')
+				}
 			}
 		}
 
@@ -1744,12 +1860,11 @@ const restoreGameState = async (savedState) => {
 			gameLoop()
 		}, 200)
 
-		console.log(`Game state restored successfully. Score: ${score.value}, Moves: ${moves.value}, Fruits: ${fruits.value.length}`)
+		console.log(`✅ Game state restored successfully. Score: ${score.value}, Mold Fruit: ${currentMoldFruit.value ? 'Yes' : 'No'}`)
 		return true
 
 	} catch (error) {
 		console.error('Error restoring game state:', error)
-		// Fallback to fresh game
 		resetGame()
 		return false
 	} finally {
@@ -1843,6 +1958,246 @@ const checkSpecificAchievement = (achievementId) => {
 const handleMenuClick = () => {
 	emit('menu-click')
 }
+
+
+const hasMoldFruit = computed(() => {
+	return fruits.value.some(fruit => fruit.isMold)
+})
+
+const moldFruitShrinkPercentage = computed(() => {
+	if (!currentMoldFruit.value || !moldFruitLifeRemaining.value) return 1
+
+	const timeUntilShrink = MOLD_FRUIT_CONFIG.lifespan - MOLD_FRUIT_CONFIG.shrinkStartTime
+	const shrinkTime = moldFruitLifeRemaining.value - timeUntilShrink
+
+	if (shrinkTime <= 0) return 1 // No shrinking yet
+
+	const shrinkProgress = shrinkTime / (MOLD_FRUIT_CONFIG.lifespan - MOLD_FRUIT_CONFIG.shrinkStartTime)
+	return Math.max(0.3, 1 - (shrinkProgress * 0.7)) // Shrink from 100% to 30%
+})
+
+// Mold Fruit Spawn Logic
+const shouldSpawnMoldFruit = () => {
+	if (!isEndlessMode.value) return false
+	if (hasMoldFruit.value) return false
+
+	const now = Date.now()
+	const timeSinceLastSpawn = now - lastMoldSpawnTime.value
+
+	// Ensure minimum delay between spawns
+	if (timeSinceLastSpawn < MOLD_FRUIT_CONFIG.minSpawnDelay) return false
+
+	// Random chance with increasing probability over time
+	const baseChance = MOLD_FRUIT_CONFIG.spawnChance
+	const timeMultiplier = Math.min(2, timeSinceLastSpawn / MOLD_FRUIT_CONFIG.maxSpawnDelay)
+	const adjustedChance = baseChance * timeMultiplier
+
+	return Math.random() < adjustedChance
+}
+
+const spawnMoldFruit = () => {
+	if (!isEndlessMode.value || hasMoldFruit.value) return
+
+	const moldFruitType = FRUIT_TYPES.MOLD_FRUIT
+	const spawnX = Math.random() * (boardConfig.value.width - moldFruitType.radius * 2) + moldFruitType.radius
+
+	const moldFruit = {
+		id: nextFruitId.value++,
+		color: moldFruitType.color,
+		size: moldFruitType.radius * 2,
+		level: moldFruitType.index,
+		name: moldFruitType.type,
+		svg: moldFruitType.svg,
+		x: spawnX - moldFruitType.radius,
+		y: -50 - moldFruitType.radius,
+		rotation: 0,
+		body: null,
+		merging: false,
+		isMold: true,
+		spawnedAt: Date.now(),
+		lifespan: MOLD_FRUIT_CONFIG.lifespan,
+		shrinkStartTime: MOLD_FRUIT_CONFIG.shrinkStartTime,
+		inDanger: false,
+		dangerZoneStartTime: null,
+		dangerZoneTime: 0
+	}
+
+	// Create physics body
+	const body = Matter.Bodies.circle(
+			spawnX,
+			-50,
+			moldFruitType.radius,
+			{
+				restitution: 0.4,
+				friction: 0.06,
+				frictionAir: 0.008,
+				density: 0.002, // Slightly heavier than normal fruits
+				label: `fruit-${moldFruit.id}-${moldFruit.color}-${moldFruit.level}-mold`,
+				render: {
+					sprite: {
+						xScale: 1,
+						yScale: 1
+					}
+				}
+			}
+	)
+
+	moldFruit.body = body
+	currentMoldFruit.value = moldFruit
+	lastMoldSpawnTime.value = Date.now()
+
+	Matter.Composite.add(engine.world, body)
+	fruits.value = [...fruits.value, moldFruit]
+
+	// Create spawn effect
+	createMoldSpawnEffect(spawnX, -50)
+
+	// Start mold fruit lifecycle timer
+	startMoldFruitLifecycle(moldFruit)
+
+	console.log('🟫 Mold Fruit spawned! Lifespan: 5 minutes')
+}
+
+const createMoldSpawnEffect = (x, y) => {
+	const particleCount = MOLD_FRUIT_CONFIG.spawnEffect.particles
+
+	for (let i = 0; i < particleCount; i++) {
+		const angle = (i / particleCount) * Math.PI * 2
+		const distance = 30 + Math.random() * 20
+		const particleX = Math.cos(angle) * distance
+		const particleY = Math.sin(angle) * distance
+
+		const particle = {
+			id: `mold-spawn-${Date.now()}-${i}`,
+			x: x,
+			y: y,
+			targetX: particleX,
+			targetY: particleY,
+			type: 'mold_spawn',
+			backgroundColor: MOLD_FRUIT_CONFIG.spawnEffect.color,
+			duration: MOLD_FRUIT_CONFIG.spawnEffect.duration,
+			size: 3 + Math.random() * 3
+		}
+
+		particles.value.push(particle)
+
+		setTimeout(() => {
+			particles.value = particles.value.filter(p => p.id !== particle.id)
+		}, MOLD_FRUIT_CONFIG.spawnEffect.duration)
+	}
+}
+
+const restartMoldFruitLifecycle = (moldFruit, remainingTime) => {
+	moldFruitLifeRemaining.value = remainingTime
+
+	moldFruitTimer.value = setInterval(() => {
+		moldFruitLifeRemaining.value -= 100
+
+		// Start warning flash in last minute
+		if (moldFruitLifeRemaining.value <= MOLD_FRUIT_CONFIG.warningFlashTime) {
+			moldFruitWarningActive.value = true
+		}
+
+		// Remove mold fruit when lifespan expires
+		if (moldFruitLifeRemaining.value <= 0) {
+			removeMoldFruit(moldFruit, 'expired')
+		}
+	}, 100)
+
+	console.log('🔄 Mold Fruit circular timer restarted with', Math.floor(remainingTime / 1000), 'seconds remaining')
+}
+
+const moldTimerProgress = computed(() => {
+	if (!currentMoldFruit.value || moldFruitLifeRemaining.value <= 0) return 0
+	return (moldFruitLifeRemaining.value / MOLD_FRUIT_CONFIG.lifespan) * 100
+})
+
+const startMoldFruitLifecycle = (moldFruit) => {
+	moldFruitLifeRemaining.value = MOLD_FRUIT_CONFIG.lifespan
+
+	console.log('🟫 Starting mold fruit lifecycle with circular timer:', {
+		fruitId: moldFruit.id,
+		lifespan: MOLD_FRUIT_CONFIG.lifespan / 1000,
+		spawnedAt: new Date(moldFruit.spawnedAt).toLocaleTimeString()
+	})
+
+	moldFruitTimer.value = setInterval(() => {
+		moldFruitLifeRemaining.value -= 100
+
+		// Start warning flash in last minute
+		if (moldFruitLifeRemaining.value <= MOLD_FRUIT_CONFIG.warningFlashTime) {
+			if (!moldFruitWarningActive.value) {
+				moldFruitWarningActive.value = true
+				console.log('⚠️ Mold fruit entering warning phase!')
+			}
+		}
+
+		// Remove mold fruit when lifespan expires
+		if (moldFruitLifeRemaining.value <= 0) {
+			removeMoldFruit(moldFruit, 'expired')
+		}
+	}, 100) // Keep 100ms for smooth circular progress
+}
+
+const removeMoldFruit = (moldFruit, reason = 'removed') => {
+	if (!moldFruit || !moldFruit.body) return
+
+	const centerX = moldFruit.body.position.x
+	const centerY = moldFruit.body.position.y
+
+	// Create disappear effect
+	createMoldDisappearEffect(centerX, centerY, reason)
+
+	// Remove from physics world
+	Matter.Composite.remove(engine.world, moldFruit.body)
+
+	// Remove from fruits array
+	fruits.value = fruits.value.filter(f => f.id !== moldFruit.id)
+
+	// Clear timers and reset state
+	if (moldFruitTimer.value) {
+		clearInterval(moldFruitTimer.value)
+		moldFruitTimer.value = null
+	}
+
+	currentMoldFruit.value = null
+	moldFruitLifeRemaining.value = 0
+	moldFruitWarningActive.value = false
+
+	const reasonText = reason === 'expired' ? 'disappeared' : 'removed'
+	console.log(`🟫 Mold Fruit ${reasonText}!`)
+}
+
+const createMoldDisappearEffect = (x, y, reason) => {
+	const particleCount = MOLD_FRUIT_CONFIG.disappearEffect.particles
+	const effectColor = reason === 'expired' ? '#4CAF50' : '#FF5722'
+
+	for (let i = 0; i < particleCount; i++) {
+		const angle = (i / particleCount) * Math.PI * 2
+		const distance = 40 + Math.random() * 30
+		const particleX = Math.cos(angle) * distance
+		const particleY = Math.sin(angle) * distance
+
+		const particle = {
+			id: `mold-disappear-${Date.now()}-${i}`,
+			x: x,
+			y: y,
+			targetX: particleX,
+			targetY: particleY,
+			type: 'mold_disappear',
+			backgroundColor: effectColor,
+			duration: MOLD_FRUIT_CONFIG.disappearEffect.duration,
+			size: 4 + Math.random() * 4
+		}
+
+		particles.value.push(particle)
+
+		setTimeout(() => {
+			particles.value = particles.value.filter(p => p.id !== particle.id)
+		}, MOLD_FRUIT_CONFIG.disappearEffect.duration)
+	}
+}
+
 
 // Watchers
 watch(() => props.level, (newLevel) => {
@@ -2057,38 +2412,90 @@ onUnmounted(() => {
 
 				<!-- Fruits -->
 				<div
-					v-for="fruit in fruits"
-					:key="fruit.id"
-					class="fruit"
-					:class="{
-				    'fruit--combo': fruit.comboEffect,
-				    'fruit--danger': fruit.inDanger,
-				    'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
-				    'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
-				    'fruit--destroying': selectedFruitForHammer === fruit.id
-				  }"
-					:style="{
-				    left: `${fruit.x}px`,
-				    top: `${fruit.y}px`,
-				    width: `${fruit.size}px`,
-				    height: `${fruit.size}px`,
-				    transform: `rotate(${fruit.rotation}deg)`,
-				    zIndex: fruit.inDanger ? 5 : (hammerMode ? 10 : 1)
-				  }"
-					@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
-					@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+						v-for="fruit in fruits"
+						:key="fruit.id"
+						class="fruit"
+						:class="{
+      'fruit--combo': fruit.comboEffect,
+      'fruit--danger': fruit.inDanger,
+      'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
+      'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
+      'fruit--destroying': selectedFruitForHammer === fruit.id,
+      'fruit--mold': fruit.isMold,
+      'fruit--mold-warning': fruit.isMold && moldFruitWarningActive
+    }"
+						:style="{
+      left: `${fruit.x}px`,
+      top: `${fruit.y}px`,
+      width: `${fruit.size}px`,
+      height: `${fruit.size}px`,
+      transform: `rotate(${fruit.rotation}deg) ${fruit.isMold ? `scale(${moldFruitShrinkPercentage})` : ''}`,
+      zIndex: fruit.inDanger ? 5 : (fruit.isMold ? 8 : (hammerMode ? 10 : 1))
+    }"
+						@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+						@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
 				>
 					<div class="fruit-svg" v-html="fruit.svg"></div>
+
+					<!-- Circular Mold Timer exactly on the fruit border -->
+					<div
+							v-if="fruit.isMold && currentMoldFruit && currentMoldFruit.id === fruit.id"
+							class="mold-timer-circle"
+							:class="{ 'mold-timer-circle--warning': moldFruitWarningActive }"
+					>
+						<!-- SVG positioned exactly on fruit border -->
+						<svg class="mold-timer-svg" :width="fruit.size" :height="fruit.size">
+							<!-- Background ring -->
+							<circle
+									:cx="fruit.size / 2"
+									:cy="fruit.size / 2"
+									:r="(fruit.size / 2) - 2"
+									fill="none"
+									stroke="rgba(76, 175, 80, 0.3)"
+									stroke-width="4"
+							/>
+
+							<!-- Progress ring -->
+							<circle
+									:cx="fruit.size / 2"
+									:cy="fruit.size / 2"
+									:r="(fruit.size / 2) - 2"
+									fill="none"
+									:stroke="moldFruitWarningActive ? '#FF5722' : '#4CAF50'"
+									stroke-width="4"
+									stroke-linecap="round"
+									class="mold-progress-ring"
+									:style="{
+            '--progress': (moldFruitLifeRemaining / MOLD_FRUIT_CONFIG.lifespan) * 100,
+            '--radius': (fruit.size / 2) - 2,
+            '--circumference': 2 * Math.PI * ((fruit.size / 2) - 2)
+          }"
+							/>
+						</svg>
+
+						<!-- Time remaining indicator (optional small number) -->
+						<div
+								v-if="moldFruitWarningActive"
+								class="mold-time-indicator"
+								:style="{
+          fontSize: `${Math.max(8, fruit.size * 0.12)}px`,
+          top: `${-6}px`,
+          right: `${-6}px`
+        }"
+						>
+							{{ Math.ceil(moldFruitLifeRemaining / 1000) }}
+						</div>
+					</div>
 				</div>
 
 				<!-- Merge Particles Container -->
 				<div class="merge-particles-container">
 					<div
-							v-for="particle in particles"
-							:key="particle.id"
-							class="merge-particle"
-							:class="`particle--${particle.type.toLowerCase()}`"
-							:style="{
+						v-for="particle in particles"
+						:key="particle.id"
+						class="merge-particle"
+						:class="`particle--${particle.type.toLowerCase()}`"
+						:style="{
               left: `${particle.x}px`,
               top: `${particle.y}px`,
               '--particle-x': `${particle.targetX}px`,
@@ -2731,13 +3138,107 @@ onUnmounted(() => {
 	}
 }
 
+// Mold Fruit specific styles
+.fruit--mold {
+	box-shadow:
+			0 0 8px rgba(93, 64, 55, 0.6);
+	animation: moldPulse 3s ease-in-out infinite alternate;
+	position: relative;
+}
 
-// Destruction particle style
+.fruit--mold-warning {
+	animation: moldWarning 0.5s ease-in-out infinite alternate !important;
+	box-shadow: 0 0 15px #FF5722;
+}
+
+.mold-timer-circle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	z-index: 15;
+	border-radius: 50%;
+	width: 100%;
+	height: 100%;
+}
+
+.mold-timer-svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	transform: rotate(-90deg); /* Start progress from top */
+	filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.4));
+}
+
+.mold-progress-ring {
+	stroke-dasharray: var(--circumference);
+	stroke-dashoffset: calc(var(--circumference) - (var(--progress) / 100) * var(--circumference));
+	transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+	transform-origin: center;
+}
+
+.mold-time-indicator {
+	position: absolute;
+	background: rgba(255, 87, 34, 0.95);
+	color: white;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	font-size: 8px;
+	line-height: 1;
+	border: 1px solid white;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+	animation: countdownPulse 1s ease-in-out infinite;
+}
+
+.particle--mold_spawn {
+	background-color: #5D4037 !important;
+	border-radius: 50% !important;
+	box-shadow: 0 0 6px #5D4037;
+}
+
+.particle--mold_disappear {
+	border-radius: 50% !important;
+	box-shadow: 0 0 8px currentColor;
+}
+
 .particle--destruction {
 	background-color: #FF4444 !important;
 	box-shadow: 0 0 10px #FF4444;
 }
 
+// Animations
+@keyframes moldPulse {
+	0% {
+		filter: brightness(1) saturate(1);
+		transform: scale(1);
+	}
+	100% {
+		filter: brightness(1.1) saturate(1.2);
+		transform: scale(1.02);
+	}
+}
+
+@keyframes countdownPulse {
+	0% {
+		transform: scale(1);
+		background: rgba(255, 87, 34, 0.9);
+	}
+	50% {
+		transform: scale(1.1);
+		background: rgba(255, 87, 34, 1);
+	}
+	100% {
+		transform: scale(1);
+		background: rgba(255, 87, 34, 0.9);
+	}
+}
 
 @keyframes milestoneAutoFade {
 	0% {
