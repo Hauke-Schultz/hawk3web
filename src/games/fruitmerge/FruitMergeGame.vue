@@ -1,7 +1,14 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
-import {FRUIT_MERGE_LEVELS, FRUIT_TYPES, PHYSICS_CONFIG, POINTS_CONFIG, MOLD_FRUIT_CONFIG} from './fruitMergeConfig.js'
+import {
+	FRUIT_MERGE_LEVELS,
+	FRUIT_TYPES,
+	PHYSICS_CONFIG,
+	POINTS_CONFIG,
+	MOLD_FRUIT_CONFIG,
+	BOMB_FRUIT_CONFIG
+} from './fruitMergeConfig.js'
 import { useRouter } from 'vue-router'
 import PerformanceStats from "../../components/PerformanceStats.vue";
 import ProgressOverview from "../../components/ProgressOverview.vue";
@@ -118,6 +125,21 @@ const moldFruitLifeRemaining = ref(0)
 const moldFruitWarningActive = ref(false)
 const lastMoldSpawnTime = ref(0)
 
+const bombFruitTimer = ref(null)
+const currentBombFruit = ref(null)
+const bombFuseRemaining = ref(0)
+const bombTickingActive = ref(false)
+const lastBombSpawnTime = ref(0)
+
+const hasBombFruit = computed(() => {
+	return fruits.value.some(fruit => fruit.isBomb)
+})
+
+const bombFusePercentage = computed(() => {
+	if (!currentBombFruit.value || bombFuseRemaining.value <= 0) return 0
+	return (bombFuseRemaining.value / BOMB_FRUIT_CONFIG.fuseTime) * 100
+})
+
 const hammerItem = computed(() => {
 	return SHOP_ITEMS.find(item => item.id === 'hammer_powerup')
 })
@@ -174,6 +196,30 @@ const isEndlessMode = computed(() => {
 })
 
 const generateNextFruit = () => {
+	// Check for bomb fruit spawn chance (only in endless mode)
+	if (isEndlessMode.value && shouldGenerateBombFruit()) {
+		return {
+			id: nextFruitId.value++,
+			color: FRUIT_TYPES.BOMB_FRUIT.color,
+			size: FRUIT_TYPES.BOMB_FRUIT.radius * 2,
+			level: FRUIT_TYPES.BOMB_FRUIT.index,
+			name: FRUIT_TYPES.BOMB_FRUIT.type,
+			svg: FRUIT_TYPES.BOMB_FRUIT.svg,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			body: null,
+			merging: false,
+			inDanger: false,
+			dangerZoneStartTime: null,
+			dangerZoneTime: 0,
+			isBomb: true,
+			fuseTime: BOMB_FRUIT_CONFIG.fuseTime,
+			spawnedAt: Date.now()
+		}
+	}
+
+	// Normal fruit generation logic...
 	const maxStartingLevel = 4
 	const randomIndex = Math.floor(Math.random() * maxStartingLevel)
 	const randomFruitType = fruitTypes.value[randomIndex]
@@ -197,8 +243,22 @@ const generateNextFruit = () => {
 		merging: false,
 		inDanger: false,
 		dangerZoneStartTime: null,
-		dangerZoneTime: 0
+		dangerZoneTime: 0,
+		isBomb: false
 	}
+}
+
+const shouldGenerateBombFruit = () => {
+	if (!isEndlessMode.value) return false
+	if (hasBombFruit.value) return false // Only one bomb at a time
+
+	const now = Date.now()
+	const timeSinceLastSpawn = now - lastBombSpawnTime.value
+
+	// Ensure minimum delay between bomb spawns
+	if (timeSinceLastSpawn < BOMB_FRUIT_CONFIG.minSpawnDelay) return false
+
+	return Math.random() < BOMB_FRUIT_CONFIG.spawnChance
 }
 
 const startSessionTimer = () => {
@@ -329,6 +389,11 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
 	Matter.Composite.add(engine.world, body)
 	fruits.value = [...fruits.value, fruit]
 
+	if (fruit.isBomb) {
+		startBombFuseTimer(fruit)
+		console.log(`💣 Bomb fruit dropped! Fuse timer started: ${BOMB_FRUIT_CONFIG.fuseTime/1000}s`)
+	}
+
 	moves.value++
 
 	// Check for mold fruit spawn after dropping normal fruit
@@ -345,6 +410,168 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
 	}, PHYSICS_CONFIG.dropCooldown)
 }
 
+const startBombFuseTimer = (bombFruit) => {
+	currentBombFruit.value = bombFruit
+	bombFuseRemaining.value = BOMB_FRUIT_CONFIG.fuseTime
+	bombTickingActive.value = false
+
+	console.log('💣 Starting bomb fuse timer:', {
+		fruitId: bombFruit.id,
+		fuseTime: BOMB_FRUIT_CONFIG.fuseTime / 1000,
+		spawnedAt: new Date(bombFruit.spawnedAt).toLocaleTimeString()
+	})
+
+	bombFruitTimer.value = setInterval(() => {
+		bombFuseRemaining.value -= 100
+
+		// Start danger ticking in last 3 seconds
+		if (bombFuseRemaining.value <= 3000 && !bombTickingActive.value) {
+			bombTickingActive.value = true
+			console.log('💣 Bomb entering danger phase!')
+		}
+
+		// Explode when fuse runs out
+		if (bombFuseRemaining.value <= 0) {
+			explodeBomb(bombFruit)
+		}
+	}, 100) // Update every 100ms for smooth countdown
+}
+
+const explodeBomb = (bombFruit) => {
+	if (!bombFruit || !bombFruit.body) return
+
+	const bombX = bombFruit.body.position.x
+	const bombY = bombFruit.body.position.y
+
+	console.log(`💥 BOMB EXPLOSION at (${Math.round(bombX)}, ${Math.round(bombY)})!`)
+
+	// Find fruits within explosion radius
+	const fruitsInRadius = fruits.value.filter(fruit => {
+		if (fruit.id === bombFruit.id || !fruit.body) return false
+
+		const distance = Math.sqrt(
+				Math.pow(fruit.body.position.x - bombX, 2) +
+				Math.pow(fruit.body.position.y - bombY, 2)
+		)
+
+		return distance <= BOMB_FRUIT_CONFIG.explosionRadius
+	})
+
+	// Calculate bonus score
+	const bonusScore = fruitsInRadius.length * BOMB_FRUIT_CONFIG.bonusPerFruit
+	if (bonusScore > 0) {
+		score.value += bonusScore
+		console.log(`💥 Explosion bonus: +${bonusScore} points for ${fruitsInRadius.length} fruits destroyed`)
+	}
+
+	// Create explosion effects
+	createExplosionEffect(bombX, bombY, fruitsInRadius.length)
+	createScorePoint(bombX, bombY, bonusScore, 1, 0)
+
+	// Remove bomb and fruits in radius
+	const fruitsToRemove = [...fruitsInRadius, bombFruit]
+	fruitsToRemove.forEach(fruit => {
+		if (fruit.body) {
+			Matter.Composite.remove(engine.world, fruit.body)
+			console.log(`💥 Fruit removed by explosion: ${fruit.name} (ID: ${fruit.id})`, fruits.value)
+		}
+	})
+
+	// Update fruits array
+	fruits.value = fruits.value.filter(fruit =>
+			!fruitsToRemove.some(removed => removed.id === fruit.id)
+	)
+
+	// Trigger screen shake
+	triggerScreenShake()
+
+	// Cleanup bomb state
+	removeBombFruit()
+}
+
+const createExplosionEffect = (x, y, destroyedCount) => {
+	const particleCount = Math.min(BOMB_FRUIT_CONFIG.explosionEffect.particles + destroyedCount, 30)
+
+	for (let i = 0; i < particleCount; i++) {
+		const angle = (i / particleCount) * Math.PI * 2
+		const distance = 50 + Math.random() * 60
+		const particleX = Math.cos(angle) * distance + (Math.random() - 0.5) * 40
+		const particleY = Math.sin(angle) * distance + (Math.random() - 0.5) * 40
+
+		const particle = {
+			id: `explosion-${Date.now()}-${i}`,
+			x: x,
+			y: y,
+			targetX: particleX,
+			targetY: particleY,
+			type: 'bomb_explosion',
+			backgroundColor: i % 3 === 0 ? '#FF4444' : (i % 3 === 1 ? '#FF6B6B' : '#FFD700'),
+			duration: BOMB_FRUIT_CONFIG.explosionEffect.duration,
+			size: 4 + Math.random() * 6
+		}
+
+		particles.value.push(particle)
+
+		setTimeout(() => {
+			particles.value = particles.value.filter(p => p.id !== particle.id)
+		}, BOMB_FRUIT_CONFIG.explosionEffect.duration)
+	}
+}
+
+const triggerScreenShake = () => {
+	// Simple screen shake implementation
+	const gameBoard = document.querySelector('.game-board')
+	if (gameBoard) {
+		gameBoard.style.animation = `screenShake ${BOMB_FRUIT_CONFIG.screenShakeDuration}ms ease-in-out`
+
+		setTimeout(() => {
+			gameBoard.style.animation = ''
+		}, BOMB_FRUIT_CONFIG.screenShakeDuration)
+	}
+}
+
+const removeBombFruit = () => {
+	// Clear timers and reset state
+	if (bombFruitTimer.value) {
+		clearInterval(bombFruitTimer.value)
+		bombFruitTimer.value = null
+	}
+
+	currentBombFruit.value = null
+	bombFuseRemaining.value = 0
+	bombTickingActive.value = false
+
+	// Synchronize Matter.js world with fruits array
+	const validFruitIds = fruits.value.map(fruit => fruit.id)
+	console.log('💣 Valid fruit IDs:', validFruitIds)
+
+	// Find and remove orphaned physics bodies
+	const allBodies = Matter.Composite.allBodies(engine.world)
+	const bodiesToRemove = []
+
+	allBodies.forEach(body => {
+		if (body.label.startsWith('fruit-')) {
+			// Extract fruit ID from label: "fruit-123-color-level" → 123
+			const labelParts = body.label.split('-')
+			const bodyFruitId = parseInt(labelParts[1])
+
+			// If this physics body doesn't have a corresponding visual fruit, remove it
+			if (!validFruitIds.includes(bodyFruitId)) {
+				bodiesToRemove.push(body)
+				console.log(`💥 Orphaned physics body found: ${body.label} (ID: ${bodyFruitId})`)
+			}
+		}
+	})
+
+	// Remove orphaned bodies
+	if (bodiesToRemove.length > 0) {
+		bodiesToRemove.forEach(body => {
+			Matter.Composite.remove(engine.world, body)
+			console.log(`🗑️ Removed orphaned physics body: ${body.label}`)
+		})
+		console.log(`💣 Cleaned up ${bodiesToRemove.length} orphaned physics bodies`)
+	}
+}
 
 const activateHammerMode = () => {
 	if (!isEndlessMode.value) {
@@ -410,7 +637,8 @@ const handleFruitClick = (fruit) => {
 		console.log(`🔨 Hammering fruit: ${fruit.name} (ID: ${fruit.id})`)
 		isUsingHammer.value = true
 		selectedFruitForHammer.value = fruit.id
-
+		const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
+		const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
 		createDestructionEffect(centerX, centerY, fruit)
 		Matter.Composite.remove(engine.world, fruit.body)
 		fruits.value = fruits.value.filter(f => f.id !== fruit.id)
@@ -1648,7 +1876,6 @@ const captureCurrentState = () => {
 			isMold: fruit.isMold || false,
 			spawnedAt: fruit.spawnedAt || null,
 			lifespan: fruit.lifespan || null,
-			shrinkStartTime: fruit.shrinkStartTime || null,
 
 			// Physics body properties
 			bodyPosition: fruit.body ? {
@@ -1767,7 +1994,6 @@ const restoreGameState = async (savedState) => {
 					isMold: fruitState.isMold || false,
 					spawnedAt: fruitState.spawnedAt || null,
 					lifespan: fruitState.lifespan || null,
-					shrinkStartTime: fruitState.shrinkStartTime || null
 				}
 
 				// Create physics body with correct type
@@ -1979,18 +2205,6 @@ const hasMoldFruit = computed(() => {
 	return fruits.value.some(fruit => fruit.isMold)
 })
 
-const moldFruitShrinkPercentage = computed(() => {
-	if (!currentMoldFruit.value || !moldFruitLifeRemaining.value) return 1
-
-	const timeUntilShrink = MOLD_FRUIT_CONFIG.lifespan - MOLD_FRUIT_CONFIG.shrinkStartTime
-	const shrinkTime = moldFruitLifeRemaining.value - timeUntilShrink
-
-	if (shrinkTime <= 0) return 1 // No shrinking yet
-
-	const shrinkProgress = shrinkTime / (MOLD_FRUIT_CONFIG.lifespan - MOLD_FRUIT_CONFIG.shrinkStartTime)
-	return Math.max(0.3, 1 - (shrinkProgress * 0.7)) // Shrink from 100% to 30%
-})
-
 // Mold Fruit Spawn Logic
 const shouldSpawnMoldFruit = () => {
 	if (!isEndlessMode.value) return false
@@ -2031,7 +2245,6 @@ const spawnMoldFruit = () => {
 		isMold: true,
 		spawnedAt: Date.now(),
 		lifespan: MOLD_FRUIT_CONFIG.lifespan,
-		shrinkStartTime: MOLD_FRUIT_CONFIG.shrinkStartTime,
 		inDanger: false,
 		dangerZoneStartTime: null,
 		dangerZoneTime: 0
@@ -2070,7 +2283,7 @@ const spawnMoldFruit = () => {
 	// Start mold fruit lifecycle timer
 	startMoldFruitLifecycle(moldFruit)
 
-	console.log('🟫 Mold Fruit spawned! Lifespan: 5 minutes')
+	console.log('🟫 Mold Fruit spawned!')
 }
 
 const createMoldSpawnEffect = (x, y) => {
@@ -2121,11 +2334,6 @@ const restartMoldFruitLifecycle = (moldFruit, remainingTime) => {
 
 	console.log('🔄 Mold Fruit circular timer restarted with', Math.floor(remainingTime / 1000), 'seconds remaining')
 }
-
-const moldTimerProgress = computed(() => {
-	if (!currentMoldFruit.value || moldFruitLifeRemaining.value <= 0) return 0
-	return (moldFruitLifeRemaining.value / MOLD_FRUIT_CONFIG.lifespan) * 100
-})
 
 const startMoldFruitLifecycle = (moldFruit) => {
 	moldFruitLifeRemaining.value = MOLD_FRUIT_CONFIG.lifespan
@@ -2427,76 +2635,128 @@ onUnmounted(() => {
 
 				<!-- Fruits -->
 				<div
-						v-for="fruit in fruits"
-						:key="fruit.id"
-						class="fruit"
-						:class="{
-      'fruit--combo': fruit.comboEffect,
-      'fruit--danger': fruit.inDanger,
-      'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
-      'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
-      'fruit--destroying': selectedFruitForHammer === fruit.id,
-      'fruit--mold': fruit.isMold,
-      'fruit--mold-warning': fruit.isMold && moldFruitWarningActive
-    }"
-						:style="{
-      left: `${fruit.x}px`,
-      top: `${fruit.y}px`,
-      width: `${fruit.size}px`,
-      height: `${fruit.size}px`,
-      transform: `rotate(${fruit.rotation}deg) ${fruit.isMold ? `scale(${moldFruitShrinkPercentage})` : ''}`,
-      zIndex: fruit.inDanger ? 5 : (fruit.isMold ? 8 : (hammerMode ? 10 : 1))
-    }"
-						@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
-						@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+					v-for="fruit in fruits"
+					:key="fruit.id"
+					class="fruit"
+					:class="{
+				    'fruit--combo': fruit.comboEffect,
+				    'fruit--danger': fruit.inDanger,
+				    'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
+				    'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
+				    'fruit--destroying': selectedFruitForHammer === fruit.id,
+				    'fruit--mold': fruit.isMold,
+				    'fruit--mold-warning': fruit.isMold && moldFruitWarningActive,
+				    'fruit--bomb': fruit.isBomb,
+				    'fruit--bomb-ticking': fruit.isBomb && bombTickingActive
+				  }"
+					:style="{
+				    left: `${fruit.x}px`,
+				    top: `${fruit.y}px`,
+				    width: `${fruit.size}px`,
+				    height: `${fruit.size}px`,
+				    transform: `rotate(${fruit.rotation}deg)`,
+				    zIndex: fruit.inDanger ? 5 : (fruit.isMold ? 8 : (fruit.isBomb ? 10 : (hammerMode ? 10 : 1)))
+				  }"
+					@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+					@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
 				>
 					<div class="fruit-svg" v-html="fruit.svg"></div>
 
+					<!-- Bomb Fuse Timer exactly on the fruit border -->
+					<div
+						v-if="fruit.isBomb && currentBombFruit && currentBombFruit.id === fruit.id"
+						class="bomb-timer-circle"
+						:class="{ 'bomb-timer-circle--ticking': bombTickingActive }"
+					>
+						<!-- SVG positioned exactly on fruit border -->
+						<svg class="bomb-timer-svg" :width="fruit.size" :height="fruit.size">
+							<!-- Background ring -->
+							<circle
+								:cx="fruit.size / 2"
+								:cy="fruit.size / 2"
+								:r="(fruit.size / 2) - 2"
+								fill="none"
+								stroke="rgba(255, 68, 68, 0.3)"
+								stroke-width="4"
+							/>
+
+							<!-- Progress ring -->
+							<circle
+								:cx="fruit.size / 2"
+								:cy="fruit.size / 2"
+								:r="(fruit.size / 2) - 2"
+								fill="none"
+								:stroke="bombTickingActive ? '#FF0000' : '#FF4444'"
+								stroke-width="4"
+								stroke-linecap="round"
+								class="bomb-progress-ring"
+								:style="{
+				          '--progress': (bombFuseRemaining / BOMB_FRUIT_CONFIG.fuseTime) * 100,
+				          '--radius': (fruit.size / 2) - 2,
+				          '--circumference': 2 * Math.PI * ((fruit.size / 2) - 2)
+				        }"
+							/>
+						</svg>
+
+						<!-- Countdown indicator (in ticking phase) -->
+						<div
+							v-if="bombTickingActive"
+							class="bomb-countdown-indicator"
+							:style="{
+				        fontSize: `${Math.max(10, fruit.size * 0.15)}px`,
+				        top: `${-8}px`,
+				        right: `${-8}px`
+				      }"
+						>
+							{{ Math.ceil(bombFuseRemaining / 1000) }}
+						</div>
+					</div>
+
 					<!-- Circular Mold Timer exactly on the fruit border -->
 					<div
-							v-if="fruit.isMold && currentMoldFruit && currentMoldFruit.id === fruit.id"
-							class="mold-timer-circle"
-							:class="{ 'mold-timer-circle--warning': moldFruitWarningActive }"
+						v-if="fruit.isMold && currentMoldFruit && currentMoldFruit.id === fruit.id"
+						class="mold-timer-circle"
+						:class="{ 'mold-timer-circle--warning': moldFruitWarningActive }"
 					>
 						<!-- SVG positioned exactly on fruit border -->
 						<svg class="mold-timer-svg" :width="fruit.size" :height="fruit.size">
 							<!-- Background ring -->
 							<circle
-									:cx="fruit.size / 2"
-									:cy="fruit.size / 2"
-									:r="(fruit.size / 2) - 2"
-									fill="none"
-									stroke="rgba(76, 175, 80, 0.3)"
-									stroke-width="4"
+								:cx="fruit.size / 2"
+								:cy="fruit.size / 2"
+								:r="(fruit.size / 2) - 2"
+								fill="none"
+								stroke="rgba(76, 175, 80, 0.3)"
+								stroke-width="4"
 							/>
 
 							<!-- Progress ring -->
 							<circle
-									:cx="fruit.size / 2"
-									:cy="fruit.size / 2"
-									:r="(fruit.size / 2) - 2"
-									fill="none"
-									:stroke="moldFruitWarningActive ? '#FF5722' : '#4CAF50'"
-									stroke-width="4"
-									stroke-linecap="round"
-									class="mold-progress-ring"
-									:style="{
-            '--progress': (moldFruitLifeRemaining / MOLD_FRUIT_CONFIG.lifespan) * 100,
-            '--radius': (fruit.size / 2) - 2,
-            '--circumference': 2 * Math.PI * ((fruit.size / 2) - 2)
-          }"
+								:cx="fruit.size / 2"
+								:cy="fruit.size / 2"
+								:r="(fruit.size / 2) - 2"
+								fill="none"
+								:stroke="moldFruitWarningActive ? '#FF5722' : '#4CAF50'"
+								stroke-width="4"
+								stroke-linecap="round"
+								class="mold-progress-ring"
+								:style="{
+			            '--progress': (moldFruitLifeRemaining / MOLD_FRUIT_CONFIG.lifespan) * 100,
+			            '--radius': (fruit.size / 2) - 2,
+			            '--circumference': 2 * Math.PI * ((fruit.size / 2) - 2)
+			          }"
 							/>
 						</svg>
 
 						<!-- Time remaining indicator (optional small number) -->
 						<div
-								v-if="moldFruitWarningActive"
-								class="mold-time-indicator"
-								:style="{
-          fontSize: `${Math.max(8, fruit.size * 0.12)}px`,
-          top: `${-6}px`,
-          right: `${-6}px`
-        }"
+							v-if="moldFruitWarningActive"
+							class="mold-time-indicator"
+							:style="{
+			          fontSize: `${Math.max(8, fruit.size * 0.12)}px`,
+			          top: `${-6}px`,
+			          right: `${-6}px`
+			        }"
 						>
 							{{ Math.ceil(moldFruitLifeRemaining / 1000) }}
 						</div>
@@ -2526,10 +2786,10 @@ onUnmounted(() => {
 				<!-- Score Points Container -->
 				<div class="score-points-container">
 					<div
-							v-for="scorePoint in scorePoints"
-							:key="scorePoint.id"
-							class="score-point"
-							:style="{
+						v-for="scorePoint in scorePoints"
+						:key="scorePoint.id"
+						class="score-point"
+						:style="{
 	            left: `${scorePoint.x}px`,
 	            top: `${scorePoint.y}px`,
 	            transform: `translate(-50%, ${scorePoint.translateY}px) scale(${scorePoint.scale})`,
@@ -2546,9 +2806,9 @@ onUnmounted(() => {
 			<div v-if="isEndlessMode" class="milestone-notifications">
 				<transition-group name="milestone" tag="div" class="milestone-container">
 					<div
-							v-for="milestone in milestones.slice(-3)"
-							:key="milestone"
-							class="milestone-notification"
+						v-for="milestone in milestones.slice(-3)"
+						:key="milestone"
+						class="milestone-notification"
 					>
 						<Icon name="trophy" size="16" />
 						<span>{{ getMilestoneText(milestone) }}</span>
@@ -3210,6 +3470,11 @@ onUnmounted(() => {
 	border: 1px solid white;
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 	animation: countdownPulse 1s ease-in-out infinite;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	touch-action: manipulation;
 }
 
 .particle--mold_spawn {
@@ -3226,6 +3491,127 @@ onUnmounted(() => {
 .particle--destruction {
 	background-color: #FF4444 !important;
 	box-shadow: 0 0 10px #FF4444;
+}
+
+.fruit--bomb {
+	box-shadow: 0 0 12px rgba(255, 68, 68, 0.6);
+	animation: bombPulse 2s ease-in-out infinite alternate;
+	position: relative;
+}
+
+.fruit--bomb-ticking {
+	animation: bombDangerPulse 0.3s ease-in-out infinite alternate !important;
+	box-shadow: 0 0 20px #FF0000;
+}
+
+.bomb-timer-circle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	z-index: 15;
+	border-radius: 50%;
+	width: 100%;
+	height: 100%;
+}
+
+.bomb-timer-svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	transform: rotate(-90deg); /* Start progress from top */
+	filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.4));
+}
+
+.bomb-progress-ring {
+	stroke-dasharray: var(--circumference);
+	stroke-dashoffset: calc(var(--circumference) - (var(--progress) / 100) * var(--circumference));
+	transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+	transform-origin: center;
+}
+
+.bomb-countdown-indicator {
+	position: absolute;
+	background: rgba(255, 0, 0, 0.95);
+	color: white;
+	border-radius: 50%;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	font-size: 10px;
+	line-height: 1;
+	border: 2px solid white;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+	animation: bombCountdownPulse 0.5s ease-in-out infinite;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	touch-action: manipulation;
+}
+
+// Bomb particle effects
+.particle--bomb_explosion {
+	border-radius: 50% !important;
+	box-shadow: 0 0 12px currentColor;
+}
+
+// Animations
+@keyframes bombPulse {
+	0% {
+		filter: brightness(1) saturate(1);
+		transform: scale(1);
+	}
+	100% {
+		filter: brightness(1.2) saturate(1.3);
+		transform: scale(1.03);
+	}
+}
+
+@keyframes bombDangerPulse {
+	0% {
+		box-shadow: 0 0 20px #FF0000;
+		transform: scale(1);
+	}
+	100% {
+		box-shadow: 0 0 30px #FF0000;
+		transform: scale(1.05);
+	}
+}
+
+@keyframes bombCountdownPulse {
+	0% {
+		transform: scale(1);
+		background: rgba(255, 0, 0, 0.9);
+	}
+	50% {
+		transform: scale(1.2);
+		background: rgba(255, 0, 0, 1);
+	}
+	100% {
+		transform: scale(1);
+		background: rgba(255, 0, 0, 0.9);
+	}
+}
+
+// Screen Shake Animation
+@keyframes screenShake {
+	0% { transform: translate(0px, 0px) rotate(0deg); }
+	10% { transform: translate(-2px, -1px) rotate(-0.5deg); }
+	20% { transform: translate(-1px, 0px) rotate(0.5deg); }
+	30% { transform: translate(2px, 1px) rotate(0deg); }
+	40% { transform: translate(0px, -1px) rotate(0.5deg); }
+	50% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+	60% { transform: translate(-2px, 0px) rotate(0deg); }
+	70% { transform: translate(1px, 0px) rotate(-0.5deg); }
+	80% { transform: translate(-1px, -1px) rotate(0.5deg); }
+	90% { transform: translate(1px, 1px) rotate(0deg); }
+	100% { transform: translate(0px, 0px) rotate(0deg); }
 }
 
 // Animations

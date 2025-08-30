@@ -652,46 +652,47 @@ export const FRUIT_TYPES = {
 </svg>`
 	},
   BOMB_FRUIT: {
-    index: 98, // Special index
+    index: 98,
     type: 'BOMB_FRUIT',
     emoji: '💣',
     radius: 30,
-    nextType: null,
+    nextType: null, // Explodes instead of merging
     color: '#FF4444',
-    scoreValue: 0,
+    scoreValue: 0, // Bonus based on explosion
     sparkleColor: '#FF6B6B',
-    isBomb: true,
+    isBomb: true, // Special property
     explosionRadius: 80, // 3x3 area roughly
-    spawnChance: 0.03, // 3% chance
+    fuseTime: 10000, // 10 seconds fuse time
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="bombGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#555"/>
-            <stop offset="60%" style="stop-color:#333"/>
-            <stop offset="100%" style="stop-color:#111"/>
+            <stop offset="0%" style="stop-color:#666666"/>
+            <stop offset="50%" style="stop-color:#333333"/>
+            <stop offset="100%" style="stop-color:#111111"/>
         </radialGradient>
-        <linearGradient id="fuseGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" style="stop-color:#ccc"/>
-            <stop offset="100%" style="stop-color:#666"/>
-        </linearGradient>
-        <radialGradient id="sparkGrad" cx="0.5" cy="0.5">
-            <stop offset="0%" style="stop-color:#ff0"/>
-            <stop offset="70%" style="stop-color:#f90"/>
-            <stop offset="100%" style="stop-color:transparent"/>
+        <radialGradient id="fuseGrad" cx="0.5" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFA500"/>
+            <stop offset="100%" style="stop-color:#FF4500"/>
         </radialGradient>
     </defs>
-    <circle cx="32" cy="36" r="24" fill="url(#bombGrad)" stroke="#000" stroke-width="2"/>
-    <path d="M32 15 Q30 8 26 6" stroke="url(#fuseGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <circle cx="25" cy="6" r="5" fill="url(#sparkGrad)">
-        <animate attributeName="r" values="4;6;4" dur="0.8s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="1;0.5;1" dur="0.8s" repeatCount="indefinite"/>
-    </circle>
+
+    <!-- Bomb body -->
+    <circle cx="32" cy="32" r="30" fill="url(#bombGrad)" stroke="#000000" stroke-width="2"/>
+
     <g fill="white" stroke="black" stroke-width="1.5">
         <circle cx="24" cy="30" r="5"/>
         <circle cx="40" cy="29" r="6"/>
     </g>
     <circle cx="24" cy="30" r="2" fill="black"/>
     <circle cx="40" cy="30" r="3" fill="black"/>
+    <circle cx="32" cy="32" r="30" fill="none" stroke="#FF0000" stroke-width="2" opacity="0.4">
+        <animate attributeName="opacity" values="0.2;0.8;0.2" dur="1s" repeatCount="indefinite"/>
+    </circle>
+    <path d="M32 15 Q30 8 26 6" stroke="url(#fuseGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="24" cy="5" r="3" fill="#FFD700" opacity="0.9">
+        <animate attributeName="r" values="2;5;2" dur="0.7s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;1;0.7" dur="0.7s" repeatCount="indefinite"/>
+    </circle>
 </svg>`
   },
   MOLD_FRUIT: {
@@ -705,7 +706,6 @@ export const FRUIT_TYPES = {
     sparkleColor: '#8D6E63',
     isMold: true, // Special property
     lifespan: 300000, // 5 minutes in milliseconds
-    shrinkDuration: 60000, // Last minute shrinking effect
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="moldGrad" cx="0.3" cy="0.3">
@@ -751,12 +751,42 @@ export const FRUIT_TYPES = {
   }
 }
 
+export const BOMB_FRUIT_CONFIG = {
+  spawnChance: 0.5, // 2.5% chance per fruit drop in endless mode
+  minSpawnDelay: 45000, // Minimum 45 seconds between spawns
+  maxSpawnDelay: 180000, // Maximum 3 minutes between spawns
+  fuseTime: 10000, // 10 seconds until explosion
+  explosionRadius: 70, // Radius in pixels
+  bonusPerFruit: 100, // Bonus points per destroyed fruit
+  maxConcurrent: 1, // Only one bomb at a time
+  screenShakeIntensity: 8, // Screen shake strength
+  screenShakeDuration: 800, // Screen shake duration in ms
+
+  // Visual effects
+  spawnEffect: {
+    particles: 12,
+    color: '#FF4444',
+    duration: 1200
+  },
+  explosionEffect: {
+    particles: 20,
+    color: '#FF6B6B',
+    duration: 2000
+  },
+
+  // Audio cues (for future implementation)
+  sounds: {
+    spawn: 'bomb_spawn',
+    tick: 'bomb_tick',
+    explosion: 'bomb_explosion'
+  }
+}
+
 export const MOLD_FRUIT_CONFIG = {
-  spawnChance: 0.05, // 5% chance per fruit drop in endless mode
+  spawnChance: 0, // 5% chance per fruit drop in endless mode
   minSpawnDelay: 60000, // Minimum 1 minute between spawns
   maxSpawnDelay: 120000, // Maximum 2 minutes between spawns
   lifespan: 180000, // 3 minutes lifespan
-  shrinkStartTime: 120000, // Start shrinking at 2 minutes
   warningFlashTime: 30000, // Flash warning in last 30 seconds
   scoreEffect: -1000, // Negative points when touched/removed
   maxConcurrent: 1, // Only one mold fruit at a time

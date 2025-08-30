@@ -67,29 +67,26 @@
 - **NumNum Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
 - **Undo Item** - Shop item to undo last move in NumNum game
 - **In-Game Shop Integration** - Direct item purchasing during gameplay (Undo item)
-- **Mold Fruit Mechanic** - Special fruit that randomly spawns and disappears after 5 minutes
+- **Mold Fruit Mechanic** - Special fruit that randomly spawns and disappears after 3 minutes
+- **Bomb Fruit Mechanic** - Explodes and removes all fruits in a 3x3 radius
 
 ## 🚀 Version 0.3.3 - FruitMerge Enhancements
-
-### **💣 Bomb Fruit**
-- Explodes and removes all fruits in a 3x3 radius
-- Strategic placement creates massive clearing opportunities
-- Special explosion particle effects and screen shake
 
 ### **🌈 Rainbow Fruit**
 - Can merge with any other fruit type
 - Rare spawn with rainbow shimmer animation
 - Creates unique merge combinations and scoring opportunities
 
+### **📳 Screen Shake**
+- Screen vibrates during large merges
+- Intensity scales with merge size and combo level
+- Enhanced tactile feedback for satisfying gameplay moments
+- 
 ### **🌟 Neon Theme**
 - Glowing fruits in cyberpunk style
 - Dark background with bright neon fruit outlines
 - Pulsing glow effects and electric particle trails
 
-### **📳 Screen Shake**
-- Screen vibrates during large merges
-- Intensity scales with merge size and combo level
-- Enhanced tactile feedback for satisfying gameplay moments
 ---
 
 ## 🚀 Version 0.4.0 - Social & Competition Features
