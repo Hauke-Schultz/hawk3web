@@ -16,13 +16,13 @@ import GameCompletedModal from "../../components/GameCompletedModal.vue";
 import {useComboSystem} from "../../composables/useComboSystem.js";
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useInventory } from '../../composables/useInventory.js'
-import { useI18n } from '../../composables/useI18n.js'
+import { useI18n } from '../../../composables/useI18n.js'
 import Header from "../../components/Header.vue";
 import {REWARDS} from "../../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../../config/comboConfig.js";
 import { ACHIEVEMENTS } from '../../config/achievementsConfig.js'
 import GameOverModal from "../../components/GameOverModal.vue";
-import Icon from "../../components/Icon.vue";
+import Icon from "../../../components/Icon.vue";
 import ShopModal from "../../components/ShopModal.vue";
 import { SHOP_ITEMS } from '../../config/shopConfig.js'
 
@@ -1536,7 +1536,7 @@ const calculateLevelReward = () => {
 				source: t('rewards.breakdown.base_completion'),
 				coins: baseCoins,
 				diamonds: baseDiamonds,
-				icon: 'trophy',
+				icon: 'completion',
 				style: 'default'
 			})
 			totalCoins += baseCoins
@@ -1586,7 +1586,7 @@ const calculateLevelReward = () => {
 				source: t('rewards.breakdown.perfect_performance'),
 				coins: perfectBonusCoins,
 				diamonds: 0,
-				icon: 'trophy',
+				icon: 'perfect',
 				style: 'perfect'
 			})
 			totalCoins += perfectBonusCoins

@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import Gaming from '../views/Gaming.vue'
-import MemoryLevels from '../games/memory/MemoryLevels.vue'
-import MemoryGame from '../games/memory/MemoryGame.vue'
-import FruitMergeLevels from '../games/fruitmerge/FruitMergeLevels.vue'
-import FruitMergeGame from '../games/fruitmerge/FruitMergeGame.vue'
-import Shop from '../views/Shop.vue'
-import Profile from '../views/Profile.vue'
-import Trophy from '../views/Trophy.vue'
-import Settings from '../views/Settings.vue'
+import Gaming from '../gamingHub/views/Gaming.vue'
+import MemoryLevels from '../gamingHub/games/memory/MemoryLevels.vue'
+import MemoryGame from '../gamingHub/games/memory/MemoryGame.vue'
+import FruitMergeLevels from '../gamingHub/games/fruitmerge/FruitMergeLevels.vue'
+import FruitMergeGame from '../gamingHub/games/fruitmerge/FruitMergeGame.vue'
+import Shop from '../gamingHub/views/Shop.vue'
+import Profile from '../gamingHub/views/Profile.vue'
+import Trophy from '../gamingHub/views/Trophy.vue'
+import Settings from '../gamingHub/views/Settings.vue'
 import About from '../views/About.vue'
 
 const routes = [
@@ -63,12 +63,12 @@ const routes = [
   {
     path: '/games/numnummerge',
     name: 'NumNumMergeLevels',
-    component: () => import('../games/numnummerge/NumNumMergeLevels.vue')
+    component: () => import('../gamingHub/games/numnummerge/NumNumMergeLevels.vue')
   },
   {
     path: '/games/numnummerge/:level',
     name: 'NumNumMergeGame',
-    component: () => import('../games/numnummerge/NumNumMergeGame.vue'),
+    component: () => import('../gamingHub/games/numnummerge/NumNumMergeGame.vue'),
     props: route => ({ level: parseInt(route.params.level) || 1 }),
     beforeEnter: (to, from, next) => {
       const level = parseInt(to.params.level)

@@ -48,6 +48,25 @@ export default {
 		please_wait: 'Please wait...'
 	},
 
+  portfolio: {
+    pageTitle: 'haukeschultz.com',
+    title: 'Hauke Schultz',
+    subtitle: 'Explore my projects and works',
+    projects: 'Projects',
+    gamingHub: {
+      title: 'Hawk3 Gaming Platform',
+      description: 'A modern gaming platform with multiple mini-games.',
+      icon: 'play',
+      link: '/gaming',
+    },
+    commingSoon: {
+      title: 'Comming Soon',
+      description: 'More projects coming soon!',
+      icon: 'code',
+      link: '#',
+    }
+  },
+
 	currency: {
 		coins: 'Coins',
 		diamonds: 'Diamonds',
@@ -228,74 +247,84 @@ export default {
 	},
 
 	// About Page
-	about: {
-		title: 'About Hawk3',
-		subtitle: 'Learn more about this gaming platform and its creator',
+  about: {
+    title: 'About Hauke Schultz',
+    subtitle: 'Learn more about this developer and his gaming platform',
 
-		platform: {
-			title: 'About the Platform',
-			description: 'Hawk3 is a modern gaming platform built with Vue 3, featuring multiple mini-games, achievement systems, and multilingual support. Designed with a mobile-first approach for the best gaming experience.',
-			version: 'Version',
-			status: 'Status',
-			status_value: 'Active Development',
-			features: 'Features',
-			technologies: 'Technologies',
-			feature_list: {
-				memory_game: 'Memory Game with 6 levels',
-				achievement_system: 'Comprehensive achievement system',
-				internationalization: 'English & German support'
-			}
-		},
+    platform: {
+      title: 'About the Gaming Platform',
+      description: 'A modern gaming platform, featuring multiple mini-games, achievement systems, and multilingual support. Designed with a mobile-first approach for the best gaming experience.',
+      version: 'Version',
+      status: 'Status',
+      status_value: 'Active Development',
+      features: 'Features',
+      technologies: 'Technologies',
+      feature_list: {
+        memory_game: 'Memory Game with 6 levels',
+        fruit_merge: 'Fruit Merge Game with 6 levels + endless mode',
+        numnum_merge: 'NumNum Merge Game with 6 levels + endless mode',
+        achievements: 'Achievement/Trophy System',
+        profile: 'Player Profile with stats and avatar selection',
+        currency: 'In-game Currency (Coins & Diamonds)',
+        shop: 'In-app Shop for items and upgrades',
+        daily_rewards: 'Daily Rewards System',
+        local_storage: 'Local Data Storage (no backend)',
+        responsive: 'Responsive Design (mobile first)',
+        internationalization: 'English & German support'
+      }
+    },
 
-		developer: {
-			title: 'About the Developer',
-			description: 'Hawk3 is developed with passion for creating engaging and accessible gaming experiences. The focus is on clean code, modern technologies, and user-friendly design.',
-			name: 'Developer',
-			location: 'Location',
-			contact: 'Contact Developer'
-		},
+    developer: {
+      title: 'About Hauke Schultz',
+      description: 'Hauke Schultz develops with passion for creating engaging and accessible gaming experiences. The focus is on clean code, modern technologies, and user-friendly design.',
+      name: 'Developer',
+      location: 'Location',
+      experience: 'Experience',
+      specialties: 'Specialties',
+      contact: 'Contact'
+    },
 
-		privacy: {
-			title: 'Privacy & Data',
-			description: 'Your privacy is important to us. Hawk3 is designed with privacy-first principles and transparent data handling.',
-			local_storage: {
-				title: 'Local Data Storage',
-				description: 'All your game progress, settings, and achievements are stored locally in your browser. No data is sent to external servers.'
-			},
-			no_tracking: {
-				title: 'No Tracking',
-				description: 'We do not use analytics, tracking scripts, or third-party services that collect your personal data.'
-			},
-			data_control: {
-				title: 'Full Data Control',
-				description: 'You have complete control over your data. You can export, import, or delete all your data at any time through the settings.'
-			}
-		},
+    privacy: {
+      title: 'Privacy & Data',
+      description: 'Your privacy is important. This platform is designed with privacy-first principles and transparent data handling.',
+      local_storage: {
+        title: 'Local Data Storage',
+        description: 'All your game progress, settings, and achievements are stored locally in your browser. No data is sent to external servers.'
+      },
+      no_tracking: {
+        title: 'No Tracking',
+        description: 'No analytics, tracking scripts, or third-party services are used that collect your personal data.'
+      },
+      data_control: {
+        title: 'Full Data Control',
+        description: 'You have complete control over your data. You can export, import, or delete all your data at any time through the settings.'
+      }
+    },
 
-		legal: {
-			title: 'Legal Information',
-			description: 'Important legal information about the use of Hawk3 gaming platform.',
-			license: {
-				title: 'Open Source',
-				description: 'Hawk3 is built using open-source technologies and follows modern web standards. The project respects all software licenses and attributions.'
-			},
-			disclaimer: {
-				title: 'Disclaimer',
-				description: 'Hawk3 is provided as-is for entertainment purposes. While we strive for a bug-free experience, we cannot guarantee uninterrupted service.'
-			},
-			usage: {
-				title: 'Terms of Use',
-				description: 'By using Hawk3, you agree to use the platform responsibly and in accordance with applicable laws and regulations.'
-			}
-		},
+    legal: {
+      title: 'Legal Information',
+      description: 'Important legal information about the use of this gaming platform.',
+      license: {
+        title: 'Open Source',
+        description: 'This platform is built using open-source technologies and follows modern web standards. The project respects all software licenses and attributions.'
+      },
+      disclaimer: {
+        title: 'Disclaimer',
+        description: 'This platform is provided as-is for entertainment purposes. While we strive for a bug-free experience, we cannot guarantee uninterrupted service.'
+      },
+      usage: {
+        title: 'Terms of Use',
+        description: 'By using this platform, you agree to use it responsibly and in accordance with applicable laws and regulations.'
+      }
+    },
 
-		contact: {
-			title: 'Contact & Feedback',
-			description: 'We appreciate your feedback and suggestions to improve Hawk3. Feel free to reach out with questions, bug reports, or feature requests.',
-			email: 'Send Email',
-			feedback: 'Share Feedback'
-		}
-	},
+    contact: {
+      title: 'Contact & Feedback',
+      description: 'Feedback and suggestions to improve this platform are appreciated. Feel free to reach out with questions, bug reports, or feature requests.',
+      email: 'Send Email',
+      feedback: 'Share Feedback'
+    }
+  },
 
 	// Settings
 	settings: {

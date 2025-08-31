@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { useI18n } from '../composables/useI18n.js'
+import { useI18n } from '../../composables/useI18n.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import {REWARDS} from "../config/achievementsConfig.js";
 

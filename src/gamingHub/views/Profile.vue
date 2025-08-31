@@ -2,9 +2,9 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useI18n } from '../composables/useI18n.js'
+import { useI18n } from '../../composables/useI18n.js'
 import { useInventory } from '../composables/useInventory.js'
-import Icon from "../components/Icon.vue"
+import Icon from "../../components/Icon.vue"
 import CurrencyDisplay from "../components/CurrencyDisplay.vue";
 import Header from "../components/Header.vue";
 

@@ -6,7 +6,7 @@ import {
 	REWARDS
 } from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
-import {useI18n} from "./useI18n.js";
+import {useI18n} from "../../composables/useI18n.js";
 const { t } = useI18n()
 
 // Storage key for the main game data

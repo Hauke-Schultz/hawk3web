@@ -2,8 +2,8 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useI18n } from '../composables/useI18n.js'
-import Icon from '../components/Icon.vue'
+import { useI18n } from '../../composables/useI18n.js'
+import Icon from '../../components/Icon.vue'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
 import Header from "../components/Header.vue";
 

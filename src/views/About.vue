@@ -2,40 +2,30 @@
 import { useRouter } from 'vue-router'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from '../components/Icon.vue'
-import Header from "../components/Header.vue";
-import {useLocalStorage} from "../composables/useLocalStorage.js";
+import Header from '../components/Header.vue'
 
-const emit = defineEmits(['menu-click'])
-
-const { gameData } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
 
-// Developer information - könnte später auch aus einer config kommen
 const developerInfo = {
-	name: 'Hawk3 Developer',
+	name: 'Hauke Schultz',
 	location: 'Germany',
-	email: 'contact@hawk3.dev'
+	email: 'me@haukeschultz.com'
 }
 
 const platformInfo = {
-	version: '0.2.6',
-	technologies: ['Vue 3', 'Vite', 'SCSS', 'Matter.js'],
-	features: ['Memory Game', 'Achievement System', 'Internationalization']
+	version: '0.3.3',
+	technologies: ['Vue 3', 'Vite', 'SCSS', 'i18n', 'JavaScript', 'Matter.js'],
+	features: ['memory_game', 'fruit_merge', 'numnum_merge', 'achievements', 'profile', 'currency', 'shop', 'daily_rewards', 'local_storage', 'responsive', 'internationalization']
 }
-const handleMenuClick = () => {
-	router.push('/')
+
+const sendEmail = () => {
+	window.location.href = `mailto:${developerInfo.email}`
 }
 </script>
 
 <template>
-	<Header
-			:game-data="gameData"
-			:player="gameData.player"
-			:achievements="gameData.achievements"
-			:show-menu-button="true"
-			@menu-click="handleMenuClick"
-	/>
+	<Header />
 	<main class="content">
 		<!-- About Header -->
 		<section class="about-header">
@@ -110,13 +100,6 @@ const handleMenuClick = () => {
 							<span class="info-label">{{ t('about.developer.location') }}</span>
 							<span class="info-value">{{ developerInfo.location }}</span>
 						</div>
-					</div>
-
-					<div class="contact-links">
-						<a href="mailto:contact@hawk3.dev" class="btn btn--ghost">
-							<Icon name="mail" size="16" />
-							{{ t('about.developer.contact') }}
-						</a>
 					</div>
 				</div>
 			</section>
@@ -194,13 +177,9 @@ const handleMenuClick = () => {
 
 					<div class="contact-info">
 						<div class="contact-methods">
-							<a href="mailto:contact@hawk3.dev" class="btn btn--ghost">
+							<button @click="sendEmail" class="btn btn--ghost">
 								<span>{{ t('about.contact.email') }}</span>
-							</a>
-
-							<div class="btn btn--ghost">
-								<span>{{ t('about.contact.feedback') }}</span>
-							</div>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -285,10 +264,16 @@ const handleMenuClick = () => {
 	line-height: 1.5;
 }
 
+.developer-info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
 // Info Grid
 .info-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr 2fr;
 	gap: var(--space-3);
 }
 

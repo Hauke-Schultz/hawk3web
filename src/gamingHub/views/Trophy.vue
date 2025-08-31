@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useI18n } from '../composables/useI18n.js'
-import Icon from "../components/Icon.vue"
+import { useI18n } from '../../composables/useI18n.js'
+import Icon from "../../components/Icon.vue"
 import ProgressOverview from "../components/ProgressOverview.vue";
 import { ACHIEVEMENTS } from '../config/achievementsConfig.js'
 import CurrencyDisplay from "../components/CurrencyDisplay.vue";

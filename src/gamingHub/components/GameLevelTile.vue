@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from '../composables/useI18n.js'
-import Icon from './Icon.vue'
+import { useI18n } from '../../composables/useI18n.js'
+import Icon from '../../components/Icon.vue'
 
 // Props for the level tile component
 const props = defineProps({

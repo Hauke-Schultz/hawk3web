@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useLocalStorage } from './composables/useLocalStorage.js'
+import { useLocalStorage } from './gamingHub/composables/useLocalStorage.js'
 import { useI18n } from './composables/useI18n.js'
 
 // Services

@@ -2,11 +2,11 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
-import { useI18n } from '../composables/useI18n.js'
+import { useI18n } from '../../composables/useI18n.js'
 import { memoryConfig } from '../games/memory/memoryConfig.js'
 import { fruitMergeConfig } from '../games/fruitmerge/fruitMergeConfig.js'
 import { numNumMergeConfig } from '../games/numnummerge/numNumMergeConfig.js'
-import Icon from '../components/Icon.vue'
+import Icon from '../../components/Icon.vue'
 import Header from "../components/Header.vue";
 
 // Services

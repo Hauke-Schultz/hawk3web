@@ -2,7 +2,7 @@
 import {ref, computed, onMounted, onUnmounted, nextTick} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
-import { useI18n } from '../../composables/useI18n.js'
+import { useI18n } from '../../../composables/useI18n.js'
 import {
 	memoryConfig,
 	getMemoryLevel,
@@ -12,7 +12,7 @@ import {
 import { REWARDS } from '../../config/achievementsConfig.js'
 import { calculateLevelStars } from '../../config/levelUtils.js'
 import { useComboSystem } from '../../composables/useComboSystem.js'
-import Icon from '../../components/Icon.vue'
+import Icon from '../../../components/Icon.vue'
 import ProgressOverview from "../../components/ProgressOverview.vue";
 import GameCompletedModal from "../../components/GameCompletedModal.vue";
 import PerformanceStats from "../../components/PerformanceStats.vue";
@@ -347,7 +347,7 @@ const calculateLevelReward = () => {
 			source: t('rewards.breakdown.perfect_performance'),
 			coins: perfectBonusCoins,
 			diamonds: 0,
-			icon: 'trophy',
+			icon: 'perfect',
 			style: 'perfect'
 		})
 		totalCoins += perfectBonusCoins

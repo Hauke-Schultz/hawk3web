@@ -2,8 +2,8 @@
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import Header from "../../components/Header.vue";
 import {useLocalStorage} from "../../composables/useLocalStorage.js";
-import {useI18n} from "../../composables/useI18n.js";
-import Icon from "../../components/Icon.vue";
+import {useI18n} from "../../../composables/useI18n.js";
+import Icon from "../../../components/Icon.vue";
 import {NUM_NUM_MERGE_LEVELS, NUMBER_TYPES, GRID_CONFIG} from "./numNumMergeConfig.js";
 import {useRouter} from "vue-router";
 import ProgressOverview from "../../components/ProgressOverview.vue";
@@ -1351,7 +1351,7 @@ const calculateLevelReward = () => {
 			source: t('rewards.breakdown.base_completion'),
 			coins: baseCoins,
 			diamonds: baseDiamonds,
-			icon: 'trophy',
+			icon: 'completion',
 			style: 'default'
 		})
 		totalCoins += baseCoins
@@ -1400,7 +1400,7 @@ const calculateLevelReward = () => {
 			source: t('rewards.breakdown.perfect_performance'),
 			coins: perfectBonusCoins,
 			diamonds: 0,
-			icon: 'trophy',
+			icon: 'perfect',
 			style: 'perfect'
 		})
 		totalCoins += perfectBonusCoins
@@ -2150,35 +2150,35 @@ watch(() => props.level, (newLevel) => {
 // Animations
 @keyframes tileAppear {
 	0% {
-		transform: scale(0) rotate(-5deg);
+		transform: scale(0);
 		opacity: 0;
 	}
 	60% {
-		transform: scale(1.15) rotate(2deg);
+		transform: scale(1.15);
 		opacity: 0.9;
 	}
 	100% {
-		transform: scale(1) rotate(0deg);
+		transform: scale(1);
 		opacity: 1;
 	}
 }
 
 @keyframes tileMerge {
 	0% {
-		transform: scale(1) rotate(0deg);
+		transform: scale(1);
 	}
 	25% {
-		transform: scale(0.95) rotate(-1deg);
+		transform: scale(0.95);
 	}
 	50% {
-		transform: scale(1.2) rotate(1deg);
+		transform: scale(1.1);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	}
 	75% {
-		transform: scale(1.05) rotate(-0.5deg);
+		transform: scale(1.05);
 	}
 	100% {
-		transform: scale(1) rotate(0deg);
+		transform: scale(1);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}
 }

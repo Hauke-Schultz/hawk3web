@@ -24,8 +24,7 @@ const props = defineProps({
     type: String,
     default: 'currentColor'
   },
-  // Additional CSS classes
-  class: {
+  className: {
     type: [String, Array, Object],
     default: ''
   },
@@ -133,14 +132,14 @@ const processedSvgContent = computed(() => {
   <span
     v-if="svgContent"
     class="icon-wrapper"
-    :class="class"
+    :class="className"
     v-bind="accessibilityAttrs"
     v-html="processedSvgContent"
   />
   <span
     v-else
     class="icon-wrapper icon-missing"
-    :class="class"
+    :class="className"
     :style="{
       width: iconSize,
       height: iconSize,

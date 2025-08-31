@@ -47,6 +47,25 @@ export default {
 		please_wait: 'Bitte warten...',
 	},
 
+  portfolio: {
+    pageTitle: 'haukeschultz.com',
+    title: 'Hauke Schultz',
+    subtitle: 'Entdecke meine Projekte und Arbeiten',
+    projects: 'Projekte',
+    gamingHub: {
+      title: 'Gaming Platform',
+      description: 'Eine moderne Spieleplattform mit mehreren Mini-Spielen.',
+      icon: 'play',
+      link: '/gaming',
+    },
+    commingSoon: {
+      title: 'Mehr Projekte',
+      description: 'Schau bald wieder vorbei!',
+      icon: 'code',
+      link: '#',
+    }
+  },
+
 	currency: {
 		coins: 'Münzen',
 		diamonds: 'Diamanten',
@@ -130,27 +149,35 @@ export default {
 
 	// Über uns
 	about: {
-		title: 'Über Hawk3',
+		title: 'Über Hauke Schultz',
 		subtitle: 'Erfahre mehr über diese Spieleplattform und ihren Entwickler',
 
 		platform: {
 			title: 'Über die Plattform',
-			description: 'Hawk3 ist eine moderne Spieleplattform, die mit Vue 3 entwickelt wurde und mehrere Mini-Spiele, Erfolg-Systeme und mehrsprachige Unterstützung bietet. Entwickelt mit einem Mobile-First-Ansatz für die beste Spielerfahrung.',
+			description: 'Eine moderne Spieleplattform, mit mehrere Mini-Spiele, Erfolg-Systeme und mehrsprachige Unterstützung bietet. Entwickelt mit einem Mobile-First-Ansatz für die beste Spielerfahrung.',
 			version: 'Version',
 			status: 'Status',
 			status_value: 'Aktive Entwicklung',
 			features: 'Features',
 			technologies: 'Technologien',
 			feature_list: {
-				memory_game: 'Memory-Spiel mit 6 Leveln',
-				achievement_system: 'Umfassendes Erfolgs-System',
-				internationalization: 'Deutsch & Englisch Unterstützung'
+        memory_game: 'Memory Spiel mit 6 Levels',
+        fruit_merge: 'Fruit Merge Game mit 6 Levels + Endlos-Modus',
+        numnum_merge: 'NumNum Merge Game mit 6 Levels + Endlos-Modus',
+        achievements: 'Erfolgssystem mit Trophäensammlung',
+        profile: 'Spielerprofil & Statistiken',
+        currency: 'In-game Währungssystem (Münzen & Diamanten)',
+        shop: 'In-app Shop für Gegenstände & Upgrades',
+        daily_rewards: 'Tägliche Belohnungen',
+        local_storage: 'Lokale Speicherung von Fortschritt & Einstellungen (kein Backend)',
+        responsive: 'Responsive Design (mobile first)',
+        internationalization: 'Englisch & Deutsch Unterstützung',
 			}
 		},
 
 		developer: {
 			title: 'Über den Entwickler',
-			description: 'Hawk3 wird mit Leidenschaft für ansprechende und zugängliche Spielerfahrungen entwickelt. Der Fokus liegt auf sauberem Code, modernen Technologien und benutzerfreundlichem Design.',
+			description: 'Die Platform wird mit Leidenschaft für ansprechende und zugängliche Spielerfahrungen entwickelt. Der Fokus liegt auf sauberem Code, modernen Technologien und benutzerfreundlichem Design.',
 			name: 'Entwickler',
 			location: 'Standort',
 			contact: 'Entwickler kontaktieren'
@@ -158,7 +185,7 @@ export default {
 
 		privacy: {
 			title: 'Datenschutz & Daten',
-			description: 'Deine Privatsphäre ist uns wichtig. Hawk3 ist mit datenschutzfreundlichen Prinzipien und transparenter Datenverarbeitung entwickelt.',
+			description: 'Deine Privatsphäre ist uns wichtig. Die Spieleplattform ist mit datenschutzfreundlichen Prinzipien und transparenter Datenverarbeitung entwickelt.',
 			local_storage: {
 				title: 'Lokale Datenspeicherung',
 				description: 'Alle deine Spielfortschritte, Einstellungen und Erfolge werden lokal in deinem Browser gespeichert. Keine Daten werden an externe Server gesendet.'
@@ -175,24 +202,24 @@ export default {
 
 		legal: {
 			title: 'Rechtliche Informationen',
-			description: 'Wichtige rechtliche Informationen zur Nutzung der Hawk3 Spieleplattform.',
+			description: 'Wichtige rechtliche Informationen zur Nutzung der Spieleplattform.',
 			license: {
 				title: 'Open Source',
-				description: 'Hawk3 nutzt Open-Source-Technologien und folgt modernen Web-Standards. Das Projekt respektiert alle Software-Lizenzen und Zuordnungen.'
+				description: 'Die Spieleplattform nutzt Open-Source-Technologien und folgt modernen Web-Standards. Das Projekt respektiert alle Software-Lizenzen und Zuordnungen.'
 			},
 			disclaimer: {
 				title: 'Haftungsausschluss',
-				description: 'Hawk3 wird wie besehen für Unterhaltungszwecke bereitgestellt. Obwohl wir uns um eine fehlerfreie Erfahrung bemühen, können wir keinen ununterbrochenen Service garantieren.'
+				description: 'Die Spieleplattform wird wie besehen für Unterhaltungszwecke bereitgestellt. Obwohl wir uns um eine fehlerfreie Erfahrung bemühen, können wir keinen ununterbrochenen Service garantieren.'
 			},
 			usage: {
 				title: 'Nutzungsbedingungen',
-				description: 'Durch die Nutzung von Hawk3 stimmst du zu, die Plattform verantwortlich und in Übereinstimmung mit geltenden Gesetzen und Vorschriften zu nutzen.'
+				description: 'Durch die Nutzung von der Seite stimmst du zu, die Plattform verantwortlich und in Übereinstimmung mit geltenden Gesetzen und Vorschriften zu nutzen.'
 			}
 		},
 
 		contact: {
 			title: 'Kontakt & Feedback',
-			description: 'Wir schätzen dein Feedback und deine Vorschläge zur Verbesserung von Hawk3. Zögere nicht, dich mit Fragen, Fehlermeldungen oder Feature-Wünschen zu melden.',
+			description: 'Wir schätzen dein Feedback und deine Vorschläge zur Verbesserung von der Spieleplattform. Zögere nicht, dich mit Fragen, Fehlermeldungen oder Feature-Wünschen zu melden.',
 			email: 'E-Mail senden',
 			feedback: 'Feedback teilen'
 		}

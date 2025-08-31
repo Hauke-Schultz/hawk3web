@@ -1,175 +1,50 @@
 <script setup>
-import {defineEmits, computed, watch} from 'vue'
 import { useRouter } from 'vue-router'
-import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../composables/useI18n.js'
-import Icon from "../components/Icon.vue";
-import Header from "../components/Header.vue";
-
-// LocalStorage service for achievements
-const { gameData } = useLocalStorage()
-
-// Emits for parent component communication
-const emit = defineEmits([
-	'start-game',
-	'profile-click',
-	'trophy-click',
-	'settings-click',
-	'about-click',
-	'package-click',
-	'shop-click'
-])
+import Header from '../components/Header.vue'
+import Icon from '../components/Icon.vue'
 
 const { t } = useI18n()
+const router = useRouter()
 
-const handleStartGame = () => {
-	emit('start-game')
+const navigateToAbout = () => {
+	router.push('/about')
 }
-
-const handleProfileClick = () => {
-	emit('profile-click')
-}
-
-const handleShopClick = () => {
-	emit('shop-click')
-}
-
-const handleTrophyClick = () => {
-	emit('trophy-click')
-}
-
-const handleSettingsClick = () => {
-	emit('settings-click')
-}
-
-const handleAboutClick = () => {
-	emit('about-click')
-}
-
 </script>
 
 <template>
-	<Header
-		:game-data="gameData"
-		:player="gameData.player"
-		:achievements="gameData.achievements"
-	/>
-	<!-- Main Content Area -->
-	<main class="content">
+	<Header />
 
-		<!-- Game Actions Section -->
-		<section class="game-actions" aria-label="Game Actions">
-			<!-- Start Game Card -->
-			<div
-					class="action-card"
-					@click="handleStartGame"
-					@keydown.enter="handleStartGame"
-					tabindex="0"
-					role="button"
-					aria-label="t('home.start_game')"
-			>
-				<div class="card-icon">
-					<div class="icon-btn btn--primary" aria-label="Play">
-						<Icon name="play" size="32" />
+	<main class="portfolio">
+		<!-- Portfolio Hero -->
+		<section class="hero">
+			<div class="hero-title"><h1>{{ t('portfolio.title') }}</h1></div>
+			<p class="hero-subtitle">{{ t('portfolio.subtitle') }}</p>
+		</section>
+
+		<!-- Projekte -->
+		<section class="projects">
+			<div class="projects-grid">
+				<!-- Gaming Platform -->
+				<div class="project-card" @click="router.push('/games')">
+					<div class="project-icon">
+						<Icon name="play" size="48" />
+					</div>
+					<div class="project-content">
+						<h2 class="project-title">{{ t('portfolio.gamingHub.title') }}</h2>
+						<p class="project-description">{{ t('portfolio.gamingHub.description') }}</p>
 					</div>
 				</div>
-				<div class="card-content">
-					<h2 class="card-title">{{ t('nav.gaming_hub') }}</h2>
-				</div>
-			</div>
 
-			<!-- Profile Card -->
-			<div
-					class="action-card"
-					@click="handleProfileClick"
-					@keydown.enter="handleProfileClick"
-					tabindex="0"
-					role="button"
-					aria-label="t('home.view_profile')"
-			>
-				<div class="card-icon">
-					<div class="icon-btn btn--success" aria-label="Profile">
-						<Icon name="user" size="32" />
+				<!-- Coming Soon Projekte -->
+				<div class="project-card project-card--coming-soon">
+					<div class="project-icon">
+						<Icon name="code" size="48" />
 					</div>
-				</div>
-				<div class="card-content">
-					<h2 class="card-title">{{ t('nav.profile') }}</h2>
-				</div>
-			</div>
-
-			<!-- Shop Card -->
-			<div
-					class="action-card"
-					@click="handleShopClick"
-					@keydown.enter="handleShopClick"
-					tabindex="0"
-					role="button"
-					aria-label="t('home.open_shop')"
-			>
-				<div class="card-icon">
-					<div class="icon-btn btn--warning" aria-label="Shop">
-						<Icon name="shop" size="32" />
+					<div class="project-content">
+						<h2 class="project-title">{{ t('portfolio.commingSoon.title') }}</h2>
+						<p class="project-description">{{ t('portfolio.commingSoon.description') }}</p>
 					</div>
-				</div>
-				<div class="card-content">
-					<h2 class="card-title">{{ t('nav.shop') }}</h2>
-				</div>
-			</div>
-
-			<!-- Trophy Card -->
-			<div
-					class="action-card"
-					@click="handleTrophyClick"
-					@keydown.enter="handleTrophyClick"
-					tabindex="0"
-					role="button"
-					aria-label="t('home.view_trophies')"
-			>
-				<div class="card-icon">
-					<div class="icon-btn btn--warning" aria-label="Trophies">
-						<Icon name="trophy" size="32" />
-					</div>
-				</div>
-				<div class="card-content">
-					<h2 class="card-title">{{ t('nav.trophy') }}</h2>
-				</div>
-			</div>
-
-			<!-- Settings Card -->
-			<div
-					class="action-card"
-					@click="handleSettingsClick"
-					@keydown.enter="handleSettingsClick"
-					tabindex="0"
-					role="button"
-					aria-label="t('home.open_settings')"
-			>
-				<div class="card-icon">
-					<div class="icon-btn btn--info" aria-label="Settings">
-						<Icon name="settings" size="32" />
-					</div>
-				</div>
-				<div class="card-content">
-					<h2 class="card-title">{{ t('nav.settings') }}</h2>
-				</div>
-			</div>
-
-			<!-- About Card -->
-			<div
-					class="action-card"
-					@click="handleAboutClick"
-					@keydown.enter="handleAboutClick"
-					tabindex="0"
-					role="button"
-					aria-label="t('home.view_about')"
-			>
-				<div class="card-icon">
-					<div class="icon-btn btn--primary" aria-label="About">
-						<Icon name="about" size="32" />
-					</div>
-				</div>
-				<div class="card-content">
-					<h2 class="card-title">{{ t('nav.about') }}</h2>
 				</div>
 			</div>
 		</section>
@@ -177,58 +52,305 @@ const handleAboutClick = () => {
 </template>
 
 <style lang="scss" scoped>
-
-/* Game Actions Section */
-.game-actions {
+.portfolio {
+	padding: var(--space-4);
 	display: flex;
-	gap: var(--space-4);
-	flex-direction: row;
-	flex-wrap: wrap;
+	flex-direction: column;
+	gap: var(--space-8);
 }
 
-.action-card {
-	background-color: var(--card-bg);
-	border: 1px solid var(--card-border);
-	border-radius: var(--border-radius-xl);
-	padding: var(--space-3);
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
-	cursor: pointer;
-	transition: all 0.2s ease;
+.hero {
+	text-align: center;
+	padding: var(--space-8) 0;
+}
+
+.hero-title {
 	position: relative;
-	width: calc(50% - var(--space-2));
-
-	&:hover {
-		background-color: var(--card-bg-hover);
-		box-shadow: var(--card-shadow-hover);
-		transform: translateY(-1px);
-	}
-
-	&:focus-visible {
-		outline: var(--focus-outline);
-		outline-offset: 2px;
-		box-shadow: var(--focus-shadow);
-	}
-
-	&:active {
-		transform: translateY(0);
-	}
+	width: 100%;
+	height: 80px;
 }
 
-.card-icon {
-	flex-shrink: 0;
-}
-
-.card-content {
-	flex: 1;
-}
-
-.card-title {
-	color: var(--text-color);
-	font-size: var(--font-size-xl);
-	font-weight: var(--font-weight-bold);
+.hero-subtitle {
+	font-size: var(--font-size-lg);
+	color: var(--text-secondary);
 	margin: 0;
 }
 
+.projects {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.section-title {
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.projects-grid {
+	display: grid;
+	gap: var(--space-4);
+}
+
+.project-card {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-xl);
+	padding: var(--space-4);
+	display: flex;
+	gap: var(--space-4);
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover:not(&--coming-soon) {
+		background-color: var(--card-bg-hover);
+		box-shadow: var(--card-shadow-hover);
+		transform: translateY(-2px);
+	}
+
+	&--coming-soon {
+		opacity: 0.6;
+		cursor: default;
+	}
+}
+
+.project-icon {
+	color: var(--primary-color);
+	flex-shrink: 0;
+}
+
+.project-content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.project-title {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.project-description {
+	font-size: var(--font-size-base);
+	color: var(--text-secondary);
+	margin: 0;
+}
+
+.project-tech {
+	display: flex;
+	gap: var(--space-2);
+	flex-wrap: wrap;
+}
+
+.tech-tag {
+	background-color: var(--primary-color);
+	color: white;
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+}
+
+.quick-links {
+	display: flex;
+	justify-content: center;
+	gap: var(--space-3);
+}
+
+h1 {
+	font-size: var(--font-size-4xl);
+	text-shadow:
+			1px 1px 0 #f39,
+			1px 0 0 #3f9,
+			0 1px 0 #3f9,
+			1px -1px 0 #3f9,
+			-1px 1px 0 #3f9,
+			-1px -1px 0 #3f9,
+			-1px 0 0 #3f9,
+			0 -1px 0 #3f9,
+			0 35px 15px rgba(0, 0, 0, 0.8);
+	color: #777;
+	position: absolute;
+	top: 0;
+	left: 50%;
+	text-align: center;
+	text-transform: uppercase;
+	transform: translateX(-50%) translateY(-50%) rotate3d(1, 1, 1, 0deg);
+	animation-name: shadow;
+	animation-duration: 20s;
+	animation-iteration-count: infinite;
+	perspective: 600px;
+	white-space: nowrap;
+
+	&::before {
+		content: "HAUKE SCHULTZ";
+		position: absolute;
+		opacity: 0;
+		overflow: hidden;
+		text-shadow: none;
+		margin: 0;
+		left: 0;
+		width: 100%;
+		height: 30px;
+		text-align: center;
+		animation-name: foo1;
+		animation-duration: 8000ms;
+		animation-iteration-count: infinite;
+		transform: translateX(0) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+
+	&::after {
+		content: "HAUKE SCHULTZ";
+		position: absolute;
+		opacity: 0;
+		overflow: hidden;
+		text-shadow: none;
+		margin: 0;
+		left: 0;
+		top: 50%;
+		width: 100%;
+		height: 30px;
+		line-height: 0;
+		text-align: center;
+		animation-name: foo2;
+		animation-duration: 8030ms;
+		animation-iteration-count: infinite;
+		transform: translateX(0) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+}
+
+@keyframes foo1 {
+	0% {
+		opacity: 1;
+		color: #777;
+		transform: translateX(0%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	1% {
+		color: #3f9;
+		transform: translateX(-1%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	2% {
+		color: #f39;
+		transform: translateX(1%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	3% {
+		opacity: 0;
+		color: #777;
+		transform: translateX(0) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	10% {
+		opacity: 1;
+		color: #777;
+		transform: translateX(0%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	11% {
+		color: #3f9;
+		transform: translateX(-1%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	12% {
+		transform: translateX(1%) translateY(0%) rotate3d(1, 1, 1, 0deg);
+	}
+	13% {
+		opacity: 0;
+		color: #777;
+		transform: translateX(0) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	23.9% { opacity: 0; }
+	24% { opacity: 1; color: #f39; }
+	25% { opacity: 0; color: #000; }
+	33.9% { opacity: 0; }
+	34% { opacity: 1; color: #3f9; }
+	35% { opacity: 0; color: #000; }
+}
+
+@keyframes foo2 {
+	0% {
+		opacity: 1;
+		color: #777;
+		transform: translateX(0%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	1% {
+		color: #3f9;
+		transform: translateX(3%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	2% {
+		transform: translateX(-1%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	3% {
+		opacity: 0;
+		color: #777;
+		transform: translateX(0) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	10% {
+		opacity: 1;
+		color: #777;
+		transform: translateX(0%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	11% {
+		color: #f39;
+		transform: translateX(1%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	12% {
+		transform: translateX(-3%) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	13% {
+		opacity: 0;
+		color: #777;
+		transform: translateX(0) translateY(0) rotate3d(1, 1, 1, 0deg);
+	}
+	26.9% { opacity: 0; }
+	27% { opacity: 1; color: #3f9; }
+	28% { opacity: 0; color: #000; }
+	32.9% { opacity: 0; }
+	33% { opacity: 1; color: #f39; }
+	34% { opacity: 0; color: #000; }
+}
+
+@keyframes shadow {
+	0% {
+		text-shadow:
+				1px 1px 0 #f39,
+				1px 0 0 #3f9,
+				0 1px 0 #3f9,
+				1px -1px 0 #3f9,
+				-1px 1px 0 #3f9,
+				-1px -1px 0 #3f9,
+				-1px 0 0 #3f9,
+				0 -1px 0 #3f9,
+				0 -35px 15px #414;
+		transform: translateX(-50%) translateY(0%) rotate3d(1, 1, 1, -5deg);
+	}
+
+	50% {
+		text-shadow:
+				1px 1px 0 #f39,
+				1px 0 0 #3f9,
+				0 1px 0 #3f9,
+				1px -1px 0 #3f9,
+				-1px 1px 0 #3f9,
+				-1px -1px 0 #3f9,
+				-1px 0 0 #3f9,
+				0 -1px 0 #3f9,
+				0 35px 15px #314;
+		transform: translateX(-50%) translateY(-50%) rotate3d(1, 1, 1, 3deg);
+	}
+
+	100% {
+		text-shadow:
+				1px 1px 0 #f39,
+				1px 0 0 #3f9,
+				0 1px 0 #3f9,
+				1px -1px 0 #3f9,
+				-1px 1px 0 #3f9,
+				-1px -1px 0 #3f9,
+				-1px 0 0 #3f9,
+				0 -1px 0 #3f9,
+				0 -35px 15px #414;
+		transform: translateX(-50%) translateY(0%) rotate3d(1, 1, 1, -5deg);
+	}
+}
 </style>

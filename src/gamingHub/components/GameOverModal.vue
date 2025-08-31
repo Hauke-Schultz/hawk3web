@@ -1,7 +1,7 @@
 <!-- src/components/GameOverModal.vue -->
 <script setup>
-import { useI18n } from '../composables/useI18n.js'
-import Icon from './Icon.vue'
+import { useI18n } from '../../composables/useI18n.js'
+import Icon from '../../components/Icon.vue'
 
 const props = defineProps({
 	visible: {

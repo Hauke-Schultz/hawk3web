@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
-import { useI18n } from '../../composables/useI18n.js'
-import { fruitMergeConfig } from './fruitMergeConfig.js'
+import { useI18n } from '../../../composables/useI18n.js'
+import { numNumMergeConfig } from './numNumMergeConfig.js'
 import GameLevelTile from '../../components/GameLevelTile.vue'
-import Icon from '../../components/Icon.vue'
+import Icon from '../../../components/Icon.vue'
 import ProgressOverview from "../../components/ProgressOverview.vue";
 import { calculateLevelStars, getLevelTitle, getLevelDescription } from "../../config/levelUtils.js"
 import Header from "../../components/Header.vue";
@@ -17,23 +17,23 @@ const router = useRouter()
 
 // Computed game data
 const gameStats = computed(() => {
-	return gameData.games.fruitMerge || {}
+	return gameData.games.numNumMerge || {}
 })
 
 // Compute level data with completion status
 const levelData = computed(() => {
-	return fruitMergeConfig.levels.map((level, index) => {
+	return numNumMergeConfig.levels.map((level, index) => {
 		const levelNumber = index + 1
 		const levelStats = gameStats.value.levels?.[levelNumber] || {}
 
 		const isUnlocked = levelNumber === 1 || level.isEndless ||
 				(gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
-		const title = getLevelTitle(levelNumber, 'fruitMerge', t)
-		const description = getLevelDescription(levelNumber, 'fruitMerge', t)
+		const title = getLevelTitle(levelNumber, 'numNumMerge', t)
+		const description = getLevelDescription(levelNumber, 'numNumMerge', t)
 
 		// Check for saved state
-		const savedState = loadLevelState('fruitMerge', levelNumber)
+		const savedState = loadLevelState('numNumMerge', levelNumber)
 		const hasSaved = !!savedState
 		const savedTimestamp = savedState?.savedAt || null
 
@@ -74,7 +74,7 @@ const completionStats = computed(() => {
 
 // Event handlers using router
 const handlePlayLevel = (levelNumber) => {
-	router.push(`/games/fruitmerge/${levelNumber}`)
+	router.push(`/games/numNumMerge/${levelNumber}`)
 }
 
 const handleMenuClick = () => {
@@ -95,7 +95,7 @@ const handleMenuClick = () => {
 		<!-- Header Section -->
 		<div class="level-header">
 			<div class="level-title-section">
-				<h2 class="level-title">{{ fruitMergeConfig.gameTitle }}</h2>
+				<h2 class="level-title">{{ numNumMergeConfig.gameTitle }}</h2>
 				<p class="level-subtitle">{{ t('gaming.choose_level') }}</p>
 			</div>
 		</div>
@@ -126,7 +126,7 @@ const handleMenuClick = () => {
 				:high-score="level.highScore"
 				:best-time="level.bestTime"
 				theme="warning"
-				game-type="fruitMerge"
+				game-type="numNumMerge"
 				:has-saved-state="level.hasSavedState"
 				:saved-state-timestamp="level.savedStateTimestamp"
 				@play-level="handlePlayLevel"

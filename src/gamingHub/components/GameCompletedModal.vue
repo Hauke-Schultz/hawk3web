@@ -1,7 +1,7 @@
 <script setup>
 import {computed, ref, watch} from 'vue'
-import { useI18n } from '../composables/useI18n.js'
-import Icon from './Icon.vue'
+import { useI18n } from '../../composables/useI18n.js'
+import Icon from '../../components/Icon.vue'
 
 const props = defineProps({
   visible: {
@@ -575,7 +575,7 @@ watch(() => props.visible, (newVisible) => {
 	border-left: 3px solid var(--success-color);
 
 	&--special {
-		border-left-color: var(--warning-color);
+		border-left-color: var(--error-color);
 		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.1) 100%);
 	}
 
@@ -585,13 +585,13 @@ watch(() => props.visible, (newVisible) => {
 	}
 
 	&--perfect {
-		border-left-color: var(--warning-color);
+		border-left-color: var(--success-color);
 		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.15) 100%);
 		box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
 	}
 
 	&--achievement {
-		border-left-color: var(--info-color);
+		border-left-color: var(--warning-color);
 		background: linear-gradient(90deg, var(--card-bg) 0%, rgba(107, 114, 128, 0.1) 100%);
 	}
 

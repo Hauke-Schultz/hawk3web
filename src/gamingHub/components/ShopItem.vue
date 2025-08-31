@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from '../composables/useI18n.js'
+import { useI18n } from '../../composables/useI18n.js'
 import { RARITY_CONFIG } from '../config/shopConfig.js'
 import CurrencyDisplay from './CurrencyDisplay.vue'
 
