@@ -752,7 +752,7 @@ export const FRUIT_TYPES = {
 }
 
 export const BOMB_FRUIT_CONFIG = {
-  spawnChance: 0.5, // 2.5% chance per fruit drop in endless mode
+  spawnChance: 0.025, // 2.5% chance per fruit drop in endless mode
   minSpawnDelay: 45000, // Minimum 45 seconds between spawns
   maxSpawnDelay: 180000, // Maximum 3 minutes between spawns
   fuseTime: 10000, // 10 seconds until explosion
@@ -783,10 +783,10 @@ export const BOMB_FRUIT_CONFIG = {
 }
 
 export const MOLD_FRUIT_CONFIG = {
-  spawnChance: 0, // 5% chance per fruit drop in endless mode
+  spawnChance: 0.05, // 5% chance per fruit drop in endless mode
   minSpawnDelay: 60000, // Minimum 1 minute between spawns
   maxSpawnDelay: 120000, // Maximum 2 minutes between spawns
-  lifespan: 180000, // 3 minutes lifespan
+  lifespan: 120000, // 2 minutes lifespan
   warningFlashTime: 30000, // Flash warning in last 30 seconds
   scoreEffect: -1000, // Negative points when touched/removed
   maxConcurrent: 1, // Only one mold fruit at a time

@@ -72,6 +72,9 @@
 
 ## 🚀 Version 0.3.3 - FruitMerge Enhancements
 
+Ich will nun als nächstes eine preview für die nächste Frucht entwickeln, also das man sehen kann welche Frucht kommt nach der dropFruit als nächstes. Dafür brauche ich das Markdown für die Roadmap zum kopieren
+
+
 ### **🌈 Rainbow Fruit**
 - Can merge with any other fruit type
 - Rare spawn with rainbow shimmer animation

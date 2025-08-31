@@ -219,6 +219,28 @@ const generateNextFruit = () => {
 		}
 	}
 
+	if (isEndlessMode.value && shouldGenerateMoldFruit()) {
+		return {
+			id: nextFruitId.value++,
+			color: FRUIT_TYPES.MOLD_FRUIT.color,
+			size: FRUIT_TYPES.MOLD_FRUIT.radius * 2,
+			level: FRUIT_TYPES.MOLD_FRUIT.index,
+			name: FRUIT_TYPES.MOLD_FRUIT.type,
+			svg: FRUIT_TYPES.MOLD_FRUIT.svg,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			body: null,
+			merging: false,
+			inDanger: false,
+			dangerZoneStartTime: null,
+			dangerZoneTime: 0,
+			isMold: true,
+			lifespan: MOLD_FRUIT_CONFIG.lifespan,
+			spawnedAt: Date.now()
+		}
+	}
+
 	// Normal fruit generation logic...
 	const maxStartingLevel = 4
 	const randomIndex = Math.floor(Math.random() * maxStartingLevel)
@@ -246,6 +268,19 @@ const generateNextFruit = () => {
 		dangerZoneTime: 0,
 		isBomb: false
 	}
+}
+
+const shouldGenerateMoldFruit = () => {
+	if (!isEndlessMode.value) return false
+	if (hasMoldFruit.value) return false // Only one mold at a time
+
+	const now = Date.now()
+	const timeSinceLastSpawn = now - lastMoldSpawnTime.value
+
+	// Ensure minimum delay between mold spawns
+	if (timeSinceLastSpawn < MOLD_FRUIT_CONFIG.minSpawnDelay) return false
+
+	return Math.random() < MOLD_FRUIT_CONFIG.spawnChance
 }
 
 const shouldGenerateBombFruit = () => {
@@ -394,14 +429,14 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
 		console.log(`💣 Bomb fruit dropped! Fuse timer started: ${BOMB_FRUIT_CONFIG.fuseTime/1000}s`)
 	}
 
-	moves.value++
-
-	// Check for mold fruit spawn after dropping normal fruit
-	if (isEndlessMode.value && shouldSpawnMoldFruit()) {
-		setTimeout(() => {
-			spawnMoldFruit()
-		}, 1000) // Small delay after normal fruit drop
+	if (fruit.isMold) {
+		currentMoldFruit.value = fruit
+		lastMoldSpawnTime.value = Date.now()
+		startMoldFruitLifecycle(fruit)
+		console.log(`🟫 Mold fruit dropped! Lifecycle started: ${MOLD_FRUIT_CONFIG.lifespan/1000}s`)
 	}
+
+	moves.value++
 
 	setTimeout(() => {
 		nextFruit.value = generateNextFruit()
@@ -540,7 +575,10 @@ const removeBombFruit = () => {
 	currentBombFruit.value = null
 	bombFuseRemaining.value = 0
 	bombTickingActive.value = false
+	syncBodies();
+}
 
+const syncBodies = () => {
 	// Synchronize Matter.js world with fruits array
 	const validFruitIds = fruits.value.map(fruit => fruit.id)
 	console.log('💣 Valid fruit IDs:', validFruitIds)
@@ -651,6 +689,7 @@ const handleFruitClick = (fruit) => {
 		selectedFruitForHammer.value = null
 		isUsingHammer.value = false
 		deactivateHammerMode()
+		syncBodies()
 	}
 }
 
@@ -811,7 +850,7 @@ const handleCollision = (event) => {
 					const fruitA = fruits.value.find(f => f.id === idA)
 					if (fruitA && !moldFruitShrinkDelay.value) {
 						moldFruitShrinkDelay.value = true;
-						fruitA.size = Math.max(fruitA.size - 1, MOLD_FRUIT_CONFIG.minSize)
+						fruitA.size = Math.max(fruitA.size - 2, MOLD_FRUIT_CONFIG.minSize)
 						Matter.Body.scale(fruitA.body, (fruitA.size / (fruitA.size + 1)), (fruitA.size / (fruitA.size + 1)))
 						setTimeout(() => {
 							moldFruitShrinkDelay.value = false;
@@ -2224,67 +2263,6 @@ const shouldSpawnMoldFruit = () => {
 	return Math.random() < adjustedChance
 }
 
-const spawnMoldFruit = () => {
-	if (!isEndlessMode.value || hasMoldFruit.value) return
-
-	const moldFruitType = FRUIT_TYPES.MOLD_FRUIT
-	const spawnX = Math.random() * (boardConfig.value.width - moldFruitType.radius * 2) + moldFruitType.radius
-
-	const moldFruit = {
-		id: nextFruitId.value++,
-		color: moldFruitType.color,
-		size: moldFruitType.radius * 2,
-		level: moldFruitType.index,
-		name: moldFruitType.type,
-		svg: moldFruitType.svg,
-		x: spawnX - moldFruitType.radius,
-		y: -50 - moldFruitType.radius,
-		rotation: 0,
-		body: null,
-		merging: false,
-		isMold: true,
-		spawnedAt: Date.now(),
-		lifespan: MOLD_FRUIT_CONFIG.lifespan,
-		inDanger: false,
-		dangerZoneStartTime: null,
-		dangerZoneTime: 0
-	}
-
-	// Create physics body
-	const body = Matter.Bodies.circle(
-			spawnX,
-			-50,
-			moldFruitType.radius,
-			{
-				restitution: 0.4,
-				friction: 0.06,
-				frictionAir: 0.008,
-				density: 0.002, // Slightly heavier than normal fruits
-				label: `fruit-${moldFruit.id}-${moldFruit.color}-${moldFruit.level}-mold`,
-				render: {
-					sprite: {
-						xScale: 1,
-						yScale: 1
-					}
-				}
-			}
-	)
-
-	moldFruit.body = body
-	currentMoldFruit.value = moldFruit
-	lastMoldSpawnTime.value = Date.now()
-
-	Matter.Composite.add(engine.world, body)
-	fruits.value = [...fruits.value, moldFruit]
-
-	// Create spawn effect
-	createMoldSpawnEffect(spawnX, -50)
-
-	// Start mold fruit lifecycle timer
-	startMoldFruitLifecycle(moldFruit)
-
-	console.log('🟫 Mold Fruit spawned!')
-}
 
 const createMoldSpawnEffect = (x, y) => {
 	const particleCount = MOLD_FRUIT_CONFIG.spawnEffect.particles
@@ -2386,6 +2364,7 @@ const removeMoldFruit = (moldFruit, reason = 'removed') => {
 	currentMoldFruit.value = null
 	moldFruitLifeRemaining.value = 0
 	moldFruitWarningActive.value = false
+	syncBodies();
 
 	const reasonText = reason === 'expired' ? 'disappeared' : 'removed'
 	console.log(`🟫 Mold Fruit ${reasonText}!`)
@@ -3496,7 +3475,6 @@ onUnmounted(() => {
 .fruit--bomb {
 	box-shadow: 0 0 12px rgba(255, 68, 68, 0.6);
 	animation: bombPulse 2s ease-in-out infinite alternate;
-	position: relative;
 }
 
 .fruit--bomb-ticking {
