@@ -2570,6 +2570,96 @@ const createMoldDisappearEffect = (x, y, reason) => {
 	}
 }
 
+const shouldShowTimer = (fruit) => {
+	if (fruit.isBomb && currentBombFruit.value && currentBombFruit.value.id === fruit.id) {
+		return true
+	}
+	if (fruit.isMold && currentMoldFruit.value && currentMoldFruit.value.id === fruit.id) {
+		return true
+	}
+	return false
+}
+
+const getTimerClasses = (fruit) => {
+	return {
+		'fruit-timer-circle--mold': fruit.isMold,
+		'fruit-timer-circle--bomb': fruit.isBomb,
+		'fruit-timer-circle--warning': fruit.isMold && moldFruitWarningActive.value,
+		'fruit-timer-circle--ticking': fruit.isBomb && bombTickingActive.value
+	}
+}
+
+const shouldShowCountdown = (fruit) => {
+	if (fruit.isBomb && bombTickingActive.value) {
+		return true
+	}
+	if (fruit.isMold && moldFruitWarningActive.value) {
+		return true
+	}
+	return false
+}
+
+const getCountdownClasses = (fruit) => {
+	return {
+		'timer-countdown-indicator--mold': fruit.isMold,
+		'timer-countdown-indicator--bomb': fruit.isBomb
+	}
+}
+
+const getCountdownStyles = (fruit) => {
+	const size = fruit.isBomb ? 24 : 20
+	const fontSize = Math.max(fruit.isBomb ? 10 : 8, fruit.size * 0.15)
+	const offset = fruit.isBomb ? -8 : -6
+
+	return {
+		fontSize: `${fontSize}px`,
+		top: `${offset}px`,
+		right: `${offset}px`,
+		width: `${size}px`,
+		height: `${size}px`
+	}
+}
+
+const getCountdownValue = (fruit) => {
+	if (fruit.isBomb) {
+		return Math.ceil(bombFuseRemaining.value / 1000)
+	}
+	if (fruit.isMold) {
+		return Math.ceil(moldFruitLifeRemaining.value / 1000)
+	}
+	return 0
+}
+
+const getTimerProgress = (fruit) => {
+	if (fruit.isBomb) {
+		return (bombFuseRemaining.value / BOMB_FRUIT_CONFIG.fuseTime) * 100
+	}
+	if (fruit.isMold) {
+		return (moldFruitLifeRemaining.value / MOLD_FRUIT_CONFIG.lifespan) * 100
+	}
+	return 0
+}
+
+const getTimerBackgroundColor = (fruit) => {
+	if (fruit.isBomb) {
+		return 'rgba(255, 68, 68, 0.3)'
+	}
+	if (fruit.isMold) {
+		return 'rgba(76, 175, 80, 0.3)'
+	}
+	return 'rgba(255, 255, 255, 0.3)'
+}
+
+const getTimerProgressColor = (fruit) => {
+	if (fruit.isBomb) {
+		return bombTickingActive.value ? '#FF0000' : '#FF4444'
+	}
+	if (fruit.isMold) {
+		return moldFruitWarningActive.value ? '#FF5722' : '#4CAF50'
+	}
+	return '#4CAF50'
+}
+
 
 // Watchers
 watch(() => props.level, (newLevel) => {
@@ -2820,21 +2910,21 @@ onUnmounted(() => {
 				>
 					<div class="fruit-svg" v-html="fruit.svg"></div>
 
-					<!-- Bomb Fuse Timer exactly on the fruit border -->
+					<!-- Unified Timer Circle for both Bomb and Mold -->
 					<div
-						v-if="fruit.isBomb && currentBombFruit && currentBombFruit.id === fruit.id"
-						class="bomb-timer-circle"
-						:class="{ 'bomb-timer-circle--ticking': bombTickingActive }"
+						v-if="shouldShowTimer(fruit)"
+						class="fruit-timer-circle"
+						:class="getTimerClasses(fruit)"
 					>
 						<!-- SVG positioned exactly on fruit border -->
-						<svg class="bomb-timer-svg" :width="fruit.size" :height="fruit.size">
+						<svg class="timer-svg" :width="fruit.size" :height="fruit.size">
 							<!-- Background ring -->
 							<circle
 								:cx="fruit.size / 2"
 								:cy="fruit.size / 2"
 								:r="(fruit.size / 2) - 2"
 								fill="none"
-								stroke="rgba(255, 68, 68, 0.3)"
+								:stroke="getTimerBackgroundColor(fruit)"
 								stroke-width="4"
 							/>
 
@@ -2844,79 +2934,26 @@ onUnmounted(() => {
 								:cy="fruit.size / 2"
 								:r="(fruit.size / 2) - 2"
 								fill="none"
-								:stroke="bombTickingActive ? '#FF0000' : '#FF4444'"
+								:stroke="getTimerProgressColor(fruit)"
 								stroke-width="4"
 								stroke-linecap="round"
-								class="bomb-progress-ring"
+								class="timer-progress-ring"
 								:style="{
-				          '--progress': (bombFuseRemaining / BOMB_FRUIT_CONFIG.fuseTime) * 100,
+				          '--progress': getTimerProgress(fruit),
 				          '--radius': (fruit.size / 2) - 2,
 				          '--circumference': 2 * Math.PI * ((fruit.size / 2) - 2)
 				        }"
 							/>
 						</svg>
 
-						<!-- Countdown indicator (in ticking phase) -->
+						<!-- Unified countdown indicator -->
 						<div
-							v-if="bombTickingActive"
-							class="bomb-countdown-indicator"
-							:style="{
-				        fontSize: `${Math.max(10, fruit.size * 0.15)}px`,
-				        top: `${-8}px`,
-				        right: `${-8}px`
-				      }"
+							v-if="shouldShowCountdown(fruit)"
+							class="timer-countdown-indicator"
+							:class="getCountdownClasses(fruit)"
+							:style="getCountdownStyles(fruit)"
 						>
-							{{ Math.ceil(bombFuseRemaining / 1000) }}
-						</div>
-					</div>
-
-					<!-- Circular Mold Timer exactly on the fruit border -->
-					<div
-						v-if="fruit.isMold && currentMoldFruit && currentMoldFruit.id === fruit.id"
-						class="mold-timer-circle"
-						:class="{ 'mold-timer-circle--warning': moldFruitWarningActive }"
-					>
-						<!-- SVG positioned exactly on fruit border -->
-						<svg class="mold-timer-svg" :width="fruit.size" :height="fruit.size">
-							<!-- Background ring -->
-							<circle
-								:cx="fruit.size / 2"
-								:cy="fruit.size / 2"
-								:r="(fruit.size / 2) - 2"
-								fill="none"
-								stroke="rgba(76, 175, 80, 0.3)"
-								stroke-width="4"
-							/>
-
-							<!-- Progress ring -->
-							<circle
-								:cx="fruit.size / 2"
-								:cy="fruit.size / 2"
-								:r="(fruit.size / 2) - 2"
-								fill="none"
-								:stroke="moldFruitWarningActive ? '#FF5722' : '#4CAF50'"
-								stroke-width="4"
-								stroke-linecap="round"
-								class="mold-progress-ring"
-								:style="{
-			            '--progress': (moldFruitLifeRemaining / MOLD_FRUIT_CONFIG.lifespan) * 100,
-			            '--radius': (fruit.size / 2) - 2,
-			            '--circumference': 2 * Math.PI * ((fruit.size / 2) - 2)
-			          }"
-							/>
-						</svg>
-
-						<!-- Time remaining indicator (optional small number) -->
-						<div
-							v-if="moldFruitWarningActive"
-							class="mold-time-indicator"
-							:style="{
-			          fontSize: `${Math.max(8, fruit.size * 0.12)}px`,
-			          top: `${-6}px`,
-			          right: `${-6}px`
-			        }"
-						>
-							{{ Math.ceil(moldFruitLifeRemaining / 1000) }}
+							{{ getCountdownValue(fruit) }}
 						</div>
 					</div>
 				</div>
@@ -3830,6 +3867,114 @@ onUnmounted(() => {
 .particle--bomb_explosion {
 	border-radius: 50% !important;
 	box-shadow: 0 0 12px currentColor;
+}
+
+.fruit-timer-circle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	z-index: 15;
+	border-radius: 50%;
+	width: 100%;
+	height: 100%;
+
+	// Mold specific styles
+	&--mold {
+		// Base mold styling if needed
+	}
+
+	// Bomb specific styles
+	&--bomb {
+		// Base bomb styling if needed
+	}
+
+	// Warning state (mold)
+	&--warning {
+		// Warning specific styling
+	}
+
+	// Ticking state (bomb)
+	&--ticking {
+		// Ticking specific styling
+	}
+}
+
+.timer-svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	transform: rotate(-90deg); /* Start progress from top */
+	filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.4));
+}
+
+.timer-progress-ring {
+	stroke-dasharray: var(--circumference);
+	stroke-dashoffset: calc(var(--circumference) - (var(--progress) / 100) * var(--circumference));
+	transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+	transform-origin: center;
+}
+
+.timer-countdown-indicator {
+	position: absolute;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	line-height: 1;
+	border: 2px solid white;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	touch-action: manipulation;
+
+	&--mold {
+		background: rgba(255, 87, 34, 0.95);
+		color: white;
+		animation: countdownPulse 1s ease-in-out infinite;
+	}
+
+	&--bomb {
+		background: rgba(255, 0, 0, 0.95);
+		color: white;
+		animation: bombCountdownPulse 0.5s ease-in-out infinite;
+	}
+}
+
+// Unified animations
+@keyframes countdownPulse {
+	0% {
+		transform: scale(1);
+		opacity: 0.9;
+	}
+	50% {
+		transform: scale(1.1);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 0.9;
+	}
+}
+
+@keyframes bombCountdownPulse {
+	0% {
+		transform: scale(1);
+		background: rgba(255, 0, 0, 0.9);
+	}
+	50% {
+		transform: scale(1.2);
+		background: rgba(255, 0, 0, 1);
+	}
+	100% {
+		transform: scale(1);
+		background: rgba(255, 0, 0, 0.9);
+	}
 }
 
 // Animations
