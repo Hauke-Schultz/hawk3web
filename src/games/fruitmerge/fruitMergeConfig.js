@@ -786,7 +786,7 @@ export const MOLD_FRUIT_CONFIG = {
   spawnChance: 0.25, // 5% chance per fruit drop in endless mode
   minSpawnDelay: 60000, // Minimum 1 minute between spawns
   maxSpawnDelay: 120000, // Maximum 2 minutes between spawns
-  lifespan: 120000, // 2 minutes lifespan
+  lifespan: 20000, // 2 minutes lifespan
   warningFlashTime: 30000, // Flash warning in last 30 seconds
   scoreEffect: -1000, // Negative points when touched/removed
   maxConcurrent: 1, // Only one mold fruit at a time
