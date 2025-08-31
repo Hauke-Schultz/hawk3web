@@ -11,7 +11,6 @@ import {
 } from './fruitMergeConfig.js'
 import { useRouter } from 'vue-router'
 import PerformanceStats from "../../components/PerformanceStats.vue";
-import ProgressOverview from "../../components/ProgressOverview.vue";
 import {calculateLevelStars} from "../../config/levelUtils.js";
 import GameCompletedModal from "../../components/GameCompletedModal.vue";
 import {useComboSystem} from "../../composables/useComboSystem.js";
@@ -94,6 +93,7 @@ const isHoveringBoard = ref(false)
 
 // Next fruit system
 const nextFruit = ref(null)
+const nextNextFruit = ref(null)
 const showNextFruit = ref(true)
 const particles = shallowRef([])
 const earnedAchievements = ref([])
@@ -270,6 +270,19 @@ const generateNextFruit = () => {
 	}
 }
 
+const updateNextFruitPreview = () => {
+	nextNextFruit.value = generateNextFruit()
+}
+
+const getTargetFruitSvg = () => {
+	if (!currentLevelConfig.value || !currentLevelConfig.value.targetFruit) return ''
+
+	const targetFruitName = currentLevelConfig.value.targetFruit
+	const targetFruitType = Object.values(FRUIT_TYPES).find(f => f.type === targetFruitName)
+
+	return targetFruitType ? targetFruitType.svg : ''
+}
+
 const shouldGenerateMoldFruit = () => {
 	if (!isEndlessMode.value) return false
 	if (hasMoldFruit.value) return false // Only one mold at a time
@@ -439,7 +452,8 @@ const dropFruit = (targetX = nextFruitPosition.value) => {
 	moves.value++
 
 	setTimeout(() => {
-		nextFruit.value = generateNextFruit()
+		nextFruit.value = nextNextFruit.value
+		nextNextFruit.value = generateNextFruit()
 		isDropping.value = false
 		dropCooldown.value = false
 	}, PHYSICS_CONFIG.dropCooldown)
@@ -1221,6 +1235,7 @@ const initGame = async () => {
 	console.log('🆕 Starting fresh game')
 	initPhysics()
 	nextFruit.value = generateNextFruit()
+	updateNextFruitPreview()
 	gameLoop()
 
 	// Game Over Checking für ALLE Modi starten
@@ -1646,6 +1661,7 @@ const resetGame = () => {
 	score.value = 0
 	moves.value = 0
 	nextFruitId.value = 0
+	nextNextFruit.value = null
 	particles.value = []
 	scorePoints.value = []
 	levelReward.value = null
@@ -1952,6 +1968,15 @@ const captureCurrentState = () => {
 			svg: nextFruit.value.svg
 		} : null,
 
+		nextNextFruitState: nextNextFruit.value ? {
+			id: nextNextFruit.value.id,
+			color: nextNextFruit.value.color,
+			size: nextNextFruit.value.size,
+			level: nextNextFruit.value.level,
+			name: nextNextFruit.value.name,
+			svg: nextNextFruit.value.svg
+		} : null,
+
 		nextFruitId: nextFruitId.value,
 		gameStateValue: gameState.value,
 		savedAt: new Date().toISOString(),
@@ -2129,6 +2154,13 @@ const restoreGameState = async (savedState) => {
 			nextFruit.value = { ...savedState.nextFruitState }
 		} else {
 			nextFruit.value = generateNextFruit()
+		}
+
+		// Restore next next fruit preview
+		if (savedState.nextNextFruitState) {
+			nextNextFruit.value = { ...savedState.nextNextFruitState }
+		} else {
+			updateNextFruitPreview()
 		}
 
 		// Start timers and game loop after everything is restored
@@ -2456,44 +2488,63 @@ onUnmounted(() => {
 			</div>
 
 			<div class="game-stats-container">
-				<!-- Progress Overview -->
-				<ProgressOverview
-						v-if="!isEndlessMode"
-						:completed="gameProgress.completed"
-						:total="gameProgress.total"
-						theme="warning"
-						size="small"
-						:levels-label="currentLevelConfig.targetFruit"
-						:show-stars="false"
-						:show-percentage="false"
-						:complete-label="t('fruitMerge.target')"
-				/>
+				<div class="next-next-fruit-preview">
+					<div class="preview-label">{{ t('fruitMerge.next_fruit') }}</div>
+					<div
+						v-if="nextNextFruit && showNextFruit"
+						class="next-next-fruit"
+						:style="{
+							width: `${nextNextFruit.size * 0.6}px`,
+							height: `${nextNextFruit.size * 0.6}px`
+						}"
+					>
+						<div class="fruit-svg" v-html="nextNextFruit.svg"></div>
+					</div>
+				</div>
+
+				<div v-if="!isEndlessMode" class="goal-fruit-display">
+					<div class="goal-label">
+						{{ t('fruitMerge.target') }}
+						<div class="goal-progress">
+							{{ gameProgress.completed }}/{{ gameProgress.total }}
+						</div>
+					</div>
+					<div
+						class="goal-fruit"
+						:class="{ 'goal-fruit--completed': isLevelComplete }"
+					>
+						<div
+							class="goal-fruit-svg"
+							v-html="getTargetFruitSvg()"
+						></div>
+					</div>
+				</div>
 
 				<!-- Game Performance Stats -->
 				<PerformanceStats
-						:score="score"
-						:time-elapsed="isEndlessMode ? sessionTime : 0"
-						:moves="moves"
-						:matches="fruits.length"
-						:total-pairs="fruits.length"
-						:combo-count="comboSystem.comboLevel.value"
-						:combo-multiplier="comboSystem.comboMultiplier.value"
-						:max-combo="gameData.games.fruitMerge.maxCombo || 0"
-						:combo-time-remaining="comboSystem.timeRemaining.value"
-						:combo-time-max="comboSystem.config.comboTimeout"
-						:is-combo-active="comboSystem.isComboActive.value"
-						layout="horizontal"
-						theme="card"
-						size="normal"
-						:show-score="true"
-						:show-time="isEndlessMode"
-						:show-moves="true"
-						:show-matches="false"
-						:show-combo="true"
-						:score-label="t('stats.score')"
-						:time-label="t('stats.time')"
-						:moves-label="t('stats.moves')"
-						:combo-label="t('stats.combo')"
+					:score="score"
+					:time-elapsed="isEndlessMode ? sessionTime : 0"
+					:moves="moves"
+					:matches="fruits.length"
+					:total-pairs="fruits.length"
+					:combo-count="comboSystem.comboLevel.value"
+					:combo-multiplier="comboSystem.comboMultiplier.value"
+					:max-combo="gameData.games.fruitMerge.maxCombo || 0"
+					:combo-time-remaining="comboSystem.timeRemaining.value"
+					:combo-time-max="comboSystem.config.comboTimeout"
+					:is-combo-active="comboSystem.isComboActive.value"
+					layout="horizontal"
+					theme="card"
+					size="normal"
+					:show-score="true"
+					:show-time="isEndlessMode"
+					:show-moves="false"
+					:show-matches="false"
+					:show-combo="true"
+					:score-label="t('stats.score')"
+					:time-label="t('stats.time')"
+					:moves-label="t('stats.moves')"
+					:combo-label="t('stats.combo')"
 				/>
 				<div v-if="isEndlessMode" class="hammer-control">
 					<button
@@ -2927,6 +2978,56 @@ onUnmounted(() => {
 	}
 }
 
+// Next Next Fruit Preview
+.next-next-fruit-preview {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-1);
+	z-index: 5;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	width: 67px;
+}
+
+.preview-label {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	line-height: 1;
+}
+
+.next-next-fruit {
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 40px;
+	max-height: 40px;
+	transition: all 0.1s ease;
+
+	&:hover {
+		transform: scale(1.1);
+	}
+}
+
+.next-next-fruit-placeholder {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background-color: var(--bg-secondary);
+	border: 2px dashed var(--card-border);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-muted);
+}
+
 .drop-line {
 	position: absolute;
 	top: 0;
@@ -3269,6 +3370,78 @@ onUnmounted(() => {
 
 .milestone-notification:nth-child(3) {
 	animation-delay: 200ms;
+}
+
+// Goal Fruit Display
+.goal-fruit-display {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-1);
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-3);
+	min-width: 80px;
+}
+
+.goal-label {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	font-weight: var(--font-weight-bold);
+	display: flex;
+	gap: var(--space-2);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	line-height: 1;
+}
+
+.goal-fruit {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(245, 158, 11, 0.1);
+	transition: all 0.3s ease;
+
+	&--completed {
+		border-color: var(--success-color);
+		background-color: rgba(16, 185, 129, 0.2);
+		animation: goalPulse 1.5s ease-in-out infinite;
+	}
+}
+
+.goal-fruit-svg {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+
+	:deep(svg) {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+	}
+}
+
+.goal-progress {
+	font-size: var(--font-size-xs);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+}
+
+// Goal Animation
+@keyframes goalPulse {
+	0%, 100% {
+		transform: scale(1);
+		box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+	}
+	50% {
+		transform: scale(1.05);
+		box-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+	}
 }
 
 // Enhanced visual effects

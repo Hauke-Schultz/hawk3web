@@ -399,7 +399,7 @@ export default {
 	fruitMerge: {
 		title: 'Fruit Merge',
 		description: 'Merge fruits to create new combinations',
-		target: 'Target',
+		target: 'Goal',
 		level_title: 'Level {level}',
 		endless_mode: 'Endless Mode',
 		game_paused: 'Game Paused',
@@ -408,6 +408,7 @@ export default {
 		back_to_levels: 'Back',
 		play_again: 'Play Again',
 		next_level: 'Next Level',
+    next_fruit: 'Next',
 		game_over: 'Game Over',
 		game_over_message: 'Fruits reached the danger zone! Try a different strategy.',
 		try_again: 'Try Again',

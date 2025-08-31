@@ -69,8 +69,16 @@
 - **In-Game Shop Integration** - Direct item purchasing during gameplay (Undo item)
 - **Mold Fruit Mechanic** - Special fruit that randomly spawns and disappears after 3 minutes
 - **Bomb Fruit Mechanic** - Explodes and removes all fruits in a 3x3 radius
+- **Next Fruit Preview** - Visual preview showing the upcoming fruit after the current one
 
 ## 🚀 Version 0.3.3 - FruitMerge Enhancements
+
+### **🎯 Fruit Selection System**
+- Click on next fruit preview to open fruit selection menu
+- Choose from any available fruit type including special fruits
+- Bomb and Mold fruits available for strategic gameplay
+- Costs diamonds to change next fruit
+- Visual fruit picker with rarity indicators and costs
 
 ### **🌈 Rainbow Fruit**
 - Can merge with any other fruit type
