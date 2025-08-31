@@ -195,6 +195,43 @@ const isEndlessMode = computed(() => {
 	return currentLevelConfig.value.isEndless || false
 })
 
+const autoSaveTimer = ref(null)
+const autoSave = () => {
+	if (gameState.value !== 'playing' || isRestoringState.value) {
+		return
+	}
+
+	try {
+		const currentState = captureCurrentState()
+		if (currentState) {
+			saveLevelState('fruitMerge', currentLevel.value, currentState)
+			console.log('🔄 Auto-saved game state')
+		}
+	} catch (error) {
+		console.error('Auto-save failed:', error)
+	}
+}
+
+const startAutoSave = () => {
+	if (autoSaveTimer.value) {
+		clearInterval(autoSaveTimer.value)
+	}
+
+	autoSaveTimer.value = setInterval(() => {
+		autoSave()
+	}, 15000) // Alle 15 Sekunden
+
+	console.log('🔄 Auto-save timer started (15s interval)')
+}
+
+const stopAutoSave = () => {
+	if (autoSaveTimer.value) {
+		clearInterval(autoSaveTimer.value)
+		autoSaveTimer.value = null
+		console.log('🔄 Auto-save timer stopped')
+	}
+}
+
 const generateNextFruit = () => {
 	// Check for bomb fruit spawn chance (only in endless mode)
 	if (isEndlessMode.value && shouldGenerateBombFruit()) {
@@ -285,7 +322,13 @@ const getTargetFruitSvg = () => {
 
 const shouldGenerateMoldFruit = () => {
 	if (!isEndlessMode.value) return false
-	if (hasMoldFruit.value) return false // Only one mold at a time
+	let currentMoldCount = fruits.value.filter(fruit => fruit.isMold).length
+	if (nextFruit.value?.isMold) {
+		currentMoldCount += 1
+	}
+	if (currentMoldCount >= MOLD_FRUIT_CONFIG.maxConcurrent) {
+		return false
+	}
 
 	const now = Date.now()
 	const timeSinceLastSpawn = now - lastMoldSpawnTime.value
@@ -298,7 +341,13 @@ const shouldGenerateMoldFruit = () => {
 
 const shouldGenerateBombFruit = () => {
 	if (!isEndlessMode.value) return false
-	if (hasBombFruit.value) return false // Only one bomb at a time
+	let currentBombCount = fruits.value.filter(fruit => fruit.isBomb).length
+	if (nextFruit.value?.isBomb) {
+		currentBombCount += 1
+	}
+	if (currentBombCount >= BOMB_FRUIT_CONFIG.maxConcurrent) {
+		return false
+	}
 
 	const now = Date.now()
 	const timeSinceLastSpawn = now - lastBombSpawnTime.value
@@ -774,6 +823,7 @@ const initPhysics = () => {
 
 	Matter.Events.on(engine, 'collisionStart', handleCollision)
 
+	startAutoSave()
 	console.log('Physics engine initialized successfully')
 }
 
@@ -1184,6 +1234,7 @@ const cleanup = () => {
 	}
 
 	stopGameOverChecking()
+	stopAutoSave()
 
 	// Clean up mold fruit timers
 	if (moldFruitTimer.value) {
@@ -1704,37 +1755,10 @@ const handleMenuSaveGame = () => {
 		const currentState = captureCurrentState()
 		if (currentState) {
 			saveLevelState('fruitMerge', currentLevel.value, currentState)
-
-			const moldInfo = currentMoldFruit.value ?
-					`Mold Fruit: ${Math.floor(moldFruitLifeRemaining.value / 1000)}s remaining` :
-					'No Mold Fruit'
-
-			console.log(`✅ Game manually saved via menu for level ${currentLevel.value}. ${moldInfo}`)
 		}
 	}
 }
 
-const handleManualSave = async () => {
-	if (gameState.value !== 'playing' || isSaving.value) return
-
-	isSaving.value = true
-
-	try {
-		const currentState = captureCurrentState()
-		if (currentState) {
-			saveLevelState('fruitMerge', currentLevel.value, currentState)
-			console.log(`✅ Game manually saved for level ${currentLevel.value}`)
-
-			// Kurzes visuelles Feedback
-			setTimeout(() => {
-				isSaving.value = false
-			}, 800)
-		}
-	} catch (error) {
-		console.error('Error saving game state:', error)
-		isSaving.value = false
-	}
-}
 const handleBuyHammerClick = () => {
 	if (!hammerItem.value) return
 
@@ -1926,13 +1950,10 @@ const captureCurrentState = () => {
 			merging: fruit.merging,
 			inDanger: fruit.inDanger,
 			dangerZoneTime: fruit.dangerZoneTime,
-
-			// Mold fruit specific properties
+			isBomb: fruit.isBomb || false,
 			isMold: fruit.isMold || false,
 			spawnedAt: fruit.spawnedAt || null,
 			lifespan: fruit.lifespan || null,
-
-			// Physics body properties
 			bodyPosition: fruit.body ? {
 				x: fruit.body.position.x,
 				y: fruit.body.position.y
@@ -2031,7 +2052,7 @@ const restoreGameState = async (savedState) => {
 			comboSystem.timeRemaining.value = savedState.comboData.timeRemaining || 0
 		}
 
-		// Restore fruits with mold fruit support
+		// Restore fruits
 		if (savedState.fruitsState && savedState.fruitsState.length > 0) {
 			fruits.value = []
 
@@ -2053,11 +2074,15 @@ const restoreGameState = async (savedState) => {
 					inDanger: fruitState.inDanger || false,
 					dangerZoneStartTime: null,
 					dangerZoneTime: fruitState.dangerZoneTime || 0,
-
-					// Restore mold fruit properties
+					isBomb: fruitState.isBomb || false,
 					isMold: fruitState.isMold || false,
 					spawnedAt: fruitState.spawnedAt || null,
 					lifespan: fruitState.lifespan || null,
+				}
+
+				console.log('restored fruit:', fruitState)
+				if (fruitState.isBomb) {
+					startBombFuseTimer(fruitState)
 				}
 
 				// Create physics body with correct type
@@ -2474,16 +2499,6 @@ onUnmounted(() => {
 				<h2 class="game-title">{{ t('fruitMerge.title') }}</h2>
 				<div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
 					{{ isEndlessMode ? t('fruitMerge.endless_mode') : t('fruitMerge.level_title', { level: currentLevel }) }}
-				</div>
-				<div v-if="gameState === 'playing'" class="manual-save">
-					<button
-							class="btn btn--small"
-							@click="handleManualSave"
-							:disabled="isSaving"
-							:title="t('fruitMerge.save_game')"
-					>
-						<Icon :name="isSaving ? 'loading' : 'save'" size="22" />
-					</button>
 				</div>
 			</div>
 
@@ -3258,12 +3273,6 @@ onUnmounted(() => {
 	background-color: rgba(0, 0, 0, 0.7);
 	padding: var(--space-1) var(--space-2);
 	border-radius: var(--border-radius-md);
-}
-
-.manual-save {
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 
 .milestone-notifications {
