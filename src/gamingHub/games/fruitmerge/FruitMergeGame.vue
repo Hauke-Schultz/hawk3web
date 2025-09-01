@@ -25,6 +25,7 @@ import GameOverModal from "../../components/GameOverModal.vue";
 import Icon from "../../../components/Icon.vue";
 import ShopModal from "../../components/ShopModal.vue";
 import { SHOP_ITEMS } from '../../config/shopConfig.js'
+import CurrencyDisplay from "../../components/CurrencyDisplay.vue";
 
 // Props
 const props = defineProps({
@@ -130,6 +131,50 @@ const currentBombFruit = ref(null)
 const bombFuseRemaining = ref(0)
 const bombTickingActive = ref(false)
 const lastBombSpawnTime = ref(0)
+const showFruitSelector = ref(false)
+const isSelectingFruit = ref(false)
+
+const availableFruitsForSelection = computed(() => {
+	const fruits = fruitTypes.value.slice(0, 4) // First 4 fruit types
+
+	// Add special fruits only in endless mode
+	if (isEndlessMode.value ) {
+		fruits.push({
+			type: 'BOMB_FRUIT',
+			name: 'Bomb',
+			size: FRUIT_TYPES.BOMB_FRUIT.radius * 2,
+			svg: FRUIT_TYPES.BOMB_FRUIT.svg,
+			color: FRUIT_TYPES.BOMB_FRUIT.color,
+			rarity: 'rare',
+			cost: FRUIT_TYPES.BOMB_FRUIT.cost,
+			isBomb: true
+		})
+
+		fruits.push({
+			type: 'MOLD_FRUIT',
+			name: 'Mold',
+			size: FRUIT_TYPES.MOLD_FRUIT.radius * 2,
+			svg: FRUIT_TYPES.MOLD_FRUIT.svg,
+			color: FRUIT_TYPES.MOLD_FRUIT.color,
+			rarity: 'rare',
+			cost: FRUIT_TYPES.MOLD_FRUIT.cost,
+			isMold: true
+		})
+	}
+
+	if (nextFruit.value) {
+		let index = fruits.findIndex(fruit => fruit.type === nextFruit.value.type)
+		if (index !== -1) {
+			fruits.splice(index, 1)
+		}
+	}
+
+	return fruits;
+})
+
+const canAffordFruitSelection = computed(() => {
+	return (cost) => playerBalance.value.diamonds >= cost.diamonds
+})
 
 const hasBombFruit = computed(() => {
 	return fruits.value.some(fruit => fruit.isBomb)
@@ -175,7 +220,9 @@ const fruitTypes = computed(() => {
 				svg: fruit.svg,
 				scoreValue: fruit.scoreValue,
 				nextType: fruit.nextType,
-				radius: fruit.radius
+				radius: fruit.radius,
+				type: fruit.type,
+				cost: fruit.cost
 			}))
 })
 
@@ -232,11 +279,109 @@ const stopAutoSave = () => {
 	}
 }
 
+const openFruitSelector = () => {
+	if (gameState.value !== 'playing' || !isEndlessMode.value) return
+	showFruitSelector.value = true
+	isSelectingFruit.value = true
+}
+
+const closeFruitSelector = () => {
+	showFruitSelector.value = false
+	isSelectingFruit.value = false
+}
+
+const selectFruit = (fruitData) => {
+	if (!canAffordFruitSelection.value(fruitData.cost)) {
+		console.log('Not enough diamonds for fruit selection')
+		return
+	}
+
+	// Deduct diamonds
+	gameData.player.diamonds -= fruitData.cost.diamonds
+
+	// Create new fruit based on selection
+	let newFruit
+	if (fruitData.isBomb) {
+		newFruit = {
+			id: nextFruitId.value++,
+			type: FRUIT_TYPES.BOMB_FRUIT.type,
+			color: FRUIT_TYPES.BOMB_FRUIT.color,
+			size: FRUIT_TYPES.BOMB_FRUIT.radius * 2,
+			level: FRUIT_TYPES.BOMB_FRUIT.index,
+			name: FRUIT_TYPES.BOMB_FRUIT.type,
+			svg: FRUIT_TYPES.BOMB_FRUIT.svg,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			body: null,
+			merging: false,
+			inDanger: false,
+			dangerZoneStartTime: null,
+			dangerZoneTime: 0,
+			isBomb: true,
+			fuseTime: BOMB_FRUIT_CONFIG.fuseTime,
+			spawnedAt: null
+		}
+	} else if (fruitData.isMold) {
+		newFruit = {
+			id: nextFruitId.value++,
+			type: FRUIT_TYPES.MOLD_FRUIT.type,
+			color: FRUIT_TYPES.MOLD_FRUIT.color,
+			size: FRUIT_TYPES.MOLD_FRUIT.radius * 2,
+			level: FRUIT_TYPES.MOLD_FRUIT.index,
+			name: FRUIT_TYPES.MOLD_FRUIT.type,
+			svg: FRUIT_TYPES.MOLD_FRUIT.svg,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			body: null,
+			merging: false,
+			inDanger: false,
+			dangerZoneStartTime: null,
+			dangerZoneTime: 0,
+			isMold: true,
+			lifespan: MOLD_FRUIT_CONFIG.lifespan,
+			spawnedAt: null
+		}
+	} else {
+		// Normal fruit selection
+		const selectedFruitType = Object.values(FRUIT_TYPES).find(f => f.type === fruitData.type)
+		newFruit = {
+			id: nextFruitId.value++,
+			type: selectedFruitType.type,
+			color: selectedFruitType.color,
+			size: selectedFruitType.radius * 2,
+			level: selectedFruitType.index,
+			name: selectedFruitType.type,
+			svg: selectedFruitType.svg,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			body: null,
+			merging: false,
+			inDanger: false,
+			dangerZoneStartTime: null,
+			dangerZoneTime: 0,
+			isBomb: false,
+			isMold: false
+		}
+	}
+
+	// Update next fruit
+	nextFruit.value = newFruit
+
+	console.log(`🎯 Fruit selected: ${fruitData.name} for ${fruitData.cost} diamonds`)
+
+	// Close selector
+	closeFruitSelector()
+}
+
 const generateNextFruit = () => {
 	// Check for bomb fruit spawn chance (only in endless mode)
 	if (isEndlessMode.value && shouldGenerateBombFruit()) {
 		return {
 			id: nextFruitId.value++,
+			type: FRUIT_TYPES.BOMB_FRUIT.type,
 			color: FRUIT_TYPES.BOMB_FRUIT.color,
 			size: FRUIT_TYPES.BOMB_FRUIT.radius * 2,
 			level: FRUIT_TYPES.BOMB_FRUIT.index,
@@ -260,6 +405,7 @@ const generateNextFruit = () => {
 	if (isEndlessMode.value && shouldGenerateMoldFruit()) {
 		return {
 			id: nextFruitId.value++,
+			type: FRUIT_TYPES.MOLD_FRUIT.type,
 			color: FRUIT_TYPES.MOLD_FRUIT.color,
 			size: FRUIT_TYPES.MOLD_FRUIT.radius * 2,
 			level: FRUIT_TYPES.MOLD_FRUIT.index,
@@ -291,6 +437,7 @@ const generateNextFruit = () => {
 
 	return {
 		id: nextFruitId.value++,
+		type: randomFruitType.type,
 		color: randomFruitType.color,
 		size: randomFruitType.size,
 		level: randomFruitType.level,
@@ -1947,6 +2094,7 @@ const captureCurrentState = () => {
 		// Enhanced fruits state with complete mold and bomb support
 		fruitsState: fruits.value.map(fruit => ({
 			id: fruit.id,
+			type: fruit.type,
 			color: fruit.color,
 			size: fruit.size,
 			level: fruit.level,
@@ -2008,6 +2156,7 @@ const captureCurrentState = () => {
 		// Existing next fruit and game settings...
 		nextFruitState: nextFruit.value ? {
 			id: nextFruit.value.id,
+			type: nextFruit.value.type,
 			color: nextFruit.value.color,
 			size: nextFruit.value.size,
 			level: nextFruit.value.level,
@@ -2019,6 +2168,7 @@ const captureCurrentState = () => {
 
 		nextNextFruitState: nextNextFruit.value ? {
 			id: nextNextFruit.value.id,
+			type: nextNextFruit.value.type,
 			color: nextNextFruit.value.color,
 			size: nextNextFruit.value.size,
 			level: nextNextFruit.value.level,
@@ -2102,6 +2252,7 @@ const restoreGameState = async (savedState) => {
 
 				const restoredFruit = {
 					id: fruitState.id,
+					type: fruitState.type,
 					color: fruitState.color,
 					size: fruitState.size,
 					level: fruitState.level,
@@ -2809,25 +2960,33 @@ onUnmounted(() => {
 			<div
 					ref="nextFruitContainer"
 					class="next-fruit-preview"
+					:class="{ 'next-fruit-preview--clickable': isEndlessMode }"
 					@mousemove="handleMouseMove"
 					@mouseenter="handleMouseEnter"
 					@mouseleave="handleMouseLeave"
 					@touchmove.passive="handleTouchMove"
 					@touchstart.passive="handleTouchStart"
+					@click="isEndlessMode ? openFruitSelector() : null"
 			>
 				<div
-						v-if="nextFruit && showNextFruit"
-						class="next-fruit"
-						:class="{ 'next-fruit--disabled': !canDropFruit }"
-						:style="{
-            width: `${nextFruit.size}px`,
-            height: `${nextFruit.size}px`,
-            left: `${nextFruitPosition - nextFruit.size / 2}px`,
-            transform: 'translateY(-50%)',
-            opacity: canDropFruit ? 1 : 0
-          }"
+					v-if="nextFruit && showNextFruit"
+					class="next-fruit"
+					:class="{
+			      'next-fruit--disabled': !canDropFruit,
+			      'next-fruit--special': nextFruit.isBomb || nextFruit.isMold
+			    }"
+					:style="{
+			      width: `${nextFruit.size}px`,
+			      height: `${nextFruit.size}px`,
+			      left: `${nextFruitPosition - nextFruit.size / 2}px`,
+			      transform: 'translateY(-50%)',
+			      opacity: canDropFruit ? 1 : 0
+			    }"
 				>
 					<div class="fruit-svg" v-html="nextFruit.svg"></div>
+					<div v-if="isEndlessMode" class="fruit-selection-hint">
+						<Icon name="settings" size="12" />
+					</div>
 				</div>
 			</div>
 
@@ -3064,6 +3223,66 @@ onUnmounted(() => {
 				@cancel="handleShopModalCancel"
 				@close="closeShopModal"
 		/>
+		<!-- Fruit Selection Modal -->
+		<Teleport to="body">
+			<div
+				v-if="showFruitSelector"
+				class="fruit-selector-overlay"
+				@click="closeFruitSelector"
+			>
+				<div
+					class="fruit-selector-modal"
+					@click.stop
+					role="dialog"
+					aria-modal="true"
+					:aria-labelledby="t('fruitMerge.select_fruit')"
+				>
+					<!-- Modal Header -->
+					<div class="fruit-selector-header">
+						<h3 class="fruit-selector-title">{{ t('fruitMerge.select_next_fruit') }}</h3>
+						<button
+							class="btn btn--circle-ghost"
+							@click="closeFruitSelector"
+							:aria-label="t('common.close')"
+						>
+							<Icon name="close" size="20" />
+						</button>
+					</div>
+
+					<!-- Modal Content -->
+					<div class="fruit-selector-content">
+						<div class="fruit-category">
+							<div class="fruit-grid">
+								<div
+									v-for="fruit in availableFruitsForSelection"
+									:key="fruit.type"
+									class="fruit-option"
+									:class="{
+		                'fruit-option--affordable': canAffordFruitSelection(fruit.cost),
+		                'fruit-option--expensive': !canAffordFruitSelection(fruit.cost),
+		                'fruit-option--special': fruit.rarity === 'rare'
+		              }"
+									@click="selectFruit(fruit)"
+								>
+									<div class="fruit-option-icon" v-html="fruit.svg" :style="`width:${fruit.size}px;`"></div>
+									<div class="fruit-option-name" v-if="fruit.type">{{ t(`fruitMerge.fruits.${fruit.type.toLowerCase()}`) }}</div>
+									<div class="fruit-option-cost">
+										<CurrencyDisplay
+											:diamonds="fruit.cost.diamonds"
+											:show-coins="false"
+											layout="horizontal"
+											size="small"
+											variant="compact"
+											:format-numbers="true"
+										/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Teleport>
 	</main>
 </template>
 
@@ -3175,10 +3394,6 @@ onUnmounted(() => {
 	min-height: 40px;
 	max-height: 40px;
 	transition: all 0.1s ease;
-
-	&:hover {
-		transform: scale(1.1);
-	}
 }
 
 .next-next-fruit-placeholder {
@@ -3943,6 +4158,274 @@ onUnmounted(() => {
 		background: rgba(255, 0, 0, 0.95);
 		color: white;
 		animation: bombCountdownPulse 0.5s ease-in-out infinite;
+	}
+}
+
+.next-fruit-preview--clickable {
+	cursor: pointer;
+
+	&:hover {
+		transform: scale(1.02);
+		transition: transform 0.2s ease;
+	}
+}
+
+.next-fruit--special {
+	position: relative;
+
+	&::after {
+		content: '✨';
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		font-size: 16px;
+		animation: sparkle 2s ease-in-out infinite;
+	}
+}
+
+.fruit-selection-hint {
+	position: absolute;
+	bottom: -2px;
+	right: -2px;
+	background-color: var(--primary-color);
+	border-radius: 50%;
+	width: 18px;
+	height: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	opacity: 0;
+
+	.next-fruit-preview:hover & {
+		animation: pulse 2s infinite;
+	}
+}
+
+.selection-instruction {
+	position: absolute;
+	bottom: -20px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	white-space: nowrap;
+	text-align: center;
+}
+
+// Fruit Selector Modal
+.fruit-selector-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.75);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	animation: fadeIn 0.2s ease;
+}
+
+.fruit-selector-modal {
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-xl);
+	border: 1px solid var(--card-border);
+	max-width: 90%;
+	width: 340px;
+	max-height: 90vh;
+	overflow-y: auto;
+	box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+	animation: slideIn 0.3s ease;
+}
+
+.fruit-selector-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-2) var(--space-3);
+	border-bottom: 1px solid var(--card-border);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+}
+
+.fruit-selector-title {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.fruit-selector-content {
+	display: flex;
+	flex-direction: column;
+	padding: var(--space-1);
+}
+
+.current-balance {
+	display: flex;
+	justify-content: center;
+	padding: var(--space-2);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-md);
+}
+
+.fruit-category {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.category-title {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+	text-align: center;
+}
+
+.fruit-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: var(--space-2);
+}
+
+.fruit-option {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-2);
+	background-color: var(--card-bg);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-lg);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	position: relative;
+
+	&--affordable {
+		&:hover {
+			border-color: var(--success-color);
+			background-color: var(--card-bg-hover);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+		}
+	}
+
+	&--expensive {
+		opacity: 0.5;
+		cursor: not-allowed;
+
+		&:hover {
+			border-color: var(--error-color);
+			box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+		}
+	}
+
+	&--special {
+		background: linear-gradient(135deg, var(--card-bg), rgba(139, 92, 246, 0.1));
+		border-color: var(--primary-color);
+
+		&.fruit-option--affordable:hover {
+			border-color: var(--primary-color);
+			box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+		}
+	}
+}
+
+.fruit-option-icon {
+	width: 40px;
+	height: 68px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	:deep(svg) {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+	}
+}
+
+.fruit-option-name {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	text-align: center;
+	line-height: 1.2;
+}
+
+.fruit-option-rarity {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+
+	&.rarity--common {
+		background-color: var(--info-color);
+		color: white;
+	}
+
+	&.rarity--rare {
+		background-color: var(--primary-color);
+		color: white;
+	}
+
+	&.rarity--epic {
+		background-color: var(--warning-color);
+		color: white;
+	}
+}
+
+.fruit-option-cost {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.cost-diamonds {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--primary-color);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.fruit-option-description {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	text-align: center;
+	line-height: 1.3;
+	margin-top: var(--space-1);
+}
+
+// Animations
+@keyframes sparkle {
+	0%, 100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.5;
+		transform: scale(1.2);
+	}
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(1.1);
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
 	}
 }
 

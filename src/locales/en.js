@@ -457,6 +457,13 @@ export default {
 		auto_saved: 'Auto-saved',
 		buy_hammer: 'Buy Hammer',
 		buy_hammer_ingame: 'Buy hammer directly',
+    select_fruit: 'Select Fruit',
+    select_next_fruit: 'Select Next Fruit',
+    click_to_select: 'Click to select',
+    normal_fruits: 'Normal Fruits',
+    special_fruits: 'Special Fruits',
+    not_enough_diamonds: 'Not enough diamonds',
+    fruit_selected: 'Fruit selected!',
 
 		// Endless Mode specific translations
 		endless: {
@@ -486,7 +493,9 @@ export default {
 			grapefruit: 'Grapefruit',
 			pineapple: 'Pineapple',
 			coconut: 'Coconut',
-			melon: 'Melon'
+			melon: 'Melon',
+      bomb_fruit: 'Bomb',
+      mold_fruit: 'Mold',
 		},
 
 		levels: {

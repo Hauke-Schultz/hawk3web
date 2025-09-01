@@ -83,6 +83,9 @@ export const FRUIT_TYPES = {
 		nextType: 'STRAWBERRY',
 		color: '#4c6ef5',
 		scoreValue: 10,
+    cost: {
+      diamonds: 1
+    },
 		sparkleColor: '#9C27B0',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -144,6 +147,9 @@ export const FRUIT_TYPES = {
 		nextType: 'LEMON',
 		color: '#ff8787',
 		scoreValue: 25,
+    cost: {
+      diamonds: 1
+    },
 		sparkleColor: '#E91E63',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -202,6 +208,9 @@ export const FRUIT_TYPES = {
 		nextType: 'ORANGE',
 		color: '#fdd835',
 		scoreValue: 50,
+    cost: {
+      diamonds: 2
+    },
 		sparkleColor: '#FFEB3B',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -253,6 +262,9 @@ export const FRUIT_TYPES = {
 		nextType: 'APPLE',
 		color: '#ffa726',
 		scoreValue: 100,
+    cost: {
+      diamonds: 2
+    },
 		sparkleColor: '#FF9800',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -306,6 +318,9 @@ export const FRUIT_TYPES = {
 		nextType: 'DRAGON_FRUIT',
 		color: '#e53e3e',
 		scoreValue: 200,
+    cost: {
+      diamonds: 2
+    },
 		sparkleColor: '#36c904',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -362,6 +377,9 @@ export const FRUIT_TYPES = {
 		nextType: 'PINEAPPLE',
 		color: '#ff7043',
 		scoreValue: 400,
+    cost: {
+      diamonds: 3
+    },
 		sparkleColor: '#FFAB91',
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
@@ -659,6 +677,9 @@ export const FRUIT_TYPES = {
     nextType: null, // Explodes instead of merging
     color: '#FF4444',
     scoreValue: 0, // Bonus based on explosion
+    cost: {
+      diamonds: 10
+    },
     sparkleColor: '#FF6B6B',
     isBomb: true, // Special property
     explosionRadius: 80, // 3x3 area roughly
@@ -703,6 +724,9 @@ export const FRUIT_TYPES = {
     nextType: null, // Disappears instead of merging
     color: '#5D4037',
     scoreValue: -50, // Negative score for risk/reward
+    cost: {
+      diamonds: 10
+    },
     sparkleColor: '#8D6E63',
     isMold: true, // Special property
     lifespan: 300000, // 5 minutes in milliseconds
@@ -752,7 +776,7 @@ export const FRUIT_TYPES = {
 }
 
 export const BOMB_FRUIT_CONFIG = {
-  spawnChance: 0.25, // 2.5% chance per fruit drop in endless mode
+  spawnChance: 0.05, // 5% chance per fruit drop in endless mode
   minSpawnDelay: 45000, // Minimum 45 seconds between spawns
   maxSpawnDelay: 180000, // Maximum 3 minutes between spawns
   fuseTime: 10000, // 10 seconds until explosion
@@ -783,7 +807,7 @@ export const BOMB_FRUIT_CONFIG = {
 }
 
 export const MOLD_FRUIT_CONFIG = {
-  spawnChance: 0.25, // 5% chance per fruit drop in endless mode
+  spawnChance: 0.05, // 5% chance per fruit drop in endless mode
   minSpawnDelay: 60000, // Minimum 1 minute between spawns
   maxSpawnDelay: 120000, // Maximum 2 minutes between spawns
   lifespan: 60000, // 1 minute lifespan

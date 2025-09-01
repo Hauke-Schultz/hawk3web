@@ -454,8 +454,15 @@ export default {
 		auto_saved: 'Automatisch gespeichert',
 		buy_hammer: 'Hammer kaufen',
 		buy_hammer_ingame: 'Hammer direkt kaufen',
+    select_fruit: 'Frucht auswählen',
+    select_next_fruit: 'Nächste Frucht auswählen',
+    click_to_select: 'Klicken zum auswählen',
+    normal_fruits: 'Normale Früchte',
+    special_fruits: 'Spezielle Früchte',
+    not_enough_diamonds: 'Nicht genug Diamanten',
+    fruit_selected: 'Frucht ausgewählt!',
 
-		// Endless Mode spezifische Übersetzungen
+    // Endless Mode spezifische Übersetzungen
 		endless: {
 			merges: 'Merges',
 			time: 'Zeit',
@@ -483,7 +490,9 @@ export default {
 			grapefruit: 'Grapefrucht',
 			pineapple: 'Ananas',
 			coconut: 'Kokosnuss',
-			melon: 'Melone'
+			melon: 'Melone',
+      bomb_fruit: 'Bombe',
+      mold_fruit: 'Schimmel',
 		},
 
 		levels: {
