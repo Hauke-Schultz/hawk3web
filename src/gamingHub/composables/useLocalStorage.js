@@ -942,13 +942,13 @@ export function useLocalStorage() {
     })
   }
 
-	const canClaimDailyReward = () => {
-		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
-		if (!lastClaimed) return true
-		const now = new Date()
-		const today = now.toISOString().split('T')[0]
-		return today !== lastClaimed
-	}
+  const canClaimDailyReward = () => {
+    const lastClaimed = gameData.currency.dailyRewards.lastClaimed
+    if (!lastClaimed) return true
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    return today !== lastClaimed
+  }
 
 	const claimDailyReward = () => {
 		if (!canClaimDailyReward()) return null

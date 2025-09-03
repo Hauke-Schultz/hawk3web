@@ -103,16 +103,32 @@ export default {
 	},
 
 	daily_rewards: {
-		title: 'Claim your daily bonus!',
-		tap_to_claim: 'Tap to claim',
-		day_streak: 'Daily Bonus',
-		consecutive_bonus: 'Daily Bonus - doubled!',
-		normal_bonus: 'Daily Bonus',
-		claimed_today: 'Already claimed today',
-		come_back_tomorrow: 'Come back tomorrow!',
-		reward_claimed: 'Daily reward claimed!',
-		streak_maintained: 'Consecutive day: Bonus doubled!',
-		streak_broken: 'New day - normal bonus'
+    title: 'Claim your daily bonus!',
+    tap_to_claim: 'Tap to claim',
+    day_streak: 'Daily Bonus',
+    consecutive_bonus: 'Daily Bonus - doubled!',
+    normal_bonus: 'Daily Bonus',
+    claimed_today: 'Already claimed today',
+    come_back_tomorrow: 'Come back tomorrow!',
+    reward_claimed: 'Daily reward claimed!',
+    streak_maintained: 'Consecutive day: Bonus doubled!',
+    streak_broken: 'New day - normal bonus',
+
+    // Three Shells Minigame
+    minigame_subtitle: 'Play for your reward!',
+    big_reward: 'Big Treasure',
+    small_reward: 'Small Reward',
+    or: 'or',
+    play_for_reward: 'Play for Reward',
+    watch_carefully: 'Watch carefully!',
+    memorize_location: 'Memorize the location...',
+    shells_shuffling: 'The shells are being shuffled now!',
+    shuffling: 'Shuffling...',
+    choose_shell_now: 'Where is the big treasure?',
+    big_win: 'Big Win! You found the treasure!',
+    consolation_prize: 'Consolation Prize! Better luck next time!',
+    minigame_reward: 'Daily Minigame Reward',
+    follow_treasure: 'Follow the treasure!',
 	},
 
 	// App/Header

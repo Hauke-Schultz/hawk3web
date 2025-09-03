@@ -102,16 +102,32 @@ export default {
 	},
 
 	daily_rewards: {
-		title: 'Tägliche Belohnung abholen',
-		tap_to_claim: 'Zum Abholen tippen',
-		day_streak: 'Täglicher Bonus',
-		consecutive_bonus: 'Täglicher Bonus - verdoppelt!',
-		normal_bonus: 'Täglicher Bonus',
-		claimed_today: 'Heute bereits abgeholt',
-		come_back_tomorrow: 'Komm morgen wieder!',
-		reward_claimed: 'Tägliche Belohnung abgeholt!',
-		streak_maintained: 'Aufeinanderfolgender Tag: Bonus verdoppelt!',
-		streak_broken: 'Neuer Tag - normaler Bonus'
+    title: 'Tägliche Belohnung abholen',
+    tap_to_claim: 'Zum Abholen tippen',
+    day_streak: 'Täglicher Bonus',
+    consecutive_bonus: 'Täglicher Bonus - verdoppelt!',
+    normal_bonus: 'Täglicher Bonus',
+    claimed_today: 'Heute bereits abgeholt',
+    come_back_tomorrow: 'Komm morgen wieder!',
+    reward_claimed: 'Tägliche Belohnung abgeholt!',
+    streak_maintained: 'Aufeinanderfolgender Tag: Bonus verdoppelt!',
+    streak_broken: 'Neuer Tag - normaler Bonus',
+
+    // Three Shells Minigame
+    minigame_subtitle: 'Spiele für deine Belohnung!',
+    big_reward: 'Großer Schatz',
+    small_reward: 'Kleine Belohnung',
+    or: 'oder',
+    play_for_reward: 'Für Belohnung spielen',
+    watch_carefully: 'Merke dir gut, wo der große Schatz versteckt ist!',
+    memorize_location: 'Präge dir die Position ein...',
+    shells_shuffling: 'Die Schalen werden jetzt gemischt!',
+    shuffling: 'Mischen...',
+    choose_shell_now: 'Wo ist der große Schatz? Wähle eine Schale!',
+    big_win: 'Großer Gewinn! Du hast den Schatz gefunden!',
+    consolation_prize: 'Trostpreis! Beim nächsten Mal klappt es bestimmt!',
+    minigame_reward: 'Tägliches Minispiel-Belohnung',
+    follow_treasure: 'Verfolge den Schatz!',
 	},
 
 	// App/Header

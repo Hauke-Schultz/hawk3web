@@ -621,23 +621,28 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 			<div class="header-right">
 				<div class="notification-container">
 					<button
-							v-if="showNotifications || notificationItems.length >= 0"
-							class="btn btn--circle-ghost notification-btn"
-							:class="{
-							'notification-btn--active': showNotifications
-						}"
-							@click="handleNotificationClick($event)"
-							:aria-label="t('a11y.notification_button')"
-							:aria-expanded="showNotifications"
-							:disabled="isNotificationAnimating"
+						v-if="showNotifications || notificationItems.length >= 0"
+						class="btn btn--circle-ghost notification-btn"
+						:class="{
+				      'notification-btn--active': showNotifications
+				    }"
+						@click="handleNotificationClick($event)"
+						:aria-label="t('a11y.notification_button')"
+						:aria-expanded="showNotifications"
+						:disabled="isNotificationAnimating"
 					>
 						<Icon name="bell" size="24" />
 						<span v-if="notificationItems.length > 0" class="notification-badge">{{ notificationItems.length }}</span>
 					</button>
 
-						<!-- Notification Dropdown -->
+					<!-- Notification Dropdown -->
 					<transition name="menu">
-						<div v-if="showNotifications" class="notification-dropdown" :class="{ 'notification-dropdown--animating': isNotificationAnimating }">
+						<div
+							v-if="showNotifications"
+							class="notification-dropdown"
+							:class="{ 'notification-dropdown--animating': isNotificationAnimating }"
+							@click.stop
+						>
 							<div class="notification-header">
 								<h4 class="notification-title">{{ t('nav.notifications') }}</h4>
 							</div>
@@ -1129,6 +1134,7 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 	right: 0;
 	min-width: 320px;
 	max-width: 350px;
+	width: 100%;
 	background-color: var(--card-bg);
 	border: 1px solid var(--card-border);
 	border-radius: var(--border-radius-xl);
