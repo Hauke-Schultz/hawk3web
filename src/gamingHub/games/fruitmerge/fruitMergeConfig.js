@@ -669,6 +669,80 @@ export const FRUIT_TYPES = {
     <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
 </svg>`
 	},
+  RAINBOW_FRUIT: {
+    index: 97,
+    type: 'RAINBOW_FRUIT',
+    emoji: '🌈',
+    radius: 32,
+    nextType: null, // Can merge with any fruit
+    color: 'rainbow',
+    scoreValue: 0, // Bonus based on merge
+    cost: {
+      diamonds: 50
+    },
+    sparkleColor: '#FFD700',
+    isRainbow: true, // Special property
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="rainbowGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#FF6B6B"/>
+            <stop offset="16.66%" style="stop-color:#FF8E8E"/>
+            <stop offset="33.33%" style="stop-color:#FFD93D"/>
+            <stop offset="50%" style="stop-color:#6BCF7F"/>
+            <stop offset="66.66%" style="stop-color:#4ECDC4"/>
+            <stop offset="83.33%" style="stop-color:#45B7D1"/>
+            <stop offset="100%" style="stop-color:#96CEB4"/>
+        </radialGradient>
+        <radialGradient id="rainbowShimmer" cx="0.5" cy="0.3">
+            <stop offset="0%" style="stop-color:#FFFFFF" stop-opacity="0.8"/>
+            <stop offset="50%" style="stop-color:#FFD700" stop-opacity="0.6"/>
+            <stop offset="100%" style="stop-color:#FFFFFF" stop-opacity="0.3"/>
+        </radialGradient>
+    </defs>
+
+    <!-- Rainbow body -->
+    <circle cx="32" cy="32" r="30" fill="url(#rainbowGrad)" stroke="#FFD700" stroke-width="2"/>
+    
+    <!-- Shimmer effect -->
+    <circle cx="32" cy="32" r="26" fill="url(#rainbowShimmer)" opacity="0.7">
+        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="2s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="rotate" values="0 32 32;360 32 32" dur="4s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Rainbow sparkles -->
+    <g fill="#FFD700" opacity="0.8">
+        <polygon points="16,16 18,18 16,20 14,18" transform="rotate(45 16 18)">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+        </polygon>
+        <polygon points="48,16 50,18 48,20 46,18" transform="rotate(45 48 18)">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+        </polygon>
+        <polygon points="16,48 18,50 16,52 14,50" transform="rotate(45 16 50)">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+        </polygon>
+        <polygon points="48,48 50,50 48,52 46,50" transform="rotate(45 48 50)">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite" begin="1.5s"/>
+        </polygon>
+    </g>
+
+    <!-- Eyes -->
+    <ellipse cx="24" cy="26" rx="6" ry="6" fill="white"/>
+    <ellipse cx="40" cy="26" rx="6" ry="6" fill="white"/>
+    <circle cx="24" cy="26" r="3" fill="black"/>
+    <circle cx="40" cy="26" r="3" fill="black"/>
+    <circle cx="25.5" cy="24.5" r="1.5" fill="white"/>
+    <circle cx="41.5" cy="24.5" r="1.5" fill="white"/>
+
+    <!-- Happy mouth -->
+    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Magic aura -->
+    <circle cx="32" cy="32" r="30" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.4">
+        <animate attributeName="opacity" values="0.2;0.8;0.2" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-width" values="1;3;1" dur="3s" repeatCount="indefinite"/>
+    </circle>
+</svg>`
+  },
   BOMB_FRUIT: {
     index: 98,
     type: 'BOMB_FRUIT',
@@ -772,6 +846,33 @@ export const FRUIT_TYPES = {
         <animate attributeName="stroke-width" values="2;4;2" dur="2s" repeatCount="indefinite"/>
     </circle>
 </svg>`
+  }
+}
+
+export const RAINBOW_FRUIT_CONFIG = {
+  spawnChance: 0.03, // 3% chance per fruit drop in endless mode
+  minSpawnDelay: 90000, // Minimum 1.5 minutes between spawns
+  maxSpawnDelay: 300000, // Maximum 5 minutes between spawns
+  maxConcurrent: 1, // Only one rainbow at a time
+  bonusMultiplier: 2.5, // 2.5x score bonus when used in merge
+  universalMerger: true, // Can merge with any fruit type
+
+  // Visual effects
+  spawnEffect: {
+    particles: 20,
+    colors: ['#FF6B6B', '#FFD93D', '#6BCF7F', '#4ECDC4', '#45B7D1', '#96CEB4'],
+    duration: 2000
+  },
+  mergeEffect: {
+    particles: 30,
+    colors: ['#FF6B6B', '#FFD93D', '#6BCF7F', '#4ECDC4', '#45B7D1', '#96CEB4'],
+    duration: 2500
+  },
+
+  // Audio cues (for future implementation)
+  sounds: {
+    spawn: 'rainbow_spawn',
+    merge: 'rainbow_merge'
   }
 }
 

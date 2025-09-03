@@ -491,6 +491,7 @@ export default {
 			pineapple: 'Ananas',
 			coconut: 'Kokosnuss',
 			melon: 'Melone',
+      rainbow_fruit: 'Regenbogen',
       bomb_fruit: 'Bombe',
       mold_fruit: 'Schimmel',
 		},

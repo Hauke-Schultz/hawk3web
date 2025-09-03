@@ -6,6 +6,7 @@ import {
 	FRUIT_TYPES,
 	PHYSICS_CONFIG,
 	POINTS_CONFIG,
+	RAINBOW_FRUIT_CONFIG,
 	MOLD_FRUIT_CONFIG,
 	BOMB_FRUIT_CONFIG
 } from './fruitMergeConfig.js'
@@ -134,11 +135,26 @@ const lastBombSpawnTime = ref(0)
 const showFruitSelector = ref(false)
 const isSelectingFruit = ref(false)
 
+const rainbowFruitTimer = ref(null)
+const currentRainbowFruit = ref(null)
+const lastRainbowSpawnTime = ref(0)
+
 const availableFruitsForSelection = computed(() => {
 	const fruits = fruitTypes.value.slice(0, 4) // First 4 fruit types
 
 	// Add special fruits only in endless mode
 	if (isEndlessMode.value ) {
+		fruits.push({
+			type: 'RAINBOW_FRUIT',
+			name: 'Rainbow',
+			size: FRUIT_TYPES.RAINBOW_FRUIT.radius * 2,
+			svg: FRUIT_TYPES.RAINBOW_FRUIT.svg,
+			color: FRUIT_TYPES.RAINBOW_FRUIT.color,
+			rarity: 'rare',
+			cost: FRUIT_TYPES.RAINBOW_FRUIT.cost,
+			isRainbow: true
+		})
+
 		fruits.push({
 			type: 'BOMB_FRUIT',
 			name: 'Bomb',
@@ -425,6 +441,29 @@ const generateNextFruit = () => {
 		}
 	}
 
+	if (isEndlessMode.value && shouldGenerateRainbowFruit()) {
+		return {
+			id: nextFruitId.value++,
+			type: FRUIT_TYPES.RAINBOW_FRUIT.type,
+			color: FRUIT_TYPES.RAINBOW_FRUIT.color,
+			size: FRUIT_TYPES.RAINBOW_FRUIT.radius * 2,
+			level: FRUIT_TYPES.RAINBOW_FRUIT.index,
+			name: FRUIT_TYPES.RAINBOW_FRUIT.type,
+			svg: FRUIT_TYPES.RAINBOW_FRUIT.svg,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			body: null,
+			merging: false,
+			inDanger: false,
+			dangerZoneStartTime: null,
+			dangerZoneTime: 0,
+			isRainbow: true,
+			spawnedAt: null
+		}
+	}
+
+
 	// Normal fruit generation logic... (rest bleibt gleich)
 	const maxStartingLevel = 4
 	const randomIndex = Math.floor(Math.random() * maxStartingLevel)
@@ -467,6 +506,26 @@ const getTargetFruitSvg = () => {
 	const targetFruitType = Object.values(FRUIT_TYPES).find(f => f.type === targetFruitName)
 
 	return targetFruitType ? targetFruitType.svg : ''
+}
+
+const shouldGenerateRainbowFruit = () => {
+	if (!isEndlessMode.value) return false
+
+	let currentRainbowCount = fruits.value.filter(fruit => fruit.isRainbow).length
+	if (nextFruit.value?.isRainbow) {
+		currentRainbowCount += 1
+	}
+	if (currentRainbowCount >= RAINBOW_FRUIT_CONFIG.maxConcurrent) {
+		return false
+	}
+
+	const now = Date.now()
+	const timeSinceLastSpawn = now - lastRainbowSpawnTime.value
+
+	// Ensure minimum delay between rainbow spawns
+	if (timeSinceLastSpawn < RAINBOW_FRUIT_CONFIG.minSpawnDelay) return false
+
+	return Math.random() < RAINBOW_FRUIT_CONFIG.spawnChance
 }
 
 const shouldGenerateMoldFruit = () => {
@@ -1083,6 +1142,87 @@ const handleCollision = (event) => {
 				continue
 			}
 
+			// Check for rainbow fruit collision - rainbow can merge with ANY fruit
+			const isRainbowA = bodyA.label.includes('rainbow')
+			const isRainbowB = bodyB.label.includes('rainbow')
+
+			if (isRainbowA || isRainbowB) {
+				const rainbowFruit = isRainbowA ? fruits.value.find(f => f.id === idA) : fruits.value.find(f => f.id === idB)
+				const normalFruit = isRainbowA ? fruits.value.find(f => f.id === idB) : fruits.value.find(f => f.id === idA)
+
+				if (rainbowFruit && normalFruit && !rainbowFruit.merging && !normalFruit.merging && !normalFruit.isMold && !normalFruit.isBomb) {
+					rainbowFruit.merging = true
+
+					const centerX = (bodyA.position.x + bodyB.position.x) / 2
+					const centerY = (bodyA.position.y + bodyB.position.y) / 2
+
+					// Remove both fruits from physics world
+					Matter.Composite.remove(engine.world, bodyA)
+					Matter.Composite.remove(engine.world, bodyB)
+
+					fruits.value = fruits.value.filter(f => f.id !== idA && f.id !== idB)
+
+					// Create next level fruit from the normal fruit
+					const normalFruitType = Object.values(FRUIT_TYPES).find(f => f.index === normalFruit.level)
+					if (normalFruitType) {
+						const comboResult = comboSystem.addCombo()
+						const baseScore = normalFruitType.scoreValue
+						const rainbowBonus = Math.round(baseScore * RAINBOW_FRUIT_CONFIG.bonusMultiplier)
+						const comboMultipliedScore = Math.round(rainbowBonus * comboResult.multiplier)
+
+						score.value += comboMultipliedScore
+						checkEndlessAchievements()
+						checkScoreMilestones()
+
+						const nextFruitType = Object.values(FRUIT_TYPES).find(f => f.index === normalFruit.level + 1)
+
+						createRainbowMergeEffects(centerX, centerY, nextFruitType)
+						createScorePoint(centerX, centerY, comboMultipliedScore, comboResult.multiplier, comboResult.comboLevel)
+
+						if (nextFruitType) {
+							const newFruit = {
+								id: nextFruitId.value++,
+								color: nextFruitType.color,
+								size: nextFruitType.radius * 2,
+								level: nextFruitType.index,
+								name: nextFruitType.type,
+								svg: nextFruitType.svg,
+								x: centerX - nextFruitType.radius,
+								y: centerY - nextFruitType.radius,
+								rotation: 0,
+								body: null,
+								merging: false,
+								isRainbow: false
+							}
+
+							addMergedFruit(newFruit, centerX, centerY)
+
+							if (isEndlessMode.value) {
+								totalMerges.value++
+								checkScoreMilestones()
+								checkEndlessAchievements()
+							}
+
+							// Check level completion
+							if (newFruit.name === currentLevelConfig.value.targetFruit) {
+								console.log(`🎯 Level goal reached with rainbow merge! Created ${newFruit.name}`)
+								setTimeout(() => {
+									showNextFruit.value = false
+									nextFruit.value = null
+									pausePhysics()
+									stopAllFruits()
+								}, PHYSICS_CONFIG.stopPhysicsDelay)
+								return
+							}
+						}
+					}
+
+					// Update rainbow spawn tracking
+					lastRainbowSpawnTime.value = Date.now()
+				}
+				continue // Skip normal merge logic
+			}
+
 			// Regular merge logic for non-mold fruits
 			if (levelA === levelB) {
 				const fruitA = fruits.value.find(f => f.id === idA)
@@ -1154,6 +1294,61 @@ const handleCollision = (event) => {
 			}
 		}
 	}
+}
+
+const createRainbowMergeEffects = (mergeX, mergeY, newFruitType) => {
+	createRainbowParticles(mergeX, mergeY, newFruitType)
+	createRainbowRipple(mergeX, mergeY)
+}
+
+const createRainbowParticles = (x, y, fruitType) => {
+	const particleCount = Math.min(fruitType.index + 5, 25)
+	const colors = RAINBOW_FRUIT_CONFIG.mergeEffect.colors
+
+	for (let i = 0; i < particleCount; i++) {
+		const angle = (i / particleCount) * Math.PI * 2
+		const distance = 60 + Math.random() * 40
+		const particleX = Math.cos(angle) * distance + (Math.random() - 0.5) * 30
+		const particleY = Math.sin(angle) * distance + (Math.random() - 0.5) * 30
+
+		const particle = {
+			id: `rainbow-${Date.now()}-${i}`,
+			x: x,
+			y: y,
+			targetX: particleX,
+			targetY: particleY,
+			type: 'rainbow_merge',
+			backgroundColor: colors[i % colors.length],
+			duration: RAINBOW_FRUIT_CONFIG.mergeEffect.duration,
+			size: 4 + Math.random() * 6
+		}
+
+		particles.value.push(particle)
+
+		setTimeout(() => {
+			particles.value = particles.value.filter(p => p.id !== particle.id)
+		}, RAINBOW_FRUIT_CONFIG.mergeEffect.duration)
+	}
+}
+
+const createRainbowRipple = (x, y) => {
+	const ripple = {
+		id: `rainbow-ripple-${Date.now()}`,
+		x: x,
+		y: y,
+		targetX: 0,
+		targetY: 0,
+		type: 'rainbow_ripple',
+		backgroundColor: 'transparent',
+		duration: 1500,
+		size: 20
+	}
+
+	particles.value.push(ripple)
+
+	setTimeout(() => {
+		particles.value = particles.value.filter(p => p.id !== ripple.id)
+	}, 1500)
 }
 
 const checkScoreAchievements = () => {
@@ -3054,7 +3249,9 @@ onUnmounted(() => {
 				    'fruit--mold': fruit.isMold,
 				    'fruit--mold-warning': fruit.isMold && moldFruitWarningActive,
 				    'fruit--bomb': fruit.isBomb,
-				    'fruit--bomb-ticking': fruit.isBomb && bombTickingActive
+				    'fruit--bomb-ticking': fruit.isBomb && bombTickingActive,
+				    'fruit--rainbow': fruit.isRainbow,
+				    'fruit--rainbow-shimmer': fruit.isRainbow
 				  }"
 					:style="{
 				    left: `${fruit.x}px`,
@@ -3062,7 +3259,7 @@ onUnmounted(() => {
 				    width: `${fruit.size}px`,
 				    height: `${fruit.size}px`,
 				    transform: `rotate(${fruit.rotation}deg)`,
-				    zIndex: fruit.inDanger ? 5 : (fruit.isMold ? 8 : (fruit.isBomb ? 10 : (hammerMode ? 10 : 1)))
+				    zIndex: fruit.isRainbow ? 12 : fruit.inDanger ? 5 : (fruit.isMold ? 8 : (fruit.isBomb ? 10 : (hammerMode ? 10 : 1)))
 				  }"
 					@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
 					@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
@@ -4400,6 +4597,113 @@ onUnmounted(() => {
 	text-align: center;
 	line-height: 1.3;
 	margin-top: var(--space-1);
+}
+.fruit--rainbow {
+	position: relative;
+	box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+	animation: rainbowPulse 3s ease-in-out infinite alternate;
+
+	&::before {
+		content: '';
+		position: absolute;
+		top: -4px;
+		left: -4px;
+		right: -4px;
+		bottom: -4px;
+		border-radius: 50%;
+		background: conic-gradient(
+						from 0deg,
+						#FF6B6B 0deg,
+						#FFD93D 60deg,
+						#6BCF7F 120deg,
+						#4ECDC4 180deg,
+						#45B7D1 240deg,
+						#96CEB4 300deg,
+						#FF6B6B 360deg
+		);
+		z-index: -1;
+		animation: rainbowRotate 4s linear infinite;
+	}
+
+	&::after {
+		content: '✨';
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		font-size: 16px;
+		animation: sparkle 2s ease-in-out infinite;
+		z-index: 10;
+	}
+}
+
+.fruit--rainbow-shimmer {
+	filter: brightness(1.2) saturate(1.3);
+}
+
+.particle--rainbow_merge {
+	border-radius: 50% !important;
+	box-shadow: 0 0 15px currentColor;
+	animation: rainbowParticleFloat 2.5s ease-out forwards;
+}
+
+.particle--rainbow_ripple {
+	border: 3px solid #FFD700;
+	border-radius: 50%;
+	animation: rainbowRipple 1.5s ease-out forwards;
+}
+
+// Rainbow Animations
+@keyframes rainbowPulse {
+	0% {
+		filter: brightness(1) saturate(1) hue-rotate(0deg);
+		transform: scale(1);
+	}
+	100% {
+		filter: brightness(1.3) saturate(1.5) hue-rotate(180deg);
+		transform: scale(1.05);
+	}
+}
+
+@keyframes rainbowRotate {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes sparkle {
+	0%, 100% {
+		opacity: 0.7;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.3);
+	}
+}
+
+@keyframes rainbowParticleFloat {
+	0% {
+		opacity: 1;
+		transform: translate(0, 0) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: translate(var(--particle-x), var(--particle-y)) scale(0.3);
+	}
+}
+
+@keyframes rainbowRipple {
+	0% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(8);
+	}
 }
 
 // Animations

@@ -71,19 +71,25 @@
 - **Bomb Fruit Mechanic** - Explodes and removes all fruits in a 3x3 radius
 - **Next Fruit Preview** - Visual preview showing the upcoming fruit after the current one
 - **Fruit Selection System** - Click to open fruit selection menu and change next fruit (costs diamonds)
+- **Rainbow Fruit** - Merges with any fruit type, rare spawn with unique effects
 
 ## 🚀 Version 0.3.3 - FruitMerge Enhancements
 
-### **🌈 Rainbow Fruit**
-- Can merge with any other fruit type
-- Rare spawn with rainbow shimmer animation
-- Creates unique merge combinations and scoring opportunities
+### **Improved Hammer Functionality**
+- Auto-activate after purchase - Automatically enable hammer mode when successfully buying a hammer (existing functions available, just needs activation)
+- Single fruit targeting - Only one fruit clickable at a time (currently on mobile, two fruits can be accidentally selected)
+- 5-second countdown timer - When fruit is selected, start 5-second countdown timer before hammer strikes
+- Timer cancellation - Click again to cancel timer and select different fruit
+- Visual countdown indicator - Show countdown progress on selected fruit
+- Confirmation feedback - Clear visual indication of selected fruit and remaining time
+- Mobile touch optimization - Improved touch detection to prevent multi-fruit selection
+- Hammer mode exit - Easy way to exit hammer mode without using hammer
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges
 - Intensity scales with merge size and combo level
 - Enhanced tactile feedback for satisfying gameplay moments
-- 
+
 ### **🌟 Neon Theme**
 - Glowing fruits in cyberpunk style
 - Dark background with bright neon fruit outlines
