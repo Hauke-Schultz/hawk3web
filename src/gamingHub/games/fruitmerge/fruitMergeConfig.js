@@ -505,51 +505,59 @@ export const FRUIT_TYPES = {
     <circle cx="32" cy="16" r="1" fill="#3E2723" opacity="0.9"/>
 </svg>`
 	},
-	MELON: {
-		index: 9,
-		type: 'MELON',
-		emoji: '🍉',
-		radius: 78,
-		nextType: 'DRAGON_FRUIT',
-		color: '#38b2ac',
-		scoreValue: 1600,
-		sparkleColor: '#b2dfdb',
-		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  MELON: {
+    index: 9,
+    type: 'MELON',
+    emoji: '🍈',
+    radius: 78,
+    nextType: 'DRAGON_FRUIT',
+    color: '#90EE90',
+    scoreValue: 1600,
+    sparkleColor: '#98FB98',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
-        <radialGradient id="watermelonGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#F8BBD0"/>
-            <stop offset="100%" style="stop-color:#F48FB1"/>
+        <radialGradient id="honeydewGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#F0FFF0"/>
+            <stop offset="30%" style="stop-color:#E6FFE6"/>
+            <stop offset="70%" style="stop-color:#98FB98"/>
+            <stop offset="100%" style="stop-color:#90EE90"/>
         </radialGradient>
     </defs>
-    <circle cx="32" cy="32" r="30" fill="url(#watermelonGrad)" stroke="#008e00" stroke-width="2"/>
-    <circle cx="32" cy="32" r="26" fill="#F06292" opacity="0.8"/>
-    <circle cx="22" cy="22" r="2" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="42" cy="20" r="2" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="20" cy="42" r="2" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="44" cy="44" r="2" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="32" cy="18" r="1.5" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="18" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="46" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="32" cy="46" r="1.5" fill="#1B5E20" opacity="0.9"/>
-    <circle cx="28" cy="36" r="1" fill="#1B5E20" opacity="0.8"/>
-    <circle cx="36" cy="28" r="1" fill="#1B5E20" opacity="0.8"/>
+    
+    <!-- Honeydew body -->
+    <circle cx="32" cy="32" r="30" fill="url(#honeydewGrad)" stroke="#8FBC8F" stroke-width="2"/>
+    
+    <!-- Honeydew texture (smooth surface) -->
+    <circle cx="32" cy="32" r="26" fill="#F5FFFA" opacity="0.6"/>
+    <circle cx="32" cy="32" r="22" fill="#E0FFE0" opacity="0.4"/>
+    
+    <!-- Subtle surface pattern -->
+    <path d="M18,24 Q24,20 30,24 Q36,20 42,24" stroke="#8FBC8F" stroke-width="1" fill="none" opacity="0.3"/>
+    <path d="M16,32 Q24,28 32,32 Q40,28 48,32" stroke="#8FBC8F" stroke-width="1" fill="none" opacity="0.3"/>
+    <path d="M18,40 Q24,36 30,40 Q36,36 42,40" stroke="#8FBC8F" stroke-width="1" fill="none" opacity="0.3"/>
+    
+    <!-- Eyes -->
     <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
     <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
     <circle cx="24" cy="26" r="2.5" fill="black"/>
     <circle cx="40" cy="26" r="2.5" fill="black"/>
     <circle cx="25" cy="25" r="1" fill="white"/>
     <circle cx="41" cy="25" r="1" fill="white"/>
+    
+    <!-- Sweet smile -->
     <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
-    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+    
+    <!-- Cheek blush (sweet honeydew) -->
+    <ellipse cx="16" cy="32" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
+    <ellipse cx="48" cy="32" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
 </svg>`
-	},
+  },
 	DRAGON_FRUIT: {
 		index: 10,
 		type: 'DRAGON_FRUIT',
 		emoji: '🐉',
 		radius: 88,
-		nextType: 'PUMPKIN',
+		nextType: '',
 		color: '#e91e63',
 		scoreValue: 3200,
 		sparkleColor: '#f8bbd9',
@@ -609,11 +617,50 @@ export const FRUIT_TYPES = {
     </g>
 </svg>`
 	},
+  WATERMELON: {
+    index: 11,
+    type: 'WATERMELON',
+    emoji: '🍉',
+    radius: 100,
+    nextType: 'PUMPKIN',
+    color: '#228B22',
+    scoreValue: 6400,
+    sparkleColor: '#FF6B6B',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <radialGradient id="watermelonGrad" cx="0.3" cy="0.3">
+            <stop offset="0%" style="stop-color:#F8BBD0"/>
+            <stop offset="100%" style="stop-color:#F48FB1"/>
+        </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="url(#watermelonGrad)" stroke="#008e00" stroke-width="2"/>
+    <circle cx="32" cy="32" r="26" fill="#F06292" opacity="0.8"/>
+    <circle cx="22" cy="22" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="42" cy="20" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="20" cy="42" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="44" cy="44" r="2" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="32" cy="18" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="18" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="46" cy="32" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="32" cy="46" r="1.5" fill="#1B5E20" opacity="0.9"/>
+    <circle cx="28" cy="36" r="1" fill="#1B5E20" opacity="0.8"/>
+    <circle cx="36" cy="28" r="1" fill="#1B5E20" opacity="0.8"/>
+    <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
+    <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
+    <circle cx="24" cy="26" r="2.5" fill="black"/>
+    <circle cx="40" cy="26" r="2.5" fill="black"/>
+    <circle cx="25" cy="25" r="1" fill="white"/>
+    <circle cx="41" cy="25" r="1" fill="white"/>
+    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+</svg>`
+  },
 	PUMPKIN: {
-		index: 11,
+		index: 12,
 		type: 'PUMPKIN',
 		emoji: '🎃',
-		radius: 92,
+		radius: 115,
 		nextType: null,
 		color: '#ff8c00',
 		scoreValue: 3200,
@@ -678,7 +725,7 @@ export const FRUIT_TYPES = {
     color: 'rainbow',
     scoreValue: 0, // Bonus based on merge
     cost: {
-      diamonds: 50
+      diamonds: 1
     },
     sparkleColor: '#FFD700',
     isRainbow: true, // Special property

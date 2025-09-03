@@ -72,18 +72,53 @@
 - **Next Fruit Preview** - Visual preview showing the upcoming fruit after the current one
 - **Fruit Selection System** - Click to open fruit selection menu and change next fruit (costs diamonds)
 - **Rainbow Fruit** - Merges with any fruit type, rare spawn with unique effects
+- **Improved Hammer Functionality** - Auto-activate after purchase, single fruit targeting, countdown timer, and mobile optimization
 
-## 🚀 Version 0.3.3 - FruitMerge Enhancements
+## 🚀 Version 0.3.3 - Screenshot System for FruitMerge**
 
-### **Improved Hammer Functionality**
-- Auto-activate after purchase - Automatically enable hammer mode when successfully buying a hammer (existing functions available, just needs activation)
-- Single fruit targeting - Only one fruit clickable at a time (currently on mobile, two fruits can be accidentally selected)
-- 5-second countdown timer - When fruit is selected, start 5-second countdown timer before hammer strikes
-- Timer cancellation - Click again to cancel timer and select different fruit
-- Visual countdown indicator - Show countdown progress on selected fruit
-- Confirmation feedback - Clear visual indication of selected fruit and remaining time
-- Mobile touch optimization - Improved touch detection to prevent multi-fruit selection
-- Hammer mode exit - Easy way to exit hammer mode without using hammer
+### **ConfirmationModal Enhancement**
+- **Save Screenshot button** - Add "Save Screenshot" button to ConfirmationModal when game is completed
+- **Capture game state** - Save all fruits with their positions on the game board along with the score
+- **Screenshot metadata** - Store level, score, timestamp, and fruit configuration data
+- **Multiple screenshots per level** - Allow saving multiple screenshots for the same level (best scores, interesting configurations)
+- **Screenshot persistence** - Store screenshots in localStorage with game data
+- **Screenshot limit** - Limit screenshots per level to prevent storage overflow (best 5 screenshots)
+
+### **FruitMerge Level Overview Enhancement**
+- **Screenshot gallery tile** - New tile/section on FruitMergeLevels page to display saved screenshots
+- **Screenshot details modal** - Click to view full-size screenshot with detailed information
+- **Visual indicators** - Show screenshot count badge on level tiles that have screenshots
+- **Screenshot sorting** - Sort by score (highest first)
+
+### **Screenshot Generation System**
+- **Canvas rendering** - Generate screenshot by recreating game board state on HTML5 Canvas
+- **Fruit positioning** - Render all fruits at their exact positions with correct SVG graphics
+- **Score overlay** - Include score, level, and timestamp information in screenshot
+- **High-quality output** - Generate screenshots at high resolution for crisp display
+- **Responsive screenshots** - Ensure screenshots display well on mobile devices
+- **Screenshot compression** - Optimize file size for localStorage efficiency
+
+### **Technical Implementation Points**
+- Create `useScreenshot.js` composable for screenshot functionality
+- Add `ScreenshotGallery.vue` component for level overview
+- Extend `GameCompletedModal.vue` with screenshot button
+- Implement Canvas API for fruit rendering from game state
+- Add screenshot storage to localStorage service
+- Create screenshot management utilities (save/load/delete)
+- Add screenshot-related translations for UI text
+- Implement screenshot metadata structure
+- Add visual indicators to level tiles with screenshot counts
+
+### **UI/UX Enhancements**
+- **Screenshot preview animation** - Smooth transitions when viewing screenshots
+- **Screenshot sharing potential** - Structure data for future sharing functionality
+- **Screenshot quality settings** - Option for different screenshot resolutions
+- **Screenshot naming** - Auto-generate meaningful names based on score and date
+- **Storage management** - Show storage usage and cleanup options for screenshots
+
+---
+
+## 🚀 Version 0.3.4 - FruitMerge Enhancements
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges

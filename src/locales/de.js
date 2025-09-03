@@ -449,6 +449,10 @@ export default {
 		activate_hammer: 'Hammer aktivieren',
 		deactivate_hammer: 'Hammer deaktivieren',
 		hammer_mode_active: '🔨 Hammer-Modus - Klicke auf eine Frucht zum Entfernen',
+    hammer_mode_select: '🔨 Hammer-Modus - Frucht zum Entfernen auswählen',
+    hammer_countdown_active: '🔨 Countdown läuft - Nochmal klicken zum Abbrechen',
+    cancel_hammer: 'Hammer-Modus beenden',
+    hammer_auto_activated: 'Hammer-Modus automatisch aktiviert!',
 		hammer_used: 'Hammer benutzt!',
 		no_hammers: 'Keine Hämmer verfügbar',
 		auto_saved: 'Automatisch gespeichert',
@@ -462,7 +466,6 @@ export default {
     not_enough_diamonds: 'Nicht genug Diamanten',
     fruit_selected: 'Frucht ausgewählt!',
 
-    // Endless Mode spezifische Übersetzungen
 		endless: {
 			merges: 'Merges',
 			time: 'Zeit',

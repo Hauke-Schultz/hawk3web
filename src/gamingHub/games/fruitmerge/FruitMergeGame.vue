@@ -112,9 +112,13 @@ const hasSavedState = ref(false)
 const isSaving = ref(false)
 
 const hammerMode = ref(false)
-const hammerRemaining = ref(gameData.player.inventory.items?.hammer_powerup?.quantity || 0);
+const hammerRemaining = ref(gameData.player.inventory.items?.hammer_powerup?.quantity || 0)
 const selectedFruitForHammer = ref(null)
 const isUsingHammer = ref(false)
+const hammerCountdownTimer = ref(null)
+const hammerCountdownTime = ref(0)
+const hammerCountdownDuration = 5000 // 5 seconds
+const isHammerCountdownActive = ref(false)
 
 const showShopModal = ref(false)
 const modalType = ref('purchase')
@@ -907,67 +911,113 @@ const activateHammerMode = () => {
 }
 
 const deactivateHammerMode = () => {
+	// Cancel any active countdown
+	cancelHammerSelection()
+
 	setTimeout(() => {
 		hammerMode.value = false
 		isDropping.value = false
 	}, 100)
-	selectedFruitForHammer.value = null
+
 	const remainingHammers = getItemQuantity('hammer_powerup')
 	console.log(`🔨 Hammer mode deactivated. Remaining hammers: ${remainingHammers}`)
 }
 
 const handleFruitClick = (fruit) => {
-	if (hammerMode.value && isUsingHammer.value) return
+	// Prevent multiple selections during countdown
+	if (isUsingHammer.value) return
 
-	if (hammerMode.value && !isUsingHammer.value && fruit) {
-		if (fruit.isMold) {
-			console.log(`🔨 Hammering mold fruit: ${fruit.name} (ID: ${fruit.id})`)
-			isUsingHammer.value = true
-			selectedFruitForHammer.value = fruit.id
-
-			// Apply negative score for removing mold fruit
-			score.value = Math.max(0, score.value + MOLD_FRUIT_CONFIG.scoreEffect)
-
-			// Create score point for negative score
-			const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
-			const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
-			createScorePoint(centerX, centerY, MOLD_FRUIT_CONFIG.scoreEffect, 1, 0)
-
-			// Remove mold fruit
-			removeMoldFruit(fruit, 'hammered')
-
-			// Use hammer
-			const used = useConsumableItem('hammer_powerup')
-			removeItemFromInventory('hammer_powerup', 1)
-			const remaining = getItemQuantity('hammer_powerup')
-			hammerRemaining.value = remaining
-
-			selectedFruitForHammer.value = null
-			isUsingHammer.value = false
-			deactivateHammerMode()
+	if (hammerMode.value && fruit) {
+		// If same fruit clicked during countdown, cancel selection
+		if (selectedFruitForHammer.value === fruit.id && isHammerCountdownActive.value) {
+			cancelHammerSelection()
 			return
 		}
 
-		// Original hammer logic for normal fruits
-		console.log(`🔨 Hammering fruit: ${fruit.name} (ID: ${fruit.id})`)
-		isUsingHammer.value = true
-		selectedFruitForHammer.value = fruit.id
-		const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
-		const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
+		// If different fruit clicked during countdown, switch selection
+		if (isHammerCountdownActive.value && selectedFruitForHammer.value !== fruit.id) {
+			cancelHammerSelection()
+			// Small delay to ensure clean state transition
+			setTimeout(() => {
+				selectFruitForHammer(fruit)
+			}, 100)
+			return
+		}
+
+		// Normal fruit selection (no countdown active)
+		if (!isHammerCountdownActive.value) {
+			selectFruitForHammer(fruit)
+		}
+	}
+}
+
+const selectFruitForHammer = (fruit) => {
+	console.log(`🔨 Fruit selected for hammer: ${fruit.name} (ID: ${fruit.id})`)
+	selectedFruitForHammer.value = fruit.id
+	startHammerCountdown(fruit)
+}
+
+const startHammerCountdown = (fruit) => {
+	isHammerCountdownActive.value = true
+	hammerCountdownTime.value = hammerCountdownDuration
+
+	console.log(`🔨 Starting 5-second countdown for fruit: ${fruit.name}`)
+
+	hammerCountdownTimer.value = setInterval(() => {
+		hammerCountdownTime.value -= 100
+
+		// Execute hammer when countdown reaches 0
+		if (hammerCountdownTime.value <= 0) {
+			executeHammerStrike(fruit)
+		}
+	}, 100) // Update every 100ms for smooth progress
+}
+
+const cancelHammerSelection = () => {
+	if (hammerCountdownTimer.value) {
+		clearInterval(hammerCountdownTimer.value)
+		hammerCountdownTimer.value = null
+	}
+
+	isHammerCountdownActive.value = false
+	hammerCountdownTime.value = 0
+	selectedFruitForHammer.value = null
+
+	console.log('🔨 Hammer selection cancelled')
+}
+
+const executeHammerStrike = (fruit) => {
+	console.log(`🔨 Executing hammer strike on: ${fruit.name} (ID: ${fruit.id})`)
+
+	isUsingHammer.value = true
+
+	// Clear countdown state
+	cancelHammerSelection()
+
+	const centerX = fruit.body ? fruit.body.position.x : fruit.x + fruit.size / 2
+	const centerY = fruit.body ? fruit.body.position.y : fruit.y + fruit.size / 2
+
+	if (fruit.isMold) {
+		// Apply negative score for removing mold fruit
+		score.value = Math.max(0, score.value + MOLD_FRUIT_CONFIG.scoreEffect)
+		createScorePoint(centerX, centerY, MOLD_FRUIT_CONFIG.scoreEffect, 1, 0)
+		removeMoldFruit(fruit, 'hammered')
+	} else {
+		// Normal fruit destruction
 		createDestructionEffect(centerX, centerY, fruit)
 		Matter.Composite.remove(engine.world, fruit.body)
 		fruits.value = fruits.value.filter(f => f.id !== fruit.id)
-
-		const used = useConsumableItem('hammer_powerup')
-		removeItemFromInventory('hammer_powerup', 1)
-		const remaining = getItemQuantity('hammer_powerup')
-		hammerRemaining.value = remaining
-
-		selectedFruitForHammer.value = null
-		isUsingHammer.value = false
-		deactivateHammerMode()
-		syncBodies()
 	}
+
+	// Use hammer from inventory
+	removeItemFromInventory('hammer_powerup', 1)
+	const remaining = getItemQuantity('hammer_powerup')
+	hammerRemaining.value = remaining
+
+	// Reset states
+	isUsingHammer.value = false
+	deactivateHammerMode()
+	syncBodies()
 }
 
 const createDestructionEffect = (x, y, fruit) => {
@@ -1583,6 +1633,11 @@ const cleanup = () => {
 		animationFrame = null
 	}
 
+	if (hammerCountdownTimer.value) {
+		clearInterval(hammerCountdownTimer.value)
+		hammerCountdownTimer.value = null
+	}
+
 	stopGameOverChecking()
 	stopAutoSave()
 
@@ -2068,9 +2123,11 @@ const resetGame = () => {
 	levelReward.value = null
 	showNextFruit.value = true
 	hasSavedState.value = false
+	cancelHammerSelection()
 	hammerMode.value = false
 	selectedFruitForHammer.value = null
 	isUsingHammer.value = false
+	isHammerCountdownActive.value = false
 
 	// Reset mold fruit state
 	if (moldFruitTimer.value) {
@@ -2126,12 +2183,20 @@ const handleHammerPurchaseConfirm = async () => {
 		closeShopModal()
 		return
 	}
+
 	buyItem(hammerItem.value)
+
 	setTimeout(() => {
 		const newQuantity = gameData.player.inventory.items?.hammer_powerup?.quantity || 0
 		hammerRemaining.value = newQuantity
 		console.log(`🔨 Purchase hammer count: ${newQuantity}`)
 		closeShopModal()
+
+		// Auto-activate hammer mode after successful purchase
+		if (newQuantity > 0 && isEndlessMode.value) {
+			activateHammerMode()
+			console.log('🔨 Hammer mode auto-activated after purchase')
+		}
 	}, 200)
 }
 
@@ -3244,8 +3309,10 @@ onUnmounted(() => {
 				    'fruit--combo': fruit.comboEffect,
 				    'fruit--danger': fruit.inDanger,
 				    'fruit--goal': fruit.name === currentLevelConfig.targetFruit && !isEndlessMode,
-				    'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging,
-				    'fruit--destroying': selectedFruitForHammer === fruit.id,
+				    'fruit--hammer-target': hammerMode && !isUsingHammer && !fruit.merging && !isHammerCountdownActive,
+				    'fruit--hammer-selected': selectedFruitForHammer === fruit.id && isHammerCountdownActive,
+				    'fruit--hammer-countdown': selectedFruitForHammer === fruit.id && isHammerCountdownActive,
+				    'fruit--destroying': selectedFruitForHammer === fruit.id && isUsingHammer,
 				    'fruit--mold': fruit.isMold,
 				    'fruit--mold-warning': fruit.isMold && moldFruitWarningActive,
 				    'fruit--bomb': fruit.isBomb,
@@ -3259,12 +3326,55 @@ onUnmounted(() => {
 				    width: `${fruit.size}px`,
 				    height: `${fruit.size}px`,
 				    transform: `rotate(${fruit.rotation}deg)`,
-				    zIndex: fruit.isRainbow ? 12 : fruit.inDanger ? 5 : (fruit.isMold ? 8 : (fruit.isBomb ? 10 : (hammerMode ? 10 : 1)))
+				    zIndex: selectedFruitForHammer === fruit.id ? 15 : (fruit.isRainbow ? 12 : (fruit.inDanger ? 5 : (fruit.isMold ? 8 : (fruit.isBomb ? 10 : (hammerMode ? 10 : 1)))))
 				  }"
-					@click.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
-					@touchend.stop="hammerMode && !isUsingHammer && !fruit.merging ? handleFruitClick(fruit) : null"
+					@click.stop="handleFruitClick(fruit)"
+					@touchend.stop="handleFruitClick(fruit)"
 				>
 					<div class="fruit-svg" v-html="fruit.svg"></div>
+
+					<!-- Enhanced Hammer Countdown Indicator -->
+					<div
+						v-if="selectedFruitForHammer === fruit.id && isHammerCountdownActive"
+						class="hammer-countdown-overlay"
+					>
+						<!-- Countdown Circle Progress -->
+						<svg class="hammer-countdown-svg" :width="fruit.size" :height="fruit.size">
+							<!-- Background ring -->
+							<circle
+								:cx="fruit.size / 2"
+								:cy="fruit.size / 2"
+								:r="(fruit.size / 2) - 4"
+								fill="none"
+								stroke="rgba(239, 68, 68, 0.3)"
+								stroke-width="6"
+							/>
+							<!-- Progress ring -->
+							<circle
+								:cx="fruit.size / 2"
+								:cy="fruit.size / 2"
+								:r="(fruit.size / 2) - 4"
+								fill="none"
+								stroke="#EF4444"
+								stroke-width="6"
+								stroke-linecap="round"
+								class="hammer-countdown-progress"
+								:style="{
+				          '--progress': (hammerCountdownTime / hammerCountdownDuration) * 100,
+				          '--radius': (fruit.size / 2) - 4,
+				          '--circumference': 2 * Math.PI * ((fruit.size / 2) - 4)
+				        }"
+							/>
+						</svg>
+
+						<!-- Countdown Number -->
+						<div class="hammer-countdown-number">
+							{{ Math.ceil(hammerCountdownTime / 1000) }}
+						</div>
+
+						<!-- Hammer Icon -->
+						<div class="hammer-countdown-icon">🔨</div>
+					</div>
 
 					<!-- Unified Timer Circle for both Bomb and Mold -->
 					<div
@@ -3674,6 +3784,10 @@ onUnmounted(() => {
 		filter: brightness(1.2) saturate(1.3);
 		border: 2px solid var(--error-color);
 		border-radius: 50%;
+
+		.fruit-timer-circle {
+			display: none;
+		}
 	}
 
 	&--goal {
@@ -4110,15 +4224,147 @@ onUnmounted(() => {
 }
 
 .fruit--hammer-target {
+	pointer-events: auto !important;
+	cursor: crosshair !important;
+	border: 2px dashed var(--warning-color);
+	border-radius: 50%;
+
 	&:hover {
-		filter: brightness(1.3);
-		box-shadow: 0 0 20px var(--error-color);
-		cursor: crosshair !important;
+		filter: brightness(1.2);
+		box-shadow: 0 0 15px var(--warning-color);
+		transform: scale(1.05);
+	}
+
+	.fruit-timer-circle {
+		display: none;
 	}
 }
 
 .fruit--destroying {
 	animation: destroyAnimation 0.3s ease-out forwards;
+}
+
+
+.fruit--hammer-selected {
+	pointer-events: auto !important;
+	cursor: pointer !important;
+	border-radius: 50%;
+	box-shadow: 0 0 25px var(--error-color);
+	animation: hammerSelectedPulse 0.5s ease-in-out infinite alternate;
+}
+
+.fruit--hammer-countdown {
+	position: relative;
+	z-index: 15 !important;
+}
+
+// Hammer Countdown Overlay
+.hammer-countdown-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	z-index: 20;
+}
+
+.hammer-countdown-svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	transform: rotate(-90deg);
+	filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.4));
+}
+
+.hammer-countdown-progress {
+	stroke-dasharray: var(--circumference);
+	stroke-dashoffset: calc(var(--circumference) - (var(--progress) / 100) * var(--circumference));
+	transition: stroke-dashoffset 0.1s linear;
+	transform-origin: center;
+}
+
+.hammer-countdown-number {
+	position: absolute;
+	background: rgba(239, 68, 68, 0.95);
+	color: white;
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	font-size: 14px;
+	line-height: 1;
+	border: 2px solid white;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+	animation: hammerCountdownPulse 0.3s ease-in-out infinite;
+}
+
+.hammer-countdown-icon {
+	position: absolute;
+	top: -12px;
+	right: -12px;
+	font-size: 18px;
+	animation: hammerIconBounce 1s ease-in-out infinite;
+}
+
+@keyframes hammerSelectedPulse {
+	0% {
+		box-shadow: 0 0 20px var(--error-color);
+		transform: scale(1);
+	}
+	100% {
+		box-shadow: 0 0 30px var(--error-color);
+		transform: scale(1.02);
+	}
+}
+
+@keyframes hammerCountdownPulse {
+	0% {
+		transform: scale(1);
+		background: rgba(239, 68, 68, 0.9);
+	}
+	50% {
+		transform: scale(1.1);
+		background: rgba(239, 68, 68, 1);
+	}
+	100% {
+		transform: scale(1);
+		background: rgba(239, 68, 68, 0.9);
+	}
+}
+
+@keyframes hammerIconBounce {
+	0%, 100% {
+		transform: scale(1) rotate(-10deg);
+	}
+	50% {
+		transform: scale(1.2) rotate(10deg);
+	}
+}
+
+// Mobile Touch Optimization
+@media (hover: none) {
+	.fruit--hammer-target {
+		border-width: 3px;
+
+		&:active {
+			transform: scale(1.1);
+			filter: brightness(1.3);
+		}
+	}
+
+	.hammer-countdown-overlay {
+		// Slightly larger touch areas on mobile
+		margin: -4px;
+	}
 }
 
 @keyframes destroyAnimation {
