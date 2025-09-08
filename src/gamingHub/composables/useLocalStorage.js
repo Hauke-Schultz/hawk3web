@@ -86,12 +86,9 @@ const getDefaultData = () => ({
 	},
 	currency: {
 		transactions: [],
-		dailyRewards: {
-			lastClaimed: '2023-01-01',
-			streak: 0,
-			nextRewardCoins: 50,
-			nextRewardDiamonds: 1
-		},
+    dailyRewards: {
+      lastClaimed: '2023-01-01',
+    },
 		milestones: {
 			achievementCategories: {
 				general: { completed: 0, total: 0, rewardClaimed: false },
@@ -258,9 +255,6 @@ const migrateData = (data) => {
 		if (!data.currency.dailyRewards) {
 			data.currency.dailyRewards = {
 				lastClaimed: '2023-01-01',
-				streak: 0,
-				nextRewardCoins: 50,
-				nextRewardDiamonds: 1
 			}
 		}
 
@@ -950,82 +944,70 @@ export function useLocalStorage() {
     return today !== lastClaimed
   }
 
-	const claimDailyReward = () => {
-		if (!canClaimDailyReward()) return null
+  const claimDailyReward = (minigameReward = null) => {
+    if (!canClaimDailyReward()) return null
 
-		const now = new Date()
-		const today = now.toISOString().split('T')[0] // YYYY-MM-DD format
-		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
+    const now = new Date()
+    const today = now.toISOString().split('T')[0] // YYYY-MM-DD format
 
-		// Check if this is a consecutive day (yesterday was claimed)
-		let isConsecutive = false
-		if (lastClaimed && lastClaimed !== '2023-01-01') {
-			const lastClaimedDate = new Date(lastClaimed + 'T00:00:00')
-			const todayDate = new Date(today + 'T00:00:00')
-			const daysDiff = Math.floor((todayDate - lastClaimedDate) / (1000 * 60 * 60 * 24))
+    let reward
+    if (minigameReward) {
+      reward = {
+        coins: minigameReward.coins,
+        diamonds: minigameReward.diamonds,
+        source: 'minigame',
+        claimedAt: now.toISOString(),
+        claimedDate: today
+      }
+    } else {
+      const baseReward = REWARDS.dailyRewards.base
+      reward = {
+        coins: baseReward.coins,
+        diamonds: baseReward.diamonds,
+        source: 'direct',
+        claimedAt: now.toISOString(),
+        claimedDate: today
+      }
+    }
 
-			isConsecutive = daysDiff === 1 // Exactly one day difference
-		}
+    console.log('Daily reward to be claimed:', reward, minigameReward)
 
-		// Calculate reward - doubled if consecutive, otherwise base amount
-		const baseReward = REWARDS.dailyRewards.base
-		const multiplier = isConsecutive ? 2 : 1
+    // Update player currency
+    gameData.player.coins += reward.coins
+    gameData.player.diamonds += reward.diamonds
 
-		const reward = {
-			coins: baseReward.coins * multiplier,
-			diamonds: baseReward.diamonds * multiplier,
-			consecutive: isConsecutive,
-			claimedAt: now.toISOString(),
-			claimedDate: today
-		}
+    // Update daily rewards data - nur das Datum speichern
+    gameData.currency.dailyRewards.lastClaimed = today
 
-		// Update player currency
-		gameData.player.coins += reward.coins
-		gameData.player.diamonds += reward.diamonds
+    // Add transaction record
+    const transaction = {
+      id: `daily_minigame_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: now.toISOString(),
+      type: 'earn',
+      source: 'daily_minigame',
+      description: t('daily_rewards.minigame_reward'),
+      amounts: {
+        coins: reward.coins,
+        diamonds: reward.diamonds
+      },
+      balanceAfter: {
+        coins: gameData.player.coins,
+        diamonds: gameData.player.diamonds
+      },
+      metadata: {
+        rewardType: 'daily_minigame',
+        gameResult: 'reward_claimed',
+        rewardAmount: reward,
+        source: reward.source
+      }
+    }
 
-		// Update daily rewards data - store only the date part
-		gameData.currency.dailyRewards.lastClaimed = today
-		// Keep streak simple - just track if it was consecutive for UI purposes
-		gameData.currency.dailyRewards.streak = isConsecutive ? 2 : 1
+    gameData.currency.transactions.push(transaction)
 
-		// Update next reward preview (always show base amount for next day)
-		gameData.currency.dailyRewards.nextRewardCoins = baseReward.coins * 2 // Show potential doubled amount
-		gameData.currency.dailyRewards.nextRewardDiamonds = baseReward.diamonds * 2
+    console.log(`🎁 Daily reward claimed! Date: ${today}, Source: ${reward.source}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
 
-		// Add transaction record
-		const transaction = {
-			id: `daily_${Date.now()}`,
-			timestamp: now.toISOString(),
-			type: 'earn',
-			source: 'daily_reward',
-			description: isConsecutive ?
-					t('daily_rewards.consecutive_bonus') :
-					t('daily_rewards.normal_bonus'),
-			amounts: {
-				coins: reward.coins,
-				diamonds: reward.diamonds
-			},
-			balanceAfter: {
-				coins: gameData.player.coins,
-				diamonds: gameData.player.diamonds
-			},
-			metadata: {
-				consecutive: isConsecutive,
-				multiplier: multiplier,
-				claimedDate: today,
-				baseCoins: baseReward.coins,
-				baseDiamonds: baseReward.diamonds,
-				rewardType: 'daily_reward',
-				bonusApplied: isConsecutive
-			}
-		}
-
-		gameData.currency.transactions.push(transaction)
-
-		console.log(`🎁 Daily reward claimed! Date: ${today}, Consecutive: ${isConsecutive}, Multiplier: ${multiplier}x, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
-
-		return reward
-	}
+    return reward
+  }
 
 	// Language methods
 	const updateLanguage = (language) => {

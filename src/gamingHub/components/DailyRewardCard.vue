@@ -25,7 +25,7 @@ const props = defineProps({
 const emit = defineEmits(['mark-as-read', 'click'])
 
 // Services
-const { gameData, canClaimDailyReward } = useLocalStorage()
+const { gameData, canClaimDailyReward, claimDailyReward } = useLocalStorage()
 const { t } = useI18n()
 
 // State
@@ -37,43 +37,9 @@ const canClaim = computed(() => canClaimDailyReward())
 const handleGameComplete = (reward) => {
 	if (!reward) return
 
-	// Give the player their reward
-	gameData.player.coins = (gameData.player.coins || 0) + reward.coins
-	gameData.player.diamonds = (gameData.player.diamonds || 0) + reward.diamonds
-
-	// Record transaction
-	if (!gameData.currency) {
-		gameData.currency = getDefaultData().currency
-	}
-
-	const transaction = {
-		id: `daily_minigame_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-		timestamp: new Date().toISOString(),
-		type: 'earn',
-		source: 'daily_minigame',
-		description: t('daily_rewards.minigame_reward'),
-		amounts: {
-			coins: reward.coins,
-			diamonds: reward.diamonds
-		},
-		balanceAfter: {
-			coins: gameData.player.coins,
-			diamonds: gameData.player.diamonds
-		},
-		metadata: {
-			rewardType: 'daily_minigame',
-			gameResult: 'reward_claimed',
-			rewardAmount: reward
-		}
-	}
-
-	gameData.currency.transactions.push(transaction)
-	gameData.currency.dailyRewards.lastClaimed = new Date().toISOString().split('T')[0]
-
 	gamePhase.value = 'claimed'
-
-	console.log(`🎁 Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds`, reward)
-	emit('mark-as-read', props.cardType)
+	console.log(`🎁 Daily minigame completed`)
+	emit('mark-as-read', reward)
 	emit('click')
 }
 

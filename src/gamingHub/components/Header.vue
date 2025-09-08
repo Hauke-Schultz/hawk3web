@@ -109,19 +109,12 @@ const closeNotifications = () => {
 	}, 300)
 }
 
-const handleNotificationItemRead = (cardType) => {
-	if (cardType === 'dailyRewardCard') {
-		const reward = claimDailyReward()
-		if (reward) {
-			const consecutiveText = reward.consecutive ? ' (2x Bonus!)' : ''
-			console.log(`🎁 Daily reward claimed: +${reward.coins} coins, +${reward.diamonds} diamonds${consecutiveText}`)
-
-			setTimeout(() => {
-				updateNotificationCount()
-			}, 100)
-		}
+const handleNotificationItemRead = (reward) => {
+	console.log('Notification item read:', reward)
+	if (reward.type === 'dailyRewardCard') {
+		claimDailyReward(reward)
 	}
-	markCardAsRead(cardType)
+	markCardAsRead(reward.type)
 	updateNotificationCount()
 }
 
@@ -148,31 +141,15 @@ const currentRoute = computed(() => {
 const notificationItems = computed(() => {
 	const items = []
 
-	// Daily Reward Notification
 	if (canClaimDailyReward()) {
-		const lastClaimed = gameData.currency.dailyRewards.lastClaimed
-		let isConsecutive = false
-
-		if (lastClaimed && lastClaimed !== '2023-01-01') {
-			const now = new Date()
-			const today = now.toISOString().split('T')[0]
-			const lastClaimedDate = new Date(lastClaimed + 'T00:00:00')
-			const todayDate = new Date(today + 'T00:00:00')
-			const daysDiff = Math.floor((todayDate - lastClaimedDate) / (1000 * 60 * 60 * 24))
-			isConsecutive = daysDiff === 1
-		}
-
 		items.push({
 			id: 'dailyRewardCard',
 			type: 'daily_reward',
 			title: t('daily_rewards.title'),
-			description: isConsecutive ?
-					t('daily_rewards.consecutive_bonus') :
-					t('daily_rewards.normal_bonus'),
+			description: t('daily_rewards.normal_bonus'),
 			icon: 'bell',
 			isDaily: true,
-			canClaim: true,
-			consecutive: isConsecutive
+			canClaim: true
 		})
 	}
 
@@ -188,32 +165,29 @@ const readNotificationItems = computed(() => {
 		if (readAt) {
 			const readDate = new Date(readAt).toISOString().split('T')[0]
 			const dailyTransaction = gameData.currency.transactions
-					.filter(t => t.source === 'daily_reward')
+					.filter(t => t.source === 'daily_minigame')
 					.find(t => {
 						const transactionDate = new Date(t.timestamp).toISOString().split('T')[0]
 						return transactionDate === readDate
 					})
 
-			let isConsecutive = dailyTransaction.metadata?.consecutive || false
-			const currentStreak = gameData.currency.dailyRewards.streak || 1
-			const rewardInfo = currentStreak === 2 ?
-					t('daily_rewards.consecutive_bonus') :
-					t('daily_rewards.normal_bonus')
+			if (dailyTransaction) {
+				const rewardInfo = t('daily_rewards.minigame_reward')
 
-			items.push({
-				id: 'dailyRewardCard-read',
-				type: 'daily_reward_read',
-				title: t('daily_rewards.title'),
-				description: rewardInfo,
-				icon: 'completion-badge',
-				readAt: readAt,
-				timestamp: new Date(readAt),
-				consecutive: isConsecutive,
-				rewardDetails: dailyTransaction ? {
-					coins: dailyTransaction.amounts.coins,
-					diamonds: dailyTransaction.amounts.diamonds
-				} : null
-			})
+				items.push({
+					id: 'dailyRewardCard-read',
+					type: 'daily_reward_read',
+					title: t('daily_rewards.title'),
+					description: rewardInfo,
+					icon: 'completion-badge',
+					readAt: readAt,
+					timestamp: new Date(readAt),
+					rewardDetails: {
+						coins: dailyTransaction.amounts.coins,
+						diamonds: dailyTransaction.amounts.diamonds
+					}
+				})
+			}
 		}
 	}
 

@@ -35,7 +35,6 @@
 - **Game Over Detection** - Height-based game over when fruits reach warning zone
 - **FruitMerge Achievements** - Game-specific achievements integration
 - **Achievement Rewards Integration** - Automatic coin rewards for achievements
-- **Daily Reward System** - Streak-based daily bonus cards with coins and diamonds
 - **Daily Reward Card** - Interactive daily reward claiming with checkbox functionality
 - **Enhanced Currency System** - Expanded coin and diamond economy with transaction tracking
 - **FruitMerge Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
@@ -73,7 +72,7 @@
 - **Fruit Selection System** - Click to open fruit selection menu and change next fruit (costs diamonds)
 - **Rainbow Fruit** - Merges with any fruit type, rare spawn with unique effects
 - **Improved Hammer Functionality** - Auto-activate after purchase, single fruit targeting, countdown timer, and mobile optimization
-- **Daily Reward System Improvements** - Remove streak calculation, add minigame for reward
+- **Daily Reward System Improvements** - Add minigame for reward
 - **"Three Shells" Minigame** - Interactive game to win daily rewards with cups and diamond/coin prizes
 
 ---

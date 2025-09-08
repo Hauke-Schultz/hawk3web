@@ -104,14 +104,10 @@ export default {
 	daily_rewards: {
     title: 'Tägliche Belohnung abholen',
     tap_to_claim: 'Zum Abholen tippen',
-    day_streak: 'Täglicher Bonus',
-    consecutive_bonus: 'Täglicher Bonus - verdoppelt!',
     normal_bonus: 'Täglicher Bonus',
     claimed_today: 'Heute bereits abgeholt',
     come_back_tomorrow: 'Komm morgen wieder!',
     reward_claimed: 'Tägliche Belohnung abgeholt!',
-    streak_maintained: 'Aufeinanderfolgender Tag: Bonus verdoppelt!',
-    streak_broken: 'Neuer Tag - normaler Bonus',
 
     // Three Shells Minigame
     minigame_subtitle: 'Spiele für deine Belohnung!',

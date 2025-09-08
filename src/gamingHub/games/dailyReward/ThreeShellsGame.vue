@@ -32,8 +32,8 @@ const shellContents = ref([
 
 // Rewards configuration
 const rewards = {
-	big: { coins: 100, diamonds: 3, icon: '💎', name: 'Big Diamond' },
-	small: { coins: 25, diamonds: 1, icon: '🪙', name: 'Coins' }
+	big: { coins: 100, diamonds: 3, icon: '💎', name: 'Big Diamond', type: 'dailyRewardCard' },
+	small: { coins: 25, diamonds: 1, icon: '🪙', name: 'Coins', type: 'dailyRewardCard' }
 }
 
 // Initialize game
