@@ -123,11 +123,12 @@ export default {
     memorize_location: 'Präge dir die Position ein...',
     shells_shuffling: 'Die Schalen werden jetzt gemischt!',
     shuffling: 'Mischen...',
-    choose_shell_now: 'Wo ist der große Schatz? Wähle eine Schale!',
-    big_win: 'Großer Gewinn! Du hast den Schatz gefunden!',
-    consolation_prize: 'Trostpreis! Beim nächsten Mal klappt es bestimmt!',
+    choose_shell_now: 'Wo ist der große Schatz?',
+    big_win: 'Du hast den Schatz gefunden!',
+    consolation_prize: 'Beim nächsten Mal klappt es bestimmt!',
     minigame_reward: 'Tägliches Minispiel-Belohnung',
     follow_treasure: 'Verfolge den Schatz!',
+    collect_reward: 'Belohnung einsammeln',
 	},
 
 	// App/Header

@@ -63,6 +63,8 @@ const isMenuTransitioning = ref(false)
 const showNotifications = ref(false)
 const isNotificationAnimating = ref(false)
 const isNotificationTransitioning = ref(false)
+const coins = ref(props.player.coins || 0)
+const diamonds = ref(props.player.diamonds || 0)
 
 const toggleNotifications = async (event) => {
 	if (isNotificationAnimating.value || isNotificationTransitioning.value) return
@@ -498,6 +500,22 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 	}
 })
 
+watch(() => gameData.player.coins, (newVal) => {
+	coins.value = newVal || 0
+})
+watch(() => gameData.player.diamonds, (newVal) => {
+	diamonds.value = newVal || 0
+})
+watch(() => props.player.coins, () => {
+	if (coins.value !== props.player.coins) {
+		coins.value = props.player.coins || 0
+	}
+})
+watch(() => props.player.diamonds, () => {
+	if (diamonds.value !== props.player.diamonds) {
+		diamonds.value = props.player.diamonds || 0
+	}
+})
 </script>
 
 <template>
@@ -729,8 +747,8 @@ watch([showMenu, showNotifications], ([isMenuOpen, isNotificationOpen]) => {
 					</transition>
 				</div>
 				<CurrencyDisplay
-						:coins="player.coins || 0"
-						:diamonds="player.diamonds || 0"
+						:coins="coins || 0"
+						:diamonds="diamonds || 0"
 						layout="vertical"
 						size="small"
 						variant="compact"

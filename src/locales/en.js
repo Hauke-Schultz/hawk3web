@@ -125,10 +125,11 @@ export default {
     shells_shuffling: 'The shells are being shuffled now!',
     shuffling: 'Shuffling...',
     choose_shell_now: 'Where is the big treasure?',
-    big_win: 'Big Win! You found the treasure!',
-    consolation_prize: 'Consolation Prize! Better luck next time!',
+    big_win: 'You found the treasure!',
+    consolation_prize: 'Better luck next time!',
     minigame_reward: 'Daily Minigame Reward',
     follow_treasure: 'Follow the treasure!',
+    collect_reward: 'Collect Reward',
 	},
 
 	// App/Header

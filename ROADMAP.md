@@ -73,20 +73,12 @@
 - **Fruit Selection System** - Click to open fruit selection menu and change next fruit (costs diamonds)
 - **Rainbow Fruit** - Merges with any fruit type, rare spawn with unique effects
 - **Improved Hammer Functionality** - Auto-activate after purchase, single fruit targeting, countdown timer, and mobile optimization
+- **Daily Reward System Improvements** - Remove streak calculation, add minigame for reward
+- **"Three Shells" Minigame** - Interactive game to win daily rewards with cups and diamond/coin prizes
 
 ---
 
-## 🚀 Version 0.3.3 - Daily Reward Enhancements
-
-### **Daily Reward System Improvements**
-- Remove streak calculation from daily rewards
-- Add a small daily minigame to the DailyRewardCard where users play for their reward
-- Start with one minigame, more will be added later
-- Implement a "Three Shells" game: three cups are shuffled, one hides a big diamond reward, the other two have smaller coin rewards
-
----
-
-## 🚀 Version 0.3.4 - Screenshot System for FruitMerge**
+## 🚀 Version 0.3.3 - Screenshot System for FruitMerge**
 
 ### **ConfirmationModal Enhancement**
 - **Save Screenshot button** - Add "Save Screenshot" button to ConfirmationModal when game is completed
@@ -130,7 +122,7 @@
 
 ---
 
-## 🚀 Version 0.3.5 - FruitMerge Enhancements
+## 🚀 Version 0.3.4 - FruitMerge Enhancements
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges
