@@ -109,6 +109,10 @@ export default {
     come_back_tomorrow: 'Komm morgen wieder!',
     reward_claimed: 'Tägliche Belohnung abgeholt!',
 
+    // Game-specific subtitles
+    shells_subtitle: 'Finde den versteckten Schatz!',
+    slots_subtitle: 'Drehe für deine Belohnung!',
+
     // Three Shells Minigame
     minigame_subtitle: 'Spiele für deine Belohnung!',
     big_reward: 'Großer Schatz',
@@ -125,6 +129,20 @@ export default {
     minigame_reward: 'Tägliches Minispiel-Belohnung',
     follow_treasure: 'Verfolge den Schatz!',
     collect_reward: 'Belohnung einsammeln',
+
+    // Slot Machine
+    spin_slots: 'Drehe die Walzen!',
+    slots_spinning: '🎰 Dreht sich...',
+    spin_again: 'Nochmal drehen',
+    left: 'übrig',
+    spins_remaining: 'Drehungen',
+    triple_diamonds: 'DREI DIAMANTEN!',
+    triple_coins: 'DREI MÜNZEN!',
+    double_diamonds: 'ZWEI DIAMANTEN!',
+    double_coins: 'ZWEI MÜNZEN!',
+    mixed_result: 'Gemischte Symbole!',
+    three_shells: 'Drei Schalen',
+    slot_machine: 'Spielautomat',
 	},
 
 	// App/Header

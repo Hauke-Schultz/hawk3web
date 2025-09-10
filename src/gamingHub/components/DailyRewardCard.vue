@@ -4,6 +4,7 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
 import ThreeShellsGame from '../games/dailyReward/ThreeShellsGame.vue'
+import SlotMachineGame from '../games/dailyReward/SlotMachineGame.vue'
 
 // Props
 const props = defineProps({
@@ -25,20 +26,28 @@ const props = defineProps({
 const emit = defineEmits(['mark-as-read', 'click'])
 
 // Services
-const { gameData, canClaimDailyReward, claimDailyReward } = useLocalStorage()
+const { gameData, canClaimDailyReward } = useLocalStorage()
 const { t } = useI18n()
 
 // State
 const gamePhase = ref('minigame') // 'minigame', 'claimed'
+const games = ['shells', 'slots'];
+const selectedGame = ref('shells') // 'shells', 'slots'
 
 const canClaim = computed(() => canClaimDailyReward())
+
+const selectRandomGame = () => {
+	const idx = Math.floor(Math.random() * games.length)
+	selectedGame.value = games[idx]
+	console.log(`🎲 Daily game selected: ${selectedGame.value}`)
+}
 
 // Handle game completion
 const handleGameComplete = (reward) => {
 	if (!reward) return
 
 	gamePhase.value = 'claimed'
-	console.log(`🎁 Daily minigame completed`)
+	console.log(`🎁 Daily minigame completed with ${selectedGame.value}`)
 	emit('mark-as-read', reward)
 	emit('click')
 }
@@ -47,6 +56,7 @@ const handleGameComplete = (reward) => {
 onMounted(() => {
 	if (canClaim.value) {
 		gamePhase.value = 'minigame'
+		selectRandomGame()
 	}
 })
 </script>
@@ -59,12 +69,21 @@ onMounted(() => {
 	>
 		<div class="reward-card-header">
 			<h4 class="reward-title">{{ t('daily_rewards.title') }}</h4>
-			<p class="reward-subtitle">{{ t('daily_rewards.minigame_subtitle') }}</p>
+			<p class="reward-subtitle">
+				{{ selectedGame === 'shells' ? t('daily_rewards.shells_subtitle') : t('daily_rewards.slots_subtitle') }}
+			</p>
 		</div>
 
 		<!-- Minigame Phase -->
 		<div v-if="gamePhase === 'minigame'">
-			<ThreeShellsGame @game-complete="handleGameComplete" />
+			<ThreeShellsGame
+					v-if="selectedGame === 'shells'"
+					@game-complete="handleGameComplete"
+			/>
+			<SlotMachineGame
+					v-if="selectedGame === 'slots'"
+					@game-complete="handleGameComplete"
+			/>
 		</div>
 
 		<!-- Claimed Phase -->

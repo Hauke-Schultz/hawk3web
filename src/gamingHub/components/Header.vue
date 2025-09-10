@@ -110,7 +110,6 @@ const closeNotifications = () => {
 }
 
 const handleNotificationItemRead = (reward) => {
-	console.log('Notification item read:', reward)
 	if (reward.type === 'dailyRewardCard') {
 		claimDailyReward(reward)
 	}

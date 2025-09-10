@@ -110,6 +110,10 @@ export default {
     come_back_tomorrow: 'Come back tomorrow!',
     reward_claimed: 'Daily reward claimed!',
 
+    // Game-specific subtitles
+    shells_subtitle: 'Find the hidden treasure!',
+    slots_subtitle: 'Spin for your reward!',
+
     // Three Shells Minigame
     minigame_subtitle: 'Play for your reward!',
     big_reward: 'Big Treasure',
@@ -126,6 +130,20 @@ export default {
     minigame_reward: 'Daily Minigame Reward',
     follow_treasure: 'Follow the treasure!',
     collect_reward: 'Collect Reward',
+
+    // Slot Machine
+    spin_slots: 'Spin the Slots!',
+    slots_spinning: '🎰 Spinning...',
+    spin_again: 'Spin Again',
+    left: 'left',
+    spins_remaining: 'Spins',
+    triple_diamonds: 'TRIPLE DIAMONDS!',
+    triple_coins: 'TRIPLE COINS!',
+    double_diamonds: 'DOUBLE DIAMONDS!',
+    double_coins: 'DOUBLE COINS!',
+    mixed_result: 'Mixed symbols!',
+    three_shells: 'Three Shells',
+    slot_machine: 'Slot Machine',
 	},
 
 	// App/Header
