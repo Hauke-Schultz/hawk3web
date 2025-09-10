@@ -45,6 +45,13 @@ export default {
 		new: 'Neu',
 		try_again: 'Nochmal versuchen',
 		please_wait: 'Bitte warten...',
+    screenshot: 'Screenshot',
+    screenshots: 'Screenshots',
+    capture: 'Aufnehmen',
+    captured: 'Aufgenommen',
+    download: 'Herunterladen',
+    gallery: 'Galerie',
+    view_gallery: 'Galerie anzeigen',
 	},
 
   portfolio: {
@@ -164,7 +171,9 @@ export default {
 		trophies: 'Trophäen',
 		settings: 'Einstellungen',
 		notifications: 'Benachrichtigungen',
-		about: 'Über uns'
+		about: 'Über uns',
+    screenshots: 'Screenshots',
+    screenshot_gallery: 'Screenshot-Galerie',
 	},
 
 	// Startseite
@@ -420,7 +429,10 @@ export default {
 			levels: 'Level',
 			stars: 'Sterne',
 			unlocked: 'Freigeschaltet',
-			pairs: 'Paare'
+			pairs: 'Paare',
+      screenshots: 'Screenshots',
+      screenshot_count: 'Screenshot-Anzahl',
+      best_screenshot: 'Bester Screenshot',
 		}
 	},
 
@@ -496,6 +508,23 @@ export default {
     special_fruits: 'Spezielle Früchte',
     not_enough_diamonds: 'Nicht genug Diamanten',
     fruit_selected: 'Frucht ausgewählt!',
+
+    save_screenshot: 'Screenshot speichern',
+    screenshot_saved: 'Screenshot gespeichert!',
+    screenshot_gallery: 'Screenshot-Galerie',
+    screenshot_gallery_title: 'Screenshot-Galerie',
+    view_screenshots: 'Screenshots anzeigen ({count})',
+    view_screenshots_tooltip: '{count} Screenshot(s) für dieses Level anzeigen',
+    screenshot_tooltip_single: '1 Screenshot verfügbar',
+    screenshot_tooltip_multiple: '{count} Screenshots verfügbar',
+    download_screenshot: 'Screenshot herunterladen',
+    no_screenshots: 'Keine Screenshots',
+    play_level_for_screenshots: 'Spiele dieses Level und speichere deine besten Momente!',
+    screenshot_alt: 'Screenshot mit {score} Punkten',
+    fruits_on_board: 'Früchte auf dem Brett',
+    captured: 'Aufgenommen',
+    screenshot_download_success: 'Screenshot erfolgreich heruntergeladen',
+    screenshot_download_error: 'Fehler beim Herunterladen des Screenshots',
 
 		endless: {
 			merges: 'Merges',
@@ -877,7 +906,11 @@ export default {
 		network_error: 'Netzwerkfehler',
 		not_found: 'Nicht gefunden',
 		permission_denied: 'Berechtigung verweigert',
-		session_expired: 'Sitzung abgelaufen'
+		session_expired: 'Sitzung abgelaufen',
+    screenshot_save_failed: 'Failed to save screenshot',
+    screenshot_download_failed: 'Failed to download screenshot',
+    screenshot_delete_failed: 'Failed to delete screenshot',
+    screenshot_render_failed: 'Failed to render screenshot',
 	},
 
 	// Erfolgsmeldungen
@@ -887,7 +920,10 @@ export default {
 		deleted: 'Erfolgreich gelöscht',
 		completed: 'Erfolgreich abgeschlossen',
 		unlocked: 'Freigeschaltet!',
-		achievement_earned: 'Erfolg erhalten!'
+    achievement_earned: 'Achievement earned!',
+    screenshot_saved: 'Screenshot saved successfully',
+    screenshot_downloaded: 'Screenshot downloaded',
+    screenshot_deleted: 'Screenshot deleted',
 	},
 
 	// Validierungsmeldungen
@@ -916,6 +952,13 @@ export default {
 		level_unlocked: 'Level freigeschaltet',
 		achievement_earned: 'Erfolg erhalten',
 		combo_active: 'Combo aktiv',
-		combo_inactive: 'Combo inaktiv'
+		combo_inactive: 'Combo inaktiv',
+    screenshot_button: 'Screenshot anzeigen',
+    save_screenshot_button: 'Screenshot speichern',
+    download_screenshot_button: 'Screenshot herunterladen',
+    screenshot_gallery_modal: 'Screenshot-Galerie Modal',
+    close_screenshot_gallery: 'Screenshot-Galerie schließen',
+    screenshot_image: 'Screenshot Bild',
+    screenshot_metadata: 'Screenshot Metadaten',
 	}
 }

@@ -45,7 +45,14 @@ export default {
 		new: 'New',
 		try_again: 'Try Again',
 		mark_as_read: 'Mark as read',
-		please_wait: 'Please wait...'
+		please_wait: 'Please wait...',
+    screenshot: 'Screenshot',
+    screenshots: 'Screenshots',
+    capture: 'Capture',
+    captured: 'Captured',
+    download: 'Download',
+    gallery: 'Gallery',
+    view_gallery: 'View Gallery',
 	},
 
   portfolio: {
@@ -165,7 +172,9 @@ export default {
 		trophies: 'Trophies',
 		settings: 'Settings',
 		notifications: 'Notifications',
-		about: 'About'
+		about: 'About',
+    screenshots: 'Screenshots',
+    screenshot_gallery: 'Screenshot Gallery',
 	},
 
 	// Home Page
@@ -423,7 +432,10 @@ export default {
 			levels: 'Levels',
 			stars: 'Stars',
 			unlocked: 'Unlocked',
-			pairs: 'Pairs'
+			pairs: 'Pairs',
+      screenshots: 'Screenshots',
+      screenshot_count: 'Screenshot Count',
+      best_screenshot: 'Best Screenshot',
 		}
 	},
 
@@ -499,6 +511,23 @@ export default {
     special_fruits: 'Special Fruits',
     not_enough_diamonds: 'Not enough diamonds',
     fruit_selected: 'Fruit selected!',
+
+    save_screenshot: 'Save Screenshot',
+    screenshot_saved: 'Screenshot saved!',
+    screenshot_gallery: 'Screenshot Gallery',
+    screenshot_gallery_title: 'Screenshot Gallery',
+    view_screenshots: 'View Screenshots ({count})',
+    view_screenshots_tooltip: 'View {count} screenshot(s) for this level',
+    screenshot_tooltip_single: '1 screenshot available',
+    screenshot_tooltip_multiple: '{count} screenshots available',
+    download_screenshot: 'Download Screenshot',
+    no_screenshots: 'No Screenshots',
+    play_level_for_screenshots: 'Play this level and save your best moments!',
+    screenshot_alt: 'Screenshot with {score} points',
+    fruits_on_board: 'Fruits on Board',
+    captured: 'Captured',
+    screenshot_download_success: 'Screenshot downloaded successfully',
+    screenshot_download_error: 'Error downloading screenshot',
 
 		endless: {
 			merges: 'Merges',
@@ -878,7 +907,11 @@ export default {
 		network_error: 'Network error',
 		not_found: 'Not found',
 		permission_denied: 'Permission denied',
-		session_expired: 'Session expired'
+		session_expired: 'Session expired',
+    screenshot_save_failed: 'Failed to save screenshot',
+    screenshot_download_failed: 'Failed to download screenshot',
+    screenshot_delete_failed: 'Failed to delete screenshot',
+    screenshot_render_failed: 'Failed to render screenshot',
 	},
 
 	// Success Messages
@@ -888,7 +921,10 @@ export default {
 		deleted: 'Deleted successfully',
 		completed: 'Completed successfully',
 		unlocked: 'Unlocked!',
-		achievement_earned: 'Achievement earned!'
+		achievement_earned: 'Achievement earned!',
+    screenshot_saved: 'Screenshot saved successfully',
+    screenshot_downloaded: 'Screenshot downloaded',
+    screenshot_deleted: 'Screenshot deleted',
 	},
 
 	// Validation Messages
@@ -917,6 +953,13 @@ export default {
 		level_unlocked: 'Level unlocked',
 		achievement_earned: 'Achievement earned',
 		combo_active: 'Combo active',
-		combo_inactive: 'Combo inactive'
+		combo_inactive: 'Combo inactive',
+    screenshot_button: 'View screenshot',
+    save_screenshot_button: 'Save screenshot',
+    download_screenshot_button: 'Download screenshot',
+    screenshot_gallery_modal: 'Screenshot Gallery Modal',
+    close_screenshot_gallery: 'Close screenshot gallery',
+    screenshot_image: 'Screenshot image',
+    screenshot_metadata: 'Screenshot metadata',
 	}
 }

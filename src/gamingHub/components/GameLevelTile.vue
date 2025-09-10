@@ -68,12 +68,20 @@ const props = defineProps({
 	savedStateTimestamp: {
 		type: String,
 		default: null
+	},
+	screenshotCount: {
+		type: Number,
+		default: 0
+	},
+	hasScreenshots: {
+		type: Boolean,
+		default: false
 	}
 })
 
 // Emits for parent component communication
 const emit = defineEmits([
-  'play-level'
+  'play-level', 'view-screenshots'
 ])
 
 const { t, formatTime: i18nFormatTime } = useI18n()
@@ -166,6 +174,17 @@ const formatTime = (seconds) => {
   return i18nFormatTime(seconds)
 }
 
+const getScreenshotTooltip = computed(() => {
+	if (!props.hasScreenshots) return ''
+
+	const count = props.screenshotCount
+	if (count === 1) {
+		return t('fruitMerge.screenshot_tooltip_single')
+	} else {
+		return t('fruitMerge.screenshot_tooltip_multiple', { count })
+	}
+})
+
 // Event handlers
 const handlePlayClick = () => {
   if (canPlay.value) {
@@ -184,6 +203,13 @@ const handleKeyDown = (event) => {
     event.preventDefault()
     handlePlayClick()
   }
+}
+
+const handleViewScreenshots = (event) => {
+	if (props.hasScreenshots) {
+		event.stopPropagation()
+		emit('view-screenshots', props.level)
+	}
 }
 </script>
 
@@ -209,6 +235,10 @@ const handleKeyDown = (event) => {
 			  </div>
 			  <div v-if="hasSavedState" class="level-tile__saved-badge" :title="savedStateTooltip">
 				  <Icon name="save" size="14" />
+			  </div>
+			  <div v-if="hasScreenshots" class="level-tile__screenshot-badge" @click="handleViewScreenshots" :title="t('fruitMerge.view_screenshots_tooltip', { count: screenshotCount })">
+				  <Icon name="camera" size="12" />
+				  <span class="screenshot-count">{{ screenshotCount }}</span>
 			  </div>
 		  </div>
 	  </div>
@@ -247,19 +277,21 @@ const handleKeyDown = (event) => {
 
     <!-- Play Button -->
 	  <div class="level-tile__actions">
-		  <button
-				  v-if="canPlay"
-				  class="btn"
-				  :class="playButtonClass"
-				  @click.stop="handlePlayClick"
-				  :aria-label="t('gaming.play_level', { title: levelTitle })"
-		  >
-			  <Icon :name="playButtonIcon" size="16" />
-			  {{ playButtonText }}
-		  </button>
-		  <div v-else class="locked-indicator">
-			  <Icon name="lock" size="12" />
-			  {{ t('common.locked') }}
+		  <div class="primary-action">
+			  <button
+					  v-if="canPlay"
+					  class="btn play-btn"
+					  :class="playButtonClass"
+					  @click.stop="handlePlayClick"
+					  :aria-label="t('gaming.play_level', { title: levelTitle })"
+			  >
+				  <Icon :name="playButtonIcon" size="16" />
+				  {{ playButtonText }}
+			  </button>
+			  <div v-else class="locked-indicator">
+				  <Icon name="lock" size="12" />
+				  {{ t('common.locked') }}
+			  </div>
 		  </div>
 	  </div>
   </div>
@@ -408,22 +440,25 @@ const handleKeyDown = (event) => {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	margin-bottom: var(--space-2);
 }
 
 .level-tile__badges {
 	display: flex;
 	align-items: center;
 	gap: var(--space-1);
+	flex-wrap: wrap;
 }
 
 .level-tile__completion-badge {
 	color: var(--success-color);
 	display: flex;
 	align-items: center;
+	font-size: var(--font-size-xs);
 }
 
 .level-tile__saved-badge {
-	background-color: var(--info-color);
+	background-color: var(--warning-color);
 	color: white;
 	border-radius: var(--border-radius-sm);
 	padding: var(--space-1);
@@ -435,8 +470,8 @@ const handleKeyDown = (event) => {
 	transition: all 0.2s ease;
 
 	&:hover {
-		background-color: var(--info-hover);
-		transform: scale(1.1);
+		background-color: var(--warning-hover);
+		transform: scale(1.05);
 	}
 }
 
@@ -489,6 +524,86 @@ const handleKeyDown = (event) => {
   margin-top: var(--space-1);
 }
 
+.level-tile__screenshot-badge {
+	background-color: var(--info-color);
+	color: white;
+	border-radius: var(--border-radius-sm);
+	padding: var(--space-1) var(--space-2);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover {
+		background-color: var(--info-hover);
+		transform: scale(1.05);
+	}
+
+	.screenshot-count {
+		line-height: 1;
+	}
+}
+
+// Badge animations
+.level-tile__screenshot-badge,
+.level-tile__saved-badge {
+	animation: badgeSlideIn 0.3s ease-out;
+}
+
+.level-tile--playable:hover {
+	.level-tile__screenshot-badge {
+		background-color: var(--info-hover);
+		box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+	}
+}
+
+@keyframes badgeSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-5px) scale(0.8);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.primary-action {
+	flex: 1;
+
+	.btn {
+		width: 100%;
+	}
+}
+
+.screenshot-btn {
+	background-color: var(--info-color);
+	color: white;
+	border: none;
+	position: relative;
+	min-width: var(--space-8);
+	height: var(--space-8);
+
+	&:hover {
+		background-color: var(--info-hover);
+		transform: scale(1.05);
+	}
+
+	&:active {
+		transform: scale(0.95);
+	}
+}
+
+// Screenshot count in button
+.screenshot-count-text {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	margin-left: var(--space-1);
+}
+
 .star--filled {
   color: var(--warning-color);
 }
@@ -499,17 +614,22 @@ const handleKeyDown = (event) => {
 
 // Level Stats
 .level-tile__stats {
-  display: flex;
-  gap: var(--space-2);
-  padding: var(--space-1) 0;
-}
+	display: flex;
+	gap: var(--space-2);
+	padding: var(--space-1) 0;
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  flex: 1;
-  text-align: center;
+	.stat-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		flex: 1;
+		text-align: center;
+
+		&.stat-item--screenshots {
+			border-left: 2px solid var(--info-color);
+			padding-left: var(--space-2);
+		}
+	}
 }
 
 .stat-label {
@@ -528,10 +648,11 @@ const handleKeyDown = (event) => {
 
 // Actions
 .level-tile__actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: var(--space-1);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-top: var(--space-2);
 
   .btn {
     width: 100%;

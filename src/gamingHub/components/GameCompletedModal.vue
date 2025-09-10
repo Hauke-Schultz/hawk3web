@@ -87,7 +87,14 @@ const props = defineProps({
 		type: Boolean,
 		default: true
 	},
-
+	enableScreenshot: {
+		type: Boolean,
+		default: true
+	},
+	gameState: {
+		type: Object,
+		default: () => ({})
+	},
   // Custom button labels
   nextLevelLabel: {
     type: String,
@@ -116,7 +123,8 @@ const emit = defineEmits([
   'play-again',
   'back-to-games',
   'close',
-  'try-again'
+  'try-again',
+	'save-screenshot'
 ])
 
 const { t } = useI18n()
@@ -177,6 +185,17 @@ const handleOverlayClick = () => {
 
 const handleTryAgain = () => {
   emit('try-again')
+}
+
+const handleSaveScreenshot = () => {
+	emit('save-screenshot', {
+		gameState: props.gameState,
+		level: props.level,
+		score: props.finalScore,
+		timestamp: new Date().toISOString(),
+		moves: props.moves,
+		timeElapsed: props.timeElapsed
+	})
 }
 
 const handleKeyDown = (event) => {
@@ -366,6 +385,14 @@ watch(() => props.visible, (newVisible) => {
               {{ playAgainLabel }}
             </button>
 	          <button
+			          v-if="enableScreenshot"
+			          class="btn btn--info btn--screenshot"
+			          @click="handleSaveScreenshot"
+			          :aria-label="t('fruitMerge.save_screenshot')"
+	          >
+		          {{ t('fruitMerge.save_screenshot') }}
+	          </button>
+	          <button
 			          v-if="showNextLevel"
 			          class="btn btn--gradient"
 			          @click="handleNextLevel"
@@ -428,7 +455,28 @@ watch(() => props.visible, (newVisible) => {
   display: flex;
   flex-direction: row;
 	justify-content: space-between;
+	flex-wrap: wrap;
   gap: var(--space-2);
+
+	.btn {
+		flex: 1;
+		min-width: 120px;
+	}
+
+	.btn--screenshot {
+		background-color: var(--info-color);
+		color: var(--white);
+		flex: 0 0 auto;
+
+		&:hover {
+			background-color: var(--info-hover);
+			transform: translateY(-1px);
+		}
+
+		&:active {
+			transform: translateY(0);
+		}
+	}
 }
 
 .completion-header {
@@ -1031,7 +1079,6 @@ watch(() => props.visible, (newVisible) => {
 	}
 }
 
-// Cursor-Status je nach Transition-Bereitschaft
 .completion-first-phase {
 	cursor: wait;
 
@@ -1040,8 +1087,6 @@ watch(() => props.visible, (newVisible) => {
 	}
 }
 
-
-// Second Phase Specific Styles
 .game-completed-overlay--second-phase {
 	.game-completed-modal {
 		animation: modalSlideIn 0.4s ease;

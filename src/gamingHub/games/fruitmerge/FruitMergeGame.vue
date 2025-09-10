@@ -18,6 +18,7 @@ import {useComboSystem} from "../../composables/useComboSystem.js";
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useInventory } from '../../composables/useInventory.js'
 import { useI18n } from '../../../composables/useI18n.js'
+import { useScreenshot } from '../../composables/useScreenshot.js'
 import Header from "../../components/Header.vue";
 import {REWARDS} from "../../config/achievementsConfig.js";
 import {COMBO_CONFIG} from "../../config/comboConfig.js";
@@ -68,6 +69,7 @@ const {
 } = useLocalStorage()
 const { t } = useI18n()
 const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
+const { saveGameScreenshot, getScreenshotsForLevel } = useScreenshot()
 
 // Game state - using shallowRef for performance
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
@@ -138,6 +140,9 @@ const bombTickingActive = ref(false)
 const lastBombSpawnTime = ref(0)
 const showFruitSelector = ref(false)
 const isSelectingFruit = ref(false)
+
+const enableScreenshotCapture = ref(false)
+const currentGameScreenshotData = ref(null)
 
 const rainbowFruitTimer = ref(null)
 const currentRainbowFruit = ref(null)
@@ -1714,6 +1719,10 @@ const completeLevel = () => {
 
 	gameState.value = 'completed'
 
+	// Prepare screenshot data
+	currentGameScreenshotData.value = captureScreenshotData()
+	enableScreenshotCapture.value = true
+
 	// Calculate level rewards
 	const rewardCalculation = calculateLevelReward()
 	levelReward.value = rewardCalculation
@@ -2128,6 +2137,8 @@ const resetGame = () => {
 	selectedFruitForHammer.value = null
 	isUsingHammer.value = false
 	isHammerCountdownActive.value = false
+	enableScreenshotCapture.value = false
+	currentGameScreenshotData.value = null
 
 	// Reset mold fruit state
 	if (moldFruitTimer.value) {
@@ -2204,6 +2215,26 @@ const handleShopModalCancel = () => {
 	closeShopModal()
 }
 
+const handleSaveScreenshot = async (screenshotMetadata) => {
+	if (!currentGameScreenshotData.value) {
+		console.warn('No screenshot data available')
+		return
+	}
+
+	try {
+		const success = await saveGameScreenshot('fruitMerge', currentGameScreenshotData.value)
+
+		if (success) {
+			console.log('🖼️ Screenshot saved successfully!')
+			// Optional: Show success feedback to user
+		} else {
+			console.error('Failed to save screenshot')
+		}
+	} catch (error) {
+		console.error('Error saving screenshot:', error)
+	}
+}
+
 const closeShopModal = () => {
 	showShopModal.value = false
 	modalType.value = 'purchase'
@@ -2225,6 +2256,10 @@ const gameOver = () => {
 	if (isEndlessMode.value) {
 		// Endlos-Modus: Game Over wird zu Game Complete behandelt
 		gameState.value = 'completed'
+
+		// Prepare screenshot data
+		currentGameScreenshotData.value = captureScreenshotData()
+		enableScreenshotCapture.value = true
 
 		// Calculate level rewards für Endlos-Modus
 		const rewardCalculation = calculateLevelReward()
@@ -2454,6 +2489,48 @@ const captureCurrentState = () => {
 	})
 
 	return currentState
+}
+
+const captureScreenshotData = () => {
+	if (gameState.value !== 'completed') return null
+
+	const screenshotData = {
+		// Game State
+		level: currentLevel.value,
+		score: score.value,
+		moves: moves.value,
+		timeElapsed: isEndlessMode.value ? sessionTime.value : 0,
+		starsEarned: calculateCurrentStars(),
+
+		// Fruit positions and data
+		fruits: fruits.value.map(fruit => ({
+			id: fruit.id,
+			type: fruit.type,
+			x: fruit.x,
+			y: fruit.y,
+			size: fruit.size,
+			svg: fruit.svg,
+			color: fruit.color,
+			rotation: fruit.rotation,
+			level: fruit.level
+		})),
+
+		// Board configuration
+		boardConfig: {
+			width: boardConfig.value.width,
+			height: boardConfig.value.height
+		},
+
+		// Game mode
+		isEndless: isEndlessMode.value,
+		gameMode: isEndlessMode.value ? 'endless' : 'level',
+
+		// Metadata
+		capturedAt: new Date().toISOString(),
+		gameTitle: t('fruitMerge.title')
+	}
+
+	return screenshotData
 }
 
 const restoreGameState = async (savedState) => {
@@ -3501,6 +3578,9 @@ onUnmounted(() => {
 				:next-level-label="isEndlessMode ? t('fruitMerge.play_again') : t('fruitMerge.next_level')"
 				:play-again-label="t('fruitMerge.play_again')"
 				:back-to-games-label="t('fruitMerge.back_to_levels')"
+				:enable-screenshot="enableScreenshotCapture"
+				:game-state="currentGameScreenshotData"
+				@save-screenshot="handleSaveScreenshot"
 				@next-level="nextLevel"
 				@play-again="resetGame"
 				@back-to-games="backToGaming"
