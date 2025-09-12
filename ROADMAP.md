@@ -80,18 +80,21 @@
 
 ---
 
-## 🚀 Version 0.3.3 - Screenshot System for FruitMerge**
+## 🚀 Version 0.3.3 - Screenshot System**
+
+- **Screenshot Gallery** - Compact List view of saved screenshots and on click full view
+- 
+---
+
+## 🚀 Version 0.3.4 - Enhancements
+
+- **Multi-Game Support** - Screenshot functionality for NumNum Game
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges
 - Intensity scales with merge size and combo level
 - Enhanced tactile feedback for satisfying gameplay moments
-
----
-
-## 🚀 Version 0.3.4 - FruitMerge Enhancements
-
-
+- 
 ### **🌟 Neon Theme**
 - Glowing fruits in cyberpunk style
 - Dark background with bright neon fruit outlines

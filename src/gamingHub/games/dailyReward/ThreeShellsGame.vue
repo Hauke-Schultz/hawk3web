@@ -89,7 +89,7 @@ const startShuffling = () => {
 const shuffleShells = () => {
 	isShuffling.value = true
 
-	const shuffleCount = 1;//Math.floor(Math.random() * 2) + 3 // 3 to 4 shuffles
+	const shuffleCount = Math.floor(Math.random() * 2) + 3 // 3 to 4 shuffles
 	let currentShuffle = 0
 
 	const performSwap = () => {

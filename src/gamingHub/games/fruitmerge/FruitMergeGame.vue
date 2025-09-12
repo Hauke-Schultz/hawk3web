@@ -2539,6 +2539,10 @@ const captureScreenshotData = () => {
 
 	const screenshotData = {
 		// Game State
+		player: {
+			name: gameData.player.name,
+			avatar: gameData.player.avatar
+		},
 		level: currentLevel.value,
 		score: score.value,
 		moves: moves.value,

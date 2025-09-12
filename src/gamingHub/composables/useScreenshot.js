@@ -126,26 +126,26 @@ export function useScreenshot() {
         // Wait for all fruits to be rendered
         Promise.all(renderPromises).then(() => {
           // Add score overlay
-          ctx.fillStyle = 'rgba(42, 42, 42, 0.9)'
-          ctx.fillRect(10, 10, 200, 80)
+          ctx.fillStyle = 'rgba(42, 42, 42, 0.6)'
+          ctx.fillRect(10, 10, 200, 70)
 
-          ctx.strokeStyle = '#4F46E5'
-          ctx.lineWidth = 2
-          ctx.strokeRect(10, 10, 200, 80)
-
-          // Score text
+          // Player name (erste Zeile)
           ctx.fillStyle = '#ffffff'
           ctx.font = 'bold 16px Arial'
-          ctx.fillText(`Score: ${gameStateData.score}`, 20, 35)
+          ctx.fillText(`${gameStateData.player?.name ?? 'Unknown'}`, 20, 30)
 
-          // Level/Mode text
-          const modeText = gameStateData.isEndless ? 'Endless Mode' : `Level ${gameStateData.level}`
-          ctx.fillText(modeText, 20, 55)
+          // Score text (zweite Zeile)
+          ctx.fillText(`Score: ${gameStateData.score}`, 20, 50)
 
-          // Stars if available
+          // Level und Sterne (dritte Zeile)
+          let stars = '';
           if (gameStateData.starsEarned > 0) {
-            ctx.fillText(`⭐ ${gameStateData.starsEarned}/3 Stars`, 20, 75)
+            for (let i = 0; i < gameStateData.starsEarned; i++) {
+              stars += '⭐';
+            }
           }
+          const levelText = gameStateData.isEndless ? `Endless Mode ${stars}` : `Level ${gameStateData.level} ${stars}`;
+          ctx.fillText(levelText, 20, 70)
 
           // Convert canvas to data URL
           const dataUrl = canvas.toDataURL('image/png', 0.9)
