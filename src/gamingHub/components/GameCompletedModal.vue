@@ -2,6 +2,8 @@
 import {computed, nextTick, ref, watch} from 'vue'
 import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
+import ScreenshotGallery from "./ScreenshotGallery.vue";
+import {useScreenshot} from "../composables/useScreenshot.js";
 
 const props = defineProps({
   visible: {
@@ -145,22 +147,26 @@ const emit = defineEmits([
 ])
 
 const { t } = useI18n()
+const { getScreenshotCount } = useScreenshot()
 
 const showFirstPhase = ref(false)
 const showSecondPhase = ref(false)
 const modalContent = ref(null)
 
-const getPerformanceMessage = () => {
-  switch (props.starsEarned) {
-    case 3:
-      return t('memory.perfect_performance')
-    case 2:
-      return t('memory.great_job')
-    case 1:
-      return t('memory.well_done')
-    default:
-      return t('memory.level_complete')
-  }
+// Add screenshot gallery state
+const showScreenshotGallery = ref(false)
+
+// Add screenshot gallery handlers
+const handleViewScreenshots = () => {
+	showScreenshotGallery.value = true
+}
+
+const closeScreenshotGallery = () => {
+	showScreenshotGallery.value = false
+}
+
+const handleScreenshotDownloaded = (screenshot) => {
+	console.log('Screenshot downloaded from game:', screenshot.id)
 }
 
 const getModalTitle = computed(() => {
@@ -359,6 +365,7 @@ watch(() => props.visible, async (newVisible) => {
 						  <div class="score-label">{{ t('stats.final_score') }}</div>
 						  <div class="score-value">{{ finalScore }}</div>
 					  </div>
+
 					  <!-- High Score Achievement Banner -->
 					  <div v-if="highScoreInfo.isNewHighScore" class="highscore-achievement">
 						  <div class="achievement-banner">
@@ -406,6 +413,23 @@ watch(() => props.visible, async (newVisible) => {
 	        <h3 id="completed-title" class="completed-title">
 		        {{ getModalTitle }}
 	        </h3>
+
+	        <div class="reward-item reward-item--info">
+		        <div class="reward-info">
+			        <Icon name="camera" size="16" />
+			        <span class="reward-info-text">{{ t('nav.screenshot_gallery') }}</span>
+		        </div>
+		        <div class="screenshot-gallery-control">
+			        <button
+					        class="btn btn--small btn--info"
+					        @click="handleViewScreenshots"
+					        :title="t('fruitMerge.view_screenshots_tooltip', { count: getScreenshotCount('fruitMerge', level) })"
+			        >
+				        <Icon name="camera" size="16" />
+				        <span class="screenshot-count">{{ getScreenshotCount('fruitMerge', level) }}</span>
+			        </button>
+		        </div>
+	        </div>
 
 	        <div v-if="showRewardBreakdown && rewardBreakdown?.items?.length" class="rewards-breakdown">
 		        <!-- Reward Items -->
@@ -487,7 +511,21 @@ watch(() => props.visible, async (newVisible) => {
         </div>
       </div>
     </div>
+
+	  <!-- Screenshot Gallery Modal -->
+	  <ScreenshotGallery
+			  :visible="showScreenshotGallery"
+			  :game-id="'fruitMerge'"
+			  :level="level"
+			  :game-title="t('fruitMerge.title')"
+			  :show-download="true"
+			  :show-metadata="true"
+			  :max-width="'400px'"
+			  @close="closeScreenshotGallery"
+			  @screenshot-downloaded="handleScreenshotDownloaded"
+	  />
   </Teleport>
+
 </template>
 
 <style lang="scss" scoped>

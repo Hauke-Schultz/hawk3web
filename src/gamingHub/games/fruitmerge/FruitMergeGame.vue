@@ -61,14 +61,13 @@ const {
 	saveLevelState,
 	loadLevelState,
 	clearLevelState,
-	hasLevelState,
 	addAchievement,
 	hasAchievement,
 	buyItem,
 	removeItemFromInventory,
 } = useLocalStorage()
 const { t } = useI18n()
-const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
+const { getItemQuantity } = useInventory()
 const { saveGameScreenshot, getScreenshotsForLevel } = useScreenshot()
 
 // Game state - using shallowRef for performance
@@ -111,7 +110,6 @@ const sessionTimer = ref(null)
 const milestones = ref([])
 const isRestoringState = ref(false)
 const hasSavedState = ref(false)
-const isSaving = ref(false)
 
 const hammerMode = ref(false)
 const hammerRemaining = ref(gameData.player.inventory.items?.hammer_powerup?.quantity || 0)
