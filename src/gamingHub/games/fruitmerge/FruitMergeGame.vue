@@ -143,9 +143,54 @@ const isSelectingFruit = ref(false)
 
 const enableScreenshotCapture = ref(false)
 const currentGameScreenshotData = ref(null)
+const screenshotHighscoreInfo = computed(() => {
+	// only calculate if gameState === 'completed'
+	if (gameState.value !== 'completed') {
+		return null
+	}
 
-const rainbowFruitTimer = ref(null)
-const currentRainbowFruit = ref(null)
+	const levelScreenshots = getScreenshotsForLevel('fruitMerge', currentLevel.value)
+	// Sort screenshots by score (highest first)
+	let sortedScreenshots = [...levelScreenshots].sort((a, b) => b.score - a.score)
+	sortedScreenshots = sortedScreenshots.filter(screenshot => screenshot.score !== score.value)
+
+	// Current score
+	const currentScore = score.value
+
+	// Find where current score would rank
+	let rank = 1
+	let beatScore = null
+
+	for (const screenshot of sortedScreenshots) {
+		if (currentScore > screenshot.score) {
+			beatScore = screenshot.score
+			break
+		}
+		rank++
+	}
+
+	// If we didn't beat any score, but we have less than 5 screenshots, we still qualify
+	if (rank > sortedScreenshots.length && sortedScreenshots.length < 5) {
+		rank = sortedScreenshots.length + 1
+		beatScore = null // We didn't beat anyone, we're just added to the list
+	}
+
+	// Determine if this qualifies for top-5
+	const isNewHighScore = rank <= 5
+	const isTopList = rank <= Math.min(5, sortedScreenshots.length + 1)
+
+	return {
+		isNewHighScore,
+		rank: isNewHighScore ? rank : null,
+		totalScreenshots: sortedScreenshots.length,
+		beatScore,
+		isTopList,
+		isFirstEver: false,
+		previousBest: sortedScreenshots[0]?.score || 0,
+		worstInTop5: sortedScreenshots[Math.min(4, sortedScreenshots.length - 1)]?.score || 0
+	}
+})
+
 const lastRainbowSpawnTime = ref(0)
 
 const availableFruitsForSelection = computed(() => {
@@ -3580,6 +3625,8 @@ onUnmounted(() => {
 				:back-to-games-label="t('fruitMerge.back_to_levels')"
 				:enable-screenshot="enableScreenshotCapture"
 				:game-state="currentGameScreenshotData"
+				:high-score-info="screenshotHighscoreInfo"
+				:auto-save-screenshot="true"
 				@save-screenshot="handleSaveScreenshot"
 				@next-level="nextLevel"
 				@play-again="resetGame"

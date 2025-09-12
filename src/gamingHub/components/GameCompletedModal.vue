@@ -1,5 +1,5 @@
 <script setup>
-import {computed, ref, watch} from 'vue'
+import {computed, nextTick, ref, watch} from 'vue'
 import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
 
@@ -91,6 +91,23 @@ const props = defineProps({
 		type: Boolean,
 		default: true
 	},
+	highScoreInfo: {
+		type: Object,
+		default: () => ({
+			isNewHighScore: false,
+			rank: null,
+			totalScreenshots: 0,
+			beatScore: null,
+			isTopList: false,
+			isFirstEver: false,
+			previousBest: 0,
+			worstInTop5: 0
+		})
+	},
+	autoSaveScreenshot: {
+		type: Boolean,
+		default: true
+	},
 	gameState: {
 		type: Object,
 		default: () => ({})
@@ -157,6 +174,57 @@ const shouldShowModal = computed(() => {
 	return props.visible
 })
 
+const rankingText = computed(() => {
+	const info = props.highScoreInfo
+	if (!info.isNewHighScore) return ''
+
+	// First screenshot ever
+	if (info.isFirstEver || info.totalScreenshots === 0) {
+		return t('gaming.first_screenshot_ever')
+	}
+
+	// New #1 record
+	if (info.rank === 1 && info.beatScore !== null) {
+		return t('gaming.new_top_score', {
+			beatScore: info.beatScore
+		})
+	}
+
+	// Rank 2-5 with beaten score
+	if (info.rank >= 2 && info.rank <= 5 && info.beatScore !== null) {
+		return t('gaming.top_ranking_achieved', {
+			rank: info.rank,
+			beatScore: info.beatScore
+		})
+	}
+
+	// Added to top-5 list without beating anyone (lowest score in expanding list)
+	if (info.rank >= 2 && info.rank <= 5 && info.beatScore === null) {
+		return t('gaming.added_to_top_list', {
+			rank: info.rank,
+			total: Math.min(5, info.totalScreenshots + 1)
+		})
+	}
+
+	// Fallback
+	return t('gaming.top_5_achievement')
+})
+
+const rankingIcon = computed(() => {
+	const info = props.highScoreInfo
+
+	// First ever screenshot gets special trophy
+	if (info.isFirstEver || info.totalScreenshots === 0) {
+		return 'trophy'
+	}
+
+	const rank = info.rank
+	if (rank === 1) return 'trophy'
+	if (rank === 2) return 'medal'
+	if (rank === 3) return 'award'
+	return 'star-filled'
+})
+
 // Event handlers
 const handleNextLevel = () => {
   emit('next-level')
@@ -181,10 +249,6 @@ const handleOverlayClick = () => {
 	} else {
 		emit('close')
 	}
-}
-
-const handleTryAgain = () => {
-  emit('try-again')
 }
 
 const handleSaveScreenshot = () => {
@@ -215,6 +279,11 @@ const handleFirstPhaseClick = (event) => {
 
 	showFirstPhase.value = false
 	showSecondPhase.value = true
+
+	// Auto-save screenshot
+	if (props.enableScreenshot && props.autoSaveScreenshot && props.highScoreInfo.isNewHighScore) {
+		handleSaveScreenshot()
+	}
 }
 
 const handleFirstPhaseKeyDown = (event) => {
@@ -223,7 +292,8 @@ const handleFirstPhaseKeyDown = (event) => {
 	}
 }
 
-watch(() => props.visible, (newVisible) => {
+// Watch for modal visibility and auto-save screenshot
+watch(() => props.visible, async (newVisible) => {
 	if (newVisible && props.showCompletionPhases) {
 		// Start with first phase
 		showFirstPhase.value = true
@@ -288,6 +358,28 @@ watch(() => props.visible, (newVisible) => {
 					  <div class="score-display">
 						  <div class="score-label">{{ t('stats.final_score') }}</div>
 						  <div class="score-value">{{ finalScore }}</div>
+					  </div>
+					  <!-- High Score Achievement Banner -->
+					  <div v-if="highScoreInfo.isNewHighScore" class="highscore-achievement">
+						  <div class="achievement-banner">
+							  <div class="rank-badge">
+								  <span class="rank-number">#{{ highScoreInfo.rank }}</span>
+							  </div>
+							  <div class="achievement-content">
+						      <span class="achievement-title">
+									  <template v-if="highScoreInfo.isFirstEver || highScoreInfo.totalScreenshots === 0">
+									    {{ t('gaming.first_record') }}
+									  </template>
+									  <template v-else-if="highScoreInfo.rank === 1">
+									    {{ t('gaming.new_record') }}
+									  </template>
+									  <template v-else>
+									    {{ t('gaming.top_5_achievement') }}
+									  </template>
+									</span>
+								  <span class="achievement-subtitle">{{ rankingText }}</span>
+							  </div>
+						  </div>
 					  </div>
 
 					  <!-- Transition Hint -->
@@ -385,14 +477,6 @@ watch(() => props.visible, (newVisible) => {
               {{ playAgainLabel }}
             </button>
 	          <button
-			          v-if="enableScreenshot"
-			          class="btn btn--info btn--screenshot"
-			          @click="handleSaveScreenshot"
-			          :aria-label="t('fruitMerge.save_screenshot')"
-	          >
-		          {{ t('fruitMerge.save_screenshot') }}
-	          </button>
-	          <button
 			          v-if="showNextLevel"
 			          class="btn btn--gradient"
 			          @click="handleNextLevel"
@@ -457,26 +541,6 @@ watch(() => props.visible, (newVisible) => {
 	justify-content: space-between;
 	flex-wrap: wrap;
   gap: var(--space-2);
-
-	.btn {
-		flex: 1;
-		min-width: 120px;
-	}
-
-	.btn--screenshot {
-		background-color: var(--info-color);
-		color: var(--white);
-		flex: 0 0 auto;
-
-		&:hover {
-			background-color: var(--info-hover);
-			transform: translateY(-1px);
-		}
-
-		&:active {
-			transform: translateY(0);
-		}
-	}
 }
 
 .completion-header {
@@ -847,6 +911,108 @@ watch(() => props.visible, (newVisible) => {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.highscore-achievement {
+	background: linear-gradient(135deg, var(--warning-color), var(--success-color));
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-4);
+	margin: var(--space-2) 0;
+	width: calc(var(--content-width) - var(--space-2));
+	max-width: var(--content-width);
+	animation: highscoreGlow 2s ease-in-out infinite alternate;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.achievement-banner {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	color: white;
+}
+
+.ranking-icon {
+	flex-shrink: 0;
+	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+	animation: iconPulse 2s ease-in-out infinite;
+}
+
+.achievement-content {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+}
+
+.achievement-title {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	line-height: 1.2;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-subtitle {
+	font-size: var(--font-size-sm);
+	opacity: 0.95;
+	line-height: 1.2;
+	font-weight: 500;
+}
+
+.screenshot-info {
+	font-size: var(--font-size-xs);
+	opacity: 0.8;
+	font-style: italic;
+	margin-top: var(--space-1);
+}
+
+.rank-badge {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-2) var(--space-3);
+	backdrop-filter: blur(4px);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	min-width: 60px;
+}
+
+.rank-number {
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.rank-label {
+	font-size: var(--font-size-xs);
+	opacity: 0.9;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-top: var(--space-1);
+}
+
+@keyframes highscoreGlow {
+	0% {
+		box-shadow:
+				0 0 15px rgba(245, 158, 11, 0.5),
+				0 0 30px rgba(16, 185, 129, 0.3);
+	}
+	100% {
+		box-shadow:
+				0 0 25px rgba(245, 158, 11, 0.8),
+				0 0 40px rgba(16, 185, 129, 0.5);
+	}
+}
+
+@keyframes iconPulse {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
 }
 
 .game-completed-overlay--first-phase {

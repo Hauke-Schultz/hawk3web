@@ -75,58 +75,22 @@
 - **Daily Reward System Improvements** - Add minigames for reward
 - **Three Shells Minigame** - Interactive game to win daily rewards with cups and diamond/coin prizes
 - **Slot Machine Minigame** - Spin to win coins, diamonds, or power-ups with animated reels
+- **Screenshot System for FruitMerge** - Save and view game state screenshots with metadata
+- **Screenshot gallery** - View saved screenshots on level overview page
+
 ---
 
 ## 🚀 Version 0.3.3 - Screenshot System for FruitMerge**
-
-### **ConfirmationModal Enhancement**
-- **Save Screenshot button** - Add "Save Screenshot" button to ConfirmationModal when game is completed
-- **Capture game state** - Save all fruits with their positions on the game board along with the score
-- **Screenshot metadata** - Store level, score, timestamp, and fruit configuration data
-- **Multiple screenshots per level** - Allow saving multiple screenshots for the same level (best scores, interesting configurations)
-- **Screenshot persistence** - Store screenshots in localStorage with game data
-- **Screenshot limit** - Limit screenshots per level to prevent storage overflow (best 5 screenshots)
-
-### **FruitMerge Level Overview Enhancement**
-- **Screenshot gallery tile** - New tile/section on FruitMergeLevels page to display saved screenshots
-- **Screenshot details modal** - Click to view full-size screenshot with detailed information
-- **Visual indicators** - Show screenshot count badge on level tiles that have screenshots
-- **Screenshot sorting** - Sort by score (highest first)
-
-### **Screenshot Generation System**
-- **Canvas rendering** - Generate screenshot by recreating game board state on HTML5 Canvas
-- **Fruit positioning** - Render all fruits at their exact positions with correct SVG graphics
-- **Score overlay** - Include score, level, and timestamp information in screenshot
-- **High-quality output** - Generate screenshots at high resolution for crisp display
-- **Responsive screenshots** - Ensure screenshots display well on mobile devices
-- **Screenshot compression** - Optimize file size for localStorage efficiency
-
-### **Technical Implementation Points**
-- Create `useScreenshot.js` composable for screenshot functionality
-- Add `ScreenshotGallery.vue` component for level overview
-- Extend `GameCompletedModal.vue` with screenshot button
-- Implement Canvas API for fruit rendering from game state
-- Add screenshot storage to localStorage service
-- Create screenshot management utilities (save/load/delete)
-- Add screenshot-related translations for UI text
-- Implement screenshot metadata structure
-- Add visual indicators to level tiles with screenshot counts
-
-### **UI/UX Enhancements**
-- **Screenshot preview animation** - Smooth transitions when viewing screenshots
-- **Screenshot sharing potential** - Structure data for future sharing functionality
-- **Screenshot quality settings** - Option for different screenshot resolutions
-- **Screenshot naming** - Auto-generate meaningful names based on score and date
-- **Storage management** - Show storage usage and cleanup options for screenshots
-
----
-
-## 🚀 Version 0.3.4 - FruitMerge Enhancements
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges
 - Intensity scales with merge size and combo level
 - Enhanced tactile feedback for satisfying gameplay moments
+
+---
+
+## 🚀 Version 0.3.4 - FruitMerge Enhancements
+
 
 ### **🌟 Neon Theme**
 - Glowing fruits in cyberpunk style
