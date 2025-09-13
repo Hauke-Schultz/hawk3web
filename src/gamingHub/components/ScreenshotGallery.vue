@@ -46,6 +46,8 @@ const emit = defineEmits([
 const { t } = useI18n()
 const { getScreenshotsForLevel } = useScreenshot()
 
+const expandedScreenshot = ref(null)
+
 // Get screenshots for this level
 const screenshots = computed(() => {
 	return getScreenshotsForLevel(props.gameId, props.level)
@@ -56,6 +58,7 @@ const closeGallery = () => {
 	emit('close')
 }
 
+// Update download method to prevent event bubbling
 const downloadScreenshot = (screenshot) => {
 	try {
 		// Create download link
@@ -72,6 +75,14 @@ const downloadScreenshot = (screenshot) => {
 		emit('screenshot-downloaded', screenshot)
 	} catch (error) {
 		console.error('Error downloading screenshot:', error)
+	}
+}
+
+const toggleScreenshot = (screenshotId) => {
+	if (expandedScreenshot.value === screenshotId) {
+		expandedScreenshot.value = null
+	} else {
+		expandedScreenshot.value = screenshotId
 	}
 }
 
@@ -100,7 +111,7 @@ const formatGameTitle = (gameId) => {
 		>
 			<div
 					class="screenshot-gallery-modal"
-					:style="{ width: maxWidth }"
+					:style="{ maxWidth: maxWidth }"
 					@click.stop
 					role="dialog"
 					aria-modal="true"
@@ -129,58 +140,79 @@ const formatGameTitle = (gameId) => {
 						<p class="empty-description">{{ t('fruitMerge.play_level_for_screenshots') }}</p>
 					</div>
 
-					<!-- Screenshots Grid -->
-					<div v-else class="screenshots-grid">
+					<!-- Screenshots List -->
+					<div v-else class="screenshots-list">
 						<div
 								v-for="screenshot in screenshots"
 								:key="screenshot.id"
 								class="screenshot-item"
+								:class="{ 'screenshot-item--expanded': expandedScreenshot === screenshot.id }"
 						>
-							<!-- Screenshot Image -->
-							<div class="screenshot-image-container">
-								<img
-										:src="screenshot.imageData"
-										:alt="t('fruitMerge.screenshot_alt', { score: screenshot.score })"
-										class="screenshot-image"
-								/>
+							<!-- Screenshot Row - Clickable -->
+							<div
+									class="screenshot-row"
+									@click="toggleScreenshot(screenshot.id)"
+									:aria-expanded="expandedScreenshot === screenshot.id"
+									role="button"
+									tabindex="0"
+									@keydown.enter="toggleScreenshot(screenshot.id)"
+									@keydown.space.prevent="toggleScreenshot(screenshot.id)"
+							>
+								<!-- Thumbnail -->
+								<div class="screenshot-thumbnail">
+									<img
+											:src="screenshot.imageData"
+											:alt="t('fruitMerge.screenshot_alt', { score: screenshot.score })"
+											class="thumbnail-image"
+									/>
+								</div>
 
-								<!-- Screenshot Overlay Info -->
-								<div class="screenshot-overlay">
-									<!-- Screenshot Actions -->
-									<div v-if="showDownload" class="screenshot-actions">
+								<!-- Screenshot Info -->
+								<div class="screenshot-info">
+									<div class="screenshot-primary-info">
+										<span class="screenshot-score">{{ screenshot.score }} {{ t('stats.score') }}</span>
+										<span class="screenshot-date">{{ formatScreenshotDate(screenshot.capturedAt) }}</span>
+									</div>
+									<div v-if="showMetadata" class="screenshot-secondary-info">
+										<span v-if="screenshot.moves" class="info-item">{{ screenshot.moves }} {{ t('stats.moves') }}</span>
+										<span v-if="screenshot.timeElapsed" class="info-item">{{ Math.floor(screenshot.timeElapsed / 60) }}:{{ String(screenshot.timeElapsed % 60).padStart(2, '0') }}</span>
+										<span v-if="screenshot.fruitsCount" class="info-item">{{ screenshot.fruitsCount }} {{ t('fruitMerge.fruits_on_board') }}</span>
+									</div>
+								</div>
+
+								<!-- Expand/Collapse Icon -->
+								<div class="screenshot-toggle">
+									<Icon
+										:name="'chevron-down'"
+										size="20"
+									/>
+								</div>
+							</div>
+
+							<!-- Expanded Screenshot View -->
+							<Transition name="screenshot-expand">
+								<div v-if="expandedScreenshot === screenshot.id" class="screenshot-expanded">
+									<div class="expanded-image-container">
+										<img
+												:src="screenshot.imageData"
+												:alt="t('fruitMerge.screenshot_alt', { score: screenshot.score })"
+												class="expanded-image"
+										/>
+									</div>
+
+									<!-- Download Button -->
+									<div v-if="showDownload" class="expanded-actions">
 										<button
 												class="btn btn--small btn--info"
-												@click="downloadScreenshot(screenshot)"
+												@click.stop="downloadScreenshot(screenshot)"
 												:title="t('fruitMerge.download_screenshot')"
 										>
 											<Icon name="download" size="14" />
+											{{ t('common.download') }}
 										</button>
 									</div>
 								</div>
-							</div>
-
-							<!-- Screenshot Metadata -->
-							<div v-if="showMetadata" class="screenshot-metadata">
-								<div class="metadata-row">
-									<span class="metadata-label">{{ t('stats.score') }}:</span>
-									<span class="metadata-value">{{ screenshot.score }}</span>
-								</div>
-								<div v-if="screenshot.moves" class="metadata-row">
-									<span class="metadata-label">{{ t('stats.moves') }}:</span>
-									<span class="metadata-value">{{ screenshot.moves }}</span>
-								</div>
-								<div v-if="screenshot.timeElapsed" class="metadata-row">
-									<span class="metadata-label">{{ t('stats.time') }}:</span>
-									<span class="metadata-value">{{ Math.floor(screenshot.timeElapsed / 60) }}:{{ String(screenshot.timeElapsed % 60).padStart(2, '0') }}</span>
-								</div>
-								<div v-if="screenshot.fruitsCount" class="metadata-row">
-									<span class="metadata-label">{{ t('fruitMerge.fruits_on_board') }}:</span>
-									<span class="metadata-value">{{ screenshot.fruitsCount }}</span>
-								</div>
-								<div class="metadata-row">
-									<span class="metadata-value metadata-date">{{ formatScreenshotDate(screenshot.capturedAt) }}</span>
-								</div>
-							</div>
+							</Transition>
 						</div>
 					</div>
 				</div>
@@ -236,7 +268,7 @@ const formatGameTitle = (gameId) => {
 .gallery-content {
 	flex: 1;
 	overflow-y: auto;
-	padding: var(--space-4);
+	padding: var(--space-3);
 }
 
 .gallery-empty {
@@ -397,6 +429,222 @@ const formatGameTitle = (gameId) => {
 	to {
 		opacity: 1;
 		transform: translateY(0) scale(1);
+	}
+}
+
+.screenshots-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.screenshot-item {
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-lg);
+	border: 1px solid var(--card-border);
+	overflow: hidden;
+	transition: all 0.2s ease;
+}
+
+.screenshot-item:hover {
+	border-color: var(--primary-color);
+	box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+}
+
+.screenshot-item--expanded {
+	border-color: var(--primary-color);
+	box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+// Screenshot Row (Clickable)
+.screenshot-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-3);
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+	min-height: 80px;
+}
+
+.screenshot-row:hover {
+	background-color: var(--card-bg-hover);
+}
+
+.screenshot-row:focus-visible {
+	outline: var(--focus-outline);
+	outline-offset: -2px;
+	background-color: var(--card-bg-hover);
+}
+
+// Thumbnail
+.screenshot-thumbnail {
+	width: 60px;
+	height: 60px;
+	border-radius: var(--border-radius-md);
+	overflow: hidden;
+	flex-shrink: 0;
+	border: 2px solid var(--card-border);
+}
+
+.thumbnail-image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+// Screenshot Info
+.screenshot-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	min-width: 0; // Allows text truncation
+}
+
+.screenshot-primary-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.screenshot-score {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+}
+
+.screenshot-date {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	flex-shrink: 0;
+}
+
+.screenshot-secondary-info {
+	display: flex;
+	gap: var(--space-3);
+	flex-wrap: wrap;
+}
+
+.info-item {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	background-color: var(--card-bg);
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+	border: 1px solid var(--card-border);
+}
+
+// Toggle Icon
+.screenshot-toggle {
+	color: var(--text-secondary);
+	transition: transform 0.2s ease;
+	flex-shrink: 0;
+}
+
+.screenshot-item--expanded .screenshot-toggle {
+	transform: rotate(180deg);
+}
+
+// Expanded Content
+.screenshot-expanded {
+	border-top: 1px solid var(--card-border);
+	background-color: var(--card-bg);
+}
+
+.expanded-image-container {
+	padding: var(--space-4);
+	display: flex;
+	justify-content: center;
+	background-color: var(--bg-color);
+}
+
+.expanded-image {
+	max-width: 100%;
+	max-height: 300px;
+	border-radius: var(--border-radius-md);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	object-fit: contain;
+}
+
+.expanded-actions {
+	padding: var(--space-3);
+	border-top: 1px solid var(--card-border);
+	display: flex;
+	justify-content: center;
+	background-color: var(--bg-secondary);
+}
+
+// Expand/Collapse Transition
+.screenshot-expand-enter-active,
+.screenshot-expand-leave-active {
+	transition: all 0.3s ease;
+	overflow: hidden;
+}
+
+.screenshot-expand-enter-from,
+.screenshot-expand-leave-to {
+	max-height: 0;
+	opacity: 0;
+}
+
+.screenshot-expand-enter-to,
+.screenshot-expand-leave-from {
+	max-height: 400px;
+	opacity: 1;
+}
+
+// Mobile Optimizations
+@media (max-width: 480px) {
+	.screenshot-gallery-modal {
+		width: 95% !important;
+		max-height: 95vh;
+	}
+
+	.gallery-content {
+		padding: var(--space-2);
+	}
+
+	.screenshot-row {
+		padding: var(--space-2);
+		gap: var(--space-2);
+		min-height: 70px;
+	}
+
+	.screenshot-thumbnail {
+		width: 50px;
+		height: 50px;
+	}
+
+	.screenshot-secondary-info {
+		gap: var(--space-2);
+	}
+
+	.info-item {
+		font-size: var(--font-size-xxs);
+		padding: var(--space-0) var(--space-1);
+	}
+
+	.expanded-image {
+		max-height: 250px;
+	}
+
+	.expanded-actions {
+		padding: var(--space-2);
+	}
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+	.screenshot-expand-enter-active,
+	.screenshot-expand-leave-active {
+		transition-duration: 0.1s;
+	}
+
+	.screenshot-toggle {
+		transition: none;
 	}
 }
 </style>
