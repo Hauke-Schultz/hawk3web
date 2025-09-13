@@ -1,19 +1,24 @@
 <script setup>
-import { computed } from 'vue'
+import {computed, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useI18n } from '../../../composables/useI18n.js'
 import { numNumMergeConfig } from './numNumMergeConfig.js'
 import GameLevelTile from '../../components/GameLevelTile.vue'
-import Icon from '../../../components/Icon.vue'
 import ProgressOverview from "../../components/ProgressOverview.vue";
-import { calculateLevelStars, getLevelTitle, getLevelDescription } from "../../config/levelUtils.js"
+import { getLevelTitle, getLevelDescription } from "../../config/levelUtils.js"
 import Header from "../../components/Header.vue";
+import { useScreenshot } from '../../composables/useScreenshot.js'
+import ScreenshotGallery from "../../components/ScreenshotGallery.vue";
 
 // Services
 const { gameData, hasLevelState, loadLevelState } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
+const { getScreenshotCount } = useScreenshot()
+
+const showScreenshotGallery = ref(false)
+const selectedLevel = ref(null)
 
 // Computed game data
 const gameStats = computed(() => {
@@ -37,6 +42,10 @@ const levelData = computed(() => {
 		const hasSaved = !!savedState
 		const savedTimestamp = savedState?.savedAt || null
 
+		// Screenshot data
+		const screenshotCount = getScreenshotCount('numNumMerge', levelNumber)
+		const hasScreenshots = screenshotCount > 0
+
 		return {
 			level: levelNumber,
 			title: title,
@@ -51,7 +60,9 @@ const levelData = computed(() => {
 			attempts: levelStats.attempts || 0,
 			isEndless: level.isEndless || false,
 			hasSavedState: hasSaved,
-			savedStateTimestamp: savedTimestamp
+			savedStateTimestamp: savedTimestamp,
+			screenshotCount: screenshotCount,
+			hasScreenshots: hasScreenshots
 		}
 	})
 })
@@ -75,6 +86,20 @@ const completionStats = computed(() => {
 // Event handlers using router
 const handlePlayLevel = (levelNumber) => {
 	router.push(`/games/numNumMerge/${levelNumber}`)
+}
+
+const handleViewScreenshots = (levelNumber) => {
+	selectedLevel.value = levelNumber
+	showScreenshotGallery.value = true
+}
+
+const closeScreenshotGallery = () => {
+	showScreenshotGallery.value = false
+	selectedLevel.value = null
+}
+
+const handleScreenshotDownloaded = (screenshot) => {
+	console.log('Screenshot downloaded:', screenshot.id)
 }
 
 const handleMenuClick = () => {
@@ -115,24 +140,40 @@ const handleMenuClick = () => {
 		<!-- Levels Grid -->
 		<div class="levels-grid">
 			<GameLevelTile
-				v-for="level in levelData"
-				:key="level.level"
-				:level="level.level"
-				:title="level.title"
-				:description="level.description"
-				:is-locked="level.isLocked"
-				:is-completed="level.isCompleted"
-				:stars="level.stars"
-				:high-score="level.highScore"
-				:best-time="level.bestTime"
-				theme="warning"
-				game-type="numNumMerge"
-				:has-saved-state="level.hasSavedState"
-				:saved-state-timestamp="level.savedStateTimestamp"
-				@play-level="handlePlayLevel"
+					v-for="level in levelData"
+					:key="level.level"
+					:level="level.level"
+					:title="level.title"
+					:description="level.description"
+					:is-locked="level.isLocked"
+					:is-completed="level.isCompleted"
+					:stars="level.stars"
+					:high-score="level.highScore"
+					:best-time="level.bestTime"
+					theme="warning"
+					game-type="numNumMerge"
+					:has-saved-state="level.hasSavedState"
+					:saved-state-timestamp="level.savedStateTimestamp"
+					:screenshot-count="level.screenshotCount"
+					:has-screenshots="level.hasScreenshots"
+					@view-screenshots="handleViewScreenshots"
+					@play-level="handlePlayLevel"
 			/>
 		</div>
 	</main>
+	<!-- Screenshot Gallery Modal -->
+	<ScreenshotGallery
+			v-if="selectedLevel"
+			:visible="showScreenshotGallery"
+			:game-id="'numNumMerge'"
+			:level="selectedLevel"
+			:game-title="numNumMergeConfig.gameTitle"
+			:show-download="true"
+			:show-metadata="true"
+			:max-width="'400px'"
+			@close="closeScreenshotGallery"
+			@screenshot-downloaded="handleScreenshotDownloaded"
+	/>
 </template>
 
 

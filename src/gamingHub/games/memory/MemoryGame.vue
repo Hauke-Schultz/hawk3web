@@ -737,6 +737,7 @@ onUnmounted(() => {
 		<!-- Game Completed State -->
 		<GameCompletedModal
 				:visible="gameState === 'completed'"
+				game-name="fruitMerge"
 				:level="currentLevel"
 				:game-title="t('memory.title')"
 				:final-score="finalScore"

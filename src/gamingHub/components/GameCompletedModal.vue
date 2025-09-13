@@ -134,7 +134,11 @@ const props = defineProps({
   showReward: {
     type: Boolean,
     default: true
-  }
+  },
+	gameName: {
+		type: String,
+		default: 'fruitMerge'
+	}
 })
 
 const emit = defineEmits([
@@ -423,10 +427,10 @@ watch(() => props.visible, async (newVisible) => {
 			        <button
 					        class="btn btn--small btn--info"
 					        @click="handleViewScreenshots"
-					        :title="t('fruitMerge.view_screenshots_tooltip', { count: getScreenshotCount('fruitMerge', level) })"
+					        :title="t(`${props.gameName}.view_screenshots_tooltip`, { count: getScreenshotCount(props.gameName, level) })"
 			        >
 				        <Icon name="camera" size="16" />
-				        <span class="screenshot-count">{{ getScreenshotCount('fruitMerge', level) }}</span>
+				        <span class="screenshot-count">{{ getScreenshotCount(props.gameName, level) }}</span>
 			        </button>
 		        </div>
 	        </div>
@@ -515,9 +519,9 @@ watch(() => props.visible, async (newVisible) => {
 	  <!-- Screenshot Gallery Modal -->
 	  <ScreenshotGallery
 			  :visible="showScreenshotGallery"
-			  :game-id="'fruitMerge'"
+			  :game-id="props.gameName"
 			  :level="level"
-			  :game-title="t('fruitMerge.title')"
+			  :game-title="t(`${props.gameName}.title`)"
 			  :show-download="true"
 			  :show-metadata="true"
 			  :max-width="'400px'"

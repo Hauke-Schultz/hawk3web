@@ -630,6 +630,21 @@ export default {
     buy_undo: 'Buy Undo',
     buy_undo_ingame: 'Buy undo directly',
 
+    numbers_on_board: 'Numbers on Board',
+    highest_number: 'Highest Number',
+
+    save_screenshot: 'Save Screenshot',
+    screenshot_saved: 'Screenshot saved!',
+    screenshot_gallery: 'Screenshot Gallery',
+    view_screenshots: 'View Screenshots ({count})',
+    view_screenshots_tooltip: 'View {count} screenshot(s) for this level',
+    screenshot_tooltip_single: '1 screenshot available',
+    screenshot_tooltip_multiple: '{count} screenshots available',
+    download_screenshot: 'Download Screenshot',
+    no_screenshots: 'No Screenshots',
+    play_level_for_screenshots: 'Play this level and save your best moments!',
+    screenshot_alt: 'Screenshot with {score} points',
+
     endless: {
       merges: 'Merges',
       time: 'Time',

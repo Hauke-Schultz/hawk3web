@@ -37,8 +37,6 @@ export function useScreenshot() {
   const generateScreenshotId = (gameId, level, timestamp) => {
     return `${gameId}_level${level}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
-
-  // Create canvas and render game state
   const renderGameStateToCanvas = async (gameStateData) => {
     return new Promise((resolve, reject) => {
       try {
@@ -54,108 +52,198 @@ export function useScreenshot() {
         // Scale context for high resolution
         ctx.scale(scaleFactor, scaleFactor)
 
-        // Set background
-        ctx.fillStyle = '#2A2A2A' // Dark theme background
-        ctx.fillRect(0, 0, gameStateData.boardConfig.width, gameStateData.boardConfig.height)
+        // Determine game type and render accordingly
+        if (gameStateData.numbers) {
+          // NumNum Merge Game rendering
+          renderNumNumGameState(ctx, gameStateData)
 
-        // Add border
-        ctx.strokeStyle = '#3A3A3A'
-        ctx.lineWidth = 2
-        ctx.strokeRect(1, 1, gameStateData.boardConfig.width - 2, gameStateData.boardConfig.height - 2)
-
-        // Render fruits
-        const renderPromises = gameStateData.fruits.map(fruit => {
-          return new Promise((resolveFruit) => {
-            // Create temporary div to render SVG
-            const tempDiv = document.createElement('div')
-            tempDiv.innerHTML = fruit.svg
-            tempDiv.style.position = 'absolute'
-            tempDiv.style.left = '-9999px'
-            tempDiv.style.width = `${fruit.size}px`
-            tempDiv.style.height = `${fruit.size}px`
-
-            document.body.appendChild(tempDiv)
-
-            const svgElement = tempDiv.querySelector('svg')
-            if (svgElement) {
-              // Set SVG dimensions
-              svgElement.setAttribute('width', fruit.size)
-              svgElement.setAttribute('height', fruit.size)
-
-              // Convert SVG to image
-              const svgData = new XMLSerializer().serializeToString(svgElement)
-              const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
-              const svgUrl = URL.createObjectURL(svgBlob)
-
-              const img = new Image()
-              img.onload = () => {
-                // Draw fruit on canvas
-                ctx.save()
-
-                // Apply rotation if needed
-                if (fruit.rotation && fruit.rotation !== 0) {
-                  const centerX = fruit.x + fruit.size / 2
-                  const centerY = fruit.y + fruit.size / 2
-                  ctx.translate(centerX, centerY)
-                  ctx.rotate((fruit.rotation * Math.PI) / 180)
-                  ctx.translate(-centerX, -centerY)
-                }
-
-                ctx.drawImage(img, fruit.x, fruit.y, fruit.size, fruit.size)
-                ctx.restore()
-
-                URL.revokeObjectURL(svgUrl)
-                document.body.removeChild(tempDiv)
-                resolveFruit()
-              }
-
-              img.onerror = () => {
-                console.warn('Failed to load fruit image:', fruit.type)
-                document.body.removeChild(tempDiv)
-                resolveFruit()
-              }
-
-              img.src = svgUrl
-            } else {
-              document.body.removeChild(tempDiv)
-              resolveFruit()
-            }
-          })
-        })
-
-        // Wait for all fruits to be rendered
-        Promise.all(renderPromises).then(() => {
-          // Add score overlay
-          ctx.fillStyle = 'rgba(42, 42, 42, 0.6)'
-          ctx.fillRect(10, 10, 200, 70)
-
-          // Player name (erste Zeile)
-          ctx.fillStyle = '#ffffff'
-          ctx.font = 'bold 16px Arial'
-          ctx.fillText(`${gameStateData.player?.name ?? 'Unknown'}`, 20, 30)
-
-          // Score text (zweite Zeile)
-          ctx.fillText(`Score: ${gameStateData.score}`, 20, 50)
-
-          // Level und Sterne (dritte Zeile)
-          let stars = '';
-          if (gameStateData.starsEarned > 0) {
-            for (let i = 0; i < gameStateData.starsEarned; i++) {
-              stars += '⭐';
-            }
-          }
-          const levelText = gameStateData.isEndless ? `Endless Mode ${stars}` : `Level ${gameStateData.level} ${stars}`;
-          ctx.fillText(levelText, 20, 70)
+          // Add common UI overlay for NumNum
+          addGameUIOverlay(ctx, gameStateData)
 
           // Convert canvas to data URL
           const dataUrl = canvas.toDataURL('image/png', 0.9)
           resolve(dataUrl)
-        }).catch(reject)
+
+        } else if (gameStateData.fruits) {
+          // FruitMerge Game rendering (async because of SVG loading)
+          renderFruitMergeGameState(ctx, gameStateData)
+              .then(() => {
+                addGameUIOverlay(ctx, gameStateData)
+                // Convert canvas to data URL after fruits are rendered
+                const dataUrl = canvas.toDataURL('image/png', 0.9)
+                resolve(dataUrl)
+              })
+              .catch(reject)
+        } else {
+          reject(new Error('Unknown game type - no fruits or numbers found'))
+        }
 
       } catch (error) {
         reject(error)
       }
     })
+  }
+
+  // Common UI overlay function for both games
+  const addGameUIOverlay = (ctx, gameStateData) => {
+    // Add score overlay
+    ctx.fillStyle = 'rgba(42, 42, 42, 0.6)'
+    ctx.fillRect(10, 10, 200, 70)
+
+    // Player name (erste Zeile)
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 16px Arial'
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillText(`${gameStateData.player?.name ?? 'Unknown'}`, 20, 30)
+
+    // Score text (zweite Zeile)
+    ctx.fillText(`Score: ${gameStateData.score}`, 20, 50)
+
+    // Level und Sterne (dritte Zeile)
+    let stars = ''
+    if (gameStateData.starsEarned > 0) {
+      for (let i = 0; i < gameStateData.starsEarned; i++) {
+        stars += '⭐'
+      }
+    }
+    const levelText = gameStateData.isEndless ? `Endless Mode ${stars}` : `Level ${gameStateData.level} ${stars}`
+    ctx.fillText(levelText, 20, 70)
+  }
+
+  const renderNumNumGameState = (ctx, gameStateData) => {
+    const { boardConfig } = gameStateData
+    const yOffset = 75
+
+    // Set background
+    ctx.fillStyle = '#2A2A2A' // Dark theme background
+    ctx.fillRect(0, 0, boardConfig.width, boardConfig.height)
+
+    // Add border
+    ctx.strokeStyle = '#3A3A3A'
+    ctx.lineWidth = 2
+    ctx.strokeRect(1, 1, boardConfig.width - 2, boardConfig.height - 2)
+
+    // Draw grid lines mit Y-Offset
+    ctx.strokeStyle = '#4A4A4A'
+    ctx.lineWidth = 1
+
+    // Vertical lines
+    for (let col = 1; col < boardConfig.cols; col++) {
+      const x = col * (boardConfig.cellSize + boardConfig.cellGap) + boardConfig.cellGap / 2
+      ctx.beginPath()
+      ctx.moveTo(x, boardConfig.cellGap + yOffset)
+      ctx.lineTo(x, boardConfig.height - boardConfig.cellGap)
+      ctx.stroke()
+    }
+
+    // Horizontal lines
+    for (let row = 1; row < boardConfig.rows; row++) {
+      const y = row * (boardConfig.cellSize + boardConfig.cellGap) + boardConfig.cellGap / 2 + yOffset
+      ctx.beginPath()
+      ctx.moveTo(boardConfig.cellGap, y)
+      ctx.lineTo(boardConfig.width - boardConfig.cellGap, y)
+      ctx.stroke()
+    }
+
+    // Draw numbers mit Y-Offset
+    gameStateData.numbers.forEach(number => {
+      // Draw cell background
+      ctx.fillStyle = number.color
+      ctx.fillRect(
+          number.x,
+          number.y + yOffset,
+          boardConfig.cellSize,
+          boardConfig.cellSize
+      )
+
+      // Draw number text
+      ctx.fillStyle = number.textColor
+      ctx.font = `bold ${Math.min(24, boardConfig.cellSize * 0.4)}px Arial`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+
+      const centerX = number.x + boardConfig.cellSize / 2
+      const centerY = number.y + boardConfig.cellSize / 2 + yOffset
+
+      ctx.fillText(number.number.toString(), centerX, centerY)
+    })
+  }
+
+  const renderFruitMergeGameState = (ctx, gameStateData) => {
+    const { boardConfig } = gameStateData
+
+    // Set background
+    ctx.fillStyle = '#2A2A2A' // Dark theme background
+    ctx.fillRect(0, 0, boardConfig.width, boardConfig.height)
+
+    // Add border
+    ctx.strokeStyle = '#3A3A3A'
+    ctx.lineWidth = 2
+    ctx.strokeRect(1, 1, boardConfig.width - 2, boardConfig.height - 2)
+
+    // Render fruits
+    const renderPromises = gameStateData.fruits.map(fruit => {
+      return new Promise((resolveFruit) => {
+        // Create temporary div to render SVG
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = fruit.svg
+        tempDiv.style.position = 'absolute'
+        tempDiv.style.left = '-9999px'
+        tempDiv.style.width = `${fruit.size}px`
+        tempDiv.style.height = `${fruit.size}px`
+
+        document.body.appendChild(tempDiv)
+
+        const svgElement = tempDiv.querySelector('svg')
+        if (svgElement) {
+          // Set SVG dimensions
+          svgElement.setAttribute('width', fruit.size)
+          svgElement.setAttribute('height', fruit.size)
+
+          // Convert SVG to image
+          const svgData = new XMLSerializer().serializeToString(svgElement)
+          const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
+          const svgUrl = URL.createObjectURL(svgBlob)
+
+          const img = new Image()
+          img.onload = () => {
+            // Draw fruit on canvas
+            ctx.save()
+
+            // Apply rotation if needed
+            if (fruit.rotation && fruit.rotation !== 0) {
+              const centerX = fruit.x + fruit.size / 2
+              const centerY = fruit.y + fruit.size / 2
+              ctx.translate(centerX, centerY)
+              ctx.rotate((fruit.rotation * Math.PI) / 180)
+              ctx.translate(-centerX, -centerY)
+            }
+
+            ctx.drawImage(img, fruit.x, fruit.y, fruit.size, fruit.size)
+            ctx.restore()
+
+            URL.revokeObjectURL(svgUrl)
+            document.body.removeChild(tempDiv)
+            resolveFruit()
+          }
+
+          img.onerror = () => {
+            console.warn('Failed to load fruit image:', fruit.type)
+            document.body.removeChild(tempDiv)
+            resolveFruit()
+          }
+
+          img.src = svgUrl
+        } else {
+          document.body.removeChild(tempDiv)
+          resolveFruit()
+        }
+      })
+    })
+
+    // Return promise that resolves when all fruits are rendered
+    return Promise.all(renderPromises)
   }
 
   // Save game screenshot
@@ -166,8 +254,8 @@ export function useScreenshot() {
       // Generate screenshot image
       const screenshotDataUrl = await renderGameStateToCanvas(gameStateData)
 
-      // Create screenshot metadata
-      const screenshotData = {
+      // Create screenshot metadata based on game type
+      let screenshotData = {
         id: generateScreenshotId(gameId, gameStateData.level, gameStateData.capturedAt),
         gameId: gameId,
         level: gameStateData.level,
@@ -178,8 +266,15 @@ export function useScreenshot() {
         isEndless: gameStateData.isEndless,
         capturedAt: gameStateData.capturedAt,
         imageData: screenshotDataUrl,
-        fruitsCount: gameStateData.fruits.length,
         gameTitle: gameStateData.gameTitle
+      }
+
+      // Add game-specific metadata
+      if (gameId === 'fruitMerge') {
+        screenshotData.fruitsCount = gameStateData.fruits.length
+      } else if (gameId === 'numNumMerge') {
+        screenshotData.numbersCount = gameStateData.numbers.length
+        screenshotData.highestNumber = Math.max(...gameStateData.numbers.map(n => n.number), 0)
       }
 
       // Initialize game screenshots if not exists

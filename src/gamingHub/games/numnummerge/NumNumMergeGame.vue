@@ -3,8 +3,9 @@ import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from
 import Header from "../../components/Header.vue";
 import {useLocalStorage} from "../../composables/useLocalStorage.js";
 import {useI18n} from "../../../composables/useI18n.js";
+import { useScreenshot } from '../../composables/useScreenshot.js'
 import Icon from "../../../components/Icon.vue";
-import {NUM_NUM_MERGE_LEVELS, NUMBER_TYPES, GRID_CONFIG} from "./numNumMergeConfig.js";
+import {NUM_NUM_MERGE_LEVELS, NUMBER_TYPES, GRID_CONFIG, GRID_UTILS} from "./numNumMergeConfig.js";
 import {useRouter} from "vue-router";
 import ProgressOverview from "../../components/ProgressOverview.vue";
 import PerformanceStats from "../../components/PerformanceStats.vue";
@@ -34,6 +35,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const { saveGameScreenshot, getScreenshotsForLevel } = useScreenshot()
 
 // Emits
 const emit = defineEmits(['game-complete', 'menu-click', 'start-game', 'profile-click', 'trophy-click', 'settings-click', 'about-click', 'shop-click', 'theme-change', 'language-change', 'font-size-change', 'back-to-home'])
@@ -100,6 +102,9 @@ const undoStack = ref([])
 const undoRemaining = ref(gameData.player.inventory.items?.undo_move?.quantity || 0)
 const showShopModal = ref(false)
 const modalType = ref('purchase')
+
+const enableScreenshotCapture = ref(false)
+const currentGameScreenshotData = ref(null)
 
 // Combo system setup
 const comboSystem = useComboSystem({
@@ -306,6 +311,135 @@ const performUndo = () => {
 	return false
 }
 
+const screenshotHighscoreInfo = computed(() => {
+	// Only calculate if gameState === 'completed'
+	if (gameState.value !== 'completed') {
+		return null
+	}
+
+	const levelScreenshots = getScreenshotsForLevel('numNumMerge', currentLevel.value)
+	// Sort screenshots by score (highest first)
+	let sortedScreenshots = [...levelScreenshots].sort((a, b) => b.score - a.score)
+	sortedScreenshots = sortedScreenshots.filter(screenshot => screenshot.score !== score.value)
+
+	// Current score
+	const currentScore = score.value
+
+	// Find where current score would rank
+	let rank = 1
+	let beatScore = null
+
+	for (const screenshot of sortedScreenshots) {
+		if (currentScore > screenshot.score) {
+			beatScore = screenshot.score
+			break
+		}
+		rank++
+	}
+
+	// If we didn't beat any score, but we have less than 5 screenshots, we still qualify
+	if (rank > sortedScreenshots.length && sortedScreenshots.length < 5) {
+		rank = sortedScreenshots.length + 1
+		beatScore = null // We didn't beat anyone, we're just added to the list
+	}
+
+	// Determine if this qualifies for top-5
+	const isNewHighScore = rank <= 5
+	const isTopList = rank <= Math.min(5, sortedScreenshots.length + 1)
+
+	return {
+		isNewHighScore,
+		rank: isNewHighScore ? rank : null,
+		totalScreenshots: sortedScreenshots.length,
+		beatScore,
+		isTopList,
+		isFirstEver: sortedScreenshots.length === 0,
+		previousBest: sortedScreenshots[0]?.score || 0,
+		worstInTop5: sortedScreenshots[Math.min(4, sortedScreenshots.length - 1)]?.score || 0
+	}
+})
+
+
+const captureScreenshotData = () => {
+	if (gameState.value !== 'completed') return null
+
+	const screenshotData = {
+		// Game State
+		player: {
+			name: gameData.player.name,
+			avatar: gameData.player.avatar
+		},
+		level: currentLevel.value,
+		score: score.value,
+		moves: moves.value,
+		timeElapsed: isEndlessMode.value ? sessionTime.value : 0,
+		starsEarned: calculateCurrentStars(),
+
+		// Grid state and numbers
+		numbers: grid.value.flat().map((cellValue, index) => {
+			const row = Math.floor(index / GRID_CONFIG.cols)
+			const col = index % GRID_CONFIG.cols
+			const position = GRID_UTILS.gridToPixel(row, col)
+
+			if (cellValue > 0) {
+				const numberType = Object.values(NUMBER_TYPES).find(n => n.number === cellValue)
+				return {
+					id: `${row}-${col}`,
+					number: cellValue,
+					x: position.x,
+					y: position.y,
+					size: GRID_CONFIG.cellSize,
+					color: numberType ? numberType.color : '#eee4da',
+					textColor: numberType ? numberType.textColor : '#776e65',
+					fontSize: numberType ? numberType.fontSize : 'var(--font-size-lg)',
+					fontWeight: numberType ? numberType.fontWeight : 'bold'
+				}
+			}
+			return null
+		}).filter(Boolean),
+
+		// Board configuration
+		boardConfig: {
+			width: GRID_CONFIG.boardWidth,
+			height: GRID_CONFIG.boardHeight,
+			cellSize: GRID_CONFIG.cellSize,
+			cellGap: GRID_CONFIG.cellGap,
+			rows: GRID_CONFIG.rows,
+			cols: GRID_CONFIG.cols
+		},
+
+		// Game mode
+		isEndless: isEndlessMode.value,
+		gameMode: isEndlessMode.value ? 'endless' : 'level',
+
+		// Metadata
+		capturedAt: new Date().toISOString(),
+		gameTitle: t('numNumMerge.title')
+	}
+
+	return screenshotData
+}
+
+const handleSaveScreenshot = async (screenshotMetadata) => {
+	if (!currentGameScreenshotData.value) {
+		console.warn('No screenshot data available')
+		return
+	}
+
+	try {
+		const success = await saveGameScreenshot('numNumMerge', currentGameScreenshotData.value)
+
+		if (success) {
+			console.log('🖼️ Screenshot saved successfully!')
+			// Optional: Show success feedback to user
+		} else {
+			console.error('Failed to save screenshot')
+		}
+	} catch (error) {
+		console.error('Error saving screenshot:', error)
+	}
+}
+
 const resetGame = () => {
 	// Clear saved state
 	clearLevelState('numNumMerge', currentLevel.value)
@@ -322,6 +456,8 @@ const resetGame = () => {
 	hasSavedState.value = false
 	undoStack.value = []
 	undoRemaining.value = getItemQuantity('undo_move')
+	enableScreenshotCapture.value = false
+	currentGameScreenshotData.value = null
 
 	// Clear grid
 	for (let row = 0; row < 4; row++) {
@@ -961,6 +1097,10 @@ const completeLevel = () => {
 
 	clearLevelState('numNumMerge', currentLevel.value)
 	gameState.value = 'completed'
+
+	// Prepare screenshot data
+	currentGameScreenshotData.value = captureScreenshotData()
+	enableScreenshotCapture.value = true
 
 	// Calculate rewards
 	const rewardCalculation = calculateLevelReward()
@@ -1790,13 +1930,14 @@ watch(() => props.level, (newLevel) => {
 		<!-- Game Completed Modal -->
 		<GameCompletedModal
 				:visible="gameState === 'completed'"
+				game-name="numNumMerge"
 				:level="currentLevel"
 				:game-title="t('numNumMerge.title')"
 				:final-score="score"
 				:time-elapsed="isEndlessMode ? sessionTime : 0"
 				:moves="moves"
-				:matches="totalMerges"
-				:total-pairs="0"
+				:matches="totalNumbers"
+				:total-pairs="totalNumbers"
 				:stars-earned="calculateCurrentStars()"
 				:show-stars="true"
 				:new-achievements="earnedAchievements"
@@ -1807,12 +1948,17 @@ watch(() => props.level, (newLevel) => {
 				:reward-breakdown="rewardBreakdown"
 				:show-completion-phases="true"
 				:enable-phase-transition="true"
-				:show-next-level="!isEndlessMode && currentLevel < Object.keys(NUM_NUM_MERGE_LEVELS).length"
-				:next-level-label="t('numNumMerge.next_level')"
+				:show-next-level="!isEndlessMode"
+				:next-level-label="isEndlessMode ? t('numNumMerge.play_again') : t('numNumMerge.next_level')"
 				:play-again-label="t('numNumMerge.play_again')"
 				:back-to-games-label="t('numNumMerge.back_to_levels')"
+				:enable-screenshot="enableScreenshotCapture"
+				:game-state="currentGameScreenshotData"
+				:high-score-info="screenshotHighscoreInfo"
+				:auto-save-screenshot="true"
+				@save-screenshot="handleSaveScreenshot"
 				@next-level="nextLevel"
-				@play-again="handleTryAgain"
+				@play-again="resetGame"
 				@back-to-games="backToGaming"
 				@close="backToGaming"
 		/>

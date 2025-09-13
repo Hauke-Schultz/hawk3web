@@ -628,6 +628,21 @@ export default {
     buy_undo: 'Rückgängig kaufen',
     buy_undo_ingame: 'Rückgängig direkt kaufen',
 
+    numbers_on_board: 'Zahlen auf dem Brett',
+    highest_number: 'Höchste Zahl',
+
+    save_screenshot: 'Screenshot speichern',
+    screenshot_saved: 'Screenshot gespeichert!',
+    screenshot_gallery: 'Screenshot-Galerie',
+    view_screenshots: 'Screenshots anzeigen ({count})',
+    view_screenshots_tooltip: '{count} Screenshot(s) für dieses Level anzeigen',
+    screenshot_tooltip_single: '1 Screenshot verfügbar',
+    screenshot_tooltip_multiple: '{count} Screenshots verfügbar',
+    download_screenshot: 'Screenshot herunterladen',
+    no_screenshots: 'Keine Screenshots',
+    play_level_for_screenshots: 'Spiele dieses Level und speichere deine besten Momente!',
+    screenshot_alt: 'Screenshot mit {score} Punkten',
+
     // Endless Mode spezifische Übersetzungen
     endless: {
       merges: 'Merges',
