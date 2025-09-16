@@ -76,19 +76,21 @@
 - **Three Shells Minigame** - Interactive game to win daily rewards with cups and diamond/coin prizes
 - **Slot Machine Minigame** - Spin to win coins, diamonds, or power-ups with animated reels
 - **Screenshot System for FruitMerge** - Save and view game state screenshots with metadata
-- **Screenshot gallery** - View saved screenshots on level overview page
+- **Screenshot gallery** - View saved screenshots on level overview page and in GameCompletedModal
+- **Multi-Game Support** - Screenshot functionality for NumNum Game
 
 ---
 
 ## 🚀 Version 0.3.3 - Screenshot System**
 
-- **Screenshot Gallery** - Compact List view of saved screenshots and on click full view
-- 
+- **Rainbow Fruit** - don't merge with giant fruits (index < 11)
+- **Screenshot Watermark** - Game logo and timestamp overlay on screenshots
+- **Screenshot sharing** - Copy screenshot to clipboard for easy sharing
+
 ---
 
 ## 🚀 Version 0.3.4 - Enhancements
 
-- **Multi-Game Support** - Screenshot functionality for NumNum Game
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges

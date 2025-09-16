@@ -248,11 +248,6 @@ const hasBombFruit = computed(() => {
 	return fruits.value.some(fruit => fruit.isBomb)
 })
 
-const bombFusePercentage = computed(() => {
-	if (!currentBombFruit.value || bombFuseRemaining.value <= 0) return 0
-	return (bombFuseRemaining.value / BOMB_FRUIT_CONFIG.fuseTime) * 100
-})
-
 const hammerItem = computed(() => {
 	return SHOP_ITEMS.find(item => item.id === 'hammer_powerup')
 })
@@ -1248,7 +1243,7 @@ const handleCollision = (event) => {
 				const rainbowFruit = isRainbowA ? fruits.value.find(f => f.id === idA) : fruits.value.find(f => f.id === idB)
 				const normalFruit = isRainbowA ? fruits.value.find(f => f.id === idB) : fruits.value.find(f => f.id === idA)
 
-				if (rainbowFruit && normalFruit && !rainbowFruit.merging && !normalFruit.merging && !normalFruit.isMold && !normalFruit.isBomb) {
+				if (rainbowFruit && normalFruit && !rainbowFruit.merging && !normalFruit.merging && !normalFruit.isMold && !normalFruit.isBomb && normalFruit.type !== FRUIT_TYPES.PUMPKIN.type) {
 					rainbowFruit.merging = true
 
 					const centerX = (bodyA.position.x + bodyB.position.x) / 2
@@ -3115,6 +3110,14 @@ const shouldShowTimer = (fruit) => {
 	return false
 }
 
+const getHammerTooltip = () => {
+	if (hammerRemaining.value > 0) {
+		return hammerMode.value ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')
+	} else {
+		return t('fruitMerge.buy_hammer')
+	}
+}
+
 const getTimerClasses = (fruit) => {
 	return {
 		'fruit-timer-circle--mold': fruit.isMold,
@@ -3293,46 +3296,35 @@ onUnmounted(() => {
 					:show-time="isEndlessMode"
 					:show-moves="false"
 					:show-matches="false"
-					:show-combo="true"
+					:show-combo="false"
 					:score-label="t('stats.score')"
 					:time-label="t('stats.time')"
 					:moves-label="t('stats.moves')"
 					:combo-label="t('stats.combo')"
 				/>
-				<div v-if="isEndlessMode" class="hammer-control">
+				<!-- Endless Mode Controls -->
+				<div v-if="isEndlessMode" class="endless-controls">
+					<!-- Hammer Control -->
 					<button
-						v-if="hammerRemaining > 0"
-						class="btn btn--small btn--circle hammer-btn"
+						class="btn btn--small btn--circle control-btn"
 						:class="{
-							'btn--warning': !hammerMode,
-							'btn--danger': hammerMode
-						}"
-						@click="hammerMode ? deactivateHammerMode() : activateHammerMode()"
-						:title="hammerMode ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')"
+			        'btn--success': hammerRemaining > 0 && !hammerMode,
+			        'btn--danger': hammerMode
+			      }"
+						@click="hammerRemaining > 0 ? (hammerMode ? deactivateHammerMode() : activateHammerMode()) : handleBuyHammerClick()"
+						:title="getHammerTooltip()"
 					>
-						<span class="hammer-icon">🔨</span>
-						<span class="notification-badge">{{ hammerRemaining }}</span>
+						<span class="control-icon">🔨</span>
+						<span v-if="hammerRemaining > 0" class="notification-badge">{{ hammerRemaining }}</span>
 					</button>
 
+					<!-- Fruit Selection Control -->
 					<button
-							v-if="hammerRemaining === 0 && hammerItem"
-							class="btn btn--small buy-hammer-btn"
-							:class="{
-							'btn--success': canAffordHammer,
-							'btn--ghost': !canAffordHammer
-						}"
-							@click="handleBuyHammerClick"
-							:title="t('fruitMerge.no_hammers')"
+							class="btn btn--small btn--circle control-btn"
+							@click="openFruitSelector"
+							:title="t('fruitMerge.select_next_fruit')"
 					>
-						<span class="hammer-icon">🔨</span>
-						<div class="hammer-price">
-							<span v-if="hammerItem.price.coins > 0" class="price-coins">
-								💰{{ hammerItem.price.coins }}
-							</span>
-							<span v-if="hammerItem.price.diamonds > 0" class="price-diamonds">
-								💎{{ hammerItem.price.diamonds }}
-							</span>
-						</div>
+						<span class="control-icon">🎯</span>
 					</button>
 				</div>
 			</div>
@@ -3340,17 +3332,14 @@ onUnmounted(() => {
 
 		<!-- Game Board Container -->
 		<div class="game-container">
-			<!-- Next Fruit Preview -->
 			<div
 					ref="nextFruitContainer"
 					class="next-fruit-preview"
-					:class="{ 'next-fruit-preview--clickable': isEndlessMode }"
 					@mousemove="handleMouseMove"
 					@mouseenter="handleMouseEnter"
 					@mouseleave="handleMouseLeave"
 					@touchmove.passive="handleTouchMove"
 					@touchstart.passive="handleTouchStart"
-					@click="isEndlessMode ? openFruitSelector() : null"
 			>
 				<div
 					v-if="nextFruit && showNextFruit"
@@ -3368,9 +3357,6 @@ onUnmounted(() => {
 			    }"
 				>
 					<div class="fruit-svg" v-html="nextFruit.svg"></div>
-					<div v-if="isEndlessMode" class="fruit-selection-hint">
-						<Icon name="settings" size="12" />
-					</div>
 				</div>
 			</div>
 
@@ -4294,25 +4280,6 @@ onUnmounted(() => {
 			milestoneAutoFade 4s ease-in-out 3s forwards;
 }
 
-.hammer-control {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	.hammer-icon {
-		font-size: var(--font-size-lg);
-	}
-
-	.hammer-count {
-		margin-left: var(--space-1);
-		background-color: var(--error-color);
-		color: white;
-		padding: 0 var(--space-1);
-		border-radius: var(--border-radius-sm);
-		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-bold);
-	}
-}
 
 .hammer-btn {
 	display: flex;
@@ -4322,34 +4289,29 @@ onUnmounted(() => {
 	position: relative;
 }
 
-.buy-hammer-btn {
+.endless-controls {
 	display: flex;
 	align-items: center;
-	gap: var(--space-1);
-	padding: var(--space-1);
+	gap: var(--space-2);
+}
+
+.control-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--space-2);
 	position: relative;
-	height: 100%;
-
-	.hammer-price {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: var(--space-1);
-		font-size: var(--font-size-xs);
-		line-height: 1;
-	}
-
-	.price-coins,
-	.price-diamonds {
-		display: flex;
-		align-items: center;
-		gap: 2px;
-		white-space: nowrap;
-	}
+	min-width: var(--space-12);
+	height: var(--space-12);
 
 	&:hover {
 		transform: translateY(-1px);
 	}
+}
+
+.control-icon {
+	font-size: var(--font-size-lg);
+	line-height: 1;
 }
 
 .fruit--hammer-target {
@@ -4753,36 +4715,6 @@ onUnmounted(() => {
 		font-size: 16px;
 		animation: sparkle 2s ease-in-out infinite;
 	}
-}
-
-.fruit-selection-hint {
-	position: absolute;
-	bottom: -2px;
-	right: -2px;
-	background-color: var(--primary-color);
-	border-radius: 50%;
-	width: 18px;
-	height: 18px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: white;
-	opacity: 0;
-
-	.next-fruit-preview:hover & {
-		animation: pulse 2s infinite;
-	}
-}
-
-.selection-instruction {
-	position: absolute;
-	bottom: -20px;
-	left: 50%;
-	transform: translateX(-50%);
-	font-size: var(--font-size-xs);
-	color: var(--text-secondary);
-	white-space: nowrap;
-	text-align: center;
 }
 
 // Fruit Selector Modal

@@ -387,28 +387,53 @@ export const FRUIT_TYPES = {
             <stop offset="0%" style="stop-color:#FFCC80"/>
             <stop offset="100%" style="stop-color:#FFAB91"/>
         </radialGradient>
+        <linearGradient id="linear_12" x1="22" y1="15" x2="22" y2="31" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FFD600"/>
+            <stop offset="1" stop-color="#FFFD91"/>
+        </linearGradient>
     </defs>
+
+    <!-- Face -->
     <circle cx="32" cy="32" r="30" fill="url(#grapeGrad)" stroke="#FF8A65" stroke-width="2"/>
+
+    <!-- Face texture lines -->
     <path d="M28,8 Q32,12 36,8" stroke="#FF7043" stroke-width="2" fill="none" opacity="0.6"/>
     <path d="M24,16 Q32,20 40,16" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.5"/>
     <path d="M20,28 Q32,32 44,28" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M22,44 Q32,40 42,44" stroke="#FF7043" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+    <!-- Small decorative circles -->
     <circle cx="20" cy="20" r="1.5" fill="#FF8A65" opacity="0.6"/>
     <circle cx="44" cy="18" r="1.5" fill="#FF8A65" opacity="0.6"/>
     <circle cx="18" cy="40" r="1.5" fill="#FF8A65" opacity="0.6"/>
     <circle cx="46" cy="42" r="1.5" fill="#FF8A65" opacity="0.6"/>
     <circle cx="32" cy="48" r="1.5" fill="#FF8A65" opacity="0.6"/>
-    <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
-    <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
-    <circle cx="24" cy="26" r="2.5" fill="black"/>
-    <circle cx="40" cy="26" r="2.5" fill="black"/>
-    <circle cx="25" cy="25" r="1" fill="white"/>
-    <circle cx="41" cy="25" r="1" fill="white"/>
+
+    <g id="openEyes">
+        <ellipse cx="21" cy="23" rx="8" ry="8" fill="white"/>
+        <ellipse cx="42" cy="23" rx="8" ry="8" fill="white"/>
+        <circle cx="21" cy="23" r="3" fill="black"/>
+        <circle cx="42" cy="23" r="3" fill="black"/>
+        <circle cx="22" cy="22" r="1.2" fill="white"/>
+        <circle cx="43" cy="22" r="1.2" fill="white"/>
+        <animate
+                attributeName="opacity"
+                values="1; 1; 0; 1; 1"
+                dur="10s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <g id="closedEyes">
+        <path d="M22 15L24 21H30L25 25L27 31L22 27L17 31L19 25L14 21H20L22 15Z" stroke-width="1.2" fill="url(#linear_12)" stroke="#FF8A65"/>
+        <path d="M42 15L44 21H50L45 25L47 31L42 27L37 31L39 25L34 21H40L42 15Z" stroke-width="1.2" fill="url(#linear_12)" stroke="#FF8A65"/>
+        <animate
+                attributeName="opacity"
+                values="0; 0; 1; 0; 0"
+                dur="10s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
     <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFCDD2" opacity="0.6"/>
-    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCDD2" opacity="0.6"/>
-    <ellipse cx="26" cy="16" rx="6" ry="3" fill="#FFE0B2" opacity="0.5"/>
-    <ellipse cx="14" cy="26" rx="4" ry="6" fill="#F8BBD0" opacity="0.3"/>
 </svg>`
 	},
 	PINEAPPLE: {
@@ -420,51 +445,89 @@ export const FRUIT_TYPES = {
 		color: '#d69e2e',
 		scoreValue: 800,
 		sparkleColor: '#FDD835',
-		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+		svg: `
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g clip-path="url(#clip0_64_2)">
+        <path d="M32 62C48.5685 62 62 48.5685 62 32C62 15.4315 48.5685 2 32 2C15.4315 2 2 15.4315 2 32C2 48.5685 15.4315 62 32 62Z" fill="url(#paint0_radial_64_2)" stroke="#E65100" stroke-width="2"/>
+        <path d="M28 34C32.4183 34 36 28.6274 36 22C36 15.3726 32.4183 10 28 10C23.5817 10 20 15.3726 20 22C20 28.6274 23.5817 34 28 34Z" fill="url(#paint1_radial_64_2)"/>
+        <g opacity="0.8">
+            <path d="M12 24C25.3333 21.3333 38.6667 21.3333 52 24" stroke="#F57C00" stroke-width="2"/>
+            <path d="M10 32C24.6667 29.3333 39.3333 29.3333 54 32" stroke="#F57C00" stroke-width="2"/>
+            <path d="M12 40C25.3333 37.3333 38.6667 37.3333 52 40" stroke="#F57C00" stroke-width="2"/>
+            <path d="M14 48C26 45.3333 38 45.3333 50 48" stroke="#F57C00" stroke-width="2"/>
+            <path d="M18 20L22 24L26 20L30 24L34 20L38 24L42 20L46 24" stroke="#F57C00" stroke-width="2"/>
+            <path d="M16 28L20 32L24 28L28 32L32 28L36 32L40 28L44 32L48 28" stroke="#F57C00" stroke-width="2"/>
+            <path d="M18 36L22 40L26 36L30 40L34 36L38 40L42 36L46 40" stroke="#F57C00" stroke-width="2"/>
+            <path d="M20 44L24 48L28 44L32 48L36 44L40 48L44 44" stroke="#F57C00" stroke-width="2"/>
+        </g>
+        <g opacity="0.6">
+            <path d="M24 22L26 20L28 22L26 24L24 22Z" fill="#FFEE58"/>
+            <path d="M36 22L38 20L40 22L38 24L36 22Z" fill="#FFEE58"/>
+            <path d="M18 30L20 28L22 30L20 32L18 30Z" fill="#FFEE58"/>
+            <path d="M30 30L32 28L34 30L32 32L30 30Z" fill="#FFEE58"/>
+            <path d="M42 30L44 28L46 30L44 32L42 30Z" fill="#FFEE58"/>
+            <path d="M24 38L26 36L28 38L26 40L24 38Z" fill="#FFEE58"/>
+            <path d="M36 38L38 36L40 38L38 40L36 38Z" fill="#FFEE58"/>
+            <path d="M30 46L32 44L34 46L32 48L30 46Z" fill="#FFEE58"/>
+        </g>
+
+
+        <g id="openEyes">
+            <ellipse cx="25" cy="18" rx="5" ry="5" fill="white"/>
+            <ellipse cx="38" cy="18" rx="5" ry="5" fill="white"/>
+            <circle cx="25" cy="18" r="2.5" fill="black"/>
+            <circle cx="38" cy="18" r="2.5" fill="black"/>
+            <circle cx="26" cy="17" r="1" fill="white"/>
+            <circle cx="39" cy="17" r="1" fill="white"/>
+            <path d="M26 27C30 31 34 31 38 27" stroke="black" stroke-width="2.5" stroke-linecap="round"/><animate
+                    attributeName="opacity"
+                    values="1; 1; 0; 0"
+                    dur="20s"
+                    repeatCount="indefinite"
+                    calcMode="discrete"/>
+        </g>
+        <g id="closedEyes">
+            <ellipse cx="25" cy="21" rx="5" ry="5" fill="white"/>
+            <ellipse cx="38" cy="21" rx="5" ry="5" fill="white"/>
+            <circle cx="25" cy="21" r="2.5" fill="black"/>
+            <circle cx="38" cy="21" r="2.5" fill="black"/>
+            <circle cx="26" cy="20" r="1" fill="white"/>
+            <circle cx="39" cy="20" r="1" fill="white"/>
+            <path d="M26 30C30 34 34 34 38 30" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
+            <animate
+                    attributeName="opacity"
+                    values="0; 0; 1; 1"
+                    dur="20s"
+                    repeatCount="indefinite"
+                    calcMode="discrete"/>
+        </g>
+        <g opacity="0.9">
+            <path d="M29 5L25.25 12L23.5 6L21.0833 10.25L19 5H29Z" fill="#66BB6A" stroke="#4CAF50" stroke-width="4"/>
+            <path d="M28 11L30.2857 5L32 12.5L33.7143 6.2L36 14L28 11Z" fill="#66BB6A" stroke="#4CAF50" stroke-width="4"/>
+            <path d="M33 9.625L40 4V11.8125L47 6.5V14L33 9.625Z" fill="#66BB6A" stroke="#4CAF50" stroke-width="4"/>
+        </g>
+        <g opacity="0.6">
+            <path d="M15.4142 18.5858V21.4142H12.5858V18.5858H15.4142Z" fill="#FFD700"/>
+            <path d="M51.4142 20.5858V23.4142H48.5858V20.5858H51.4142Z" fill="#FFD700"/>
+        </g>
+    </g>
     <defs>
-        <radialGradient id="pineappleInnerGrad" cx="0.4" cy="0.4">
-            <stop offset="0%" style="stop-color:#FFF9C4"/>
-            <stop offset="30%" style="stop-color:#FFF176"/>
-            <stop offset="70%" style="stop-color:#FFEB3B"/>
-            <stop offset="100%" style="stop-color:#FDD835"/>
+        <radialGradient id="paint0_radial_64_2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(20 20) scale(30)">
+            <stop stop-color="#FFF9C4"/>
+            <stop offset="0.461538" stop-color="#FFF176"/>
+            <stop offset="0.625" stop-color="#FFEB3B"/>
+            <stop offset="1" stop-color="#FF962A"/>
         </radialGradient>
+        <radialGradient id="paint1_radial_64_2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(26.4 14.8) scale(8 12)">
+            <stop stop-color="#FFFDE7" stop-opacity="0.8"/>
+            <stop offset="1" stop-color="#FFFDE7" stop-opacity="0"/>
+        </radialGradient>
+        <clipPath id="clip0_64_2">
+            <rect width="64" height="64" fill="white"/>
+        </clipPath>
     </defs>
-    <circle cx="32" cy="32" r="30" fill="#FFEE58" stroke="#5D4037" stroke-width="2"/>
-    <g stroke="#4CAF50" stroke-width="5.5" fill="#F9A825" opacity="0.8">
-        <path d="M20,12 L22,6 L24,12 L26,8 L28,14 Z"/>
-        <path d="M28,8 L30,4 L32,10 L34,6 L36,12 Z"/>
-        <path d="M36,8 L38,4 L40,10 L42,6 L44,12 Z"/>
-    </g>
-    <g stroke="#F9A825" stroke-width="2" fill="none" opacity="0.8">
-        <path d="M12,24 Q32,20 52,24"/>
-        <path d="M10,32 Q32,28 54,32"/>
-        <path d="M12,40 Q32,36 52,40"/>
-        <path d="M14,48 Q32,44 50,48"/>
-        <path d="M18,20 L22,24 L26,20 L30,24 L34,20 L38,24 L42,20 L46,24"/>
-        <path d="M16,28 L20,32 L24,28 L28,32 L32,28 L36,32 L40,28 L44,32 L48,28"/>
-        <path d="M18,36 L22,40 L26,36 L30,40 L34,36 L38,40 L42,36 L46,40"/>
-        <path d="M20,44 L24,48 L28,44 L32,48 L36,44 L40,48 L44,44"/>
-    </g>
-    <g fill="#FFEE58" opacity="0.6">
-        <path d="M24,22 L26,20 L28,22 L26,24 Z"/>
-        <path d="M36,22 L38,20 L40,22 L38,24 Z"/>
-        <path d="M18,30 L20,28 L22,30 L20,32 Z"/>
-        <path d="M30,30 L32,28 L34,30 L32,32 Z"/>
-        <path d="M42,30 L44,28 L46,30 L44,32 Z"/>
-        <path d="M24,38 L26,36 L28,38 L26,40 Z"/>
-        <path d="M36,38 L38,36 L40,38 L38,40 Z"/>
-        <path d="M30,46 L32,44 L34,46 L32,48 Z"/>
-    </g>
-    <ellipse cx="24" cy="28" rx="5" ry="5" fill="white"/>
-    <ellipse cx="40" cy="28" rx="5" ry="5" fill="white"/>
-    <circle cx="24" cy="28" r="2.5" fill="black"/>
-    <circle cx="40" cy="28" r="2.5" fill="black"/>
-    <circle cx="25" cy="27" r="1" fill="white"/>
-    <circle cx="41" cy="27" r="1" fill="white"/>
-    <path d="M26,40 Q32,46 38,40" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <ellipse cx="16" cy="34" rx="3" ry="2" fill="#FFCC80" opacity="0.7"/>
-    <ellipse cx="48" cy="34" rx="3" ry="2" fill="#FFCC80" opacity="0.7"/>
-</svg>`
+</svg>
+`
 	},
 	COCONUT: {
 		index: 8,
@@ -478,31 +541,65 @@ export const FRUIT_TYPES = {
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="coconutGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#A1887F"/>
-            <stop offset="100%" style="stop-color:#8D6E63"/>
+            <stop offset="0%" style="stop-color:#D7CCC8"/>
+            <stop offset="30%" style="stop-color:#A1887F"/>
+            <stop offset="70%" style="stop-color:#8D6E63"/>
+            <stop offset="100%" style="stop-color:#6D4C41"/>
         </radialGradient>
     </defs>
+
     <circle cx="32" cy="32" r="30" fill="url(#coconutGrad)" stroke="#5D4037" stroke-width="2"/>
-    <path d="M20,16 Q32,20 44,16" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
-    <path d="M18,28 Q32,32 46,28" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
-    <path d="M18,36 Q32,40 46,36" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
-    <path d="M20,48 Q32,44 44,48" stroke="#6D4C41" stroke-width="2" fill="none" opacity="0.6"/>
-    <circle cx="22" cy="22" r="1.5" fill="#5D4037" opacity="0.8"/>
-    <circle cx="42" cy="20" r="1.5" fill="#5D4037" opacity="0.8"/>
-    <circle cx="20" cy="42" r="1.5" fill="#5D4037" opacity="0.8"/>
-    <circle cx="44" cy="44" r="1.5" fill="#5D4037" opacity="0.8"/>
-    <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
-    <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
-    <circle cx="24" cy="26" r="2.5" fill="black"/>
-    <circle cx="40" cy="26" r="2.5" fill="black"/>
-    <circle cx="25" cy="25" r="1" fill="white"/>
-    <circle cx="41" cy="25" r="1" fill="white"/>
-    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#D7CCC8" opacity="0.6"/>
-    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#D7CCC8" opacity="0.6"/>
-    <circle cx="30" cy="18" r="1" fill="#3E2723" opacity="0.9"/>
-    <circle cx="34" cy="18" r="1" fill="#3E2723" opacity="0.9"/>
-    <circle cx="32" cy="16" r="1" fill="#3E2723" opacity="0.9"/>
+
+    <path d="M12,20 Q16,32 12,44" stroke="#6D4C41" stroke-width="1.5" fill="none" opacity="0.4"/>
+    <path d="M52,20 Q48,32 52,44" stroke="#6D4C41" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+    <g id="openEyes">
+        <ellipse cx="24" cy="26" rx="6" ry="6" fill="white"/>
+        <ellipse cx="40" cy="26" rx="6" ry="6" fill="white"/>
+        <circle cx="24" cy="26" r="3" fill="black"/>
+        <circle cx="40" cy="26" r="3" fill="black"/>
+        <circle cx="25" cy="25" r="1.2" fill="white"/>
+        <circle cx="41" cy="25" r="1.2" fill="white"/>
+        <animate
+                attributeName="opacity"
+                values="1; 1; 0; 1; 1"
+                dur="5s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <g id="closedEyes">
+        <path d="M18,26 Q24,23 30,26" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M34,26 Q40,23 46,26" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <animate
+                attributeName="opacity"
+                values="0; 0; 1; 0; 0"
+                dur="5s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <g id="happyMouth">
+        <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <animate
+                attributeName="opacity"
+                values="1; 1; 0; 1; 1"
+                dur="8s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <g id="neutralMouth">
+        <ellipse cx="32" cy="40" rx="6" ry="4" fill="#000" stroke="black" stroke-width="2" opacity="0.8"/>
+        <animate
+                attributeName="opacity"
+                values="0; 0; 1; 0; 0"
+                dur="8s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <ellipse cx="12" cy="32" rx="5" ry="4" fill="#D7CCC8" opacity="0.4"/>
+    <ellipse cx="52" cy="32" rx="5" ry="4" fill="#D7CCC8" opacity="0.4"/>
+    <circle cx="28" cy="10" r="2.5" fill="#3E2723" opacity="0.7"/>
+    <circle cx="36" cy="10" r="2.5" fill="#3E2723" opacity="0.7"/>
+    <circle cx="32" cy="15" r="2.5" fill="#3E2723" opacity="0.7"/>
 </svg>`
 	},
   MELON: {
@@ -511,45 +608,60 @@ export const FRUIT_TYPES = {
     emoji: '🍈',
     radius: 78,
     nextType: 'DRAGON_FRUIT',
-    color: '#90EE90',
+    color: '#F0FF00',
     scoreValue: 1600,
-    sparkleColor: '#98FB98',
+    sparkleColor: '#F4FF81',
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="honeydewGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#F0FFF0"/>
+            <stop offset="0%" style="stop-color:#F0FF00"/>
             <stop offset="30%" style="stop-color:#E6FFE6"/>
-            <stop offset="70%" style="stop-color:#98FB98"/>
-            <stop offset="100%" style="stop-color:#90EE90"/>
+            <stop offset="70%" style="stop-color:#F8FB98"/>
+            <stop offset="100%" style="stop-color:#F28B22"/>
         </radialGradient>
     </defs>
-    
-    <!-- Honeydew body -->
-    <circle cx="32" cy="32" r="30" fill="url(#honeydewGrad)" stroke="#8FBC8F" stroke-width="2"/>
-    
-    <!-- Honeydew texture (smooth surface) -->
-    <circle cx="32" cy="32" r="26" fill="#F5FFFA" opacity="0.6"/>
-    <circle cx="32" cy="32" r="22" fill="#E0FFE0" opacity="0.4"/>
-    
-    <!-- Subtle surface pattern -->
-    <path d="M18,24 Q24,20 30,24 Q36,20 42,24" stroke="#8FBC8F" stroke-width="1" fill="none" opacity="0.3"/>
-    <path d="M16,32 Q24,28 32,32 Q40,28 48,32" stroke="#8FBC8F" stroke-width="1" fill="none" opacity="0.3"/>
-    <path d="M18,40 Q24,36 30,40 Q36,36 42,40" stroke="#8FBC8F" stroke-width="1" fill="none" opacity="0.3"/>
-    
-    <!-- Eyes -->
-    <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
-    <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
-    <circle cx="24" cy="26" r="2.5" fill="black"/>
-    <circle cx="40" cy="26" r="2.5" fill="black"/>
-    <circle cx="25" cy="25" r="1" fill="white"/>
-    <circle cx="41" cy="25" r="1" fill="white"/>
-    
-    <!-- Sweet smile -->
-    <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    
-    <!-- Cheek blush (sweet honeydew) -->
+    <circle cx="32" cy="32" r="30" fill="url(#honeydewGrad)" stroke="#f0e400" stroke-width="2"/>
+    <circle cx="32" cy="32" r="27" fill="#F5FFFA" opacity="0.6"/>
+    <circle cx="32" cy="32" r="25" fill="#E0FFE0" opacity="0.4"/>
     <ellipse cx="16" cy="32" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
     <ellipse cx="48" cy="32" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
+    <g fill="#E2B07A" opacity="0.8">
+        <circle cx="28" cy="39" r="1"/>
+        <circle cx="32" cy="34" r="1"/>
+        <circle cx="36" cy="36" r="1"/>
+        <circle cx="42" cy="38" r="1"/>
+        <circle cx="34" cy="39" r="1"/>
+        <circle cx="32" cy="38" r="1"/>
+        <circle cx="20" cy="38" r="1"/>
+        <circle cx="45" cy="39" r="1"/>
+    </g>
+    <g id="openEyes">
+        <ellipse cx="24" cy="26" rx="9" ry="9" fill="#FFDDEE"/>
+        <ellipse cx="40" cy="26" rx="9" ry="9" fill="#FFDDEE"/>
+        <ellipse cx="24" cy="26" rx="8" ry="8" fill="white"/>
+        <ellipse cx="40" cy="26" rx="8" ry="8" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <animate
+                attributeName="opacity"
+                values="1; 1; 0; 1; 1"
+                dur="8s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <g id="closedEyes">
+        <line x1="18" y1="26" x2="30" y2="25" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="34" y1="25" x2="46" y2="26" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <animate
+                attributeName="opacity"
+                values="0; 0; 1; 0; 0"
+                dur="8s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
+    <path d="M26,44 Q32,50 38,44" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 </svg>`
   },
 	DRAGON_FRUIT: {
@@ -564,57 +676,57 @@ export const FRUIT_TYPES = {
 		svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <defs>
         <radialGradient id="dragonGrad" cx="0.3" cy="0.3">
-            <stop offset="0%" style="stop-color:#F8BBD0"/>
-            <stop offset="50%" style="stop-color:#E91E63"/>
-            <stop offset="100%" style="stop-color:#AD1457"/>
+            <stop offset="0%" style="stop-color:#FFFFFF"/>
+            <stop offset="40%" style="stop-color:#FFF0F5"/>
+            <stop offset="70%" style="stop-color:#FFE4E1"/>
+            <stop offset="100%" style="stop-color:#F8BBD0"/>
         </radialGradient>
     </defs>
 
-    <!-- Dragon fruit body -->
     <ellipse cx="32" cy="32" rx="30" ry="30" fill="url(#dragonGrad)" stroke="#880E4F" stroke-width="2"/>
-
-    <!-- Dragon fruit scales pattern -->
-    <g fill="#C2185B" opacity="0.6">
-        <circle cx="20" cy="20" r="2"/>
-        <circle cx="32" cy="18" r="2"/>
-        <circle cx="44" cy="20" r="2"/>
-        <circle cx="16" cy="32" r="2"/>
-        <circle cx="28" cy="30" r="2"/>
-        <circle cx="36" cy="30" r="2"/>
-        <circle cx="48" cy="32" r="2"/>
+    <g fill="black" opacity="0.6">
+        <circle cx="20" cy="12" r="2"/>
+        <circle cx="34" cy="14" r="1"/>
+        <circle cx="44" cy="13" r="2"/>
+        <circle cx="11" cy="32" r="2"/>
+        <circle cx="28" cy="7" r="2"/>
+        <circle cx="11" cy="20" r="1.5"/>
+        <circle cx="48" cy="39" r="2"/>
         <circle cx="20" cy="44" r="2"/>
-        <circle cx="32" cy="46" r="2"/>
+        <circle cx="34" cy="56" r="2"/>
         <circle cx="44" cy="44" r="2"/>
-        <circle cx="24" cy="36" r="1.5"/>
-        <circle cx="40" cy="36" r="1.5"/>
+        <circle cx="54" cy="26" r="1.5"/>
+        <circle cx="53" cy="46" r="1.5"/>
     </g>
-
-    <!-- Dragon fruit leafy top -->
-    <g stroke="#4CAF50" stroke-width="3" fill="#66BB6A">
-        <path d="M26,8 Q24,4 20,6 Q18,8 22,12"/>
-        <path d="M32,6 Q30,2 26,4 Q24,6 28,10"/>
-        <path d="M38,6 Q36,2 32,4 Q30,6 34,10"/>
-        <path d="M44,8 Q42,4 38,6 Q36,8 40,12"/>
+    <g id="openEyes">
+        <ellipse cx="24" cy="26" rx="8" ry="8" fill="#F8BBD0"/>
+        <ellipse cx="40" cy="26" rx="8" ry="8" fill="#F8BBD0"/>
+        <ellipse cx="24" cy="26" rx="7" ry="7" fill="white"/>
+        <ellipse cx="40" cy="26" rx="7" ry="7" fill="white"/>
+        <circle cx="24" cy="26" r="2.5" fill="black"/>
+        <circle cx="40" cy="26" r="2.5" fill="black"/>
+        <circle cx="25" cy="25" r="1" fill="white"/>
+        <circle cx="41" cy="25" r="1" fill="white"/>
+        <animate
+                attributeName="opacity"
+                values="1; 1; 0; 1; 1"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
     </g>
-
-    <!-- Eyes -->
-    <ellipse cx="24" cy="26" rx="5" ry="5" fill="white"/>
-    <ellipse cx="40" cy="26" rx="5" ry="5" fill="white"/>
-    <circle cx="24" cy="26" r="2.5" fill="black"/>
-    <circle cx="40" cy="26" r="2.5" fill="black"/>
-    <circle cx="25" cy="25" r="1" fill="white"/>
-    <circle cx="41" cy="25" r="1" fill="white"/>
-
-    <!-- Mouth -->
+    <g id="closedEyes">
+        <ellipse cx="24" cy="26" rx="8" ry="3" fill="#4A4A4A"/>
+        <ellipse cx="40" cy="26" rx="8" ry="3" fill="#4A4A4A"/>
+        <path d="M17,26 Q24,22 31,26" stroke="black" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M33,26 Q40,22 47,26" stroke="black" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <animate
+                attributeName="opacity"
+                values="0; 0; 1; 0; 0"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="discrete"/>
+    </g>
     <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-
-    <!-- Mystical sparkles -->
-    <g fill="#FFD700" opacity="0.8">
-        <polygon points="12,16 14,18 12,20 10,18" transform="rotate(45 12 18)"/>
-        <polygon points="52,16 54,18 52,20 50,18" transform="rotate(45 52 18)"/>
-        <polygon points="12,48 14,50 12,52 10,50" transform="rotate(45 12 50)"/>
-        <polygon points="52,48 54,50 52,52 50,50" transform="rotate(45 52 50)"/>
-    </g>
 </svg>`
 	},
   WATERMELON: {
@@ -652,8 +764,16 @@ export const FRUIT_TYPES = {
     <circle cx="25" cy="25" r="1" fill="white"/>
     <circle cx="41" cy="25" r="1" fill="white"/>
     <path d="M26,38 Q32,44 38,38" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
-    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+    <ellipse cx="12" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+    <ellipse cx="52" cy="32" rx="3" ry="2" fill="#F8BBD0" opacity="0.6"/>
+    <ellipse cx="48" cy="20" rx="2" ry="5" fill="#2196F3" opacity="0.8">
+        <animate attributeName="cy" from="18" to="28" dur="12s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;0.8;0" keyTimes="0;0.7;1" dur="12s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="18" cy="18" rx="2" ry="5" fill="#2196F3" opacity="0.8">
+        <animate attributeName="cy" from="18" to="28" dur="9s" begin="9s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;0.8;0" keyTimes="0;0.7;1" dur="9s" repeatCount="indefinite"/>
+    </ellipse>
 </svg>`
   },
 	PUMPKIN: {
@@ -676,44 +796,54 @@ export const FRUIT_TYPES = {
             <stop offset="100%" style="stop-color:#4CAF50"/>
         </radialGradient>
     </defs>
-    
+
     <!-- Pumpkin body with segments -->
     <circle cx="32" cy="32" r="30" fill="url(#pumpkinGrad)" stroke="#E65100" stroke-width="2"/>
-    
+
     <!-- Pumpkin segments (vertical lines) -->
     <path d="M32,2 Q28,32 32,62" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M20,8 Q18,32 20,56" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M44,8 Q46,32 44,56" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M12,18 Q10,32 12,46" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
     <path d="M52,18 Q54,32 52,46" stroke="#E65100" stroke-width="1.5" fill="none" opacity="0.4"/>
-    
+
     <!-- Pumpkin stem -->
     <rect x="30" y="2" width="4" height="8" rx="2" fill="url(#stemGrad)"/>
     <ellipse cx="32" cy="6" rx="3" ry="1.5" fill="#689F38"/>
-    
+
     <!-- Pumpkin leaf -->
     <path d="M28,4 Q24,2 26,8 Q28,6 28,4" fill="#4CAF50" opacity="0.8"/>
-    
-    <!-- Eyes -->
+
+    <!-- Linkes Auge -->
     <polygon points="20,22 28,22 24,30" fill="#2E1065"/>
+
+    <!-- Rechtes Auge -->
     <polygon points="36,22 44,22 40,30" fill="#2E1065"/>
+
+    <ellipse cx="24" cy="25" rx="2.2" ry="2" fill="red" opacity="0.8">
+        <animate attributeName="fill" values="#FF0000;#2E1065;#FF0000" dur="9s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;1;0.8" dur="10s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="40" cy="25" rx="2.2" ry="2" fill="red" opacity="0.8">
+        <animate attributeName="fill" values="#FF0000;#2E1065;#FF0000" dur="8s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;1;0.8" dur="8s" repeatCount="indefinite"/>
+    </ellipse>
     
     <!-- Nose -->
     <polygon points="30,32 34,32 32,38" fill="#2E1065"/>
-    
+
     <!-- Mouth -->
-    <path d="M20,42 L22,40 L26,42 L30,40 L34,42 L38,40 L42,42 L44,44 L42,46 L38,44 L34,46 L30,44 L26,46 L22,44 Z" 
+    <path d="M20,42 L22,40 L26,42 L30,40 L34,42 L38,40 L42,42 L44,44 L42,46 L38,44 L34,46 L30,44 L26,46 L22,44 Z"
           fill="#2E1065"/>
-    
+
     <!-- Teeth -->
-    <rect x="24" y="42" width="2" height="4" fill="#FFB74D"/>
-    <rect x="30" y="42" width="2" height="4" fill="#FFB74D"/>
-    <rect x="36" y="42" width="2" height="4" fill="#FFB74D"/>
-    
-    <!-- Highlight -->
-    <ellipse cx="26" cy="20" rx="4" ry="6" fill="#FFCC80" opacity="0.6"/>
-    <ellipse cx="16" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
-    <ellipse cx="48" cy="32" rx="3" ry="2" fill="#FFCC80" opacity="0.4"/>
+    <rect x="25" y="43" width="2" height="3" fill="#FF8C00"/>
+    <rect x="33" y="43" width="2" height="3" fill="#FF8C00"/>
+    <rect x="37" y="40" width="2" height="2" fill="#FF8C00"/>
+
+    <polyline points="8,26 10,30 12,28 14,32 16,30 18,34" stroke="#B71C1C" stroke-width="1.2" fill="none" opacity="0.8"/>
+    <polyline points="56,26 54,30 52,28 50,32 48,30 46,34" stroke="#B71C1C" stroke-width="1.2" fill="none" opacity="0.8"/>
+
 </svg>`
 	},
   RAINBOW_FRUIT: {
@@ -846,7 +976,7 @@ export const FRUIT_TYPES = {
     color: '#5D4037',
     scoreValue: -50, // Negative score for risk/reward
     cost: {
-      diamonds: 10
+      diamonds: 1
     },
     sparkleColor: '#8D6E63',
     isMold: true, // Special property
