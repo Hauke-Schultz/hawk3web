@@ -112,7 +112,12 @@ const isRestoringState = ref(false)
 const hasSavedState = ref(false)
 
 const hammerMode = ref(false)
-const hammerRemaining = ref(gameData.player.inventory.items?.hammer_powerup?.quantity || 0)
+const hammerRemaining = computed(() => {
+	const quantity = gameData.player.inventory.items?.hammer_powerup?.quantity || 0
+	const faa = getItemQuantity('hammer_powerup')
+	console.log('hammerRemaining', quantity, faa);
+	return quantity
+})
 const selectedFruitForHammer = ref(null)
 const isUsingHammer = ref(false)
 const hammerCountdownTimer = ref(null)
@@ -1054,8 +1059,6 @@ const executeHammerStrike = (fruit) => {
 
 	// Use hammer from inventory
 	removeItemFromInventory('hammer_powerup', 1)
-	const remaining = getItemQuantity('hammer_powerup')
-	hammerRemaining.value = remaining
 
 	// Reset states
 	isUsingHammer.value = false
@@ -2241,13 +2244,11 @@ const handleHammerPurchaseConfirm = async () => {
 	buyItem(hammerItem.value)
 
 	setTimeout(() => {
-		const newQuantity = gameData.player.inventory.items?.hammer_powerup?.quantity || 0
-		hammerRemaining.value = newQuantity
-		console.log(`🔨 Purchase hammer count: ${newQuantity}`)
+		console.log(`🔨 Purchase hammer count: ${hammerRemaining.value}`)
 		closeShopModal()
 
 		// Auto-activate hammer mode after successful purchase
-		if (newQuantity > 0 && isEndlessMode.value) {
+		if (hammerRemaining.value > 0 && isEndlessMode.value) {
 			activateHammerMode()
 			console.log('🔨 Hammer mode auto-activated after purchase')
 		}
@@ -2784,33 +2785,6 @@ const restoreGameState = async (savedState) => {
 	}
 }
 
-const restartBombFuseTimer = (bombFruit, remainingTime) => {
-	currentBombFruit.value = bombFruit
-	bombFuseRemaining.value = remainingTime
-
-	// Determine if should start in ticking phase
-	if (remainingTime <= 3000) {
-		bombTickingActive.value = true
-	}
-
-	console.log('💣 Restarting bomb fuse timer with', Math.floor(remainingTime / 1000), 'seconds remaining')
-
-	bombFruitTimer.value = setInterval(() => {
-		bombFuseRemaining.value -= 100
-
-		// Start danger ticking in last 3 seconds
-		if (bombFuseRemaining.value <= 3000 && !bombTickingActive.value) {
-			bombTickingActive.value = true
-			console.log('💣 Restored bomb entering danger phase!')
-		}
-
-		// Explode when fuse runs out
-		if (bombFuseRemaining.value <= 0) {
-			explodeBomb(bombFruit)
-		}
-	}, 100) // Update every 100ms for smooth countdown
-}
-
 const getMilestoneText = (milestone) => {
 	const [type, value] = milestone.split('_')
 	const achievement = ACHIEVEMENTS.definitions.find(a => a.id === milestone)
@@ -2902,75 +2876,6 @@ const handleMenuClick = () => {
 const hasMoldFruit = computed(() => {
 	return fruits.value.some(fruit => fruit.isMold)
 })
-
-// Mold Fruit Spawn Logic
-const shouldSpawnMoldFruit = () => {
-	if (!isEndlessMode.value) return false
-	if (hasMoldFruit.value) return false
-
-	const now = Date.now()
-	const timeSinceLastSpawn = now - lastMoldSpawnTime.value
-
-	// Ensure minimum delay between spawns
-	if (timeSinceLastSpawn < MOLD_FRUIT_CONFIG.minSpawnDelay) return false
-
-	// Random chance with increasing probability over time
-	const baseChance = MOLD_FRUIT_CONFIG.spawnChance
-	const timeMultiplier = Math.min(2, timeSinceLastSpawn / MOLD_FRUIT_CONFIG.maxSpawnDelay)
-	const adjustedChance = baseChance * timeMultiplier
-
-	return Math.random() < adjustedChance
-}
-
-
-const createMoldSpawnEffect = (x, y) => {
-	const particleCount = MOLD_FRUIT_CONFIG.spawnEffect.particles
-
-	for (let i = 0; i < particleCount; i++) {
-		const angle = (i / particleCount) * Math.PI * 2
-		const distance = 30 + Math.random() * 20
-		const particleX = Math.cos(angle) * distance
-		const particleY = Math.sin(angle) * distance
-
-		const particle = {
-			id: `mold-spawn-${Date.now()}-${i}`,
-			x: x,
-			y: y,
-			targetX: particleX,
-			targetY: particleY,
-			type: 'mold_spawn',
-			backgroundColor: MOLD_FRUIT_CONFIG.spawnEffect.color,
-			duration: MOLD_FRUIT_CONFIG.spawnEffect.duration,
-			size: 3 + Math.random() * 3
-		}
-
-		particles.value.push(particle)
-
-		setTimeout(() => {
-			particles.value = particles.value.filter(p => p.id !== particle.id)
-		}, MOLD_FRUIT_CONFIG.spawnEffect.duration)
-	}
-}
-
-const restartMoldFruitLifecycle = (moldFruit, remainingTime) => {
-	moldFruitLifeRemaining.value = remainingTime
-
-	moldFruitTimer.value = setInterval(() => {
-		moldFruitLifeRemaining.value -= 100
-
-		// Start warning flash in last minute
-		if (moldFruitLifeRemaining.value <= MOLD_FRUIT_CONFIG.warningFlashTime) {
-			moldFruitWarningActive.value = true
-		}
-
-		// Remove mold fruit when lifespan expires
-		if (moldFruitLifeRemaining.value <= 0) {
-			removeMoldFruit(moldFruit, 'expired')
-		}
-	}, 100)
-
-	console.log('🔄 Mold Fruit circular timer restarted with', Math.floor(remainingTime / 1000), 'seconds remaining')
-}
 
 const startMoldFruitLifecycle = (moldFruit) => {
 	// Set fresh spawn time if not set
@@ -3273,21 +3178,22 @@ onUnmounted(() => {
 					<button
 						class="btn btn--small btn--circle control-btn"
 						:class="{
-			        'btn--success': hammerRemaining > 0 && !hammerMode,
-			        'btn--danger': hammerMode
-			      }"
+				      'btn--success': hammerRemaining > 0 && !hammerMode,
+				      'btn--danger': hammerMode
+				    }"
 						@click="hammerRemaining > 0 ? (hammerMode ? deactivateHammerMode() : activateHammerMode()) : handleBuyHammerClick()"
 						:title="getHammerTooltip()"
 					>
 						<span class="control-icon">🔨</span>
+						<!-- This will now update automatically -->
 						<span v-if="hammerRemaining > 0" class="notification-badge">{{ hammerRemaining }}</span>
 					</button>
 
 					<!-- Fruit Selection Control -->
 					<button
-							class="btn btn--small btn--circle control-btn"
-							@click="openFruitSelector"
-							:title="t('fruitMerge.select_next_fruit')"
+						class="btn btn--small btn--circle control-btn"
+						@click="openFruitSelector"
+						:title="t('fruitMerge.select_next_fruit')"
 					>
 						<span class="control-icon">🎯</span>
 					</button>

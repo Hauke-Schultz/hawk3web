@@ -934,7 +934,7 @@ export const FRUIT_TYPES = {
     color: '#FF4444',
     scoreValue: 0, // Bonus based on explosion
     cost: {
-      diamonds: 1
+      diamonds: 10
     },
     sparkleColor: '#FF6B6B',
     isBomb: true, // Special property
