@@ -755,6 +755,7 @@ onUnmounted(() => {
 				:reward-breakdown="rewardBreakdown"
 				:show-completion-phases="true"
 				:enable-phase-transition="true"
+				:auto-save-screenshot="false"
 				:next-level-label="t('memory.next_level')"
 				:play-again-label="t('memory.play_again')"
 				:back-to-games-label="t('memory.back_to_levels')"

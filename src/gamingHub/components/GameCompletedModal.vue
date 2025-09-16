@@ -371,7 +371,7 @@ watch(() => props.visible, async (newVisible) => {
 					  </div>
 
 					  <!-- High Score Achievement Banner -->
-					  <div v-if="highScoreInfo.isNewHighScore" class="highscore-achievement">
+					  <div v-if="props.autoSaveScreenshot && highScoreInfo.isNewHighScore" class="highscore-achievement">
 						  <div class="achievement-banner">
 							  <div class="rank-badge">
 								  <span class="rank-number">#{{ highScoreInfo.rank }}</span>
@@ -418,7 +418,7 @@ watch(() => props.visible, async (newVisible) => {
 		        {{ getModalTitle }}
 	        </h3>
 
-	        <div class="reward-item reward-item--info">
+	        <div v-if="props.autoSaveScreenshot" class="reward-item reward-item--info">
 		        <div class="reward-info">
 			        <Icon name="camera" size="16" />
 			        <span class="reward-info-text">{{ t('nav.screenshot_gallery') }}</span>
@@ -518,7 +518,7 @@ watch(() => props.visible, async (newVisible) => {
 
 	  <!-- Screenshot Gallery Modal -->
 	  <ScreenshotGallery
-			  :visible="showScreenshotGallery"
+			  :visible="props.autoSaveScreenshot && showScreenshotGallery"
 			  :game-id="props.gameName"
 			  :level="level"
 			  :game-title="t(`${props.gameName}.title`)"

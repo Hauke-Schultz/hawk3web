@@ -3,6 +3,9 @@ import {ref, computed, watch, onMounted, reactive, onUpdated} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
+import { memoryConfig } from '../games/memory/memoryConfig.js'
+import { fruitMergeConfig } from '../games/fruitmerge/fruitMergeConfig.js'
+import { numNumMergeConfig } from '../games/numnummerge/numNumMergeConfig.js'
 import Icon from "../../components/Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
 import DailyRewardCard from "./DailyRewardCard.vue"
@@ -65,6 +68,49 @@ const isNotificationAnimating = ref(false)
 const isNotificationTransitioning = ref(false)
 const coins = ref(props.player.coins || 0)
 const diamonds = ref(props.player.diamonds || 0)
+const availableGames = computed(() => [
+	{
+		id: 'memory',
+		title: t('memory.title'),
+		icon: memoryConfig.gameIcon,
+		route: '/games/memory',
+		color: 'primary',
+		levels: gameData.games.memory.levels || {},
+		totalLevels: memoryConfig.levels.length,
+		highlight: route.path.includes('/games/memory'),
+	},
+	{
+		id: 'fruitMerge',
+		title: fruitMergeConfig.gameTitle,
+		icon: fruitMergeConfig.gameIcon,
+		route: '/games/fruitmerge',
+		color: 'warning',
+		levels: gameData.games.fruitMerge.levels || {},
+		totalLevels: fruitMergeConfig.levels.length,
+		highlight: route.path.includes('/games/fruitmerge'),
+	},
+	{
+		id: 'numNumMerge',
+		title: numNumMergeConfig.gameTitle,
+		icon: numNumMergeConfig.gameIcon,
+		route: '/games/numnummerge',
+		color: 'info',
+		levels: gameData.games.numNumMerge.levels || {},
+		totalLevels: numNumMergeConfig.levels.length,
+		highlight: route.path.includes('/games/numnummerge'),
+	}
+])
+
+const getGameProgress = (game) => {
+	const completedLevels = Object.values(game.levels).filter(level => level.completed).length
+	const totalStars = Object.values(game.levels).reduce((sum, level) => sum + (level.stars || 0), 0)
+	return {
+		completed: completedLevels,
+		total: game.totalLevels,
+		stars: totalStars,
+		percentage: game.totalLevels > 0 ? Math.round((completedLevels / game.totalLevels) * 100) : 0
+	}
+}
 
 const toggleNotifications = async (event) => {
 	if (isNotificationAnimating.value || isNotificationTransitioning.value) return
@@ -292,7 +338,7 @@ const menuItems = computed(() => {
 			label: t('nav.gaming'),
 			icon: 'play',
 			action: () => navigateTo('/games'),
-			highlight: route.path.includes('/games'),
+			highlight: route.path.includes('/games') && !route.path.includes('/games/'),
 			visible: true
 		},
 		{
@@ -544,12 +590,26 @@ watch(() => props.player.diamonds, () => {
 											<span class="menu-label">{{ item.label }}</span>
 										</button>
 									</li>
+									<li
+										v-for="game in availableGames"
+										:key="game.id"
+										class="menu-item"
+									>
+										<button
+											class="menu-link"
+											:class="{ 'menu-link--highlight': game.highlight }"
+											@click="navigateTo(game.route)"
+										>
+											<Icon :name="game.icon" size="80" />
+											<span class="menu-label">{{ game.title }}</span>
+										</button>
+									</li>
 								</ul>
 							</nav>
 
 							<!-- Recent Games Section -->
 							<div
-									v-if="!currentRoute.isGame && allRecentLevels.length > 0"
+									v-if="allRecentLevels.length > 0"
 									class="menu-recent-games"
 							>
 								<div v-if="lastPlayedActivity" class="recent-activity">
@@ -1396,4 +1456,5 @@ watch(() => props.player.diamonds, () => {
 	color: var(--text-muted);
 	font-style: italic;
 }
+
 </style>
