@@ -78,12 +78,13 @@
 - **Screenshot System for FruitMerge** - Save and view game state screenshots with metadata
 - **Screenshot gallery** - View saved screenshots on level overview page and in GameCompletedModal
 - **Multi-Game Support** - Screenshot functionality for NumNum Game
+- **Rainbow Fruit** - don't merge with giant fruits
+- **Screenshot Watermark** - Game logo and timestamp overlay on screenshots
 
 ---
 
 ## 🚀 Version 0.3.3 - Screenshot System**
 
-- **Rainbow Fruit** - don't merge with giant fruits (index < 11)
 - **Screenshot Watermark** - Game logo and timestamp overlay on screenshots
 - **Screenshot sharing** - Copy screenshot to clipboard for easy sharing
 

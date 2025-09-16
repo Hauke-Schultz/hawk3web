@@ -2,6 +2,41 @@ import { ref, computed } from 'vue'
 
 const SCREENSHOT_STORAGE_KEY = 'hawk3_screenshots'
 const MAX_SCREENSHOTS_PER_LEVEL = 5
+const WATERMARK_CONFIG = {
+  // Brand watermark (top right)
+  brand: {
+    text: 'HAWK3 Games',
+    fontSize: 12,
+    fontFamily: 'Arial, sans-serif',
+    color: 'rgba(255, 255, 255, 0.7)',
+    shadowColor: 'rgba(0, 0, 0, 0.8)',
+    shadowBlur: 4,
+    position: 'top-right',
+    margin: 12
+  },
+
+  // Game name watermark (top right)
+  gameName: {
+    fontSize: 14,
+    fontFamily: 'Arial, sans-serif',
+    color: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: 'rgba(0, 0, 0, 0.8)',
+    shadowBlur: 4,
+    position: 'top-right',
+    margin: 12
+  },
+
+  // Timestamp watermark (top right)
+  timestamp: {
+    fontSize: 11,
+    fontFamily: 'Arial, sans-serif',
+    color: 'rgba(255, 255, 255, 0.6)',
+    shadowColor: 'rgba(0, 0, 0, 0.8)',
+    shadowBlur: 4,
+    position: 'top-right',
+    margin: 12
+  }
+}
 
 // Screenshot storage management
 const screenshots = ref({})
@@ -33,6 +68,77 @@ export function useScreenshot() {
     }
   }
 
+  // Add watermarks to screenshot
+  const addWatermarksToCanvas = (ctx, gameStateData, canvasWidth, canvasHeight) => {
+    // Save current context state
+    ctx.save()
+
+    const baseX = canvasWidth - WATERMARK_CONFIG.brand.margin
+    let currentY = WATERMARK_CONFIG.brand.margin
+    const lineSpacing = 18 // Spacing between lines
+
+    // Game name watermark (top line)
+    const gameName = WATERMARK_CONFIG.gameName
+    ctx.font = `${gameName.fontSize}px ${gameName.fontFamily}`
+    ctx.fillStyle = gameName.color
+    ctx.shadowColor = gameName.shadowColor
+    ctx.shadowBlur = gameName.shadowBlur
+    ctx.shadowOffsetX = 1
+    ctx.shadowOffsetY = 1
+    ctx.textAlign = 'right'
+    ctx.textBaseline = 'top'
+
+    const gameDisplayName = getGameDisplayName(gameStateData.gameTitle)
+    ctx.fillText(gameDisplayName, baseX, currentY)
+
+    // Move to next line
+    currentY += lineSpacing
+
+    // Brand watermark (second line)
+    const brand = WATERMARK_CONFIG.brand
+    ctx.font = `${brand.fontSize}px ${brand.fontFamily}`
+    ctx.fillStyle = brand.color
+    ctx.shadowColor = brand.shadowColor
+    ctx.shadowBlur = brand.shadowBlur
+    ctx.shadowOffsetX = 1
+    ctx.shadowOffsetY = 1
+    ctx.textAlign = 'right'
+    ctx.textBaseline = 'top'
+
+    ctx.fillText(brand.text, baseX, currentY)
+
+    // Move to next line
+    currentY += lineSpacing
+
+    // Timestamp watermark (third line)
+    const timestamp = WATERMARK_CONFIG.timestamp
+    ctx.font = `${timestamp.fontSize}px ${timestamp.fontFamily}`
+    ctx.fillStyle = timestamp.color
+    ctx.shadowColor = timestamp.shadowColor
+    ctx.shadowBlur = timestamp.shadowBlur
+    ctx.shadowOffsetX = 1
+    ctx.shadowOffsetY = 1
+    ctx.textAlign = 'right'
+    ctx.textBaseline = 'top'
+
+    const timestampText = new Date(gameStateData.capturedAt).toLocaleDateString()
+    ctx.fillText(timestampText, baseX, currentY)
+
+    // Restore context state
+    ctx.restore()
+  }
+
+  // Helper function to get proper game display names
+  const getGameDisplayName = (gameTitle) => {
+    const gameNames = {
+      'Memory': 'Memory Game',
+      'Fruit Merge': 'Fruit Merge',
+      'Num Num Merge': 'NumNum Merge'
+    }
+
+    return gameNames[gameTitle] || gameTitle
+  }
+
   // Generate unique screenshot ID
   const generateScreenshotId = (gameId, level, timestamp) => {
     return `${gameId}_level${level}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -60,6 +166,9 @@ export function useScreenshot() {
           // Add common UI overlay for NumNum
           addGameUIOverlay(ctx, gameStateData)
 
+          // NEW: Add watermarks
+          addWatermarksToCanvas(ctx, gameStateData, gameStateData.boardConfig.width, gameStateData.boardConfig.height)
+
           // Convert canvas to data URL
           const dataUrl = canvas.toDataURL('image/png', 0.9)
           resolve(dataUrl)
@@ -69,6 +178,10 @@ export function useScreenshot() {
           renderFruitMergeGameState(ctx, gameStateData)
               .then(() => {
                 addGameUIOverlay(ctx, gameStateData)
+
+                // NEW: Add watermarks
+                addWatermarksToCanvas(ctx, gameStateData, gameStateData.boardConfig.width, gameStateData.boardConfig.height)
+
                 // Convert canvas to data URL after fruits are rendered
                 const dataUrl = canvas.toDataURL('image/png', 0.9)
                 resolve(dataUrl)
