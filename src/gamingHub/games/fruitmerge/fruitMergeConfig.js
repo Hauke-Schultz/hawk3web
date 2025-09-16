@@ -685,18 +685,23 @@ export const FRUIT_TYPES = {
 
     <ellipse cx="32" cy="32" rx="30" ry="30" fill="url(#dragonGrad)" stroke="#880E4F" stroke-width="2"/>
     <g fill="black" opacity="0.6">
-        <circle cx="20" cy="12" r="2"/>
+        <circle cx="20" cy="12" r="1"/>
+        <circle cx="30" cy="12" r="0.8"/>
+        <circle cx="40" cy="8" r="0.8"/>
         <circle cx="34" cy="14" r="1"/>
-        <circle cx="44" cy="13" r="2"/>
-        <circle cx="11" cy="32" r="2"/>
-        <circle cx="28" cy="7" r="2"/>
-        <circle cx="11" cy="20" r="1.5"/>
-        <circle cx="48" cy="39" r="2"/>
-        <circle cx="20" cy="44" r="2"/>
-        <circle cx="34" cy="56" r="2"/>
-        <circle cx="44" cy="44" r="2"/>
-        <circle cx="54" cy="26" r="1.5"/>
-        <circle cx="53" cy="46" r="1.5"/>
+        <circle cx="44" cy="13" r="1"/>
+        <circle cx="11" cy="32" r="1"/>
+        <circle cx="28" cy="7" r="1"/>
+        <circle cx="11" cy="20" r="0.8"/>
+        <circle cx="48" cy="39" r="1"/>
+        <circle cx="20" cy="44" r="1"/>
+        <circle cx="34" cy="56" r="1"/>
+        <circle cx="44" cy="44" r="1"/>
+        <circle cx="54" cy="26" r="1"/>
+        <circle cx="53" cy="46" r="1.1"/>
+        <circle cx="13" cy="48" r="1.1"/>
+        <circle cx="30" cy="51" r="0.7"/>
+        <circle cx="39" cy="50" r="0.7"/>
     </g>
     <g id="openEyes">
         <ellipse cx="24" cy="26" rx="8" ry="8" fill="#F8BBD0"/>

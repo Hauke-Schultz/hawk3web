@@ -1243,7 +1243,12 @@ const handleCollision = (event) => {
 				const rainbowFruit = isRainbowA ? fruits.value.find(f => f.id === idA) : fruits.value.find(f => f.id === idB)
 				const normalFruit = isRainbowA ? fruits.value.find(f => f.id === idB) : fruits.value.find(f => f.id === idA)
 
-				if (rainbowFruit && normalFruit && !rainbowFruit.merging && !normalFruit.merging && !normalFruit.isMold && !normalFruit.isBomb && normalFruit.type !== FRUIT_TYPES.PUMPKIN.type) {
+				// Check if the normal fruit is a giant fruit
+				const normalFruitType = Object.values(FRUIT_TYPES).find(f => f.index === normalFruit.level)
+				const isGiantFruit = normalFruitType && normalFruitType.index >= 10
+
+				if (rainbowFruit && normalFruit && !rainbowFruit.merging && !normalFruit.merging &&
+						!normalFruit.isMold && !normalFruit.isBomb && !isGiantFruit) {
 					rainbowFruit.merging = true
 
 					const centerX = (bodyA.position.x + bodyB.position.x) / 2
