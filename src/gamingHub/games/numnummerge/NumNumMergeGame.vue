@@ -55,6 +55,7 @@ const {
 	hasLevelState,
 	addAchievement,
 	buyItem,
+	removeItemFromInventory
 } = useLocalStorage()
 const { t } = useI18n()
 const { hasItem, getItemQuantity, useConsumableItem } = useInventory()
@@ -290,11 +291,13 @@ const performUndo = () => {
 	comboSystem.timeRemaining.value = previousState.comboState.timeRemaining
 
 	// Verwende Undo Item
+	removeItemFromInventory('undo_move', 1)
 	const used = useConsumableItem('undo_move')
 	if (used) {
 		const remaining = getItemQuantity('undo_move')
 		undoRemaining.value = remaining
-		console.log(`✅ Undo used! Remaining: ${remaining}`)
+		const quantity = gameData.player.inventory.items?.undo_move?.quantity || 0
+		console.log(`✅ Undo used! Remaining: ${remaining}`, quantity)
 
 		// Visuelles Feedback
 		const scoreElement = document.querySelector('.stat-value')
@@ -312,7 +315,6 @@ const performUndo = () => {
 }
 
 const screenshotHighscoreInfo = computed(() => {
-	// Only calculate if gameState === 'completed'
 	if (gameState.value !== 'completed') {
 		return null
 	}
@@ -918,7 +920,6 @@ const moveDown = () => {
 	}
 }
 
-
 const handleBuyUndoClick = () => {
 	if (!undoItem.value) return
 
@@ -1062,9 +1063,155 @@ const checkGameStatus = () => {
 
 	// Check game over condition
 	if (isGameOver.value) {
-		gameOver()
+		if (isEndlessMode.value) {
+			completeEndlessMode()
+		} else {
+			gameOver()
+		}
 		return
 	}
+}
+
+const completeEndlessMode = () => {
+	if (gameState.value !== 'playing') return
+
+	clearLevelState('numNumMerge', currentLevel.value)
+	gameState.value = 'completed'
+
+	// Prepare screenshot data
+	currentGameScreenshotData.value = captureScreenshotData()
+	enableScreenshotCapture.value = true
+
+	// Calculate endless rewards
+	const endlessBaseReward = Math.floor(score.value / 10) // Base: 1 coin per 100 points
+	const timeBonus = sessionTime.value >= 300 ? Math.floor(sessionTime.value / 60) * 10 : 0 // 10 coins per minute
+	const mergeBonus = totalMerges.value >= 30 ? totalMerges.value * 2 : 0 // 2 coins per merge
+
+	// Update endless mode statistics
+	const endlessStats = {
+		gamesPlayed: gameData.games.numNumMerge.gamesPlayed + 1,
+		totalScore: gameData.games.numNumMerge.totalScore + score.value,
+		highScore: Math.max(gameData.games.numNumMerge.highScore, score.value),
+		stars: gameData.games.numNumMerge.stars + calculateCurrentStars(),
+		maxCombo: Math.max(gameData.games.numNumMerge.maxCombo || 0, comboSystem.comboCount.value),
+		totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value,
+		// Endless specific stats
+		longestSession: Math.max(gameData.games.numNumMerge.longestSession || 0, sessionTime.value),
+		bestEndlessScore: Math.max(gameData.games.numNumMerge.bestEndlessScore || 0, score.value)
+	}
+
+	updateGameStats('numNumMerge', endlessStats)
+
+	// Check endless achievements
+	const achievementsBefore = [...gameData.achievements]
+
+	const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
+		maxCombo: comboSystem.comboCount.value,
+		moves: moves.value,
+		totalMerges: totalMerges.value,
+		sessionTime: sessionTime.value,
+		endlessScore: score.value
+	})
+
+	numNumAchievements.forEach(achievement => {
+		const wasAdded = addAchievement(achievement)
+		if (wasAdded) {
+			console.log(`🎉 NumNum endless achievement unlocked: ${achievement.name}`)
+		}
+	})
+
+	checkAutoAchievements()
+	const achievementsAfter = [...gameData.achievements]
+
+	earnedAchievements.value = achievementsAfter.filter(after =>
+			!achievementsBefore.some(before => before.id === after.id && before.earned)
+	)
+
+	// Create reward breakdown for endless
+	const endlessRewardBreakdown = [
+		{
+			type: 'endless_session',
+			source: t('rewards.breakdown.endless_session'),
+			coins: endlessBaseReward,
+			diamonds: Math.floor(endlessBaseReward / 100),
+			icon: 'clock',
+			style: 'special'
+		}
+	]
+
+	if (timeBonus > 0) {
+		endlessRewardBreakdown.push({
+			type: 'time_bonus',
+			source: t('rewards.breakdown.time_bonus', { minutes: Math.floor(sessionTime.value / 60) }),
+			coins: timeBonus,
+			diamonds: 0,
+			icon: 'clock',
+			style: 'performance'
+		})
+	}
+
+	if (mergeBonus > 0) {
+		endlessRewardBreakdown.push({
+			type: 'merge_bonus',
+			source: t('rewards.breakdown.merge_bonus', { merges: totalMerges.value }),
+			coins: mergeBonus,
+			diamonds: 0,
+			icon: 'num-num-merge-game',
+			style: 'performance'
+		})
+	}
+
+	const achievementBreakdown = earnedAchievements.value.map(achievement => ({
+		type: 'achievement',
+		source: t('rewards.breakdown.achievement_reward', { name: achievement.name }),
+		coins: achievement.rewards.coins,
+		diamonds: achievement.rewards.diamonds,
+		icon: achievement.icon,
+		style: 'achievement'
+	}))
+
+	const totalEndlessCoins = endlessBaseReward + timeBonus + mergeBonus + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0)
+	const totalEndlessDiamonds = Math.floor(endlessBaseReward / 100) + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
+
+	rewardBreakdown.value = {
+		items: [
+			...endlessRewardBreakdown,
+			...achievementBreakdown
+		],
+		total: {
+			coins: totalEndlessCoins,
+			diamonds: totalEndlessDiamonds
+		}
+	}
+
+	levelReward.value = {
+		coins: totalEndlessCoins,
+		diamonds: totalEndlessDiamonds
+	}
+
+	// Update player currency
+	if (rewardBreakdown.value.total.coins > 0 || rewardBreakdown.value.total.diamonds > 0) {
+		gameData.player.coins = (gameData.player.coins || 0) + rewardBreakdown.value.total.coins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + rewardBreakdown.value.total.diamonds
+	}
+
+	addScore(score.value)
+	updateEndlessStats()
+
+	emit('game-complete', {
+		level: currentLevel.value,
+		score: score.value,
+		moves: moves.value,
+		sessionTime: sessionTime.value,
+		totalMerges: totalMerges.value,
+		coins: rewardBreakdown.value.total.coins || 0,
+		diamonds: rewardBreakdown.value.total.diamonds || 0,
+		completed: true,
+		endless: true,
+		starsEarned: calculateCurrentStars()
+	})
+
+	console.log('🎉 Endless mode completed with rewards:', rewardBreakdown.value)
 }
 
 const calculateEndlessStars = () => {
@@ -1095,6 +1242,12 @@ const calculateEndlessStars = () => {
 const completeLevel = () => {
 	if (gameState.value !== 'playing') return
 
+	// Endless mode should use completeEndlessMode() instead
+	if (isEndlessMode.value) {
+		completeEndlessMode()
+		return
+	}
+
 	clearLevelState('numNumMerge', currentLevel.value)
 	gameState.value = 'completed'
 
@@ -1102,136 +1255,12 @@ const completeLevel = () => {
 	currentGameScreenshotData.value = captureScreenshotData()
 	enableScreenshotCapture.value = true
 
-	// Calculate rewards
+	// Calculate rewards for regular levels
 	const rewardCalculation = calculateLevelReward()
 	levelReward.value = rewardCalculation
 
 	// Calculate stars
 	const starsEarned = calculateCurrentStars()
-
-	// Special handling for endless mode
-	if (isEndlessMode.value) {
-		// Update endless mode statistics
-		const endlessStats = {
-			gamesPlayed: gameData.games.numNumMerge.gamesPlayed + 1,
-			totalScore: gameData.games.numNumMerge.totalScore + score.value,
-			highScore: Math.max(gameData.games.numNumMerge.highScore, score.value),
-			stars: gameData.games.numNumMerge.stars + starsEarned,
-			maxCombo: Math.max(gameData.games.numNumMerge.maxCombo || 0, comboSystem.comboCount.value),
-			totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value,
-			// Endless specific stats
-			longestSession: Math.max(gameData.games.numNumMerge.longestSession || 0, sessionTime.value),
-			bestEndlessScore: Math.max(gameData.games.numNumMerge.bestEndlessScore || 0, score.value)
-		}
-
-		updateGameStats('numNumMerge', endlessStats)
-
-		// Check endless achievements
-		const achievementsBefore = [...gameData.achievements]
-
-		const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
-			maxCombo: comboSystem.comboCount.value,
-			moves: moves.value,
-			totalMerges: totalMerges.value,
-			sessionTime: sessionTime.value,
-			endlessScore: score.value
-		})
-
-		numNumAchievements.forEach(achievement => {
-			const wasAdded = addAchievement(achievement)
-			if (wasAdded) {
-				console.log(`🎉 NumNum endless achievement unlocked: ${achievement.name}`)
-			}
-		})
-
-		checkAutoAchievements()
-		const achievementsAfter = [...gameData.achievements]
-
-		earnedAchievements.value = achievementsAfter.filter(after =>
-				!achievementsBefore.some(before => before.id === after.id && before.earned)
-		)
-
-		// Create reward breakdown for endless
-		const achievementBreakdown = earnedAchievements.value.map(achievement => ({
-			type: 'achievement',
-			source: t('rewards.breakdown.achievement_reward', { name: achievement.name }),
-			coins: achievement.rewards.coins,
-			diamonds: achievement.rewards.diamonds,
-			icon: achievement.icon,
-			style: 'achievement'
-		}))
-
-		// Endless mode specific rewards
-		const endlessRewardBreakdown = [
-			{
-				type: 'endless_session',
-				source: t('rewards.breakdown.endless_session'),
-				coins: rewardCalculation.coins,
-				diamonds: rewardCalculation.diamonds,
-				icon: 'clock',
-				style: 'special'
-			}
-		]
-
-		if (sessionTime.value >= 600) { // 10+ minutes bonus
-			const timeBonus = Math.floor(sessionTime.value / 60) * 10
-			endlessRewardBreakdown.push({
-				type: 'time_bonus',
-				source: t('rewards.breakdown.time_bonus', { minutes: Math.floor(sessionTime.value / 60) }),
-				coins: timeBonus,
-				diamonds: 0,
-				icon: 'clock',
-				style: 'performance'
-			})
-		}
-
-		if (totalMerges.value >= 50) { // Merge bonus
-			const mergeBonus = totalMerges.value * 2
-			endlessRewardBreakdown.push({
-				type: 'merge_bonus',
-				source: t('rewards.breakdown.merge_bonus', { merges: totalMerges.value }),
-				coins: mergeBonus,
-				diamonds: 0,
-				icon: 'fruit-merge-game',
-				style: 'performance'
-			})
-		}
-
-		rewardBreakdown.value = {
-			items: [
-				...endlessRewardBreakdown,
-				...achievementBreakdown
-			],
-			total: {
-				coins: rewardCalculation.coins + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0),
-				diamonds: rewardCalculation.diamonds + earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
-			}
-		}
-
-		// Update player currency
-		if (rewardBreakdown.value.total.coins > 0 || rewardBreakdown.value.total.diamonds > 0) {
-			gameData.player.coins = (gameData.player.coins || 0) + rewardBreakdown.value.total.coins
-			gameData.player.diamonds = (gameData.player.diamonds || 0) + rewardBreakdown.value.total.diamonds
-		}
-
-		addScore(score.value)
-		updateEndlessStats()
-
-		emit('game-complete', {
-			level: currentLevel.value,
-			score: score.value,
-			moves: moves.value,
-			sessionTime: sessionTime.value,
-			totalMerges: totalMerges.value,
-			coins: rewardBreakdown.value.total.coins || 0,
-			diamonds: rewardBreakdown.value.total.diamonds || 0,
-			completed: true,
-			endless: true,
-			starsEarned: starsEarned
-		})
-
-		return // Exit early for endless mode
-	}
 
 	// Update level statistics
 	const levelResult = {
@@ -1285,7 +1314,7 @@ const completeLevel = () => {
 			!achievementsBefore.some(before => before.id === after.id && before.earned)
 	)
 
-	// Create reward breakdown
+	// Create reward breakdown for regular levels
 	const achievementBreakdown = earnedAchievements.value.map(achievement => ({
 		type: 'achievement',
 		source: t('rewards.breakdown.achievement_reward', { name: achievement.name }),
@@ -1324,6 +1353,8 @@ const completeLevel = () => {
 		firstTime: isFirstTimeCompletion,
 		starsEarned: starsEarned
 	})
+
+	console.log('🏆 Regular level completed with rewards:', rewardBreakdown.value)
 }
 
 const updateEndlessStats = () => {
@@ -1400,6 +1431,14 @@ const getHighestNumberFromGrid = (grid) => {
 const gameOver = () => {
 	pauseGame()
 	clearLevelState('numNumMerge', currentLevel.value)
+
+	// For endless mode, complete instead of game over
+	if (isEndlessMode.value) {
+		completeEndlessMode()
+		return
+	}
+
+	// Regular game over logic
 	gameState.value = 'game-over'
 
 	// Update game statistics even for game over
@@ -1411,13 +1450,9 @@ const gameOver = () => {
 		totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value
 	}
 
-	if (isEndlessMode.value) {
-		gameStats.longestSession = Math.max(gameData.games.numNumMerge.longestSession || 0, sessionTime.value)
-		gameStats.bestEndlessScore = Math.max(gameData.games.numNumMerge.bestEndlessScore || 0, score.value)
-	}
-
 	updateGameStats('numNumMerge', gameStats)
 
+	// Check achievements for regular game over
 	const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
 		maxCombo: comboSystem.comboCount.value,
 		moves: moves.value,
@@ -1433,7 +1468,6 @@ const gameOver = () => {
 
 	checkAutoAchievements()
 	addScore(score.value)
-	updateEndlessStats()
 }
 
 const pauseGame = () => {
@@ -1461,21 +1495,17 @@ const stopSessionTimer = () => {
 
 // Reward calculation
 const calculateLevelReward = () => {
-	const levelConfig = currentLevelConfig.value
 	const levelNumber = currentLevel.value
 	const previousLevelStats = getLevelStats('numNumMerge', currentLevel.value)
 	const isFirstTimeCompletion = !previousLevelStats?.completed
 	const starsEarned = calculateCurrentStars()
 
-	// Determine difficulty multiplier
+	// Determine difficulty multiplier (nur für Regular-Levels)
 	let difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.easy
-	let difficultyName = 'Easy Level'
 	if (levelNumber >= 4) {
 		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.hard
-		difficultyName = 'Hard Level'
 	} else if (levelNumber >= 2) {
 		difficultyMultiplier = REWARDS.levelCompletion.levelMultiplier.medium
-		difficultyName = 'Medium Level'
 	}
 
 	const breakdown = []
@@ -1762,6 +1792,10 @@ watch(() => props.level, (newLevel) => {
 	currentLevel.value = newLevel
 	initializeGame()
 })
+watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) => {
+	undoRemaining.value = newQuantity || 0
+	console.log('🔄 Undo quantity updated:', undoRemaining.value)
+}, { immediate: true })
 </script>
 <template>
 	<Header
@@ -1825,39 +1859,15 @@ watch(() => props.level, (newLevel) => {
 
 				<div class="undo-control">
 					<button
-							v-if="undoRemaining > 0"
-							class="btn btn--small btn--circle undo-btn"
-							:class="{
-      'btn--info': canUndo,
-      'btn--ghost': !canUndo
-    }"
-							@click="performUndo()"
-							:disabled="!canUndo"
-							:title="canUndo ? t('numNumMerge.undo_move') : t('numNumMerge.no_undos')"
-					>
-						<span class="undo-icon">↩️</span>
-						<span class="notification-badge">{{ undoRemaining }}</span>
-					</button>
-
-					<button
-						v-if="undoRemaining === 0 && undoItem"
-						class="btn btn--small buy-undo-btn"
+						class="btn btn--small btn--circle control-btn"
 						:class="{
-				      'btn--success': canAffordUndo,
-				      'btn--ghost': !canAffordUndo
-				    }"
-						@click="handleBuyUndoClick"
-						:title="t('numNumMerge.no_undos')"
+			        'btn--success': canUndo,
+			      }"
+						@click="undoRemaining > 0 ? performUndo() : handleBuyUndoClick()"
+						:title="canUndo ? t('numNumMerge.undo_move') : t('numNumMerge.no_undos')"
 					>
 						<span class="undo-icon">↩️</span>
-						<div class="undo-price">
-				      <span v-if="undoItem.price.coins > 0" class="price-coins">
-				        💰{{ undoItem.price.coins }}
-				      </span>
-							<span v-if="undoItem.price.diamonds > 0" class="price-diamonds">
-				        💎{{ undoItem.price.diamonds }}
-				      </span>
-						</div>
+						<span v-if="undoRemaining > 0" class="notification-badge">{{ undoRemaining }}</span>
 					</button>
 				</div>
 			</div>
@@ -1944,17 +1954,17 @@ watch(() => props.level, (newLevel) => {
 				:show-achievements="true"
 				:show-reward="true"
 				:reward="levelReward"
-				:show-reward-breakdown="true"
-				:reward-breakdown="rewardBreakdown"
 				:show-completion-phases="true"
 				:enable-phase-transition="true"
 				:show-next-level="!isEndlessMode"
 				:next-level-label="isEndlessMode ? t('numNumMerge.play_again') : t('numNumMerge.next_level')"
 				:play-again-label="t('numNumMerge.play_again')"
 				:back-to-games-label="t('numNumMerge.back_to_levels')"
-				:enable-screenshot="enableScreenshotCapture"
 				:game-state="currentGameScreenshotData"
 				:high-score-info="screenshotHighscoreInfo"
+				:show-reward-breakdown="true"
+				:reward-breakdown="rewardBreakdown"
+				:enable-screenshot="enableScreenshotCapture"
 				:auto-save-screenshot="true"
 				@save-screenshot="handleSaveScreenshot"
 				@next-level="nextLevel"
@@ -1965,6 +1975,7 @@ watch(() => props.level, (newLevel) => {
 
 		<!-- Game Over Modal -->
 		<GameOverModal
+				v-if="!isEndlessMode"
 				:visible="gameState === 'game-over'"
 				:level="currentLevel"
 				:game-title="t('numNumMerge.title')"
@@ -2246,16 +2257,17 @@ watch(() => props.level, (newLevel) => {
 	}
 }
 
-.undo-btn {
+.control-btn {
 	display: flex;
 	align-items: center;
-	gap: 0;
-	padding: var(--space-1);
+	justify-content: center;
+	padding: var(--space-2);
 	position: relative;
+	min-width: var(--space-12);
+	height: var(--space-12);
 
-	&:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+	&:hover {
+		transform: translateY(-1px);
 	}
 }
 

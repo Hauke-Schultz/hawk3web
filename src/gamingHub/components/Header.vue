@@ -287,7 +287,14 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'fruit-merge-game'
 	}))
 
-	const combined = [...memoryLevels, ...fruitMergeLevels]
+	const numNumMergeeLevels = getRecentLevelsForGame('numNumMerge', 10).map(level => ({
+		...level,
+		gameId: 'numNumMerge',
+		gameTitle: t('numNumMerge.title'),
+		gameIcon: 'num-num-merge-game'
+	}))
+
+	const combined = [...memoryLevels, ...fruitMergeLevels, ...numNumMergeeLevels]
 			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
 			.slice(0, 3) // Nur die 3 neuesten
 

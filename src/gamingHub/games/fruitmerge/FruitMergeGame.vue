@@ -113,10 +113,7 @@ const hasSavedState = ref(false)
 
 const hammerMode = ref(false)
 const hammerRemaining = computed(() => {
-	const quantity = gameData.player.inventory.items?.hammer_powerup?.quantity || 0
-	const faa = getItemQuantity('hammer_powerup')
-	console.log('hammerRemaining', quantity, faa);
-	return quantity
+	return gameData.player.inventory.items?.hammer_powerup?.quantity || 0
 })
 const selectedFruitForHammer = ref(null)
 const isUsingHammer = ref(false)
