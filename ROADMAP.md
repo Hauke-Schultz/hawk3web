@@ -80,18 +80,19 @@
 - **Multi-Game Support** - Screenshot functionality for NumNum Game
 - **Rainbow Fruit** - don't merge with giant fruits
 - **Screenshot Watermark** - Game logo and timestamp overlay on screenshots
-
----
-
-## 🚀 Version 0.3.3 - Screenshot System**
-
 - **Screenshot Watermark** - Game logo and timestamp overlay on screenshots
 - **Screenshot sharing** - Copy screenshot to clipboard for easy sharing
 
 ---
 
-## 🚀 Version 0.3.4 - Enhancements
+## 🚀 Version 0.3.3 - Enhancements
 
+- **
+
+
+---
+
+## 🚀 Version 0.3.4 - Enhancements
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges

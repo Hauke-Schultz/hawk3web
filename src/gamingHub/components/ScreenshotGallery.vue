@@ -40,13 +40,15 @@ const props = defineProps({
 // Emits for parent component communication
 const emit = defineEmits([
 	'close',
-	'screenshot-downloaded'
+	'screenshot-downloaded',
+	'screenshot-copied'
 ])
 
 const { t } = useI18n()
-const { getScreenshotsForLevel } = useScreenshot()
+const { getScreenshotsForLevel, copyStoredScreenshotToClipboard  } = useScreenshot()
 
 const expandedScreenshot = ref(null)
+const copiedScreenshots = ref(new Set())
 
 // Get screenshots for this level
 const screenshots = computed(() => {
@@ -76,6 +78,36 @@ const downloadScreenshot = (screenshot) => {
 	} catch (error) {
 		console.error('Error downloading screenshot:', error)
 	}
+}
+
+// Add copy to clipboard functionality with status tracking
+const copyScreenshot = async (screenshot) => {
+	try {
+		const success = await copyStoredScreenshotToClipboard(screenshot.id, props.gameId, props.level)
+
+		if (success) {
+			// Add screenshot to copied set
+			copiedScreenshots.value.add(screenshot.id)
+
+			console.log('📋 Screenshot copied to clipboard!')
+
+			// Reset copied status after 10 seconds
+			setTimeout(() => {
+				copiedScreenshots.value.delete(screenshot.id)
+			}, 10000)
+
+			// Optional: Emit event for parent notification
+			emit('screenshot-copied', screenshot)
+		} else {
+			console.error('Failed to copy screenshot to clipboard')
+		}
+	} catch (error) {
+		console.error('Error copying screenshot:', error)
+	}
+}
+
+const isScreenshotCopied = (screenshotId) => {
+	return copiedScreenshots.value.has(screenshotId)
 }
 
 const toggleScreenshot = (screenshotId) => {
@@ -201,16 +233,36 @@ const formatGameTitle = (gameId) => {
 										/>
 									</div>
 
-									<!-- Download Button -->
+									<!-- Download and Share Actions -->
 									<div v-if="showDownload" class="expanded-actions">
-										<button
-												class="btn btn--small btn--info"
-												@click.stop="downloadScreenshot(screenshot)"
-												:title="t('fruitMerge.download_screenshot')"
-										>
-											<Icon name="download" size="14" />
-											{{ t('common.download') }}
-										</button>
+										<div class="action-buttons">
+											<button
+													class="btn btn--small btn--info"
+													@click.stop="downloadScreenshot(screenshot)"
+													:title="t('fruitMerge.download_screenshot')"
+											>
+												<Icon name="download" size="14" />
+												{{ t('common.download') }}
+											</button>
+
+
+											<button
+												class="btn btn--small"
+												:class="{
+									        'btn--success': !isScreenshotCopied(screenshot.id),
+									        'btn--info': isScreenshotCopied(screenshot.id)
+									      }"
+												@click.stop="copyScreenshot(screenshot)"
+												:title="isScreenshotCopied(screenshot.id) ? t('fruitMerge.copied_to_clipboard') : t('fruitMerge.copy_and_share')"
+												:disabled="isScreenshotCopied(screenshot.id)"
+											>
+												<Icon
+													:name="isScreenshotCopied(screenshot.id) ? 'check' : 'share'"
+													size="14"
+												/>
+												{{ isScreenshotCopied(screenshot.id) ? t('fruitMerge.copied_to_clipboard') : t('fruitMerge.copy_and_share') }}
+											</button>
+										</div>
 									</div>
 								</div>
 							</Transition>
@@ -577,6 +629,22 @@ const formatGameTitle = (gameId) => {
 	justify-content: center;
 	background-color: var(--bg-secondary);
 }
+
+.action-buttons {
+	display: flex;
+	gap: var(--space-2);
+	align-items: center;
+}
+
+.btn--copied {
+	cursor: default;
+	opacity: 0.8;
+
+	&:hover {
+		transform: none;
+	}
+}
+
 
 // Expand/Collapse Transition
 .screenshot-expand-enter-active,

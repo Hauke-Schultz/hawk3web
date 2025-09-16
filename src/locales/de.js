@@ -52,6 +52,7 @@ export default {
     download: 'Herunterladen',
     gallery: 'Galerie',
     view_gallery: 'Galerie anzeigen',
+    share: 'Teilen',
 	},
 
   portfolio: {
@@ -534,6 +535,9 @@ export default {
     captured: 'Aufgenommen',
     screenshot_download_success: 'Screenshot erfolgreich heruntergeladen',
     screenshot_download_error: 'Fehler beim Herunterladen des Screenshots',
+    copy_and_share: 'Kopieren & Teilen',
+    copied_to_clipboard: 'In Zwischenablage kopiert',
+    screenshot_copied: 'Screenshot kopiert!',
 
 		endless: {
 			merges: 'Merges',
@@ -642,6 +646,9 @@ export default {
     no_screenshots: 'Keine Screenshots',
     play_level_for_screenshots: 'Spiele dieses Level und speichere deine besten Momente!',
     screenshot_alt: 'Screenshot mit {score} Punkten',
+    copy_and_share: 'Kopieren & Teilen',
+    copied_to_clipboard: 'In Zwischenablage kopiert',
+    screenshot_copied: 'Screenshot kopiert!',
 
     // Endless Mode spezifische Übersetzungen
     endless: {

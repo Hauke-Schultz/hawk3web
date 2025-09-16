@@ -359,6 +359,62 @@ export function useScreenshot() {
     return Promise.all(renderPromises)
   }
 
+  // Copy screenshot to clipboard
+  const copyScreenshotToClipboard = async (screenshotImageData) => {
+    try {
+      // Check if Clipboard API is supported
+      if (!navigator.clipboard || !navigator.clipboard.write) {
+        throw new Error('Clipboard API not supported')
+      }
+
+      // Convert data URL to blob
+      const response = await fetch(screenshotImageData)
+      const blob = await response.blob()
+
+      // Create clipboard item
+      const clipboardItem = new ClipboardItem({
+        [blob.type]: blob
+      })
+
+      // Write to clipboard
+      await navigator.clipboard.write([clipboardItem])
+
+      console.log('📋 Screenshot copied to clipboard successfully')
+      return true
+
+    } catch (error) {
+      console.error('Error copying screenshot to clipboard:', error)
+
+      // Fallback: Try to copy as text (data URL)
+      try {
+        await navigator.clipboard.writeText(screenshotImageData)
+        console.log('📋 Screenshot data URL copied to clipboard as fallback')
+        return true
+      } catch (fallbackError) {
+        console.error('Fallback clipboard copy also failed:', fallbackError)
+        return false
+      }
+    }
+  }
+
+  // Copy existing screenshot from storage to clipboard
+  const copyStoredScreenshotToClipboard = async (screenshotId, gameId, level) => {
+    try {
+      const screenshots = getScreenshotsForLevel(gameId, level)
+      const screenshot = screenshots.find(s => s.id === screenshotId)
+
+      if (!screenshot) {
+        console.error('Screenshot not found:', screenshotId)
+        return false
+      }
+
+      return await copyScreenshotToClipboard(screenshot.imageData)
+    } catch (error) {
+      console.error('Error copying stored screenshot:', error)
+      return false
+    }
+  }
+
   // Save game screenshot
   const saveGameScreenshot = async (gameId, gameStateData) => {
     try {
@@ -503,6 +559,8 @@ export function useScreenshot() {
     deleteScreenshot,
     getScreenshotCount,
     clearAllScreenshots,
+    copyScreenshotToClipboard,
+    copyStoredScreenshotToClipboard,
 
     // Utilities
     renderGameStateToCanvas

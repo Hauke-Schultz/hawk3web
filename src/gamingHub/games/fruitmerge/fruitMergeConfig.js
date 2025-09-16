@@ -860,7 +860,7 @@ export const FRUIT_TYPES = {
     color: 'rainbow',
     scoreValue: 0, // Bonus based on merge
     cost: {
-      diamonds: 1
+      diamonds: 20
     },
     sparkleColor: '#FFD700',
     isRainbow: true, // Special property
@@ -934,7 +934,7 @@ export const FRUIT_TYPES = {
     color: '#FF4444',
     scoreValue: 0, // Bonus based on explosion
     cost: {
-      diamonds: 10
+      diamonds: 1
     },
     sparkleColor: '#FF6B6B',
     isBomb: true, // Special property

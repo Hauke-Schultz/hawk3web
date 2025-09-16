@@ -53,6 +53,7 @@ export default {
     download: 'Download',
     gallery: 'Gallery',
     view_gallery: 'View Gallery',
+    share: 'Share',
 	},
 
   portfolio: {
@@ -537,6 +538,9 @@ export default {
     captured: 'Captured',
     screenshot_download_success: 'Screenshot downloaded successfully',
     screenshot_download_error: 'Error downloading screenshot',
+    copy_and_share: 'Copy & Share',
+    copied_to_clipboard: 'Copied to Clipboard',
+    screenshot_copied: 'Screenshot copied!',
 
 		endless: {
 			merges: 'Merges',
@@ -644,6 +648,9 @@ export default {
     no_screenshots: 'No Screenshots',
     play_level_for_screenshots: 'Play this level and save your best moments!',
     screenshot_alt: 'Screenshot with {score} points',
+    copy_and_share: 'Copy & Share',
+    copied_to_clipboard: 'Copied to Clipboard',
+    screenshot_copied: 'Screenshot copied!',
 
     endless: {
       merges: 'Merges',
