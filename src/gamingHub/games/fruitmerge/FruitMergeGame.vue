@@ -2429,70 +2429,51 @@ const captureCurrentState = () => {
 			timeRemaining: comboSystem.timeRemaining.value
 		},
 
-		// Enhanced fruits state with complete mold and bomb support
-		fruitsState: fruits.value.map(fruit => ({
-			id: fruit.id,
-			type: fruit.type,
-			color: fruit.color,
-			size: fruit.size,
-			level: fruit.level,
-			name: fruit.name,
-			svg: fruit.svg,
-			x: fruit.x,
-			y: fruit.y,
-			rotation: fruit.rotation,
-			merging: fruit.merging,
-			inDanger: fruit.inDanger,
-			dangerZoneTime: fruit.dangerZoneTime,
+		// Enhanced fruits state - EXCLUDE bomb fruits from save
+		fruitsState: fruits.value
+				.filter(fruit => !fruit.isBomb) // Keep filtering bombs
+				.map(fruit => ({
+					id: fruit.id,
+					type: fruit.type,
+					color: fruit.color,
+					size: fruit.size,
+					level: fruit.level,
+					name: fruit.name,
+					svg: fruit.svg,
+					x: fruit.x,
+					y: fruit.y,
+					rotation: fruit.rotation,
+					merging: fruit.merging,
+					inDanger: fruit.inDanger,
+					dangerZoneTime: fruit.dangerZoneTime,
 
-			// Bomb fruit specific data
-			isBomb: fruit.isBomb || false,
-			fuseTime: fruit.fuseTime || null,
-			spawnedAt: fruit.spawnedAt || null,
+					// Mold fruit specific data - RESET timing on save
+					isMold: fruit.isMold || false,
+					lifespan: fruit.isMold ? MOLD_FRUIT_CONFIG.lifespan : null, // NEW: Always save full lifespan
 
-			// Mold fruit specific data
-			isMold: fruit.isMold || false,
-			lifespan: fruit.lifespan || null,
+					// Physics body state
+					bodyPosition: fruit.body ? {
+						x: fruit.body.position.x,
+						y: fruit.body.position.y
+					} : null,
+					bodyVelocity: fruit.body ? {
+						x: fruit.body.velocity.x,
+						y: fruit.body.velocity.y
+					} : null,
+					bodyAngle: fruit.body ? fruit.body.angle : 0,
+					bodyAngularVelocity: fruit.body ? fruit.body.angularVelocity : 0
+				})),
 
-			// Physics body state
-			bodyPosition: fruit.body ? {
-				x: fruit.body.position.x,
-				y: fruit.body.position.y
-			} : null,
-			bodyVelocity: fruit.body ? {
-				x: fruit.body.velocity.x,
-				y: fruit.body.velocity.y
-			} : null,
-			bodyAngle: fruit.body ? fruit.body.angle : 0,
-			bodyAngularVelocity: fruit.body ? fruit.body.angularVelocity : 0
-		})),
-
-		// Comprehensive Mold Fruit System State
+		// NEW: Simplified mold state - just track if we have mold, let restore handle timing
 		moldFruitState: {
 			hasMoldFruit: hasMoldFruit.value,
-			currentMoldFruitId: currentMoldFruit.value ? currentMoldFruit.value.id : null,
-			moldFruitWarningActive: moldFruitWarningActive.value,
 			lastMoldSpawnTime: lastMoldSpawnTime.value,
-
-			// Calculate precise remaining time for mold fruit
-			moldFruitRemainingTime: currentMoldFruit.value && currentMoldFruit.value.spawnedAt ?
-					Math.max(0, (currentMoldFruit.value.spawnedAt + MOLD_FRUIT_CONFIG.lifespan) - Date.now()) : 0
+			// Don't save timing - let it restart fresh
+			resetMoldTimerOnLoad: true
 		},
 
-		// Comprehensive Bomb Fruit System State
-		bombFruitState: {
-			hasBombFruit: hasBombFruit.value,
-			currentBombFruitId: currentBombFruit.value ? currentBombFruit.value.id : null,
-			bombTickingActive: bombTickingActive.value,
-			lastBombSpawnTime: lastBombSpawnTime.value,
-
-			// Calculate precise remaining fuse time for bomb fruit
-			bombFuseRemainingTime: currentBombFruit.value && currentBombFruit.value.spawnedAt ?
-					Math.max(0, (currentBombFruit.value.spawnedAt + BOMB_FRUIT_CONFIG.fuseTime) - Date.now()) : 0
-		},
-
-		// Existing next fruit and game settings...
-		nextFruitState: nextFruit.value ? {
+		// Next fruit state - check if it's a bomb
+		nextFruitState: nextFruit.value && !nextFruit.value.isBomb ? {
 			id: nextFruit.value.id,
 			type: nextFruit.value.type,
 			color: nextFruit.value.color,
@@ -2500,11 +2481,10 @@ const captureCurrentState = () => {
 			level: nextFruit.value.level,
 			name: nextFruit.value.name,
 			svg: nextFruit.value.svg,
-			isBomb: nextFruit.value.isBomb || false,
 			isMold: nextFruit.value.isMold || false
-		} : null,
+		} : null, // NEW: Don't save if next fruit is bomb
 
-		nextNextFruitState: nextNextFruit.value ? {
+		nextNextFruitState: nextNextFruit.value && !nextNextFruit.value.isBomb ? {
 			id: nextNextFruit.value.id,
 			type: nextNextFruit.value.type,
 			color: nextNextFruit.value.color,
@@ -2512,23 +2492,19 @@ const captureCurrentState = () => {
 			level: nextNextFruit.value.level,
 			name: nextNextFruit.value.name,
 			svg: nextNextFruit.value.svg,
-			isBomb: nextNextFruit.value.isBomb || false,
 			isMold: nextNextFruit.value.isMold || false
-		} : null,
+		} : null, // NEW: Don't save if next next fruit is bomb
 
 		nextFruitId: nextFruitId.value,
 		gameStateValue: gameState.value,
 		savedAt: new Date().toISOString(),
-		version: '1.2' // Updated version for enhanced mold/bomb support
+		version: '1.3'
 	}
 
-	console.log('💾 Capturing enhanced game state:', {
-		hasMoldFruit: currentState.moldFruitState.hasMoldFruit,
-		moldFruitId: currentState.moldFruitState.currentMoldFruitId,
-		moldTimeRemaining: Math.floor(currentState.moldFruitState.moldFruitRemainingTime / 1000),
-		hasBombFruit: currentState.bombFruitState.hasBombFruit,
-		bombFruitId: currentState.bombFruitState.currentBombFruitId,
-		bombTimeRemaining: Math.floor(currentState.bombFruitState.bombFuseRemainingTime / 1000)
+	console.log('💾 Capturing game state with mold timer reset:', {
+		totalFruits: fruits.value.length,
+		savedFruits: currentState.fruitsState.length,
+		moldFruits: fruits.value.filter(f => f.isMold).length
 	})
 
 	return currentState
@@ -2581,13 +2557,13 @@ const captureScreenshotData = () => {
 }
 
 const restoreGameState = async (savedState) => {
-	if (!savedState || !['1.0', '1.1', '1.2'].includes(savedState.version)) {
+	if (!savedState || !['1.0', '1.1', '1.2', '1.3'].includes(savedState.version)) {
 		console.warn('Invalid or incompatible saved state version:', savedState.version)
 		return false
 	}
 
 	try {
-		console.log('🔄 Restoring enhanced game state with mold/bomb support...', savedState)
+		console.log('🔄 Restoring game state...', savedState)
 		isRestoringState.value = true
 
 		// Stop current game
@@ -2619,20 +2595,39 @@ const restoreGameState = async (savedState) => {
 			comboSystem.timeRemaining.value = savedState.comboData.timeRemaining || 0
 		}
 
-		// Clear existing special fruit references
-		currentMoldFruit.value = null
+		// NEW: Always clear bomb state on restore
 		currentBombFruit.value = null
-		moldFruitLifeRemaining.value = 0
 		bombFuseRemaining.value = 0
-		moldFruitWarningActive.value = false
 		bombTickingActive.value = false
+		lastBombSpawnTime.value = 0
+		if (bombFruitTimer.value) {
+			clearInterval(bombFruitTimer.value)
+			bombFruitTimer.value = null
+		}
+		console.log('💣 Bomb state reset on restore')
 
-		// Restore fruits with enhanced mold/bomb support
+		// Clear existing mold fruit references
+		currentMoldFruit.value = null
+		moldFruitLifeRemaining.value = 0
+		moldFruitWarningActive.value = false
+		if (moldFruitTimer.value) {
+			clearInterval(moldFruitTimer.value)
+			moldFruitTimer.value = null
+		}
+
+		// Restore fruits (excluding any potential bomb fruits from old saves)
 		if (savedState.fruitsState && savedState.fruitsState.length > 0) {
 			fruits.value = []
+			let moldFruitFound = null
 
 			for (let i = 0; i < savedState.fruitsState.length; i++) {
 				const fruitState = savedState.fruitsState[i]
+
+				// Skip bomb fruits
+				if (fruitState.isBomb) {
+					console.log('💣 Skipping bomb fruit from saved state:', fruitState.id)
+					continue
+				}
 
 				const restoredFruit = {
 					id: fruitState.id,
@@ -2651,36 +2646,32 @@ const restoreGameState = async (savedState) => {
 					dangerZoneStartTime: null,
 					dangerZoneTime: fruitState.dangerZoneTime || 0,
 
-					// Restore bomb fruit properties
-					isBomb: fruitState.isBomb || false,
-					fuseTime: fruitState.fuseTime || null,
-					spawnedAt: fruitState.spawnedAt || null,
-
-					// Restore mold fruit properties
+					// Mold properties with FRESH timer data
 					isMold: fruitState.isMold || false,
-					lifespan: fruitState.lifespan || null
+					lifespan: fruitState.isMold ? MOLD_FRUIT_CONFIG.lifespan : null,
+					spawnedAt: fruitState.isMold ? Date.now() : null, // NEW: Set fresh spawn time
+					isBomb: false
 				}
 
-				// Create physics body with correct type and properties
+				// Track mold fruit for timer restart
+				if (restoredFruit.isMold) {
+					moldFruitFound = restoredFruit
+				}
+
+				// Create physics body (existing code)
 				if (fruitState.bodyPosition) {
 					let fruitConfig
 
 					if (restoredFruit.isMold) {
 						fruitConfig = FRUIT_TYPES.MOLD_FRUIT
-					} else if (restoredFruit.isBomb) {
-						fruitConfig = FRUIT_TYPES.BOMB_FRUIT
 					} else {
 						fruitConfig = Object.values(FRUIT_TYPES).find(f => f.index === fruitState.level)
 					}
 
 					const radius = fruitConfig ? fruitConfig.radius : fruitState.size / 2
-
-					// Create appropriate label for special fruits
 					let label = `fruit-${fruitState.id}-${fruitState.color}-${fruitState.level}`
 					if (restoredFruit.isMold) {
 						label += '-mold'
-					} else if (restoredFruit.isBomb) {
-						label += '-bomb'
 					}
 
 					const body = Matter.Bodies.circle(
@@ -2688,10 +2679,10 @@ const restoreGameState = async (savedState) => {
 							fruitState.bodyPosition.y,
 							radius,
 							{
-								restitution: restoredFruit.isMold ? 0.4 : (restoredFruit.isBomb ? 0.3 : 0.3),
+								restitution: restoredFruit.isMold ? 0.4 : 0.3,
 								friction: restoredFruit.isMold ? 0.06 : 0.05,
 								frictionAir: 0.005,
-								density: restoredFruit.isMold ? 0.002 : (restoredFruit.isBomb ? 0.001 : 0.001),
+								density: restoredFruit.isMold ? 0.002 : 0.001,
 								label: label,
 								render: {
 									sprite: {
@@ -2702,7 +2693,7 @@ const restoreGameState = async (savedState) => {
 							}
 					)
 
-					// Restore physics properties with dampening
+					// Restore physics properties (existing code)
 					setTimeout(() => {
 						if (fruitState.bodyVelocity) {
 							const dampedVelocity = {
@@ -2721,91 +2712,54 @@ const restoreGameState = async (savedState) => {
 
 					restoredFruit.body = body
 					Matter.Composite.add(engine.world, body)
-
-					// Update visual position
 					restoredFruit.x = fruitState.bodyPosition.x - fruitState.size / 2
 					restoredFruit.y = fruitState.bodyPosition.y - fruitState.size / 2
 				}
 
 				fruits.value.push(restoredFruit)
 			}
-		}
 
-		// Restore Bomb Fruit System State (Enhanced for v1.2)
-		if (savedState.bombFruitState && savedState.version === '1.2') {
-			const bombState = savedState.bombFruitState
+			// NEW: Start fresh mold timer if mold fruit was restored
+			if (moldFruitFound) {
+				currentMoldFruit.value = moldFruitFound
+				lastMoldSpawnTime.value = Date.now()
 
-			// Restore bomb fruit references and timers
-			lastBombSpawnTime.value = bombState.lastBombSpawnTime || 0
+				// Start fresh mold lifecycle with full timer
+				startMoldFruitLifecycle(moldFruitFound)
 
-			if (bombState.hasBombFruit && bombState.currentBombFruitId) {
-				// Find the restored bomb fruit
-				const bombFruit = fruits.value.find(f =>
-						f.id === bombState.currentBombFruitId && f.isBomb
-				)
-
-				if (bombFruit && bombState.bombFuseRemainingTime > 0) {
-					currentBombFruit.value = bombFruit
-					bombFuseRemaining.value = bombState.bombFuseRemainingTime
-					bombTickingActive.value = bombState.bombTickingActive || false
-
-					// Restart bomb fuse timer with remaining time
-					restartBombFuseTimer(bombFruit, bombState.bombFuseRemainingTime)
-
-					console.log('💣 Bomb Fruit restored with', Math.floor(bombState.bombFuseRemainingTime / 1000), 'seconds remaining')
-				} else {
-					console.log('💥 Bomb Fruit expired during save/restore')
-				}
+				console.log('🟫 Mold Fruit restored with FRESH timer:', {
+					fruitId: moldFruitFound.id,
+					lifespanSeconds: MOLD_FRUIT_CONFIG.lifespan / 1000,
+					spawnedAt: new Date(moldFruitFound.spawnedAt).toLocaleTimeString()
+				})
 			}
 		}
 
-		// Restore Mold Fruit System State (Enhanced for v1.2)
-		if (savedState.moldFruitState && ['1.1', '1.2'].includes(savedState.version)) {
-			const moldState = savedState.moldFruitState
-
-			// Restore mold fruit references
-			lastMoldSpawnTime.value = moldState.lastMoldSpawnTime || 0
-
-			if (moldState.hasMoldFruit && moldState.currentMoldFruitId) {
-				// Find the restored mold fruit
-				const moldFruit = fruits.value.find(f =>
-						f.id === moldState.currentMoldFruitId && f.isMold
-				)
-
-				if (moldFruit && moldState.moldFruitRemainingTime > 0) {
-					currentMoldFruit.value = moldFruit
-					moldFruitLifeRemaining.value = moldState.moldFruitRemainingTime
-					moldFruitWarningActive.value = moldState.moldFruitWarningActive || false
-
-					// Restart mold fruit lifecycle with remaining time
-					restartMoldFruitLifecycle(moldFruit, moldState.moldFruitRemainingTime)
-
-					console.log('🟫 Mold Fruit restored with', Math.floor(moldState.moldFruitRemainingTime / 1000), 'seconds remaining')
-				} else {
-					console.log('🟫 Mold Fruit expired during save/restore')
-				}
-			}
+		// Update mold spawn tracking from save (if available)
+		if (savedState.moldFruitState) {
+			lastMoldSpawnTime.value = savedState.moldFruitState.lastMoldSpawnTime || Date.now()
 		}
 
-		// Restore next fruits with special fruit support
-		if (savedState.nextFruitState) {
+		// Restore next fruits (generate new if they were bombs)
+		if (savedState.nextFruitState && !savedState.nextFruitState.isBomb) {
 			nextFruit.value = {
 				...savedState.nextFruitState,
-				isBomb: savedState.nextFruitState.isBomb || false,
+				isBomb: false,
 				isMold: savedState.nextFruitState.isMold || false
 			}
 		} else {
+			console.log('💣 Generating new next fruit (was bomb or missing)')
 			nextFruit.value = generateNextFruit()
 		}
 
-		// Restore next next fruit preview with special fruit support
-		if (savedState.nextNextFruitState) {
+		if (savedState.nextNextFruitState && !savedState.nextNextFruitState.isBomb) {
 			nextNextFruit.value = {
 				...savedState.nextNextFruitState,
-				isBomb: savedState.nextNextFruitState.isBomb || false,
+				isBomb: false,
 				isMold: savedState.nextNextFruitState.isMold || false
 			}
 		} else {
+			console.log('💣 Generating new next-next fruit (was bomb or missing)')
 			updateNextFruitPreview()
 		}
 
@@ -2818,11 +2772,11 @@ const restoreGameState = async (savedState) => {
 			gameLoop()
 		}, 200)
 
-		console.log(`✅ Enhanced game state restored successfully. Score: ${score.value}, Mold: ${currentMoldFruit.value ? 'Active' : 'None'}, Bomb: ${currentBombFruit.value ? 'Active' : 'None'}`)
+		console.log(`✅ Game state restored successfully. Score: ${score.value}, Bombs: Reset`)
 		return true
 
 	} catch (error) {
-		console.error('Error restoring enhanced game state:', error)
+		console.error('Error restoring game state:', error)
 		resetGame()
 		return false
 	} finally {
@@ -3019,12 +2973,18 @@ const restartMoldFruitLifecycle = (moldFruit, remainingTime) => {
 }
 
 const startMoldFruitLifecycle = (moldFruit) => {
+	// Set fresh spawn time if not set
+	if (!moldFruit.spawnedAt) {
+		moldFruit.spawnedAt = Date.now()
+	}
+
 	moldFruitLifeRemaining.value = MOLD_FRUIT_CONFIG.lifespan
 
-	console.log('🟫 Starting mold fruit lifecycle with circular timer:', {
+	console.log('🟫 Starting mold fruit lifecycle with timer:', {
 		fruitId: moldFruit.id,
-		lifespan: MOLD_FRUIT_CONFIG.lifespan / 1000,
-		spawnedAt: new Date(moldFruit.spawnedAt).toLocaleTimeString()
+		lifespanSeconds: MOLD_FRUIT_CONFIG.lifespan / 1000,
+		spawnedAt: new Date(moldFruit.spawnedAt).toLocaleTimeString(),
+		isRestore: isRestoringState.value
 	})
 
 	moldFruitTimer.value = setInterval(() => {
@@ -3042,7 +3002,7 @@ const startMoldFruitLifecycle = (moldFruit) => {
 		if (moldFruitLifeRemaining.value <= 0) {
 			removeMoldFruit(moldFruit, 'expired')
 		}
-	}, 100) // Keep 100ms for smooth circular progress
+	}, 100)
 }
 
 const removeMoldFruit = (moldFruit, reason = 'removed') => {
