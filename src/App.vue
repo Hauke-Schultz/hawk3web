@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from './gamingHub/composables/useLocalStorage.js'
 import { useI18n } from './composables/useI18n.js'
+import InstallPrompt from './components/InstallPrompt.vue'
 
 // Services
 const { gameData, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
@@ -92,6 +93,8 @@ onMounted(async () => {
 				@menu-click="handleMenuClick"
 				@back-to-home="handleBackToHome"
 		/>
+		<!-- PWA Install Prompt -->
+		<InstallPrompt />
 	</div>
 </template>
 

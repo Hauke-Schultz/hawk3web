@@ -1,7 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
-    <circle cx="150" cy="150" r="135" fill="#145a32"/>
-    <circle cx="150" cy="150" r="90" fill="#25a045"/>
-    <ellipse cx="150" cy="130" rx="24" ry="45" fill="#000"/>
-    <circle cx="135" cy="106" r="9" fill="#fff" opacity="0.6"/>
-    <text x="150" y="215" text-anchor="middle" font-family="Arial" font-size="66" fill="#3f2">HAWK3</text>
+<!-- public/hawk3-logo.svg -->
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="eyeGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#00ee66"/>
+            <stop offset="70%" stop-color="#227744"/>
+            <stop offset="100%" stop-color="#00ee66"/>
+        </radialGradient>
+
+        <radialGradient id="irisGradient" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#8877ff"/>
+            <stop offset="50%" stop-color="#3730A3"/>
+            <stop offset="100%" stop-color="#1E1B4B"/>
+        </radialGradient>
+
+        <linearGradient id="numberGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#227744"/>
+            <stop offset="50%" stop-color="#00ee66"/>
+            <stop offset="100%" stop-color="#227744"/>
+        </linearGradient>
+    </defs>
+
+    <ellipse cx="64" cy="64" rx="58" ry="32"
+             fill="url(#eyeGradient)"
+             stroke="#227744"
+             stroke-width="2"/>
+
+    <ellipse cx="64" cy="64" rx="48" ry="26" fill="#FFFFFF"/>
+    <ellipse cx="64" cy="64" rx="30" ry="24" fill="url(#irisGradient)"/>
+    <ellipse cx="110" cy="64" rx="7" ry="5" fill="#ddaabb"/>
+
+    <text x="64" y="30"
+          font-family="Arial, sans-serif"
+          font-size="38"
+          font-weight="bold"
+          text-anchor="middle"
+          fill="url(#numberGradient)"
+          opacity="0.6">HAWK</text>
+    <text x="64" y="122"
+          font-family="Arial, sans-serif"
+          font-size="33"
+          font-weight="bold"
+          text-anchor="middle"
+          fill="url(#numberGradient)"
+          opacity="0.6">GAMES</text>
+    <text x="64" y="77"
+          font-family="Arial, sans-serif"
+          font-size="38"
+          font-weight="bold"
+          text-anchor="middle"
+          fill="url(#numberGradient)"
+          stroke="#000000"
+          stroke-width="0.5">3</text>
 </svg>

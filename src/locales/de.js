@@ -55,6 +55,16 @@ export default {
     share: 'Teilen',
 	},
 
+  pwa: {
+    install_title: 'Hawk3 installieren',
+    install_message: 'Installiere Hawk3 für das beste Spielerlebnis! Spiele offline, genieße schnelleres Laden und eine App-ähnliche Erfahrung.',
+    install_button: 'App installieren',
+    ios_instructions: 'Um diese App auf deinem iPhone/iPad zu installieren:',
+    ios_step1: 'Tippe auf den Teilen-Button',
+    ios_step2: 'Dann tippe auf "Zum Home-Bildschirm hinzufügen"',
+    android_instructions: 'Klicke auf "Installieren", um Hawk3 zu deinem Startbildschirm hinzuzufügen.',
+  },
+
   portfolio: {
     pageTitle: 'haukeschultz.com',
     title: 'Hauke Schultz',
