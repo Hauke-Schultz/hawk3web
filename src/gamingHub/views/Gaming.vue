@@ -220,7 +220,7 @@ const handleMenuClick = () => {
 	margin: 0;
 }
 
-// Games Grid - 2 Spalten nebeneinander
+// Games Grid
 .games-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
@@ -228,7 +228,7 @@ const handleMenuClick = () => {
 	align-items: start;
 }
 
-// Game Cards - kompaktes vertikales Layout
+// Game Cards
 .game-card {
 	border: 1px solid var(--card-border);
 	border-radius: var(--border-radius-lg);

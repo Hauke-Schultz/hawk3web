@@ -63,21 +63,21 @@ export default defineConfig({
             short_name: 'Memory',
             description: 'Play the Memory card matching game',
             url: '/games/memory',
-            icons: [{ src: '/shortcut-memory.png', sizes: '96x96' }]
+            icons: [{ src: '/shortcut-memory.svg', sizes: '96x96' }]
           },
           {
             name: 'Fruit Merge',
             short_name: 'FruitMerge',
             description: 'Play the Fruit Merge puzzle game',
             url: '/games/fruitmerge',
-            icons: [{ src: '/shortcut-fruit.png', sizes: '96x96' }]
+            icons: [{ src: '/shortcut-fruit.svg', sizes: '96x96' }]
           },
           {
             name: 'Num Num Merge',
             short_name: 'NumNum',
             description: 'Play the Number Merge game',
             url: '/games/numnummerge',
-            icons: [{ src: '/shortcut-numbers.png', sizes: '96x96' }]
+            icons: [{ src: '/shortcut-numbers.svg', sizes: '96x96' }]
           }
         ]
       }

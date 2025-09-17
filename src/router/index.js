@@ -18,11 +18,6 @@ const routes = [
     component: Home
   },
   {
-    path: '/games',
-    name: 'Gaming',
-    component: Gaming
-  },
-  {
     path: '/games/memory',
     name: 'MemoryLevels',
     component: MemoryLevels

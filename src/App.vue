@@ -42,14 +42,6 @@ const handleProfileClick = () => {
 	router.push('/profile')
 }
 
-const handleAboutClick = () => {
-	router.push('/about')
-}
-
-const handleStartGame = () => {
-	router.push('/games')
-}
-
 const handleShopClick = () => {
 	router.push('/shop')
 }
@@ -79,19 +71,17 @@ onMounted(async () => {
 <template>
 	<div class="container" :class="gameData.settings.theme" role="application">
 		<router-view
-				:player-profile="gameData.player"
-				:current-theme="gameData.settings.theme"
-				@start-game="handleStartGame"
-				@profile-click="handleProfileClick"
-				@trophy-click="handleTrophyClick"
-				@settings-click="handleSettingsClick"
-				@about-click="handleAboutClick"
-				@shop-click="handleShopClick"
-				@theme-change="handleThemeChange"
-				@language-change="handleLanguageChange"
-				@font-size-change="handleFontSizeChange"
-				@menu-click="handleMenuClick"
-				@back-to-home="handleBackToHome"
+			:player-profile="gameData.player"
+			:current-theme="gameData.settings.theme"
+			@profile-click="handleProfileClick"
+			@trophy-click="handleTrophyClick"
+			@settings-click="handleSettingsClick"
+			@shop-click="handleShopClick"
+			@theme-change="handleThemeChange"
+			@language-change="handleLanguageChange"
+			@font-size-change="handleFontSizeChange"
+			@menu-click="handleMenuClick"
+			@back-to-home="handleBackToHome"
 		/>
 		<!-- PWA Install Prompt -->
 		<InstallPrompt />

@@ -176,7 +176,6 @@ const currentRoute = computed(() => {
 	return {
 		isHome: route.path === '/',
 		isShop: route.path === '/shop',
-		isGame: route.path.includes('/games/'),
 		isFruitMergeGame: route.path.includes('/games/fruitmerge/'),
 		isMemoryGame: route.path.includes('/games/memory/'),
 		currentLevel: getCurrentLevelFromRoute()
@@ -341,11 +340,11 @@ const menuItems = computed(() => {
 			visible: true
 		},
 		{
-			id: 'games',
-			label: t('nav.gaming'),
-			icon: 'play',
-			action: () => navigateTo('/games'),
-			highlight: route.path.includes('/games') && !route.path.includes('/games/'),
+			id: 'about',
+			label: t('nav.about'),
+			icon: 'info',
+			action: () => navigateTo('/about'),
+			highlight: route.path.includes('/about'),
 			visible: true
 		},
 		{

@@ -2,9 +2,11 @@
 import { useRouter } from 'vue-router'
 import { useI18n } from '../composables/useI18n.js'
 import Icon from '../components/Icon.vue'
-import Header from '../components/Header.vue'
+import Header from '../gamingHub/components/Header.vue'
+import {useLocalStorage} from "../gamingHub/composables/useLocalStorage.js";
 
 const { t } = useI18n()
+const { gameData } = useLocalStorage()
 const router = useRouter()
 
 const developerInfo = {
@@ -22,10 +24,20 @@ const platformInfo = {
 const sendEmail = () => {
 	window.location.href = `mailto:${developerInfo.email}`
 }
+
+const handleMenuClick = () => {
+	router.push('/')
+}
 </script>
 
 <template>
-	<Header />
+	<Header
+			:game-data="gameData"
+			:player="gameData.player"
+			:achievements="gameData.achievements"
+			:show-menu-button="true"
+			@menu-click="handleMenuClick"
+	/>
 	<main class="content">
 		<!-- About Header -->
 		<section class="about-header">

@@ -57,13 +57,13 @@ export default {
 	},
 
   pwa: {
-    install_title: 'Install Hawk3',
+    install_title: 'Install Hawk3 App',
     install_message: 'Install Hawk3 for the best gaming experience! Play offline, get faster loading, and enjoy an app-like experience.',
     install_button: 'Install App',
     ios_instructions: 'To install this app on your iPhone/iPad:',
     ios_step1: 'Tap the share button',
     ios_step2: 'Then tap "Add to Home Screen"',
-    android_instructions: 'Click "Install" to add Hawk3 to your home screen.',
+    android_instructions: 'Click "Install" to add Hawk3 App to your home screen.',
   },
 
   portfolio: {
