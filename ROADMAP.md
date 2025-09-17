@@ -85,11 +85,14 @@
 - **PWA Implementation** - Installable web app with offline support and home screen icon
 - **App Manifest** - Configured manifest.json for PWA functionality
 - **Service Worker** - Basic service worker for offline caching and performance
+- **PWA Badge API** - App-Icon Badge showing unread cards and notifications
 
 ---
 
 ## 🚀 Version 0.3.3 - Enhancements
 
+- **🔮 Mystery Boxes** - Special boxes with new items (cosmetics not buyable in shop)
+- **🎁 Gift System** - Send and receive gifts with friends
 
 ---
 

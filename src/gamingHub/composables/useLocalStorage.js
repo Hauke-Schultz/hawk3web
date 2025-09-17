@@ -6,6 +6,7 @@ import {
 	REWARDS
 } from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
+import { useBadge } from '../../composables/useBadge.js'
 import {useI18n} from "../../composables/useI18n.js";
 const { t } = useI18n()
 
@@ -275,6 +276,7 @@ const migrateData = (data) => {
 
 // Main composable function
 export function useLocalStorage() {
+  const { setBadge } = useBadge()
 	// Load initial data from localStorage
 	const loadData = () => {
 		try {
@@ -1006,6 +1008,10 @@ export function useLocalStorage() {
 
     console.log(`🎁 Daily reward claimed! Date: ${today}, Source: ${reward.source}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
 
+    setTimeout(() => {
+      updateNotificationCount()
+    }, 100)
+
     return reward
   }
 
@@ -1287,18 +1293,20 @@ export function useLocalStorage() {
 			gameData.notifications = getDefaultData().notifications
 		}
 
-		let count = 0
+    let count = 0
 
-		// Check for unread daily reward card
-		if (!isCardRead('dailyRewardCard') && canClaimDailyReward()) {
-			count += 1
-		}
+    // Daily Reward Badge
+    if (!isCardRead('dailyRewardCard') && canClaimDailyReward()) {
+      count += 1
+    }
 
-		// Update the notification count
-		gameData.notifications.unreadCount = count
-		gameData.notifications.lastUpdated = new Date().toISOString()
+    // Badge am App-Icon setzen
+    setBadge(count)
 
-		return count
+    gameData.notifications.unreadCount = count
+    gameData.notifications.lastUpdated = new Date().toISOString()
+
+    return count
 	}
 
 	const addNotification = (notification) => {
@@ -1422,6 +1430,7 @@ export function useLocalStorage() {
 		getCardState,
 
 		// Notification methods
+    setBadge,
 		updateNotificationCount,
 		addNotification,
 		markNotificationAsRead,
