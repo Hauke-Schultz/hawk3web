@@ -190,6 +190,9 @@ export default {
 
 	// Home Page
 	home: {
+    welcome_back: 'Welcome back, {name}!',
+    overall_progress: 'Overall Progress',
+    quick_games: 'Quick Games',
 		start_game: 'Start Game',
 		gaming_hub: 'Games',
 		open_shop: 'Open Shop',

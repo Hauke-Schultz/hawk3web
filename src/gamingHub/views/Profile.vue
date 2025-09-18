@@ -70,13 +70,45 @@ const handleMenuClick = () => {
 		<section class="profile-section">
 			<h2 class="section-title">{{ t('profile.title') }}</h2>
 
+			<div class="profile-avatar-large">
+				<Icon :name="selectedAvatar" size="64" />
+				<input
+						id="player-name"
+						v-model="playerName"
+						type="text"
+						class="name-input"
+						:placeholder="t('profile.display_name')"
+						maxlength="20"
+						@blur="updatePlayerName"
+						@keydown.enter="updatePlayerName"
+				/>
+			</div>
+			<!-- Player Settings -->
+			<div class="player-settings">
+				<!-- Avatar Selection -->
+				<div class="setting-group">
+					<label class="setting-label">{{ t('profile.avatar') }}</label>
+					<div class="avatar-selector">
+						<button
+								v-for="option in avatarOptions"
+								:key="option.value"
+								class="avatar-option"
+								:class="{ 'avatar-option--active': selectedAvatar === option.value }"
+								@click="selectAvatar(option.value)"
+								:aria-label="t('profile.select_avatar', { name: option.label })"
+								:aria-pressed="selectedAvatar === option.value"
+						>
+							<div class="avatar-icon">
+								<Icon :name="option.icon" size="50" />
+							</div>
+						</button>
+					</div>
+				</div>
+			</div>
+
 			<!-- Player Avatar Preview -->
 			<div class="profile-preview">
-				<div class="profile-avatar-large">
-					<Icon :name="selectedAvatar" size="64" />
-				</div>
 				<div class="profile-info">
-					<h3 class="profile-name">{{ playerName }}</h3>
 					<div class="profile-stats">
 						<div class="stat-item">
 							<span class="stat-label">{{ t('profile.stats.level') }}</span>
@@ -103,7 +135,7 @@ const handleMenuClick = () => {
 			</div>
 			<!-- Inventory Section -->
 			<div class="profile-section">
-				<h3 class="section-title">{{ t('profile.inventory.title') }}</h3>
+				<label class="setting-label">{{ t('profile.inventory.title') }}</label>
 				<div class="inventory-simple" v-if="ownedItems.length > 0">
 					<div
 							v-for="item in ownedItems"
@@ -117,43 +149,6 @@ const handleMenuClick = () => {
 				</div>
 				<div v-else class="inventory-empty">
 					<p>{{ t('profile.inventory.empty_description') }}</p>
-				</div>
-			</div>
-			<!-- Player Settings -->
-			<div class="player-settings">
-				<!-- Player Name Input -->
-				<div class="setting-group">
-					<label for="player-name" class="setting-label">{{ t('profile.display_name') }}</label>
-					<input
-							id="player-name"
-							v-model="playerName"
-							type="text"
-							class="name-input"
-							:placeholder="t('profile.display_name')"
-							maxlength="20"
-							@blur="updatePlayerName"
-							@keydown.enter="updatePlayerName"
-					/>
-				</div>
-
-				<!-- Avatar Selection -->
-				<div class="setting-group">
-					<label class="setting-label">{{ t('profile.avatar') }}</label>
-					<div class="avatar-selector">
-						<button
-								v-for="option in avatarOptions"
-								:key="option.value"
-								class="avatar-option"
-								:class="{ 'avatar-option--active': selectedAvatar === option.value }"
-								@click="selectAvatar(option.value)"
-								:aria-label="t('profile.select_avatar', { name: option.label })"
-								:aria-pressed="selectedAvatar === option.value"
-						>
-							<div class="avatar-icon">
-								<Icon :name="option.icon" size="50" />
-							</div>
-						</button>
-					</div>
 				</div>
 			</div>
 		</section>
@@ -188,13 +183,11 @@ const handleMenuClick = () => {
 }
 
 .profile-avatar-large {
-	width: var(--space-16);
-	height: var(--space-16);
-	border-radius: 50%;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	color: white;
+	gap: var(--space-3);
 }
 
 .profile-info {

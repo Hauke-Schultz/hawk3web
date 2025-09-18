@@ -1,67 +1,91 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useI18n } from '../composables/useI18n.js'
+import { useLocalStorage } from "../gamingHub/composables/useLocalStorage.js"
+import { computed } from "vue"
+import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
+import { fruitMergeConfig } from "../gamingHub/games/fruitmerge/fruitMergeConfig.js"
+import { numNumMergeConfig } from "../gamingHub/games/numnummerge/numNumMergeConfig.js"
 import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
-import {useLocalStorage} from "../gamingHub/composables/useLocalStorage.js";
-import {computed} from "vue";
-import {memoryConfig} from "../gamingHub/games/memory/memoryConfig.js";
-import {fruitMergeConfig} from "../gamingHub/games/fruitmerge/fruitMergeConfig.js";
-import {numNumMergeConfig} from "../gamingHub/games/numnummerge/numNumMergeConfig.js";
+import CurrencyDisplay from '../gamingHub/components/CurrencyDisplay.vue'
+import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
 
 const { t } = useI18n()
-const { gameData } = useLocalStorage()
+const { gameData, canClaimDailyReward, claimDailyReward, markCardAsRead, updateNotificationCount } = useLocalStorage()
 const router = useRouter()
 
-const startGame = (gameId) => {
-	console.log(`Starting ${gameId} game...`)
-	if (gameId === 'memory') {
-		router.push('/games/memory')
-	} else if (gameId === 'fruitMerge') {
-		router.push('/games/fruitmerge')
-	} else if (gameId === 'numNumMerge') {
-		router.push('/games/numnummerge')
+// Game Navigation
+const navigateToGame = (gameId) => {
+	const routes = {
+		memory: '/games/memory',
+		fruitMerge: '/games/fruitmerge',
+		numNumMerge: '/games/numnummerge'
+	}
+	if (routes[gameId]) {
+		router.push(routes[gameId])
 	}
 }
 
-const memoryProgress = computed(() => {
-	const levels = gameData.games.memory.levels || {}
+// Page Navigation
+const navigateTo = (path) => {
+	router.push(path)
+}
+
+// Game Progress Calculations
+const getGameProgress = (gameId, config) => {
+	const levels = gameData.games[gameId].levels || {}
 	const completedLevels = Object.values(levels).filter(level => level.completed).length
-	const totalLevels = memoryConfig.levels.length
-	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
+	const totalLevels = config.levels.length
+	const totalStars = Object.values(levels).reduce((sum, level) => sum + (level.stars || 0), 0)
+	const maxStars = totalLevels * 3
 
 	return {
 		completed: completedLevels,
 		total: totalLevels,
-		percentage: percentage
+		percentage: totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0,
+		stars: totalStars,
+		maxStars: maxStars,
+		gamesPlayed: gameData.games[gameId].gamesPlayed || 0
 	}
-})
+}
 
-const fruitMergeProgress = computed(() => {
-	const levels = gameData.games.fruitMerge.levels || {}
-	const completedLevels = Object.values(levels).filter(level => level.completed).length
-	const totalLevels = fruitMergeConfig.levels.length
-	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
+const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
+const fruitMergeProgress = computed(() => getGameProgress('fruitMerge', fruitMergeConfig))
+const numNumMergeProgress = computed(() => getGameProgress('numNumMerge', numNumMergeConfig))
+
+// Player Summary
+const playerSummary = computed(() => ({
+	level: gameData.player.level,
+	totalScore: gameData.player.totalScore,
+	gamesPlayed: gameData.player.gamesPlayed,
+	coins: gameData.player.coins,
+	diamonds: gameData.player.diamonds,
+	achievements: gameData.achievements.filter(a => a.earned).length
+}))
+
+// Overall Progress
+const overallProgress = computed(() => {
+	const totalCompleted = memoryProgress.value.completed + fruitMergeProgress.value.completed + numNumMergeProgress.value.completed
+	const totalLevels = memoryProgress.value.total + fruitMergeProgress.value.total + numNumMergeProgress.value.total
+	const totalStars = memoryProgress.value.stars + fruitMergeProgress.value.stars + numNumMergeProgress.value.stars
+	const maxStars = memoryProgress.value.maxStars + fruitMergeProgress.value.maxStars + numNumMergeProgress.value.maxStars
 
 	return {
-		completed: completedLevels,
-		total: totalLevels,
-		percentage: percentage
+		levels: totalCompleted,
+		totalLevels: totalLevels,
+		percentage: totalLevels > 0 ? Math.round((totalCompleted / totalLevels) * 100) : 0,
+		stars: totalStars,
+		maxStars: maxStars
 	}
 })
 
-const numNumMergeProgress = computed(() => {
-	const levels = gameData.games.numNumMerge.levels || {}
-	const completedLevels = Object.values(levels).filter(level => level.completed).length
-	const totalLevels = numNumMergeConfig.levels.length
-	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
-
-	return {
-		completed: completedLevels,
-		total: totalLevels,
-		percentage: percentage
-	}
-})
+// Daily Reward Handler
+const handleDailyRewardClaimed = (reward) => {
+	claimDailyReward(reward)
+	markCardAsRead('dailyRewardCard')
+	updateNotificationCount()
+}
 
 const handleMenuClick = () => {
 	router.push('/')
@@ -77,132 +101,155 @@ const handleMenuClick = () => {
 			@menu-click="handleMenuClick"
 	/>
 
-	<main class="portfolio">
+	<main class="home">
 
-		<!-- Projekte -->
-		<section class="projects">
-			<div class="projects-grid">
-				<!-- Gaming Platform -->
-				<h2 class="project-title">{{ t('portfolio.gamingHub.title') }}</h2>
-				<div class="games-grid">
-					<!-- Memory Game Card -->
-					<div class="game-card">
-						<div class="game-header">
-							<div class="game-icon">
-								<Icon :name="memoryConfig.gameIcon" size="32" />
-							</div>
-							<h3 class="game-title">{{ t('memory.title') }}</h3>
-						</div>
+		<!-- Overall Progress Card -->
+		<section class="progress-section">
+			<div class="progress-card" @click="navigateTo('/profile')">
+				<div class="progress-header">
+					<Icon :name="gameData.player.avatar" size="48" />
+					<h2 class="progress-title">{{ t('home.welcome_back', { name: gameData.player.name }) }}</h2>
+				</div>
 
-						<p class="game-description">{{ t('memory.description') }}</p>
-
-						<div class="game-stats">
-							<div class="stat-item">
-								<span class="stat-value">{{ gameData.games.memory.gamesPlayed }}</span>
-								<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
-							</div>
-						</div>
-
-						<!-- Progress Indicator -->
-						<div class="game-progress">
-							<div class="progress-bar">
-								<div
-										class="progress-fill"
-										:style="{ width: `${memoryProgress.percentage}%` }"
-								></div>
-							</div>
-							<span class="progress-text">{{ memoryProgress.percentage }}%</span>
-						</div>
-
-						<button class="btn btn--primary game-play-btn" @click="startGame('memory')">
-							<Icon name="play" size="16" />
-							{{ t('common.play') }}
-						</button>
+				<div class="progress-stats">
+					<div class="progress-item">
+						<span class="progress-number">{{ playerSummary.achievements }}</span>
+						<span class="progress-label">{{ t('nav.trophies') }}</span>
 					</div>
-
-					<!-- FruitMerge Game Card -->
-					<div class="game-card">
-						<div class="game-header">
-							<div class="game-icon">
-								<Icon :name="fruitMergeConfig.gameIcon" size="32" />
-							</div>
-							<h3 class="game-title">{{ fruitMergeConfig.gameTitle }}</h3>
-						</div>
-
-						<p class="game-description">{{ fruitMergeConfig.gameDescription }}</p>
-
-						<div class="game-stats">
-							<div class="stat-item">
-								<span class="stat-value">{{ gameData.games.fruitMerge.gamesPlayed }}</span>
-								<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
-							</div>
-						</div>
-
-						<!-- Progress Indicator -->
-						<div class="game-progress">
-							<div class="progress-bar">
-								<div
-										class="progress-fill"
-										:style="{ width: `${fruitMergeProgress.percentage}%` }"
-								></div>
-							</div>
-							<span class="progress-text">{{ fruitMergeProgress.percentage }}%</span>
-						</div>
-
-						<button class="btn btn--primary game-play-btn" @click="startGame('fruitMerge')">
-							<Icon name="play" size="16" />
-							{{ t('common.play') }}
-						</button>
+					<div class="progress-item">
+						<span class="progress-number">{{ playerSummary.gamesPlayed }}</span>
+						<span class="progress-label">{{ t('gaming.stats.games_played') }}</span>
 					</div>
-
-					<!-- NumberMerge Game Card -->
-					<div class="game-card">
-						<div class="game-header">
-							<div class="game-icon">
-								<Icon :name="numNumMergeConfig.gameIcon" size="32" />
-							</div>
-							<h3 class="game-title">{{ numNumMergeConfig.gameTitle }}</h3>
-						</div>
-						<p class="game-description">{{ numNumMergeConfig.gameDescription }}</p>
-						<div class="game-stats">
-							<div class="stat-item">
-								<span class="stat-value">{{ gameData.games.numNumMerge.gamesPlayed }}</span>
-								<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
-							</div>
-						</div>
-						<!-- Progress Indicator -->
-						<div class="game-progress">
-							<div class="progress-bar">
-								<div
-										class="progress-fill"
-										:style="{ width: `${numNumMergeProgress.percentage}%` }"
-								></div>
-							</div>
-							<span class="progress-text">{{ numNumMergeProgress.percentage }}%</span>
-						</div>
-
-						<button class="btn btn--primary game-play-btn" @click="startGame('numNumMerge')">
-							<Icon name="play" size="16" />
-							{{ t('common.play') }}
-						</button>
+					<div class="progress-item">
+						<span class="progress-number">{{ overallProgress.levels }}/{{ overallProgress.totalLevels }}</span>
+						<span class="progress-label">{{ t('gaming.stats.levels') }}</span>
+					</div>
+					<div class="progress-item">
+						<span class="progress-number">{{ overallProgress.stars }}/{{ overallProgress.maxStars }}</span>
+						<span class="progress-label">{{ t('gaming.stats.stars') }}</span>
+					</div>
+					<div class="progress-item">
+						<span class="progress-number">{{ overallProgress.percentage }}%</span>
+						<span class="progress-label">{{ t('common.complete') }}</span>
 					</div>
 				</div>
 
-				<!-- Portfolio Hero -->
-				<section class="hero">
-					<div class="hero-title"><h1>{{ t('portfolio.title') }}</h1></div>
-					<p class="hero-subtitle">{{ t('portfolio.subtitle') }}</p>
-				</section>
+				<!-- Overall Progress Bar -->
+				<div class="overall-progress-bar">
+					<div
+							class="overall-progress-fill"
+							:style="{ width: `${overallProgress.percentage}%` }"
+					></div>
+				</div>
+			</div>
+		</section>
 
-				<!-- Coming Soon Projekte -->
-				<div class="project-card project-card--coming-soon">
-					<div class="project-icon">
-						<Icon name="code" size="48" />
+		<!-- Quick Games Access -->
+		<section class="games-section">
+			<div class="games-grid">
+				<!-- Memory Game -->
+				<div class="game-card" @click="navigateToGame('memory')">
+					<div class="game-header">
+						<Icon :name="memoryConfig.gameIcon" size="28" />
+						<div class="game-info">
+							<h3 class="game-title">{{ t('memory.title') }}</h3>
+							<div class="game-progress">
+								<span class="progress-text">{{ memoryProgress.completed }}/{{ memoryProgress.total }}</span>
+								<div class="mini-progress-bar">
+									<div
+										class="mini-progress-fill memory"
+										:style="{ width: `${memoryProgress.percentage}%` }"
+									></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="game-stats">
+							<div class="game-stat">
+								<Icon name="star-filled" size="14" />
+								<span>{{ memoryProgress.stars }}</span>
+							</div>
+						</div>
 					</div>
-					<div class="project-content">
-						<h2 class="project-title">{{ t('portfolio.commingSoon.title') }}</h2>
-						<p class="project-description">{{ t('portfolio.commingSoon.description') }}</p>
+				</div>
+
+				<!-- Fruit Merge Game -->
+				<div class="game-card" @click="navigateToGame('fruitMerge')">
+					<div class="game-header">
+						<Icon :name="fruitMergeConfig.gameIcon" size="28" />
+						<div class="game-info">
+							<h3 class="game-title">{{ fruitMergeConfig.gameTitle }}</h3>
+							<div class="game-progress">
+								<span class="progress-text">{{ fruitMergeProgress.completed }}/{{ fruitMergeProgress.total }}</span>
+								<div class="mini-progress-bar">
+									<div
+											class="mini-progress-fill fruitmerge"
+											:style="{ width: `${fruitMergeProgress.percentage}%` }"
+									></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="game-stats">
+							<div class="game-stat">
+								<Icon name="star-filled" size="14" />
+								<span>{{ fruitMergeProgress.stars }}</span>
+							</div>
+						</div>
 					</div>
+				</div>
+
+				<!-- NumNum Merge Game -->
+				<div class="game-card" @click="navigateToGame('numNumMerge')">
+					<div class="game-header">
+						<Icon :name="numNumMergeConfig.gameIcon" size="28" />
+						<div class="game-info">
+							<h3 class="game-title">{{ numNumMergeConfig.gameTitle }}</h3>
+							<div class="game-progress">
+								<span class="progress-text">{{ numNumMergeProgress.completed }}/{{ numNumMergeProgress.total }}</span>
+								<div class="mini-progress-bar">
+									<div
+											class="mini-progress-fill numnum"
+											:style="{ width: `${numNumMergeProgress.percentage}%` }"
+									></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="game-stats">
+							<div class="game-stat">
+								<Icon name="star-filled" size="14" />
+								<span>{{ numNumMergeProgress.stars }}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Daily Reward Card -->
+		<section v-if="canClaimDailyReward()" class="daily-reward-section">
+			<DailyRewardCard
+					@mark-as-read="handleDailyRewardClaimed"
+			/>
+		</section>
+
+
+		<!-- Portfolio Hero -->
+		<section class="hero">
+			<div class="hero-title"><h1>{{ t('portfolio.title') }}</h1></div>
+			<p class="hero-subtitle">{{ t('portfolio.subtitle') }}</p>
+		</section>
+
+		<!-- Coming Soon Projekte -->
+		<section class="coming-soon-section">
+			<div class="project-card project-card--coming-soon">
+				<div class="project-icon">
+					<Icon name="code" size="48" />
+				</div>
+				<div class="project-content">
+					<h2 class="project-title">{{ t('portfolio.commingSoon.title') }}</h2>
+					<p class="project-description">{{ t('portfolio.commingSoon.description') }}</p>
 				</div>
 			</div>
 		</section>
@@ -210,16 +257,187 @@ const handleMenuClick = () => {
 </template>
 
 <style lang="scss" scoped>
-.portfolio {
-	padding: var(--space-4);
+.home {
+	padding: var(--space-4) 0;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-8);
+	gap: var(--space-2);
+	max-width: var(--content-width);
+	margin: 0;
 }
 
+// Progress Section
+.progress-card {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-xl);
+	padding: var(--space-4);
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		transform: translateY(-1px);
+		box-shadow: var(--card-shadow-hover);
+	}
+}
+
+.progress-header {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.progress-title {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.progress-stats {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: var(--space-2);
+}
+
+.progress-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	text-align: center;
+}
+
+.progress-number {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+}
+
+.progress-label {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	font-weight: var(--font-weight-bold);
+}
+
+.overall-progress-bar {
+	height: 8px;
+	background-color: var(--card-border);
+	border-radius: var(--border-radius-md);
+	overflow: hidden;
+}
+
+.overall-progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+	border-radius: var(--border-radius-md);
+	transition: width 0.5s ease;
+}
+
+// Games Section
+.section-title {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0 0 var(--space-3) 0;
+}
+
+.games-grid {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.game-card {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-3);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		transform: translateY(-1px);
+		box-shadow: var(--card-shadow-hover);
+	}
+}
+
+.game-header {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	flex: 1;
+}
+
+.game-info {
+	display: flex;
+	gap: var(--space-1);
+	flex-grow: 2;
+	justify-content: space-between;
+}
+
+.game-title {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.game-progress {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.progress-text {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	font-weight: var(--font-weight-bold);
+}
+
+.mini-progress-bar {
+	width: 60px;
+	height: 4px;
+	background-color: var(--card-border);
+	border-radius: var(--border-radius-sm);
+	overflow: hidden;
+}
+
+.mini-progress-fill {
+	height: 100%;
+	border-radius: var(--border-radius-sm);
+	transition: width 0.3s ease;
+	background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+}
+
+.game-stats {
+	display: flex;
+	gap: var(--space-2);
+}
+
+.game-stat {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	font-weight: var(--font-weight-bold);
+}
+
+
+
+
+// Portfolio Hero
 .hero {
 	text-align: center;
 	padding: var(--space-8) 0;
+	margin-bottom: var(--space-4);
 }
 
 .hero-title {
@@ -234,22 +452,9 @@ const handleMenuClick = () => {
 	margin: 0;
 }
 
-.projects {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
-}
-
-.section-title {
-	font-size: var(--font-size-xl);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	margin: 0;
-}
-
-.projects-grid {
-	display: grid;
-	gap: var(--space-4);
+// Coming Soon Section
+.coming-soon-section {
+	margin-bottom: var(--space-4);
 }
 
 .project-card {
@@ -259,14 +464,7 @@ const handleMenuClick = () => {
 	padding: var(--space-4);
 	display: flex;
 	gap: var(--space-4);
-	cursor: pointer;
 	transition: all 0.2s ease;
-
-	&:hover:not(&--coming-soon) {
-		background-color: var(--card-bg-hover);
-		box-shadow: var(--card-shadow-hover);
-		transform: translateY(-2px);
-	}
 
 	&--coming-soon {
 		opacity: 0.6;
@@ -298,174 +496,7 @@ const handleMenuClick = () => {
 	margin: 0;
 }
 
-.project-tech {
-	display: flex;
-	gap: var(--space-2);
-	flex-wrap: wrap;
-}
-
-.tech-tag {
-	background-color: var(--primary-color);
-	color: white;
-	padding: var(--space-1) var(--space-2);
-	border-radius: var(--border-radius-sm);
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-}
-
-.quick-links {
-	display: flex;
-	justify-content: center;
-	gap: var(--space-3);
-}
-
-
-// Games Grid
-.games-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: var(--space-3);
-	align-items: start;
-}
-
-// Game Cards
-.game-card {
-	border: 1px solid var(--card-border);
-	border-radius: var(--border-radius-lg);
-	padding: var(--space-3);
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-2);
-	transition: all 0.3s ease;
-	height: fit-content;
-	min-height: 200px;
-	position: relative;
-	overflow: hidden;
-
-	&--coming-soon {
-		opacity: 0.7;
-
-		.btn {
-			opacity: 0.5;
-			cursor: not-allowed;
-		}
-	}
-}
-
-// Game Header - Icon und Title horizontal
-.game-header {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	margin-bottom: var(--space-1);
-}
-
-.game-icon {
-	color: var(--primary-color);
-	width: var(--space-10);
-	height: var(--space-10);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	background-color: var(--bg-secondary);
-	border-radius: var(--border-radius-md);
-}
-
-.game-title {
-	font-size: var(--font-size-base);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	margin: 0;
-	line-height: 1.2;
-}
-
-.game-description {
-	font-size: var(--font-size-xs);
-	color: var(--text-secondary);
-	margin: 0;
-	line-height: 1.3;
-	flex: 1;
-}
-
-// Game Stats - kompakte 2-Spalten
-.game-stats {
-	display: flex;
-	gap: var(--space-2);
-	margin: var(--space-2) 0 0;
-	padding: var(--space-2);
-	background-color: rgba(255, 255, 255, 0.1);
-	border-radius: var(--border-radius-md);
-	backdrop-filter: blur(2px);
-}
-
-.stat-item {
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-	gap: var(--space-3);
-	text-align: center;
-}
-
-.stat-value {
-	font-size: var(--font-size-base);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	line-height: 1;
-}
-
-.stat-label {
-	font-size: var(--font-size-xs);
-	color: var(--text-secondary);
-	line-height: 1;
-}
-
-// Play Button - volle Breite
-.game-play-btn {
-	width: 100%;
-	margin-top: auto;
-	padding: var(--space-2) var(--space-3);
-	justify-content: center;
-}
-
-.game-progress {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	margin: var(--space-1) 0;
-}
-
-.progress-bar {
-	flex: 1;
-	height: 6px;
-	background-color: rgba(255, 255, 255, 0.2);
-	border-radius: var(--border-radius-sm);
-	overflow: hidden;
-	backdrop-filter: blur(2px);
-}
-
-.progress-fill {
-	height: 100%;
-	background: linear-gradient(90deg, var(--success-color), var(--success-hover));
-	border-radius: var(--border-radius-sm);
-	transition: width 0.5s ease;
-	box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-}
-
-.progress-text {
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	min-width: 35px;
-	text-align: center;
-	background-color: rgba(255, 255, 255, 0.1);
-	padding: var(--space-0) var(--space-1);
-	border-radius: var(--border-radius-sm);
-	backdrop-filter: blur(2px);
-}
-
+// H1 Animation (from original)
 h1 {
 	font-size: var(--font-size-4xl);
 	text-shadow:

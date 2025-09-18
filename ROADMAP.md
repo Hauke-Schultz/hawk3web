@@ -86,6 +86,7 @@
 - **App Manifest** - Configured manifest.json for PWA functionality
 - **Service Worker** - Basic service worker for offline caching and performance
 - **PWA Badge API** - App-Icon Badge showing unread cards and notifications
+- **Home Page Overhaul** - Redesigned home page
 
 ---
 

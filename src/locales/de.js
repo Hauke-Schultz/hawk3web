@@ -189,6 +189,9 @@ export default {
 
 	// Startseite
 	home: {
+    welcome_back: 'Willkommen zurück, {name}!',
+    overall_progress: 'Gesamtfortschritt',
+    quick_games: 'Schnelle Spiele',
 		start_game: 'Spiel starten',
 		gaming_hub: 'Spiele',
 		open_shop: 'Shop öffnen',
