@@ -95,7 +95,8 @@ export default {
 		achievement_reward: 'Erfolgs-Belohnung',
 		level_reward: 'Level-Abschluss-Belohnung',
 		combo_reward: 'Combo-Belohnung',
-		daily_reward: 'Tägliche Belohnung'
+		daily_reward: 'Tägliche Belohnung',
+    mystery_box_reward: 'Geheimnisvolle Box Belohnung'
 	},
 
 	rewards: {
@@ -161,6 +162,26 @@ export default {
     mixed_result: 'Gemischte Symbole!',
     three_shells: 'Drei Schalen',
     slot_machine: 'Spielautomat',
+
+    // Mystery Box
+    mystery_box_unlocked: 'Geheimnisvolle Box freigeschaltet!',
+    mystery_box_message: 'Glückwunsch! Du hast 7 tägliche Belohnungen abgeholt und eine spezielle Geheimnisvolle Box freigeschaltet!',
+    claim_mystery_box: 'Geheimnisvolle Box abholen',
+    mystery_box_progress: 'Geheimnisvolle Box Fortschritt',
+    mystery_box_countdown: '{remaining, plural, =1 {Noch 1 tägliche Belohnung} other {Noch # tägliche Belohnungen}} bis zur Geheimnisvollen Box',
+    to_mystery_box: 'zur Geheimnisvollen Box',
+    mystery_box_reward: 'Geheimnisvolle Box Belohnung',
+    mystery_box_claimed_desc: 'Spezialbonus für 7 tägliche Abholvorgänge',
+    mystery_box_progress_complete: '7/7 Tägliche Belohnungen - Geheimnisvolle Box bereit!',
+    mystery_box_title: 'Geheimnisvolle Box',
+    mystery_box_ready_subtitle: 'Deine Geheimnisvolle Box ist bereit zum Abholen!',
+    mystery_box_claiming_subtitle: 'Öffne deine Geheimnisvolle Box...',
+    mystery_box_progress_subtitle: '{remaining, plural, =1 {Noch 1 tägliche Belohnung} other {Noch # tägliche Belohnungen}} benötigt',
+    mystery_box_ready: 'Bereit zum Abholen!',
+    mystery_box_opening: 'Wird geöffnet...',
+    mystery_box_remaining: '{count, plural, =1 {1 Belohnung benötigt} other {# Belohnungen benötigt}}',
+    daily_rewards_progress: 'Tägliche Belohnungen Fortschritt',
+    collect_daily_rewards: 'Sammle tägliche Belohnungen für Fortschritt',
 	},
 
 	// App/Header
@@ -327,7 +348,9 @@ export default {
 		mark_all_read: 'Alle als gelesen markieren',
 		daily_reward_available: 'Tägliche Belohnung verfügbar',
 		daily_reward_claimed: 'Tägliche Belohnung erfolgreich eingelöst',
-		achievement_unlocked: 'Erfolg freigeschaltet!'
+		achievement_unlocked: 'Erfolg freigeschaltet!',
+    mystery_box_unlocked: 'Geheimnisvolle Box freigeschaltet!',
+    mystery_box_progress: 'Geheimnisvolle Box Fortschritt aktualisiert'
 	},
 
 	// Shop
@@ -894,6 +917,28 @@ export default {
       reach_4096: {
         name: 'Nummer 4096',
         description: 'Erreiche Nummer 4096'
+      },
+
+      // Mystery Box Achievements
+      mystery_box_first: {
+        name: 'Geheimnis-Entdecker',
+        description: 'Deine erste Geheimnisvolle Box freigeschaltet'
+      },
+      mystery_box_collector: {
+        name: 'Geheimnis-Sammler',
+        description: '5 Geheimnisvolle Boxen freigeschaltet'
+      },
+      mystery_box_master: {
+        name: 'Geheimnis-Meister',
+        description: '10 Geheimnisvolle Boxen freigeschaltet'
+      },
+      daily_streak_7: {
+        name: 'Wochen-Krieger',
+        description: '7 Tage in Folge tägliche Belohnungen abgeholt'
+      },
+      daily_streak_30: {
+        name: 'Monats-Champion',
+        description: '30 Tage in Folge tägliche Belohnungen abgeholt'
       },
 
       memory_perfectionist: {

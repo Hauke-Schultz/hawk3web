@@ -9,6 +9,7 @@ import { numNumMergeConfig } from '../games/numnummerge/numNumMergeConfig.js'
 import Icon from "../../components/Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
 import DailyRewardCard from "./DailyRewardCard.vue"
+import MysteryBoxCard from './MysteryBoxCard.vue'
 
 // Services
 const {
@@ -18,7 +19,8 @@ const {
 	isCardRead,
 	markCardAsRead,
 	canClaimDailyReward,
-	claimDailyReward } = useLocalStorage()
+	claimDailyReward,
+	hasAchievement } = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -182,6 +184,30 @@ const currentRoute = computed(() => {
 	}
 })
 
+const handleMysteryBoxClaim = (reward) => {
+	console.log('🎁 Mystery Box claimed:', reward)
+	checkMysteryBoxAchievements()
+}
+
+const checkMysteryBoxAchievements = () => {
+	const mysteryBoxCount = Math.floor((gameData.player.dailyRewardsCounter || 0) / 7)
+
+	// Check Mystery Box achievements
+	const mysteryBoxAchievements = [
+		{ id: 'mystery_box_first', count: 1 },
+		{ id: 'mystery_box_collector', count: 5 },
+		{ id: 'mystery_box_master', count: 10 }
+	]
+
+	mysteryBoxAchievements.forEach(achievement => {
+		if (mysteryBoxCount >= achievement.count && !hasAchievement(achievement.id)) {
+			cl
+			// Achievement würde hier ausgelöst - Implementation folgt später
+			console.log(`🏆 Mystery Box Achievement: ${achievement.id}`)
+		}
+	})
+}
+
 const notificationItems = computed(() => {
 	const items = []
 
@@ -234,6 +260,28 @@ const readNotificationItems = computed(() => {
 			}
 		}
 	}
+
+	const mysteryBoxTransactions = gameData.currency.transactions
+			.filter(t => t.source === 'mystery_box')
+			.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+			.slice(0, 3)
+
+	mysteryBoxTransactions.forEach(transaction => {
+		items.push({
+			id: `mystery_box-${transaction.id}`,
+			type: 'mystery_box_claimed',
+			title: t('daily_rewards.mystery_box_reward'),
+			description: t('daily_rewards.mystery_box_claimed_desc'),
+			icon: 'trophy',
+			readAt: transaction.timestamp,
+			timestamp: new Date(transaction.timestamp),
+			rewardDetails: {
+				coins: transaction.amounts.coins,
+				diamonds: transaction.amounts.diamonds
+			},
+			mysteryBoxNumber: transaction.metadata?.mysteryBoxNumber
+		})
+	})
 
 	// Recent achievements (last 10)
 	const recentAchievements = props.achievements
@@ -726,7 +774,11 @@ watch(() => props.player.diamonds, () => {
 										</div>
 									</div>
 								</div>
-
+								<div class="notification-section">
+									<MysteryBoxCard
+											@claim-mystery-box="handleMysteryBoxClaim"
+									/>
+								</div>
 								<!-- Read Notifications Section -->
 								<div v-if="allNotificationItems.read.length > 0" class="notification-section">
 									<h5 class="notification-section-title">{{ t('notifications.recent_activity') }}</h5>

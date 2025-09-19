@@ -360,6 +360,58 @@ export const ACHIEVEMENTS = {
       trigger: { type: 'number_reach', game: 'numNumMerge', number: 4096 }
     },
 
+    // Mystery Box Achievements
+    {
+      id: 'mystery_box_first',
+      name: 'Mystery Explorer',
+      description: 'Unlocked your first Mystery Box',
+      category: 'special',
+      icon: 'star-filled',
+      rarity: 'uncommon',
+      rewards: { coins: 1000, diamonds: 5 },
+      trigger: { type: 'mystery_box_count', count: 1 }
+    },
+    {
+      id: 'mystery_box_collector',
+      name: 'Mystery Collector',
+      description: 'Unlocked 5 Mystery Boxes',
+      category: 'special',
+      icon: 'trophy',
+      rarity: 'rare',
+      rewards: { coins: 2500, diamonds: 15 },
+      trigger: { type: 'mystery_box_count', count: 5 }
+    },
+    {
+      id: 'mystery_box_master',
+      name: 'Mystery Master',
+      description: 'Unlocked 10 Mystery Boxes',
+      category: 'special',
+      icon: 'trophy',
+      rarity: 'epic',
+      rewards: { coins: 5000, diamonds: 25 },
+      trigger: { type: 'mystery_box_count', count: 10 }
+    },
+    {
+      id: 'daily_streak_7',
+      name: 'Week Warrior',
+      description: 'Claimed daily rewards for 7 consecutive days',
+      category: 'special',
+      icon: 'completion-badge',
+      rarity: 'rare',
+      rewards: { coins: 1500, diamonds: 10 },
+      trigger: { type: 'daily_streak', days: 7 }
+    },
+    {
+      id: 'daily_streak_30',
+      name: 'Monthly Champion',
+      description: 'Claimed daily rewards for 30 consecutive days',
+      category: 'special',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 7500, diamonds: 35 },
+      trigger: { type: 'daily_streak', days: 30 }
+    },
+
     // Special achievements
     {
       id: 'memory_perfectionist',

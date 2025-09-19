@@ -26,6 +26,7 @@ const getDefaultData = () => ({
 		gamesPlayed: 0,
 		coins: 0,
 		diamonds: 0,
+    dailyRewardsCounter: 0,
 		createdAt: new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0],
 		inventory: {
@@ -135,7 +136,8 @@ const validatePlayerData = (player) => {
 		gamesPlayed: typeof player?.gamesPlayed === 'number' ? player.gamesPlayed : 0,
 		coins: typeof player?.coins === 'number' ? player.coins : 0,
 		diamonds: typeof player?.diamonds === 'number' ? player.diamonds : 0,
-		createdAt: player?.createdAt || new Date().toISOString().split('T')[0],
+    dailyRewardsCounter: typeof player?.dailyRewardsCounter === 'number' ? player.dailyRewardsCounter : 0,
+    createdAt: player?.createdAt || new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0],
 		inventory: validateInventoryData(player?.inventory)
 	}
@@ -263,6 +265,10 @@ const migrateData = (data) => {
 			data.player.coins = 0
 			data.player.diamonds = 0
 		}
+
+    if (!data.player?.dailyRewardsCounter && data.player?.dailyRewardsCounter !== 0) {
+      data.player.dailyRewardsCounter = 0
+    }
 
 		if (!data.notifications) {
 			data.notifications = getDefaultData().notifications
@@ -978,7 +984,11 @@ export function useLocalStorage() {
     gameData.player.coins += reward.coins
     gameData.player.diamonds += reward.diamonds
 
-    // Update daily rewards data - nur das Datum speichern
+    // Increment daily rewards counter
+    gameData.player.dailyRewardsCounter += 1
+    console.log(`🎁 Daily rewards counter: ${gameData.player.dailyRewardsCounter}`)
+
+    // Update daily rewards data
     gameData.currency.dailyRewards.lastClaimed = today
 
     // Add transaction record
@@ -1000,11 +1010,55 @@ export function useLocalStorage() {
         rewardType: 'daily_minigame',
         gameResult: 'reward_claimed',
         rewardAmount: reward,
-        source: reward.source
+        source: reward.source,
+        dailyRewardsCounter: gameData.player.dailyRewardsCounter
       }
     }
 
     gameData.currency.transactions.push(transaction)
+
+    if (gameData.player.dailyRewardsCounter % 7 === 0) {
+      console.log(`🎁 Mystery Box unlocked! (${gameData.player.dailyRewardsCounter} daily rewards claimed)`)
+
+      // Mystery Box Achievement
+      const mysteryBoxReward = {
+        coins: 500,
+        diamonds: 25,
+        type: 'mystery_box',
+        message: 'Mystery Box unlocked!'
+      }
+
+      // Mystery Box Transaction
+      const mysteryBoxTransaction = {
+        id: `mystery_box_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: now.toISOString(),
+        type: 'earn',
+        source: 'mystery_box',
+        description: 'Mystery Box Reward (7 Daily Claims)',
+        amounts: {
+          coins: mysteryBoxReward.coins,
+          diamonds: mysteryBoxReward.diamonds
+        },
+        balanceAfter: {
+          coins: gameData.player.coins + mysteryBoxReward.coins,
+          diamonds: gameData.player.diamonds + mysteryBoxReward.diamonds
+        },
+        metadata: {
+          rewardType: 'mystery_box',
+          triggerCount: gameData.player.dailyRewardsCounter,
+          mysteryBoxNumber: Math.floor(gameData.player.dailyRewardsCounter / 7)
+        }
+      }
+
+      gameData.player.coins += mysteryBoxReward.coins
+      gameData.player.diamonds += mysteryBoxReward.diamonds
+      gameData.currency.transactions.push(mysteryBoxTransaction)
+
+      transaction.balanceAfter.coins = gameData.player.coins
+      transaction.balanceAfter.diamonds = gameData.player.diamonds
+
+      reward.mysteryBox = mysteryBoxReward
+    }
 
     console.log(`🎁 Daily reward claimed! Date: ${today}, Source: ${reward.source}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
 
@@ -1436,6 +1490,8 @@ export function useLocalStorage() {
 		markNotificationAsRead,
 		clearAllNotifications,
 		getUnreadNotificationCount,
+    getDailyRewardsCounter: () => gameData.player.dailyRewardsCounter,
+    canClaimMysteryBox: () => gameData.player.dailyRewardsCounter >= 7 && gameData.player.dailyRewardsCounter % 7 === 0,
 
 		// Data management
 		saveData,

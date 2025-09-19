@@ -96,7 +96,8 @@ export default {
 		achievement_reward: 'Achievement Reward',
 		level_reward: 'Level Completion Reward',
 		combo_reward: 'Combo Reward',
-		daily_reward: 'Daily Reward'
+		daily_reward: 'Daily Reward',
+    mystery_box_reward: 'Mystery Box Reward',
 	},
 
 	rewards: {
@@ -162,6 +163,26 @@ export default {
     mixed_result: 'Mixed symbols!',
     three_shells: 'Three Shells',
     slot_machine: 'Slot Machine',
+
+    // Mystery Box
+    mystery_box_unlocked: 'Mystery Box Unlocked!',
+    mystery_box_message: 'Congratulations! You\'ve claimed 7 daily rewards and unlocked a special Mystery Box!',
+    claim_mystery_box: 'Claim Mystery Box',
+    mystery_box_progress: 'Mystery Box Progress',
+    mystery_box_countdown: 'Claim {remaining} Daily Bonus until Mystery Box',
+    to_mystery_box: 'to Mystery Box',
+    mystery_box_reward: 'Mystery Box Reward',
+    mystery_box_claimed_desc: 'Special bonus for 7 daily claims',
+    mystery_box_progress_complete: '7/7 - Ready to claim!',
+    mystery_box_title: 'Mystery Box',
+    mystery_box_ready_subtitle: 'Your Mystery Box is ready to claim!',
+    mystery_box_claiming_subtitle: 'Opening your Mystery Box...',
+    mystery_box_progress_subtitle: '{remaining} needed',
+    mystery_box_ready: 'Ready to claim!',
+    mystery_box_opening: 'Opening...',
+    mystery_box_remaining: '{count} rewards needed',
+    daily_rewards_progress: 'Daily Rewards Progress',
+    collect_daily_rewards: 'Collect daily rewards to progress',
 	},
 
 	// App/Header
@@ -250,7 +271,9 @@ export default {
 		mark_all_read: 'Mark all as read',
 		daily_reward_available: 'Daily reward available',
 		daily_reward_claimed: 'Daily reward claimed successfully',
-		achievement_unlocked: 'Achievement unlocked!'
+		achievement_unlocked: 'Achievement unlocked!',
+    mystery_box_unlocked: 'Mystery Box unlocked!',
+    mystery_box_progress: 'Mystery Box progress updated'
 	},
 
 	// Shop
@@ -897,6 +920,27 @@ export default {
         description: 'Created the number 4096'
       },
 
+      mystery_box_first: {
+        name: 'Mystery Explorer',
+        description: 'Unlocked your first Mystery Box'
+      },
+      mystery_box_collector: {
+        name: 'Mystery Collector',
+        description: 'Unlocked 5 Mystery Boxes'
+      },
+      mystery_box_master: {
+        name: 'Mystery Master',
+        description: 'Unlocked 10 Mystery Boxes'
+      },
+      daily_streak_7: {
+        name: 'Week Warrior',
+        description: 'Claimed daily rewards for 7 consecutive days'
+      },
+      daily_streak_30: {
+        name: 'Monthly Champion',
+        description: 'Claimed daily rewards for 30 consecutive days'
+      },
+
       memory_perfectionist: {
         name: 'Memory Perfectionist',
         description: 'Complete all Memory levels with 3 stars'
@@ -909,6 +953,7 @@ export default {
         name: 'NumNum Merge Perfectionist',
         description: 'Complete all NumNum Merge levels with 3 stars'
       },
+
       ultimate_perfectionist: {
         name: 'Ultimate Perfectionist',
         description: 'Complete ALL game levels with perfect 3-star scores'
