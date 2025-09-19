@@ -6,6 +6,7 @@ import {
 	REWARDS
 } from '../config/achievementsConfig.js'
 import { calculateLevelStars } from '../config/levelUtils.js'
+import { MYSTERY_BOX_CONFIG, calculateMysteryBoxReward, getMysteryBoxProgress, canClaimMysteryBox as canClaimMysteryBoxHelper } from '../config/mysteryBoxConfig.js'
 import { useBadge } from '../../composables/useBadge.js'
 import {useI18n} from "../../composables/useI18n.js";
 const { t } = useI18n()
@@ -90,6 +91,11 @@ const getDefaultData = () => ({
 		transactions: [],
     dailyRewards: {
       lastClaimed: '2023-01-01',
+    },
+    mysteryBoxes: {
+      lastClaimed: '2023-01-01',
+      totalClaimed: 0,
+      lastClaimedCounter: 0
     },
 		milestones: {
 			achievementCategories: {
@@ -261,7 +267,15 @@ const migrateData = (data) => {
 			}
 		}
 
-		if (!data.player?.coins && data.player?.coins !== 0) {
+    if (!data.currency.mysteryBoxes) {
+      data.currency.mysteryBoxes = {
+        lastClaimed: '2023-01-01',
+        totalClaimed: 0,
+        lastClaimedCounter: 0
+      }
+    }
+
+    if (!data.player?.coins && data.player?.coins !== 0) {
 			data.player.coins = 0
 			data.player.diamonds = 0
 		}
@@ -958,6 +972,8 @@ export function useLocalStorage() {
     const now = new Date()
     const today = now.toISOString().split('T')[0] // YYYY-MM-DD format
 
+    console.log(`🎁 Starting daily reward claim. Current counter: ${gameData.player.dailyRewardsCounter}`)
+
     let reward
     if (minigameReward) {
       reward = {
@@ -984,9 +1000,12 @@ export function useLocalStorage() {
     gameData.player.coins += reward.coins
     gameData.player.diamonds += reward.diamonds
 
-    // Increment daily rewards counter
+    // Increment daily rewards counter FIRST
+    const oldCounter = gameData.player.dailyRewardsCounter
     gameData.player.dailyRewardsCounter += 1
-    console.log(`🎁 Daily rewards counter: ${gameData.player.dailyRewardsCounter}`)
+    const newCounter = gameData.player.dailyRewardsCounter
+
+    console.log(`🎁 Daily rewards counter updated: ${oldCounter} → ${newCounter}`)
 
     // Update daily rewards data
     gameData.currency.dailyRewards.lastClaimed = today
@@ -1017,50 +1036,19 @@ export function useLocalStorage() {
 
     gameData.currency.transactions.push(transaction)
 
+    // Check for mystery box unlock
     if (gameData.player.dailyRewardsCounter % 7 === 0) {
       console.log(`🎁 Mystery Box unlocked! (${gameData.player.dailyRewardsCounter} daily rewards claimed)`)
 
-      // Mystery Box Achievement
-      const mysteryBoxReward = {
-        coins: 500,
-        diamonds: 25,
-        type: 'mystery_box',
-        message: 'Mystery Box unlocked!'
-      }
-
-      // Mystery Box Transaction
-      const mysteryBoxTransaction = {
-        id: `mystery_box_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: now.toISOString(),
-        type: 'earn',
-        source: 'mystery_box',
-        description: 'Mystery Box Reward (7 Daily Claims)',
-        amounts: {
-          coins: mysteryBoxReward.coins,
-          diamonds: mysteryBoxReward.diamonds
-        },
-        balanceAfter: {
-          coins: gameData.player.coins + mysteryBoxReward.coins,
-          diamonds: gameData.player.diamonds + mysteryBoxReward.diamonds
-        },
-        metadata: {
-          rewardType: 'mystery_box',
-          triggerCount: gameData.player.dailyRewardsCounter,
-          mysteryBoxNumber: Math.floor(gameData.player.dailyRewardsCounter / 7)
-        }
-      }
-
-      gameData.player.coins += mysteryBoxReward.coins
-      gameData.player.diamonds += mysteryBoxReward.diamonds
-      gameData.currency.transactions.push(mysteryBoxTransaction)
-
-      transaction.balanceAfter.coins = gameData.player.coins
-      transaction.balanceAfter.diamonds = gameData.player.diamonds
-
-      reward.mysteryBox = mysteryBoxReward
+      // Don't auto-claim mystery box, just log the milestone
+      reward.mysteryBoxUnlocked = true
+      reward.mysteryBoxNumber = Math.floor(gameData.player.dailyRewardsCounter / 7)
     }
 
-    console.log(`🎁 Daily reward claimed! Date: ${today}, Source: ${reward.source}, Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
+    console.log(`🎁 Daily reward processing complete! Counter: ${gameData.player.dailyRewardsCounter}`)
+
+    // Force save to ensure data persistence
+    saveData()
 
     setTimeout(() => {
       updateNotificationCount()
@@ -1334,6 +1322,125 @@ export function useLocalStorage() {
 		}
 	}
 
+  // Mystery Box System
+  const canClaimMysteryBox = () => {
+    if (!gameData.currency.mysteryBoxes) {
+      // Initialize if not exists
+      gameData.currency.mysteryBoxes = {
+        lastClaimed: '2023-01-01',
+        totalClaimed: 0,
+        lastClaimedCounter: 0
+      }
+    }
+
+    return canClaimMysteryBoxHelper(
+        gameData.player.dailyRewardsCounter,
+        gameData.currency.mysteryBoxes.lastClaimedCounter
+    )
+  }
+
+  const getMysteryBoxProgressData = () => {
+    const mysteryBoxData = gameData.currency.mysteryBoxes || { lastClaimedCounter: 0 }
+    return getMysteryBoxProgress(
+        gameData.player.dailyRewardsCounter,
+        mysteryBoxData.lastClaimedCounter
+    )
+  }
+
+  const claimMysteryBox = () => {
+    if (!canClaimMysteryBox()) {
+      console.warn('Cannot claim mystery box - not ready or already claimed')
+      return null
+    }
+
+    // Ensure mysteryBoxes object exists
+    if (!gameData.currency.mysteryBoxes) {
+      gameData.currency.mysteryBoxes = {
+        lastClaimed: '2023-01-01',
+        totalClaimed: 0,
+        lastClaimedCounter: 0
+      }
+    }
+
+    const mysteryBoxNumber = Math.floor(gameData.player.dailyRewardsCounter / MYSTERY_BOX_CONFIG.requiredDailyRewards)
+    const reward = calculateMysteryBoxReward(mysteryBoxNumber)
+
+    console.log(`🎁 Claiming Mystery Box #${mysteryBoxNumber}:`, reward)
+
+    // Add currency to player
+    gameData.player.coins += reward.coins
+    gameData.player.diamonds += reward.diamonds
+
+    // Update mystery box tracking
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+
+    gameData.currency.mysteryBoxes.lastClaimed = today
+    gameData.currency.mysteryBoxes.totalClaimed += 1
+    gameData.currency.mysteryBoxes.lastClaimedCounter = gameData.player.dailyRewardsCounter
+
+    console.log(`🎁 Mystery Box tracking updated:`, {
+      lastClaimed: today,
+      totalClaimed: gameData.currency.mysteryBoxes.totalClaimed,
+      lastClaimedCounter: gameData.currency.mysteryBoxes.lastClaimedCounter
+    })
+
+    // Create transaction record
+    const transaction = {
+      id: `mystery_box_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: now.toISOString(),
+      type: 'earn',
+      source: 'mystery_box',
+      description: reward.isSpecial ? reward.message : t('daily_rewards.mystery_box_reward'),
+      amounts: {
+        coins: reward.coins,
+        diamonds: reward.diamonds
+      },
+      balanceAfter: {
+        coins: gameData.player.coins,
+        diamonds: gameData.player.diamonds
+      },
+      metadata: {
+        rewardType: 'mystery_box',
+        mysteryBoxNumber,
+        multiplier: reward.multiplier || 1.0,
+        isSpecial: reward.isSpecial,
+        dailyRewardsCounter: gameData.player.dailyRewardsCounter,
+        totalMysteryBoxesClaimed: gameData.currency.mysteryBoxes.totalClaimed
+      }
+    }
+
+    gameData.currency.transactions.push(transaction)
+
+    // Check for mystery box achievements
+    checkMysteryBoxAchievements(gameData.currency.mysteryBoxes.totalClaimed)
+
+    // Force save
+    saveData()
+
+    console.log(`🎁 Mystery Box #${mysteryBoxNumber} claimed! Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
+
+    return {
+      ...reward,
+      transaction,
+      totalClaimed: gameData.currency.mysteryBoxes.totalClaimed
+    }
+  }
+
+  const checkMysteryBoxAchievements = (totalMysteryBoxesClaimed) => {
+    MYSTERY_BOX_CONFIG.achievementThresholds.forEach(threshold => {
+      if (totalMysteryBoxesClaimed >= threshold.count && !hasAchievement(threshold.achievementId)) {
+        const achievement = ACHIEVEMENTS.definitions.find(a => a.id === threshold.achievementId)
+        if (achievement) {
+          const wasAdded = addAchievement(achievement)
+          if (wasAdded) {
+            console.log(`🏆 Mystery Box Achievement unlocked: ${achievement.name} (${totalMysteryBoxesClaimed} boxes claimed)`)
+          }
+        }
+      }
+    })
+  }
+
 	const getUnreadNotificationCount = () => {
 		if (!gameData.notifications) {
 			gameData.notifications = getDefaultData().notifications
@@ -1490,8 +1597,12 @@ export function useLocalStorage() {
 		markNotificationAsRead,
 		clearAllNotifications,
 		getUnreadNotificationCount,
-    getDailyRewardsCounter: () => gameData.player.dailyRewardsCounter,
-    canClaimMysteryBox: () => gameData.player.dailyRewardsCounter >= 7 && gameData.player.dailyRewardsCounter % 7 === 0,
+
+    // Mystery Box methods
+    getMysteryBoxProgressData,
+    canClaimMysteryBox,
+    claimMysteryBox,
+    checkMysteryBoxAchievements,
 
 		// Data management
 		saveData,

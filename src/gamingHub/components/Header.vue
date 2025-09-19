@@ -158,11 +158,23 @@ const closeNotifications = () => {
 }
 
 const handleNotificationItemRead = (reward) => {
+	console.log(`🎁 Processing notification item read:`, reward)
+
 	if (reward.type === 'dailyRewardCard') {
+		const oldCounter = gameData.player.dailyRewardsCounter
 		claimDailyReward(reward)
+		const newCounter = gameData.player.dailyRewardsCounter
+
+		console.log(`🎁 Daily reward processed: ${oldCounter} → ${newCounter}`)
 	}
+
 	markCardAsRead(reward.type)
 	updateNotificationCount()
+
+	// Force reactivity update
+	setTimeout(() => {
+		console.log(`🎁 Final state check - Counter: ${gameData.player.dailyRewardsCounter}`)
+	}, 50)
 }
 
 const displayTitle = computed(() => {
@@ -186,26 +198,6 @@ const currentRoute = computed(() => {
 
 const handleMysteryBoxClaim = (reward) => {
 	console.log('🎁 Mystery Box claimed:', reward)
-	checkMysteryBoxAchievements()
-}
-
-const checkMysteryBoxAchievements = () => {
-	const mysteryBoxCount = Math.floor((gameData.player.dailyRewardsCounter || 0) / 7)
-
-	// Check Mystery Box achievements
-	const mysteryBoxAchievements = [
-		{ id: 'mystery_box_first', count: 1 },
-		{ id: 'mystery_box_collector', count: 5 },
-		{ id: 'mystery_box_master', count: 10 }
-	]
-
-	mysteryBoxAchievements.forEach(achievement => {
-		if (mysteryBoxCount >= achievement.count && !hasAchievement(achievement.id)) {
-			cl
-			// Achievement würde hier ausgelöst - Implementation folgt später
-			console.log(`🏆 Mystery Box Achievement: ${achievement.id}`)
-		}
-	})
 }
 
 const notificationItems = computed(() => {
@@ -776,6 +768,8 @@ watch(() => props.player.diamonds, () => {
 								</div>
 								<div class="notification-section">
 									<MysteryBoxCard
+											v-if="gameData.player.dailyRewardsCounter >= 0"
+											:key="`mystery-box-${gameData.player.dailyRewardsCounter}`"
 											@claim-mystery-box="handleMysteryBoxClaim"
 									/>
 								</div>

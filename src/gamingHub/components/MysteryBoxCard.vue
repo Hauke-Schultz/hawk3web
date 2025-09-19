@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { MYSTERY_BOX_CONFIG } from '../config/mysteryBoxConfig.js'
 import CurrencyDisplay from './CurrencyDisplay.vue'
 import Icon from '../../components/Icon.vue'
 
@@ -22,40 +23,23 @@ const emit = defineEmits(['claim-mystery-box'])
 
 // Services
 const { t } = useI18n()
-const { gameData, claimDailyReward } = useLocalStorage()
+const {
+	gameData,
+	getMysteryBoxProgressData,
+	canClaimMysteryBox,
+	claimMysteryBox
+} = useLocalStorage()
 
 // State
 const isAnimating = ref(false)
 const mysteryBoxState = ref('progress') // 'progress', 'ready', 'claiming'
 
 // Computed Properties
-const dailyRewardsCounter = computed(() => gameData.player.dailyRewardsCounter || 0)
-
-const progressToNext = computed(() => {
-	const current = dailyRewardsCounter.value % 7
-	return {
-		current: current,
-		needed: 7,
-		remaining: 7 - current,
-		percentage: (current / 7) * 100,
-		isComplete: current === 0 && dailyRewardsCounter.value > 0
-	}
-})
-
-const mysteryBoxNumber = computed(() => {
-	return Math.floor(dailyRewardsCounter.value / 7)
-})
-
-const totalUnlockedBoxes = computed(() => {
-	return Math.floor(dailyRewardsCounter.value / 7)
-})
-
-const canClaimMysteryBox = computed(() => {
-	return progressToNext.value.isComplete
-})
+const progressData = computed(() => getMysteryBoxProgressData())
+const canClaim = computed(() => canClaimMysteryBox())
 
 const cardStatus = computed(() => {
-	if (canClaimMysteryBox.value) return 'ready'
+	if (canClaim.value) return 'ready'
 	if (mysteryBoxState.value === 'claiming') return 'claiming'
 	return 'progress'
 })
@@ -68,14 +52,14 @@ const getStatusText = () => {
 			return t('daily_rewards.mystery_box_claiming_subtitle')
 		default:
 			return t('daily_rewards.mystery_box_progress_subtitle', {
-				remaining: progressToNext.value.remaining
+				remaining: progressData.value.remaining
 			})
 	}
 }
 
 // Methods
 const handleClaimMysteryBox = (event) => {
-	if (!canClaimMysteryBox.value) return
+	if (!canClaim.value) return
 
 	if (event) {
 		event.stopPropagation()
@@ -85,28 +69,70 @@ const handleClaimMysteryBox = (event) => {
 	mysteryBoxState.value = 'claiming'
 	isAnimating.value = true
 
-	// Simulate mystery box opening
+	// Simulate mystery box opening animation
 	setTimeout(() => {
-		const mysteryBoxReward = {
-			coins: 500,
-			diamonds: 25,
-			type: 'mystery_box',
-			mysteryBoxNumber: mysteryBoxNumber.value
-		}
+		try {
+			const reward = claimMysteryBox()
 
-		emit('claim-mystery-box', mysteryBoxReward)
-		mysteryBoxState.value = 'progress'
-		isAnimating.value = false
-	}, 2000)
+			if (reward) {
+				emit('claim-mystery-box', reward)
+				mysteryBoxState.value = 'progress'
+				console.log(`🎁 Mystery Box claimed successfully!`, reward)
+			} else {
+				console.error('Failed to claim mystery box')
+				mysteryBoxState.value = 'ready'
+			}
+		} catch (error) {
+			console.error('Error claiming mystery box:', error)
+			mysteryBoxState.value = 'ready'
+		} finally {
+			isAnimating.value = false
+		}
+	}, MYSTERY_BOX_CONFIG.animationDuration)
 }
 
-// Lifecycle
+// Initialize on mount
 onMounted(() => {
-	// Check initial state
-	if (canClaimMysteryBox.value) {
+	console.log(`🎁 MysteryBoxCard mounted. Can claim: ${canClaim.value}, Counter: ${gameData.player.dailyRewardsCounter}`)
+
+	if (canClaim.value) {
 		mysteryBoxState.value = 'ready'
 	}
 })
+
+// Watch for changes in dailyRewardsCounter
+watch(() => gameData.player.dailyRewardsCounter, (newCount, oldCount) => {
+	const mysteryBoxData = gameData.currency.mysteryBoxes || { lastClaimedCounter: 0 }
+
+	console.log(`🎁 Daily rewards counter changed: ${oldCount} → ${newCount}`)
+	console.log(`🎁 Mystery box tracking:`, {
+		lastClaimedCounter: mysteryBoxData.lastClaimedCounter,
+		totalClaimed: mysteryBoxData.totalClaimed,
+		canClaim: canClaim.value
+	})
+
+	// Check if we just reached a mystery box milestone
+	if (canClaim.value && mysteryBoxState.value !== 'ready') {
+		console.log(`🎁 Mystery Box is now ready! (${newCount} daily rewards)`)
+		mysteryBoxState.value = 'ready'
+	}
+
+	// Reset to progress if we're no longer at a milestone
+	if (!canClaim.value && mysteryBoxState.value === 'ready') {
+		console.log(`🎁 Mystery Box no longer available`)
+		mysteryBoxState.value = 'progress'
+	}
+}, { immediate: true })
+
+// Also watch mystery box data changes
+watch(() => gameData.currency.mysteryBoxes, (newData) => {
+	console.log(`🎁 Mystery box data changed:`, newData)
+
+	// Update state if needed
+	if (!canClaim.value && mysteryBoxState.value === 'ready') {
+		mysteryBoxState.value = 'progress'
+	}
+}, { deep: true })
 </script>
 
 <template>
@@ -127,8 +153,8 @@ onMounted(() => {
 				>
 					🎁
 				</div>
-				<div v-if="totalUnlockedBoxes > 0" class="mystery-box-counter">
-					{{ totalUnlockedBoxes }}
+				<div v-if="progressData.mysteryBoxNumber > 0" class="mystery-box-counter">
+					{{ progressData.mysteryBoxNumber }}
 				</div>
 			</div>
 
@@ -145,9 +171,9 @@ onMounted(() => {
         <span class="progress-label">
           {{ t('daily_rewards.daily_rewards_progress') }}
         </span>
-				<span class="progress-counter">
-          {{ progressToNext.current }}/{{ progressToNext.needed }}
-        </span>
+				<div class="progress-counter">
+					{{ progressData.current }}/{{ progressData.required }}
+				</div>
 			</div>
 
 			<div class="progress-bar-container">
@@ -155,7 +181,7 @@ onMounted(() => {
 					<div
 							class="progress-fill"
 							:class="`progress-fill--${cardStatus}`"
-							:style="{ width: `${progressToNext.percentage}%` }"
+							:style="{ width: `${progressData.percentage}%` }"
 					>
 						<div class="progress-shine"></div>
 					</div>
