@@ -93,11 +93,13 @@
 ## 🚀 Version 0.3.3 - Enhancements
 
 - **🔮 Mystery Boxes** - Special boxes with new items (cosmetics not buyable in shop)
-- **🎁 Gift System** - Send and receive gifts with friends
 
 ---
 
 ## 🚀 Version 0.3.4 - Enhancements
+
+
+- **🎁 Gift System** - Send and receive gifts with friends
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges
