@@ -33,7 +33,28 @@ const playerName = computed({
 })
 
 const ownedItems = computed(() => {
-	return getAllOwnedItems().slice(0, 12) // Limit to 12 items for display
+	const allItems = getAllOwnedItems()
+
+	// Separate mystery items from regular shop items
+	const mysteryItems = allItems.filter(item => {
+		const inventoryData = gameData.player.inventory.items[item.id]
+		return inventoryData && inventoryData.mysteryBoxNumber !== undefined
+	})
+
+	const regularItems = allItems.filter(item => {
+		const inventoryData = gameData.player.inventory.items[item.id]
+		return !inventoryData || inventoryData.mysteryBoxNumber === undefined
+	})
+
+	// Show mystery items first, then regular items, limit to 12 total
+	return [...mysteryItems, ...regularItems].slice(0, 12)
+})
+
+const hasMysteryItems = computed(() => {
+	return ownedItems.value.some(item => {
+		const inventoryData = gameData.player.inventory.items[item.id]
+		return inventoryData && inventoryData.mysteryBoxNumber !== undefined
+	})
 })
 
 const selectedAvatar = computed({
@@ -136,18 +157,55 @@ const handleMenuClick = () => {
 			<!-- Inventory Section -->
 			<div class="profile-section">
 				<label class="setting-label">{{ t('profile.inventory.title') }}</label>
-				<div class="inventory-simple" v-if="ownedItems.length > 0">
+
+				<!-- Mystery Items Section -->
+				<div v-if="hasMysteryItems" class="mystery-items-section">
+					<h4 class="mystery-items-title">
+						<Icon name="star-filled" size="16" />
+						{{ t('profile.inventory.mystery_items') }}
+					</h4>
+					<div class="inventory-simple">
+						<div
+							v-for="item in ownedItems.filter(item => {
+			          const inventoryData = gameData.player.inventory.items[item.id]
+			          return inventoryData && inventoryData.mysteryBoxNumber !== undefined
+			        })"
+							:key="`mystery-${item.id}`"
+							class="inventory-item inventory-item--mystery"
+						>
+							<span class="item-icon">{{ item.icon }}</span>
+							<div class="item-details">
+								<span class="item-name">{{ item.name }}</span>
+								<span class="item-source">
+            {{ t('profile.inventory.mystery_box_item', {
+									boxNumber: gameData.player.inventory.items[item.id].mysteryBoxNumber
+								}) }}
+          </span>
+							</div>
+							<span class="item-rarity" :class="`rarity--${item.rarity}`">
+          {{ t(`shop.rarities.${item.rarity}`) }}
+        </span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Regular Items Section -->
+				<div v-if="ownedItems.length > 0" class="inventory-simple">
 					<div
-							v-for="item in ownedItems"
-							:key="item.id"
-							class="inventory-item"
+						v-for="item in ownedItems.filter(item => {
+			        const inventoryData = gameData.player.inventory.items[item.id]
+			        return !inventoryData || inventoryData.mysteryBoxNumber === undefined
+			      })"
+						:key="item.id"
+						class="inventory-item"
 					>
 						<span class="item-icon">{{ item.icon }}</span>
 						<span class="item-name">{{ item.name }}</span>
 						<span v-if="item.quantity > 1" class="item-quantity">x{{ item.quantity }}</span>
 					</div>
 				</div>
-				<div v-else class="inventory-empty">
+
+				<div v-if="ownedItems.length === 0" class="inventory-empty">
 					<p>{{ t('profile.inventory.empty_description') }}</p>
 				</div>
 			</div>

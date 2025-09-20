@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { MYSTERY_BOX_CONFIG } from '../config/mysteryBoxConfig.js'
-import CurrencyDisplay from './CurrencyDisplay.vue'
 import Icon from '../../components/Icon.vue'
 
 // Props
@@ -27,112 +26,91 @@ const {
 	gameData,
 	getMysteryBoxProgressData,
 	canClaimMysteryBox,
-	claimMysteryBox
+	hasPendingMysteryBox,
+	getPendingMysteryBox,
+	claimPendingMysteryBox
 } = useLocalStorage()
 
 // State
 const isAnimating = ref(false)
-const mysteryBoxState = ref('progress') // 'progress', 'ready', 'claiming'
+const mysteryBoxState = ref('progress') // 'progress', 'ready', 'pending', 'claiming'
 
 // Computed Properties
 const progressData = computed(() => getMysteryBoxProgressData())
 const canClaim = computed(() => canClaimMysteryBox())
+const pendingBox = computed(() => getPendingMysteryBox())
+const hasPending = computed(() => hasPendingMysteryBox())
 
+// Determine card status
 const cardStatus = computed(() => {
+	if (hasPending.value) return 'pending'
 	if (canClaim.value) return 'ready'
 	if (mysteryBoxState.value === 'claiming') return 'claiming'
 	return 'progress'
 })
 
-const getStatusText = () => {
-	switch (cardStatus.value) {
-		case 'ready':
-			return t('daily_rewards.mystery_box_ready_subtitle')
-		case 'claiming':
-			return t('daily_rewards.mystery_box_claiming_subtitle')
-		default:
-			return t('daily_rewards.mystery_box_progress_subtitle', {
-				remaining: progressData.value.remaining
-			})
+// Watch for changes
+watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHasPending], [oldCount, oldHasPending]) => {
+	console.log(`🎁 Mystery Box state change:`, {
+		dailyRewardsCounter: newCount,
+		hasPending: newHasPending,
+		canClaim: canClaim.value,
+		cardStatus: cardStatus.value
+	})
+
+	// Update state based on current conditions
+	if (newHasPending) {
+		mysteryBoxState.value = 'pending'
+	} else if (canClaim.value) {
+		mysteryBoxState.value = 'ready'
+	} else {
+		mysteryBoxState.value = 'progress'
 	}
-}
+}, { immediate: true })
 
 // Methods
 const handleClaimMysteryBox = (event) => {
-	if (!canClaim.value) return
-
 	if (event) {
 		event.stopPropagation()
 		event.preventDefault()
 	}
 
-	mysteryBoxState.value = 'claiming'
-	isAnimating.value = true
+	// If there's a pending box, claim it
+	if (hasPending.value) {
+		mysteryBoxState.value = 'claiming'
+		isAnimating.value = true
 
-	// Simulate mystery box opening animation
-	setTimeout(() => {
-		try {
-			const reward = claimMysteryBox()
+		setTimeout(() => {
+			try {
+				const result = claimPendingMysteryBox()
 
-			if (reward) {
-				emit('claim-mystery-box', reward)
-				mysteryBoxState.value = 'progress'
-				console.log(`🎁 Mystery Box claimed successfully!`, reward)
-			} else {
-				console.error('Failed to claim mystery box')
-				mysteryBoxState.value = 'ready'
+				if (result) {
+					emit('claim-mystery-box', result)
+					mysteryBoxState.value = 'progress'
+					console.log(`🎁 Mystery Box claimed successfully!`, result)
+				} else {
+					console.error('Failed to claim pending mystery box')
+					mysteryBoxState.value = 'pending'
+				}
+			} catch (error) {
+				console.error('Error claiming pending mystery box:', error)
+				mysteryBoxState.value = 'pending'
+			} finally {
+				isAnimating.value = false
 			}
-		} catch (error) {
-			console.error('Error claiming mystery box:', error)
-			mysteryBoxState.value = 'ready'
-		} finally {
-			isAnimating.value = false
-		}
-	}, MYSTERY_BOX_CONFIG.animationDuration)
+		}, MYSTERY_BOX_CONFIG.animationDuration)
+	}
 }
 
 // Initialize on mount
 onMounted(() => {
-	console.log(`🎁 MysteryBoxCard mounted. Can claim: ${canClaim.value}, Counter: ${gameData.player.dailyRewardsCounter}`)
-
-	if (canClaim.value) {
-		mysteryBoxState.value = 'ready'
-	}
-})
-
-// Watch for changes in dailyRewardsCounter
-watch(() => gameData.player.dailyRewardsCounter, (newCount, oldCount) => {
-	const mysteryBoxData = gameData.currency.mysteryBoxes || { lastClaimedCounter: 0 }
-
-	console.log(`🎁 Daily rewards counter changed: ${oldCount} → ${newCount}`)
-	console.log(`🎁 Mystery box tracking:`, {
-		lastClaimedCounter: mysteryBoxData.lastClaimedCounter,
-		totalClaimed: mysteryBoxData.totalClaimed,
-		canClaim: canClaim.value
+	console.log(`🎁 MysteryBoxCard mounted:`, {
+		hasPending: hasPending.value,
+		canClaim: canClaim.value,
+		counter: gameData.player.dailyRewardsCounter,
+		cardStatus: cardStatus.value
 	})
-
-	// Check if we just reached a mystery box milestone
-	if (canClaim.value && mysteryBoxState.value !== 'ready') {
-		console.log(`🎁 Mystery Box is now ready! (${newCount} daily rewards)`)
-		mysteryBoxState.value = 'ready'
-	}
-
-	// Reset to progress if we're no longer at a milestone
-	if (!canClaim.value && mysteryBoxState.value === 'ready') {
-		console.log(`🎁 Mystery Box no longer available`)
-		mysteryBoxState.value = 'progress'
-	}
-}, { immediate: true })
-
-// Also watch mystery box data changes
-watch(() => gameData.currency.mysteryBoxes, (newData) => {
-	console.log(`🎁 Mystery box data changed:`, newData)
-
-	// Update state if needed
-	if (!canClaim.value && mysteryBoxState.value === 'ready') {
-		mysteryBoxState.value = 'progress'
-	}
-}, { deep: true })
+})
 </script>
 
 <template>
@@ -147,14 +125,15 @@ watch(() => gameData.currency.mysteryBoxes, (newData) => {
 						class="mystery-box-icon"
 						:class="{
             'mystery-box-icon--ready': cardStatus === 'ready',
+            'mystery-box-icon--pending': cardStatus === 'pending',
             'mystery-box-icon--claiming': cardStatus === 'claiming',
             'mystery-box-icon--progress': cardStatus === 'progress'
           }"
 				>
 					🎁
 				</div>
-				<div v-if="progressData.mysteryBoxNumber > 0" class="mystery-box-counter">
-					{{ progressData.mysteryBoxNumber }}
+				<div v-if="progressData.mysteryBoxNumber > 0 || (pendingBox && pendingBox.mysteryBoxNumber)" class="mystery-box-counter">
+					{{ pendingBox ? pendingBox.mysteryBoxNumber : progressData.mysteryBoxNumber }}
 				</div>
 			</div>
 
@@ -165,15 +144,41 @@ watch(() => gameData.currency.mysteryBoxes, (newData) => {
 			</div>
 		</div>
 
-		<!-- Progress Bar -->
-		<div class="mystery-box-progress">
+		<!-- Pending Item Display -->
+		<div v-if="cardStatus === 'pending'" class="mystery-item-display">
+			<div class="item-reveal-header">
+				<Icon name="star-filled" size="16" />
+				<span>{{ t('daily_rewards.mystery_item_discovered') }}</span>
+			</div>
+
+			<div class="revealed-item">
+				<div class="item-icon-large" :class="`rarity--${pendingBox.item.rarity}`">
+					{{ pendingBox.item.icon }}
+				</div>
+				<div class="item-info">
+					<h3 class="item-name">{{ pendingBox.item.name }}</h3>
+					<p class="item-description">{{ pendingBox.item.description }}</p>
+					<div class="item-meta">
+            <span class="item-rarity" :class="`rarity--${pendingBox.item.rarity}`">
+              {{ t(`shop.rarities.${pendingBox.item.rarity}`) }}
+            </span>
+						<span class="item-source">
+              {{ t('daily_rewards.mystery_box_reward') }}
+            </span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Progress Bar (only show when not pending) -->
+		<div v-if="cardStatus !== 'pending'" class="mystery-box-progress">
 			<div class="progress-header">
         <span class="progress-label">
           {{ t('daily_rewards.daily_rewards_progress') }}
         </span>
-				<div class="progress-counter">
-					{{ progressData.current }}/{{ progressData.required }}
-				</div>
+				<span class="progress-counter">
+          {{ progressData.current }}/{{ progressData.required }}
+        </span>
 			</div>
 
 			<div class="progress-bar-container">
@@ -201,14 +206,14 @@ watch(() => gameData.currency.mysteryBoxes, (newData) => {
 		<!-- Action Button -->
 		<div class="mystery-box-actions">
 			<button
-					v-if="cardStatus === 'ready'"
+					v-if="cardStatus === 'pending'"
 					class="btn btn--success mystery-box-claim-btn"
 					@click="handleClaimMysteryBox"
 					@mousedown.stop
 					@touchstart.stop
 			>
 				<Icon name="star-filled" size="16" />
-				{{ t('daily_rewards.claim_mystery_box') }}
+				{{ t('daily_rewards.claim_mystery_item') }}
 			</button>
 
 			<button
@@ -221,9 +226,9 @@ watch(() => gameData.currency.mysteryBoxes, (newData) => {
 			</button>
 		</div>
 
-		<!-- Sparkles for Ready State -->
+		<!-- Sparkles for Pending State -->
 		<div
-				v-if="cardStatus === 'ready'"
+				v-if="cardStatus === 'pending'"
 				class="mystery-box-sparkles"
 		>
 			<div class="sparkle sparkle-1">✨</div>
@@ -496,6 +501,144 @@ watch(() => gameData.currency.mysteryBoxes, (newData) => {
 		animation-delay: 1.5s;
 	}
 }
+
+
+// Mystery Item Display
+.mystery-item-display {
+	padding: var(--space-4);
+	background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.2));
+	border-radius: var(--border-radius-lg);
+	border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.item-reveal-header {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin-bottom: var(--space-3);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--warning-color);
+}
+
+.revealed-item {
+	display: flex;
+	gap: var(--space-3);
+	align-items: center;
+}
+
+.item-icon-large {
+	font-size: 3rem;
+	width: 80px;
+	height: 80px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--border-radius-lg);
+	border: 2px solid;
+	flex-shrink: 0;
+
+	&.rarity--rare {
+		border-color: var(--primary-color);
+		background: rgba(79, 70, 229, 0.1);
+	}
+
+	&.rarity--epic {
+		border-color: var(--warning-color);
+		background: rgba(245, 158, 11, 0.1);
+	}
+
+	&.rarity--legendary {
+		border-color: #FFD700;
+		background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.3));
+	}
+}
+
+.item-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.item-name {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.item-description {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	margin: 0;
+	line-height: 1.4;
+}
+
+.item-meta {
+	display: flex;
+	gap: var(--space-3);
+	align-items: center;
+}
+
+.item-rarity {
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+
+	&.rarity--rare {
+		background-color: var(--primary-color);
+		color: white;
+	}
+
+	&.rarity--epic {
+		background-color: var(--warning-color);
+		color: white;
+	}
+
+	&.rarity--legendary {
+		background: linear-gradient(45deg, #FFD700, #FFA500);
+		color: white;
+	}
+}
+
+.item-source {
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+// Pending state styling
+.mystery-box-card--pending {
+	border-color: #FFD700;
+	animation: mysteryBoxPendingGlow 2s ease-in-out infinite;
+}
+
+@keyframes mysteryBoxPendingGlow {
+	0%, 100% {
+		box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+	}
+	50% {
+		box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+	}
+}
+
+.mystery-box-icon--pending {
+	animation: mysteryBoxIconPending 1.5s ease-in-out infinite;
+	filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes mysteryBoxIconPending {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+}
+
 
 // Animations
 @keyframes mysteryBoxReadyPulse {

@@ -3,21 +3,6 @@ export const MYSTERY_BOX_CONFIG = {
   // Requirements
   requiredDailyRewards: 7,           // How many daily rewards needed
 
-  // Rewards
-  baseReward: {
-    coins: 500,
-    diamonds: 25
-  },
-
-  // Multipliers for consecutive mystery boxes
-  multipliers: {
-    1: 1.0,      // First box: base reward
-    2: 1.2,      // Second box: 20% more
-    3: 1.5,      // Third box: 50% more
-    5: 2.0,      // Fifth box: 100% more
-    10: 3.0      // Tenth box: 200% more
-  },
-
   // Achievement thresholds
   achievementThresholds: [
     { count: 1, achievementId: 'mystery_box_first' },
@@ -26,69 +11,187 @@ export const MYSTERY_BOX_CONFIG = {
   ],
 
   // Visual settings
-  animationDuration: 200,            // Opening animation duration
+  animationDuration: 2000,           // Opening animation duration
   sparkleCount: 4,                   // Number of sparkle effects
-
-  // Special rewards for milestone boxes
-  specialRewards: {
-    5: {  // 5th box gets extra diamonds
-      coins: 750,
-      diamonds: 50,
-      message: 'Special Milestone Reward!'
-    },
-    10: { // 10th box gets even more
-      coins: 1500,
-      diamonds: 100,
-      message: 'Legendary Mystery Box!'
-    }
-  }
 }
 
-// Helper function to calculate mystery box reward
-export const calculateMysteryBoxReward = (mysteryBoxNumber) => {
-  const config = MYSTERY_BOX_CONFIG
+// Exclusive Mystery Box Items - NOT available in shop!
+export const MYSTERY_ITEMS = [
+  // Tier 1: Common Mystery Items (Box 1-3)
+  {
+    id: 'magic_hat',
+    name: 'Magic Hat',
+    description: 'A mysterious hat that sparkles with ancient magic',
+    category: 'profile',
+    rarity: 'rare',
+    icon: '🎩',
+    type: 'cosmetic',
+    tier: 1,
+    mysteryBoxNumber: 1
+  },
+  {
+    id: 'crystal_orb',
+    name: 'Crystal Orb',
+    description: 'A glowing orb that reveals hidden secrets',
+    category: 'profile',
+    rarity: 'rare',
+    icon: '🔮',
+    type: 'cosmetic',
+    tier: 1,
+    mysteryBoxNumber: 2
+  },
+  {
+    id: 'golden_feather',
+    name: 'Golden Feather',
+    description: 'A feather from a legendary phoenix',
+    category: 'profile',
+    rarity: 'rare',
+    icon: '🪶',
+    type: 'cosmetic',
+    tier: 1,
+    mysteryBoxNumber: 3
+  },
 
-  // Check for special rewards first
-  if (config.specialRewards[mysteryBoxNumber]) {
-    return {
-      ...config.specialRewards[mysteryBoxNumber],
-      type: 'mystery_box',
-      mysteryBoxNumber,
-      isSpecial: true
+  // Tier 2: Epic Mystery Items (Box 4-6)
+  {
+    id: 'unicorn_horn',
+    name: 'Unicorn Horn',
+    description: 'A rare horn from the last unicorn in the realm',
+    category: 'profile',
+    rarity: 'epic',
+    icon: '🦄',
+    type: 'cosmetic',
+    tier: 2,
+    mysteryBoxNumber: 4
+  },
+  {
+    id: 'dragon_scale',
+    name: 'Dragon Scale',
+    description: 'A shimmering scale from an ancient dragon',
+    category: 'profile',
+    rarity: 'epic',
+    icon: '🐲',
+    type: 'cosmetic',
+    tier: 2,
+    mysteryBoxNumber: 5
+  },
+  {
+    id: 'star_fragment',
+    name: 'Star Fragment',
+    description: 'A piece of a fallen star, still glowing with cosmic energy',
+    category: 'profile',
+    rarity: 'epic',
+    icon: '⭐',
+    type: 'cosmetic',
+    tier: 2,
+    mysteryBoxNumber: 6
+  },
+
+  // Tier 3: Legendary Mystery Items (Box 7+)
+  {
+    id: 'cosmic_crown',
+    name: 'Cosmic Crown',
+    description: 'A crown forged from the essence of the universe itself',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '👑',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 7
+  },
+  {
+    id: 'infinity_gem',
+    name: 'Infinity Gem',
+    description: 'A gem containing infinite possibilities and power',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '💎',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 8
+  },
+  {
+    id: 'time_hourglass',
+    name: 'Time Hourglass',
+    description: 'An hourglass that can bend the flow of time itself',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '⏳',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 9
+  },
+  {
+    id: 'celestial_wings',
+    name: 'Celestial Wings',
+    description: 'Wings of pure light that grant divine powers',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '🪽',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 10
+  }
+]
+
+// Helper function to get mystery item for specific box number
+export const getMysteryItemForBox = (mysteryBoxNumber) => {
+  // First, try to get specific item for this box number
+  let item = MYSTERY_ITEMS.find(item => item.mysteryBoxNumber === mysteryBoxNumber)
+
+  if (!item) {
+    // Fallback: Get random item based on tier
+    let availableItems = []
+
+    if (mysteryBoxNumber <= 3) {
+      // Tier 1: Common items
+      availableItems = MYSTERY_ITEMS.filter(item => item.tier === 1)
+    } else if (mysteryBoxNumber <= 6) {
+      // Tier 2: Epic items
+      availableItems = MYSTERY_ITEMS.filter(item => item.tier === 2)
+    } else {
+      // Tier 3: Legendary items
+      availableItems = MYSTERY_ITEMS.filter(item => item.tier === 3)
+    }
+
+    // Get random item from available tier
+    if (availableItems.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availableItems.length)
+      item = availableItems[randomIndex]
     }
   }
 
-  // Calculate multiplier
-  let multiplier = 1.0
-  for (const [threshold, mult] of Object.entries(config.multipliers)) {
-    if (mysteryBoxNumber >= parseInt(threshold)) {
-      multiplier = mult
-    }
+  return item
+}
+
+// Helper function to calculate mystery box reward (now returns item instead of currency)
+export const calculateMysteryBoxReward = (mysteryBoxNumber) => {
+  // Use mysteryBoxNumber as seed for consistent item selection
+  const item = getMysteryItemForBox(mysteryBoxNumber)
+
+  if (!item) {
+    console.error(`No mystery item found for box ${mysteryBoxNumber}`)
+    return null
   }
 
   return {
-    coins: Math.floor(config.baseReward.coins * multiplier),
-    diamonds: Math.floor(config.baseReward.diamonds * multiplier),
+    item: item,
     type: 'mystery_box',
     mysteryBoxNumber,
-    multiplier,
-    isSpecial: false
+    isSpecial: item.tier >= 3, // Legendary items are "special"
+    message: item.tier >= 3 ? `Legendary ${item.name} discovered!` : `${item.name} discovered!`
   }
 }
 
-// Helper function to get next achievement threshold
-export const getNextMysteryBoxAchievement = (currentCount) => {
-  return MYSTERY_BOX_CONFIG.achievementThresholds
-      .find(threshold => currentCount < threshold.count)
+// Rest of the existing helper functions remain the same...
+export const getPreviewMysteryItem = (mysteryBoxNumber) => {
+  const reward = calculateMysteryBoxReward(mysteryBoxNumber)
+  return reward ? reward.item : null
 }
 
-// Helper function to check if mystery box is ready
-export const canClaimMysteryBox = (dailyRewardsCounter, lastClaimedCounter) => {
-  // Must have enough daily rewards
+export const canClaimMysteryBox = (dailyRewardsCounter, lastClaimedCounter = 0) => {
   const hasEnoughRewards = dailyRewardsCounter > 0 &&
       dailyRewardsCounter % MYSTERY_BOX_CONFIG.requiredDailyRewards === 0
-
-  // Must not have been claimed for this milestone
   const notAlreadyClaimed = dailyRewardsCounter > lastClaimedCounter
 
   console.log(`🎁 Mystery Box eligibility check:`, {
@@ -102,7 +205,6 @@ export const canClaimMysteryBox = (dailyRewardsCounter, lastClaimedCounter) => {
   return hasEnoughRewards && notAlreadyClaimed
 }
 
-// Helper function to get progress to next mystery box
 export const getMysteryBoxProgress = (dailyRewardsCounter, lastClaimedCounter = 0) => {
   const required = MYSTERY_BOX_CONFIG.requiredDailyRewards
   const current = dailyRewardsCounter % required

@@ -183,6 +183,10 @@ export default {
     mystery_box_remaining: '{count} rewards needed',
     daily_rewards_progress: 'Daily Rewards Progress',
     collect_daily_rewards: 'Collect daily rewards to progress',
+    mystery_item_preview: 'Mystery Item Preview',
+    mystery_item_surprise: 'Surprise Item Inside!',
+    mystery_item_discovered: 'Mystery Item Discovered!',
+    claim_mystery_item: 'Claim Mystery Item',
 	},
 
 	// App/Header
@@ -255,11 +259,13 @@ export default {
 			headset_user: 'Headset User',
 			cap_user: 'Cap User'
 		},
-		inventory: {
-			title: 'Inventory',
-			empty: 'No items yet',
-			empty_description: 'Visit the shop to purchase items and upgrades!'
-		}
+    inventory: {
+      title: 'Inventory',
+      empty: 'No items yet',
+      empty_description: 'Visit the shop to purchase items and upgrades!',
+      mystery_items: 'Mystery Box Items',
+      mystery_box_item: 'Mystery Box #{boxNumber}',
+    }
 	},
 
 	notifications: {

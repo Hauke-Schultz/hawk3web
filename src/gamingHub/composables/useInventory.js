@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useLocalStorage } from './useLocalStorage.js'
 import { SHOP_ITEMS, SHOP_CATEGORIES } from '../config/shopConfig.js'
+import {MYSTERY_ITEMS} from "../config/mysteryBoxConfig.js";
 
 export function useInventory() {
   const {
@@ -46,7 +47,12 @@ export function useInventory() {
 
   // Get item details with ownership info
   const getItemDetails = (itemId) => {
-    const shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+    let shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+
+    if (!shopItem) {
+      shopItem = MYSTERY_ITEMS.find(item => item.id === itemId)
+    }
+
     const inventoryItem = inventory.value.items[itemId]
 
     if (!shopItem) return null

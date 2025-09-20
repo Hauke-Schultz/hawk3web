@@ -182,6 +182,10 @@ export default {
     mystery_box_remaining: '{count, plural, =1 {1 Belohnung benötigt} other {# Belohnungen benötigt}}',
     daily_rewards_progress: 'Tägliche Belohnungen Fortschritt',
     collect_daily_rewards: 'Sammle tägliche Belohnungen für Fortschritt',
+    mystery_item_preview: 'Geheimnisvolles Item Vorschau',
+    mystery_item_surprise: 'Überraschungs-Item drinnen!',
+    mystery_item_discovered: 'Geheimnisvolles Item entdeckt!',
+    claim_mystery_item: 'Geheimnisvolles Item abholen',
 	},
 
 	// App/Header
@@ -332,11 +336,13 @@ export default {
 			headset_user: 'Headset Benutzer',
 			cap_user: 'Kappe Benutzer'
 		},
-		inventory: {
-			title: 'Inventar',
-			empty: 'Noch keine Gegenstände',
-			empty_description: 'Besuche den Shop, um Gegenstände und Upgrades zu kaufen!'
-		}
+    inventory: {
+      title: 'Inventar',
+      empty: 'Noch keine Gegenstände',
+      empty_description: 'Besuche den Shop, um Gegenstände und Upgrades zu kaufen!',
+      mystery_items: 'Geheimnisvolle Box Items',
+      mystery_box_item: 'Geheimnisvolle Box #{boxNumber}',
+    }
 	},
 
 	notifications: {

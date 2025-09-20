@@ -95,7 +95,8 @@ const getDefaultData = () => ({
     mysteryBoxes: {
       lastClaimed: '2023-01-01',
       totalClaimed: 0,
-      lastClaimedCounter: 0
+      lastClaimedCounter: 0,
+      pendingMysteryBox: null
     },
 		milestones: {
 			achievementCategories: {
@@ -271,8 +272,14 @@ const migrateData = (data) => {
       data.currency.mysteryBoxes = {
         lastClaimed: '2023-01-01',
         totalClaimed: 0,
-        lastClaimedCounter: 0
+        lastClaimedCounter: 0,
+        pendingMysteryBox: null
       }
+    }
+
+    // Add pendingMysteryBox if missing
+    if (data.currency.mysteryBoxes && data.currency.mysteryBoxes.pendingMysteryBox === undefined) {
+      data.currency.mysteryBoxes.pendingMysteryBox = null
     }
 
     if (!data.player?.coins && data.player?.coins !== 0) {
@@ -1038,11 +1045,15 @@ export function useLocalStorage() {
 
     // Check for mystery box unlock
     if (gameData.player.dailyRewardsCounter % 7 === 0) {
-      console.log(`🎁 Mystery Box unlocked! (${gameData.player.dailyRewardsCounter} daily rewards claimed)`)
+      console.log(`🎁 Mystery Box milestone reached! (${gameData.player.dailyRewardsCounter} daily rewards claimed)`)
 
-      // Don't auto-claim mystery box, just log the milestone
-      reward.mysteryBoxUnlocked = true
-      reward.mysteryBoxNumber = Math.floor(gameData.player.dailyRewardsCounter / 7)
+      // Create pending mystery box instead of auto-claiming
+      const pendingBox = createPendingMysteryBox()
+      if (pendingBox) {
+        reward.mysteryBoxUnlocked = true
+        reward.mysteryBoxNumber = pendingBox.mysteryBoxNumber
+        reward.pendingItem = pendingBox.item
+      }
     }
 
     console.log(`🎁 Daily reward processing complete! Counter: ${gameData.player.dailyRewardsCounter}`)
@@ -1323,14 +1334,152 @@ export function useLocalStorage() {
 	}
 
   // Mystery Box System
+  // Check if there's a pending mystery box to claim
+  const hasPendingMysteryBox = () => {
+    return gameData.currency.mysteryBoxes?.pendingMysteryBox !== null
+  }
+
+// Get pending mystery box data
+  const getPendingMysteryBox = () => {
+    return gameData.currency.mysteryBoxes?.pendingMysteryBox || null
+  }
+
+// Create pending mystery box (when daily reward threshold reached)
+  const createPendingMysteryBox = () => {
+    if (!canClaimMysteryBox()) {
+      console.warn('Cannot create pending mystery box - not eligible')
+      return null
+    }
+
+    const mysteryBoxNumber = Math.floor(gameData.player.dailyRewardsCounter / MYSTERY_BOX_CONFIG.requiredDailyRewards)
+    const reward = calculateMysteryBoxReward(mysteryBoxNumber)
+
+    if (!reward || !reward.item) {
+      console.error(`Failed to generate mystery box reward for box ${mysteryBoxNumber}`)
+      return null
+    }
+
+    // Create pending mystery box
+    const pendingBox = {
+      mysteryBoxNumber,
+      item: reward.item,
+      message: reward.message,
+      isSpecial: reward.isSpecial,
+      createdAt: new Date().toISOString(),
+      dailyRewardsCounter: gameData.player.dailyRewardsCounter
+    }
+
+    gameData.currency.mysteryBoxes.pendingMysteryBox = pendingBox
+
+    // Update tracking to prevent duplicate creation
+    gameData.currency.mysteryBoxes.lastClaimedCounter = gameData.player.dailyRewardsCounter
+
+    console.log(`🎁 Pending Mystery Box created:`, pendingBox)
+    saveData()
+
+    return pendingBox
+  }
+
+// Claim the pending mystery box
+  const claimPendingMysteryBox = () => {
+    const pendingBox = getPendingMysteryBox()
+
+    if (!pendingBox) {
+      console.warn('No pending mystery box to claim')
+      return null
+    }
+
+    console.log(`🎁 Claiming pending Mystery Box #${pendingBox.mysteryBoxNumber}:`, pendingBox)
+
+    // Add item to inventory
+    addItemToInventory(pendingBox.item.id, 1, {
+      type: pendingBox.item.type,
+      category: pendingBox.item.category,
+      rarity: pendingBox.item.rarity,
+      name: pendingBox.item.name,
+      description: pendingBox.item.description,
+      tier: pendingBox.item.tier,
+      mysteryBoxNumber: pendingBox.mysteryBoxNumber,
+      claimedAt: new Date().toISOString()
+    })
+
+    // Update mystery box tracking
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+
+    gameData.currency.mysteryBoxes.lastClaimed = today
+    gameData.currency.mysteryBoxes.totalClaimed += 1
+
+    // Clear pending mystery box
+    gameData.currency.mysteryBoxes.pendingMysteryBox = null
+
+    console.log(`🎁 Mystery Box tracking updated:`, {
+      lastClaimed: today,
+      totalClaimed: gameData.currency.mysteryBoxes.totalClaimed,
+      itemReceived: pendingBox.item.name
+    })
+
+    // Create transaction record
+    const transaction = {
+      id: `mystery_box_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: now.toISOString(),
+      type: 'mystery_item',
+      source: 'mystery_box',
+      description: pendingBox.message,
+      amounts: {
+        coins: 0,
+        diamonds: 0
+      },
+      balanceAfter: {
+        coins: gameData.player.coins,
+        diamonds: gameData.player.diamonds
+      },
+      metadata: {
+        rewardType: 'mystery_item',
+        mysteryBoxNumber: pendingBox.mysteryBoxNumber,
+        isSpecial: pendingBox.isSpecial,
+        dailyRewardsCounter: pendingBox.dailyRewardsCounter,
+        totalMysteryBoxesClaimed: gameData.currency.mysteryBoxes.totalClaimed,
+        itemReceived: {
+          id: pendingBox.item.id,
+          name: pendingBox.item.name,
+          rarity: pendingBox.item.rarity,
+          tier: pendingBox.item.tier
+        }
+      }
+    }
+
+    gameData.currency.transactions.push(transaction)
+
+    // Check for mystery box achievements
+    checkMysteryBoxAchievements(gameData.currency.mysteryBoxes.totalClaimed)
+
+    // Force save
+    saveData()
+
+    console.log(`🎁 Mystery Box #${pendingBox.mysteryBoxNumber} claimed! Item received: ${pendingBox.item.name} ${pendingBox.item.icon}`)
+
+    return {
+      item: pendingBox.item,
+      transaction,
+      totalClaimed: gameData.currency.mysteryBoxes.totalClaimed,
+      mysteryBoxNumber: pendingBox.mysteryBoxNumber
+    }
+  }
+
   const canClaimMysteryBox = () => {
     if (!gameData.currency.mysteryBoxes) {
-      // Initialize if not exists
       gameData.currency.mysteryBoxes = {
         lastClaimed: '2023-01-01',
         totalClaimed: 0,
-        lastClaimedCounter: 0
+        lastClaimedCounter: 0,
+        pendingMysteryBox: null
       }
+    }
+
+    // If there's already a pending box, can't create another
+    if (hasPendingMysteryBox()) {
+      return false
     }
 
     return canClaimMysteryBoxHelper(
@@ -1365,11 +1514,24 @@ export function useLocalStorage() {
     const mysteryBoxNumber = Math.floor(gameData.player.dailyRewardsCounter / MYSTERY_BOX_CONFIG.requiredDailyRewards)
     const reward = calculateMysteryBoxReward(mysteryBoxNumber)
 
+    if (!reward || !reward.item) {
+      console.error(`Failed to generate mystery box reward for box ${mysteryBoxNumber}`)
+      return null
+    }
+
     console.log(`🎁 Claiming Mystery Box #${mysteryBoxNumber}:`, reward)
 
-    // Add currency to player
-    gameData.player.coins += reward.coins
-    gameData.player.diamonds += reward.diamonds
+    // Add item to inventory instead of currency
+    addItemToInventory(reward.item.id, 1, {
+      type: reward.item.type,
+      category: reward.item.category,
+      rarity: reward.item.rarity,
+      name: reward.item.name,
+      description: reward.item.description,
+      tier: reward.item.tier,
+      mysteryBoxNumber: mysteryBoxNumber,
+      claimedAt: new Date().toISOString()
+    })
 
     // Update mystery box tracking
     const now = new Date()
@@ -1382,31 +1544,37 @@ export function useLocalStorage() {
     console.log(`🎁 Mystery Box tracking updated:`, {
       lastClaimed: today,
       totalClaimed: gameData.currency.mysteryBoxes.totalClaimed,
-      lastClaimedCounter: gameData.currency.mysteryBoxes.lastClaimedCounter
+      lastClaimedCounter: gameData.currency.mysteryBoxes.lastClaimedCounter,
+      itemReceived: reward.item.name
     })
 
-    // Create transaction record
+    // Create transaction record (for tracking purposes, no currency involved)
     const transaction = {
       id: `mystery_box_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: now.toISOString(),
-      type: 'earn',
+      type: 'mystery_item',
       source: 'mystery_box',
-      description: reward.isSpecial ? reward.message : t('daily_rewards.mystery_box_reward'),
+      description: reward.message,
       amounts: {
-        coins: reward.coins,
-        diamonds: reward.diamonds
+        coins: 0,
+        diamonds: 0
       },
       balanceAfter: {
         coins: gameData.player.coins,
         diamonds: gameData.player.diamonds
       },
       metadata: {
-        rewardType: 'mystery_box',
+        rewardType: 'mystery_item',
         mysteryBoxNumber,
-        multiplier: reward.multiplier || 1.0,
         isSpecial: reward.isSpecial,
         dailyRewardsCounter: gameData.player.dailyRewardsCounter,
-        totalMysteryBoxesClaimed: gameData.currency.mysteryBoxes.totalClaimed
+        totalMysteryBoxesClaimed: gameData.currency.mysteryBoxes.totalClaimed,
+        itemReceived: {
+          id: reward.item.id,
+          name: reward.item.name,
+          rarity: reward.item.rarity,
+          tier: reward.item.tier
+        }
       }
     }
 
@@ -1418,7 +1586,7 @@ export function useLocalStorage() {
     // Force save
     saveData()
 
-    console.log(`🎁 Mystery Box #${mysteryBoxNumber} claimed! Coins: +${reward.coins}, Diamonds: +${reward.diamonds}`)
+    console.log(`🎁 Mystery Box #${mysteryBoxNumber} claimed! Item received: ${reward.item.name} ${reward.item.icon}`)
 
     return {
       ...reward,
@@ -1601,7 +1769,10 @@ export function useLocalStorage() {
     // Mystery Box methods
     getMysteryBoxProgressData,
     canClaimMysteryBox,
-    claimMysteryBox,
+    hasPendingMysteryBox,
+    getPendingMysteryBox,
+    createPendingMysteryBox,
+    claimPendingMysteryBox,
     checkMysteryBoxAchievements,
 
 		// Data management
