@@ -49,25 +49,6 @@ const cardStatus = computed(() => {
 	return 'progress'
 })
 
-// Watch for changes
-watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHasPending], [oldCount, oldHasPending]) => {
-	console.log(`🎁 Mystery Box state change:`, {
-		dailyRewardsCounter: newCount,
-		hasPending: newHasPending,
-		canClaim: canClaim.value,
-		cardStatus: cardStatus.value
-	})
-
-	// Update state based on current conditions
-	if (newHasPending) {
-		mysteryBoxState.value = 'pending'
-	} else if (canClaim.value) {
-		mysteryBoxState.value = 'ready'
-	} else {
-		mysteryBoxState.value = 'progress'
-	}
-}, { immediate: true })
-
 // Methods
 const handleClaimMysteryBox = (event) => {
 	if (event) {
@@ -111,6 +92,24 @@ onMounted(() => {
 		cardStatus: cardStatus.value
 	})
 })
+
+watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHasPending], [oldCount, oldHasPending]) => {
+	console.log(`🎁 Mystery Box state change:`, {
+		dailyRewardsCounter: newCount,
+		hasPending: newHasPending,
+		canClaim: canClaim.value,
+		cardStatus: cardStatus.value
+	})
+
+	// Update state based on current conditions
+	if (newHasPending) {
+		mysteryBoxState.value = 'pending'
+	} else if (canClaim.value) {
+		mysteryBoxState.value = 'ready'
+	} else {
+		mysteryBoxState.value = 'progress'
+	}
+}, { immediate: true })
 </script>
 
 <template>
@@ -119,11 +118,11 @@ onMounted(() => {
 			:class="`mystery-box-card--${cardStatus}`"
 			@click.stop
 	>
-		<div class="mystery-box-header">
+		<div v-if="cardStatus !== 'pending'" class="mystery-box-header">
 			<div class="mystery-box-icon-container">
 				<div
-						class="mystery-box-icon"
-						:class="{
+					class="mystery-box-icon"
+					:class="{
             'mystery-box-icon--ready': cardStatus === 'ready',
             'mystery-box-icon--pending': cardStatus === 'pending',
             'mystery-box-icon--claiming': cardStatus === 'claiming',
@@ -131,9 +130,6 @@ onMounted(() => {
           }"
 				>
 					🎁
-				</div>
-				<div v-if="progressData.mysteryBoxNumber > 0 || (pendingBox && pendingBox.mysteryBoxNumber)" class="mystery-box-counter">
-					{{ pendingBox ? pendingBox.mysteryBoxNumber : progressData.mysteryBoxNumber }}
 				</div>
 			</div>
 
@@ -152,22 +148,25 @@ onMounted(() => {
 			</div>
 
 			<div class="revealed-item">
-				<div class="item-icon-large" :class="`rarity--${pendingBox.item.rarity}`">
+				<div class="item-icon-large">
 					{{ pendingBox.item.icon }}
 				</div>
 				<div class="item-info">
 					<h3 class="item-name">{{ pendingBox.item.name }}</h3>
 					<p class="item-description">{{ pendingBox.item.description }}</p>
-					<div class="item-meta">
-            <span class="item-rarity" :class="`rarity--${pendingBox.item.rarity}`">
-              {{ t(`shop.rarities.${pendingBox.item.rarity}`) }}
-            </span>
-						<span class="item-source">
-              {{ t('daily_rewards.mystery_box_reward') }}
-            </span>
-					</div>
 				</div>
 			</div>
+
+			<button
+				v-if="cardStatus === 'pending'"
+				class="btn btn--success"
+				@click="handleClaimMysteryBox"
+				@mousedown.stop
+				@touchstart.stop
+			>
+				<Icon name="star-filled" size="16" />
+				{{ t('daily_rewards.claim_mystery_item') }}
+			</button>
 		</div>
 
 		<!-- Progress Bar (only show when not pending) -->
@@ -205,36 +204,15 @@ onMounted(() => {
 
 		<!-- Action Button -->
 		<div class="mystery-box-actions">
-			<button
-					v-if="cardStatus === 'pending'"
-					class="btn btn--success mystery-box-claim-btn"
-					@click="handleClaimMysteryBox"
-					@mousedown.stop
-					@touchstart.stop
-			>
-				<Icon name="star-filled" size="16" />
-				{{ t('daily_rewards.claim_mystery_item') }}
-			</button>
 
 			<button
-					v-else-if="cardStatus === 'claiming'"
-					class="btn mystery-box-claiming-btn"
-					disabled
+				v-if="cardStatus === 'claiming'"
+				class="btn"
+				disabled
 			>
 				<Icon name="loading" size="16" class="icon-spin" />
 				{{ t('daily_rewards.mystery_box_opening') }}
 			</button>
-		</div>
-
-		<!-- Sparkles for Pending State -->
-		<div
-				v-if="cardStatus === 'pending'"
-				class="mystery-box-sparkles"
-		>
-			<div class="sparkle sparkle-1">✨</div>
-			<div class="sparkle sparkle-2">⭐</div>
-			<div class="sparkle sparkle-3">💫</div>
-			<div class="sparkle sparkle-4">🌟</div>
 		</div>
 	</div>
 </template>
@@ -423,99 +401,19 @@ onMounted(() => {
 	justify-content: center;
 }
 
-.mystery-box-claim-btn {
-	background: linear-gradient(135deg, #FFD700, #FFA500);
-	border: none;
-	color: #1a1a1a;
-	font-weight: var(--font-weight-bold);
-	padding: var(--space-2) var(--space-4);
-	border-radius: var(--border-radius-lg);
-	box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
-
-	&:hover {
-		background: linear-gradient(135deg, #FBBF24, #F59E0B);
-		transform: translateY(-1px);
-		box-shadow: 0 6px 16px rgba(255, 215, 0, 0.4);
-	}
-}
-
-.mystery-box-claiming-btn {
-	background: var(--success-color);
-	border: none;
-	color: white;
-	font-weight: var(--font-weight-bold);
-	padding: var(--space-2) var(--space-4);
-	border-radius: var(--border-radius-lg);
-	cursor: not-allowed;
-	opacity: 0.8;
-}
-
-.mystery-box-info-btn {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	font-size: var(--font-size-sm);
-	color: var(--text-secondary);
-	padding: var(--space-2);
-	background-color: var(--bg-secondary);
-	border-radius: var(--border-radius-md);
-}
-
-.mystery-box-sparkles {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	pointer-events: none;
-	z-index: 1;
-}
-
-.sparkle {
-	position: absolute;
-	font-size: 1rem;
-	animation: sparkleFloat 3s ease-in-out infinite;
-	opacity: 0.8;
-
-	&.sparkle-1 {
-		top: 15%;
-		left: 15%;
-		animation-delay: 0s;
-	}
-
-	&.sparkle-2 {
-		top: 20%;
-		right: 20%;
-		animation-delay: 0.5s;
-	}
-
-	&.sparkle-3 {
-		bottom: 25%;
-		left: 20%;
-		animation-delay: 1s;
-	}
-
-	&.sparkle-4 {
-		bottom: 15%;
-		right: 15%;
-		animation-delay: 1.5s;
-	}
-}
-
 
 // Mystery Item Display
 .mystery-item-display {
-	padding: var(--space-4);
-	background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.2));
-	border-radius: var(--border-radius-lg);
-	border: 1px solid rgba(255, 215, 0, 0.3);
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-3);
 }
 
 .item-reveal-header {
 	display: flex;
 	align-items: center;
 	gap: var(--space-2);
-	margin-bottom: var(--space-3);
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 	color: var(--warning-color);
@@ -537,21 +435,8 @@ onMounted(() => {
 	border-radius: var(--border-radius-lg);
 	border: 2px solid;
 	flex-shrink: 0;
-
-	&.rarity--rare {
-		border-color: var(--primary-color);
-		background: rgba(79, 70, 229, 0.1);
-	}
-
-	&.rarity--epic {
-		border-color: var(--warning-color);
-		background: rgba(245, 158, 11, 0.1);
-	}
-
-	&.rarity--legendary {
-		border-color: #FFD700;
-		background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.3));
-	}
+	border-color: var(--primary-color);
+	background: rgba(79, 70, 229, 0.1);
 }
 
 .item-info {
@@ -587,21 +472,8 @@ onMounted(() => {
 	font-size: var(--font-size-xs);
 	font-weight: var(--font-weight-bold);
 	text-transform: uppercase;
-
-	&.rarity--rare {
-		background-color: var(--primary-color);
-		color: white;
-	}
-
-	&.rarity--epic {
-		background-color: var(--warning-color);
-		color: white;
-	}
-
-	&.rarity--legendary {
-		background: linear-gradient(45deg, #FFD700, #FFA500);
-		color: white;
-	}
+	background-color: var(--primary-color);
+	color: white;
 }
 
 .item-source {
@@ -668,34 +540,8 @@ onMounted(() => {
 	}
 }
 
-@keyframes mysteryBoxIconSpin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
-}
-
 @keyframes progressShine {
 	0% { left: -100%; }
 	100% { left: 100%; }
 }
-
-@keyframes sparkleFloat {
-	0%, 100% {
-		transform: translateY(0) rotate(0deg);
-		opacity: 0.6;
-	}
-	50% {
-		transform: translateY(-8px) rotate(180deg);
-		opacity: 1;
-	}
-}
-
-.icon-spin {
-	animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-	from { transform: rotate(0deg); }
-	to { transform: rotate(360deg); }
-}
-
 </style>

@@ -47,18 +47,11 @@ const handleGameComplete = (reward) => {
 	if (!reward) return
 
 	gamePhase.value = 'claimed'
-	console.log(`🎁 Daily minigame completed with ${selectedGame.value}`)
 
-	// Log current state before emitting
-	console.log(`🎁 Before emit - Daily rewards counter: ${gameData.player.dailyRewardsCounter}`)
+	console.log(`🎁 Daily rewards counter: ${gameData.player.dailyRewardsCounter}`, reward)
 
 	emit('mark-as-read', reward)
 	emit('click')
-
-	// Log after a short delay to see the change
-	setTimeout(() => {
-		console.log(`🎁 After emit - Daily rewards counter: ${gameData.player.dailyRewardsCounter}`)
-	}, 100)
 }
 
 // Initialize on mount

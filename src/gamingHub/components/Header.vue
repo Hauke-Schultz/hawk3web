@@ -745,10 +745,11 @@ watch(() => props.player.diamonds, () => {
 							</div>
 
 							<div class="notification-content">
-								<!-- Unread Notifications Section -->
-								<div v-if="allNotificationItems.unread.length > 0" class="notification-section">
-									<h5 class="notification-section-title">{{ t('notifications.unread') }}</h5>
+								<div class="notification-section">
 									<div class="notification-list">
+										<MysteryBoxCard
+												@claim-mystery-box="handleMysteryBoxClaim"
+										/>
 										<div
 												v-for="item in allNotificationItems.unread"
 												:key="item.id"
@@ -765,13 +766,6 @@ watch(() => props.player.diamonds, () => {
 											/>
 										</div>
 									</div>
-								</div>
-								<div class="notification-section">
-									<MysteryBoxCard
-											v-if="gameData.player.dailyRewardsCounter >= 0"
-											:key="`mystery-box-${gameData.player.dailyRewardsCounter}`"
-											@claim-mystery-box="handleMysteryBoxClaim"
-									/>
 								</div>
 								<!-- Read Notifications Section -->
 								<div v-if="allNotificationItems.read.length > 0" class="notification-section">

@@ -10,9 +10,10 @@ import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
 import CurrencyDisplay from '../gamingHub/components/CurrencyDisplay.vue'
 import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
+import MysteryBoxCard from '../gamingHub/components/MysteryBoxCard.vue'
 
 const { t } = useI18n()
-const { gameData, canClaimDailyReward, claimDailyReward, markCardAsRead, updateNotificationCount } = useLocalStorage()
+const { gameData, canClaimDailyReward, claimDailyReward, markCardAsRead, updateNotificationCount, canClaimMysteryBox } = useLocalStorage()
 const router = useRouter()
 
 // Game Navigation
@@ -85,6 +86,10 @@ const handleDailyRewardClaimed = (reward) => {
 	claimDailyReward(reward)
 	markCardAsRead('dailyRewardCard')
 	updateNotificationCount()
+}
+
+const handleMysteryBoxClaim = (reward) => {
+	console.log('🎁 Mystery Box claimed:', reward)
 }
 
 const handleMenuClick = () => {
@@ -228,12 +233,13 @@ const handleMenuClick = () => {
 		</section>
 
 		<!-- Daily Reward Card -->
-		<section v-if="canClaimDailyReward()" class="daily-reward-section">
-			<DailyRewardCard
-					@mark-as-read="handleDailyRewardClaimed"
-			/>
-		</section>
-
+		<MysteryBoxCard
+				@claim-mystery-box="handleMysteryBoxClaim"
+		/>
+		<DailyRewardCard
+				v-if="canClaimDailyReward()"
+				@mark-as-read="handleDailyRewardClaimed"
+		/>
 
 		<!-- Portfolio Hero -->
 		<section class="hero">
@@ -429,9 +435,6 @@ const handleMenuClick = () => {
 	color: var(--text-secondary);
 	font-weight: var(--font-weight-bold);
 }
-
-
-
 
 // Portfolio Hero
 .hero {
