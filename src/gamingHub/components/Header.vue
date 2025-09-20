@@ -103,17 +103,6 @@ const availableGames = computed(() => [
 	}
 ])
 
-const getGameProgress = (game) => {
-	const completedLevels = Object.values(game.levels).filter(level => level.completed).length
-	const totalStars = Object.values(game.levels).reduce((sum, level) => sum + (level.stars || 0), 0)
-	return {
-		completed: completedLevels,
-		total: game.totalLevels,
-		stars: totalStars,
-		percentage: game.totalLevels > 0 ? Math.round((completedLevels / game.totalLevels) * 100) : 0
-	}
-}
-
 const toggleNotifications = async (event) => {
 	if (isNotificationAnimating.value || isNotificationTransitioning.value) return
 
@@ -157,26 +146,6 @@ const closeNotifications = () => {
 	}, 300)
 }
 
-const handleNotificationItemRead = (reward) => {
-	console.log(`🎁 Processing notification item read:`, reward)
-
-	if (reward.type === 'dailyRewardCard') {
-		const oldCounter = gameData.player.dailyRewardsCounter
-		claimDailyReward(reward)
-		const newCounter = gameData.player.dailyRewardsCounter
-
-		console.log(`🎁 Daily reward processed: ${oldCounter} → ${newCounter}`)
-	}
-
-	markCardAsRead(reward.type)
-	updateNotificationCount()
-
-	// Force reactivity update
-	setTimeout(() => {
-		console.log(`🎁 Final state check - Counter: ${gameData.player.dailyRewardsCounter}`)
-	}, 50)
-}
-
 const displayTitle = computed(() => {
 	return props.title || t('app.title')
 })
@@ -196,26 +165,8 @@ const currentRoute = computed(() => {
 	}
 })
 
-const handleMysteryBoxClaim = (reward) => {
-	console.log('🎁 Mystery Box claimed:', reward)
-}
-
 const notificationItems = computed(() => {
-	const items = []
-
-	if (canClaimDailyReward()) {
-		items.push({
-			id: 'dailyRewardCard',
-			type: 'daily_reward',
-			title: t('daily_rewards.title'),
-			description: t('daily_rewards.normal_bonus'),
-			icon: 'bell',
-			isDaily: true,
-			canClaim: true
-		})
-	}
-
-	return items
+	return []
 })
 
 const readNotificationItems = computed(() => {
@@ -252,28 +203,6 @@ const readNotificationItems = computed(() => {
 			}
 		}
 	}
-
-	const mysteryBoxTransactions = gameData.currency.transactions
-			.filter(t => t.source === 'mystery_box')
-			.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-			.slice(0, 3)
-
-	mysteryBoxTransactions.forEach(transaction => {
-		items.push({
-			id: `mystery_box-${transaction.id}`,
-			type: 'mystery_box_claimed',
-			title: t('daily_rewards.mystery_box_reward'),
-			description: t('daily_rewards.mystery_box_claimed_desc'),
-			icon: 'trophy',
-			readAt: transaction.timestamp,
-			timestamp: new Date(transaction.timestamp),
-			rewardDetails: {
-				coins: transaction.amounts.coins,
-				diamonds: transaction.amounts.diamonds
-			},
-			mysteryBoxNumber: transaction.metadata?.mysteryBoxNumber
-		})
-	})
 
 	// Recent achievements (last 10)
 	const recentAchievements = props.achievements
@@ -745,28 +674,7 @@ watch(() => props.player.diamonds, () => {
 							</div>
 
 							<div class="notification-content">
-								<div class="notification-section">
-									<div class="notification-list">
-										<MysteryBoxCard
-												@claim-mystery-box="handleMysteryBoxClaim"
-										/>
-										<div
-												v-for="item in allNotificationItems.unread"
-												:key="item.id"
-												class="notification-item"
-												:class="`notification-item--${item.type}`"
-										>
-											<DailyRewardCard
-													v-if="item.type === 'daily_reward'"
-													:title="item.title"
-													:visible="true"
-													:card-type="item.id"
-													@mark-as-read="handleNotificationItemRead"
-													@click="handleNotificationItemRead(item.id)"
-											/>
-										</div>
-									</div>
-								</div>
+
 								<!-- Read Notifications Section -->
 								<div v-if="allNotificationItems.read.length > 0" class="notification-section">
 									<h5 class="notification-section-title">{{ t('notifications.recent_activity') }}</h5>

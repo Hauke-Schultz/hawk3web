@@ -5,9 +5,7 @@ import {
 	checkCardReadAchievement,
 	REWARDS
 } from '../config/achievementsConfig.js'
-import { calculateLevelStars } from '../config/levelUtils.js'
 import { MYSTERY_BOX_CONFIG, calculateMysteryBoxReward, getMysteryBoxProgress, canClaimMysteryBox as canClaimMysteryBoxHelper } from '../config/mysteryBoxConfig.js'
-import { useBadge } from '../../composables/useBadge.js'
 import {useI18n} from "../../composables/useI18n.js";
 const { t } = useI18n()
 
@@ -303,7 +301,6 @@ const migrateData = (data) => {
 
 // Main composable function
 export function useLocalStorage() {
-  const { setBadge } = useBadge()
 	// Load initial data from localStorage
 	const loadData = () => {
 		try {
@@ -1629,9 +1626,6 @@ export function useLocalStorage() {
       count += 1
     }
 
-    // Badge am App-Icon setzen
-    setBadge(count)
-
     gameData.notifications.unreadCount = count
     gameData.notifications.lastUpdated = new Date().toISOString()
 
@@ -1759,7 +1753,6 @@ export function useLocalStorage() {
 		getCardState,
 
 		// Notification methods
-    setBadge,
 		updateNotificationCount,
 		addNotification,
 		markNotificationAsRead,

@@ -11,8 +11,8 @@ export const MYSTERY_BOX_CONFIG = {
   ],
 
   // Visual settings
-  animationDuration: 2000,           // Opening animation duration
-  sparkleCount: 4,                   // Number of sparkle effects
+  animationDuration: 200,
+  sparkleCount: 4,
 }
 
 // Exclusive Mystery Box Items - NOT available in shop!
@@ -193,15 +193,6 @@ export const canClaimMysteryBox = (dailyRewardsCounter, lastClaimedCounter = 0) 
   const hasEnoughRewards = dailyRewardsCounter > 0 &&
       dailyRewardsCounter % MYSTERY_BOX_CONFIG.requiredDailyRewards === 0
   const notAlreadyClaimed = dailyRewardsCounter > lastClaimedCounter
-
-  console.log(`🎁 Mystery Box eligibility check:`, {
-    dailyRewardsCounter,
-    lastClaimedCounter,
-    hasEnoughRewards,
-    notAlreadyClaimed,
-    canClaim: hasEnoughRewards && notAlreadyClaimed
-  })
-
   return hasEnoughRewards && notAlreadyClaimed
 }
 

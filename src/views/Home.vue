@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useI18n } from '../composables/useI18n.js'
 import { useLocalStorage } from "../gamingHub/composables/useLocalStorage.js"
-import { computed } from "vue"
+import {computed, watch} from "vue"
 import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
 import { fruitMergeConfig } from "../gamingHub/games/fruitmerge/fruitMergeConfig.js"
 import { numNumMergeConfig } from "../gamingHub/games/numnummerge/numNumMergeConfig.js"
@@ -95,6 +95,12 @@ const handleMysteryBoxClaim = (reward) => {
 const handleMenuClick = () => {
 	router.push('/')
 }
+const updateClick = () => {
+	console.log('🔄 Update clicked - check for updates', gameData.player.dailyRewardsCounter)
+}
+watch(gameData.player.dailyRewardsCounter, (newCount) => {
+	console.log(`🔄 Home change:`, newCount);
+}, { immediate: true })
 </script>
 
 <template>
@@ -104,9 +110,21 @@ const handleMenuClick = () => {
 			:achievements="gameData.achievements"
 			:show-menu-button="true"
 			@menu-click="handleMenuClick"
+			@update-click="updateClick"
 	/>
 
 	<main class="home">
+
+		<!-- Daily Reward Card -->
+		<MysteryBoxCard
+				:key="`mystery-box-${gameData.player.dailyRewardsCounter}`"
+				@claim-mystery-box="handleMysteryBoxClaim"
+		/>
+		<DailyRewardCard
+				v-if="canClaimDailyReward()"
+				:key="`daily-reward-${gameData.player.dailyRewardsCounter}`"
+				@mark-as-read="handleDailyRewardClaimed"
+		/>
 
 		<!-- Overall Progress Card -->
 		<section class="progress-section">
@@ -231,15 +249,6 @@ const handleMenuClick = () => {
 				</div>
 			</div>
 		</section>
-
-		<!-- Daily Reward Card -->
-		<MysteryBoxCard
-				@claim-mystery-box="handleMysteryBoxClaim"
-		/>
-		<DailyRewardCard
-				v-if="canClaimDailyReward()"
-				@mark-as-read="handleDailyRewardClaimed"
-		/>
 
 		<!-- Portfolio Hero -->
 		<section class="hero">

@@ -174,7 +174,7 @@ export default {
     mystery_box_reward: 'Mystery Box Reward',
     mystery_box_claimed_desc: 'Special bonus for 7 daily claims',
     mystery_box_progress_complete: '7/7 - Ready to claim!',
-    mystery_box_title: 'Mystery Box',
+    mystery_box_title: '🎁 Mystery Box Progress',
     mystery_box_ready_subtitle: 'Your Mystery Box is ready to claim!',
     mystery_box_claiming_subtitle: 'Opening your Mystery Box...',
     mystery_box_progress_subtitle: '{remaining} needed',

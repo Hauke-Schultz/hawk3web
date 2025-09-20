@@ -3,12 +3,10 @@ import {onMounted, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from './gamingHub/composables/useLocalStorage.js'
 import { useI18n } from './composables/useI18n.js'
-import { useBadge } from './composables/useBadge.js'
 import InstallPrompt from './components/InstallPrompt.vue'
 
 // Services
-const { setBadge, badgeSupported } = useBadge()
-const { gameData, updateNotificationCount, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
+const { gameData, updateSettings, checkAutoAchievements, getCurrentLanguage } = useLocalStorage()
 const { t, setLanguage } = useI18n()
 const router = useRouter()
 
@@ -60,18 +58,6 @@ const handleMenuClick = () => {
 onMounted(async () => {
 	document.documentElement.setAttribute('data-theme', gameData.settings.theme)
 
-	if (badgeSupported.value) {
-		console.log('🔔 Badge API supported!')
-
-		// Initial badge count setzen
-		const count = updateNotificationCount()
-		await setBadge(count)
-
-		console.log(`🔔 Initial badge count: ${count}`)
-	} else {
-		console.log('🔔 Badge API not supported on this device')
-	}
-
 	const storedLanguage = getCurrentLanguage()
 	await setLanguage(storedLanguage)
 	const storedFontSize = gameData.settings.fontSize || 'medium'
@@ -80,13 +66,6 @@ onMounted(async () => {
 
 	checkAutoAchievements()
 })
-
-watch(() => gameData.notifications.unreadCount, async (newCount, oldCount) => {
-	if (badgeSupported.value && newCount !== oldCount) {
-		await setBadge(newCount)
-		console.log(`🔔 Badge updated: ${oldCount} → ${newCount}`)
-	}
-}, { immediate: true })
 </script>
 
 <template>

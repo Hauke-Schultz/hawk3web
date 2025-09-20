@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from '../../composables/useI18n.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { MYSTERY_BOX_CONFIG } from '../config/mysteryBoxConfig.js'
@@ -68,13 +68,10 @@ const handleClaimMysteryBox = (event) => {
 				if (result) {
 					emit('claim-mystery-box', result)
 					mysteryBoxState.value = 'progress'
-					console.log(`🎁 Mystery Box claimed successfully!`, result)
 				} else {
-					console.error('Failed to claim pending mystery box')
 					mysteryBoxState.value = 'pending'
 				}
 			} catch (error) {
-				console.error('Error claiming pending mystery box:', error)
 				mysteryBoxState.value = 'pending'
 			} finally {
 				isAnimating.value = false
@@ -83,24 +80,7 @@ const handleClaimMysteryBox = (event) => {
 	}
 }
 
-// Initialize on mount
-onMounted(() => {
-	console.log(`🎁 MysteryBoxCard mounted:`, {
-		hasPending: hasPending.value,
-		canClaim: canClaim.value,
-		counter: gameData.player.dailyRewardsCounter,
-		cardStatus: cardStatus.value
-	})
-})
-
 watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHasPending], [oldCount, oldHasPending]) => {
-	console.log(`🎁 Mystery Box state change:`, {
-		dailyRewardsCounter: newCount,
-		hasPending: newHasPending,
-		canClaim: canClaim.value,
-		cardStatus: cardStatus.value
-	})
-
 	// Update state based on current conditions
 	if (newHasPending) {
 		mysteryBoxState.value = 'pending'
@@ -118,28 +98,6 @@ watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHa
 			:class="`mystery-box-card--${cardStatus}`"
 			@click.stop
 	>
-		<div v-if="cardStatus !== 'pending'" class="mystery-box-header">
-			<div class="mystery-box-icon-container">
-				<div
-					class="mystery-box-icon"
-					:class="{
-            'mystery-box-icon--ready': cardStatus === 'ready',
-            'mystery-box-icon--pending': cardStatus === 'pending',
-            'mystery-box-icon--claiming': cardStatus === 'claiming',
-            'mystery-box-icon--progress': cardStatus === 'progress'
-          }"
-				>
-					🎁
-				</div>
-			</div>
-
-			<div class="mystery-box-info">
-				<h4 class="mystery-box-title">
-					{{ t('daily_rewards.mystery_box_title') }}
-				</h4>
-			</div>
-		</div>
-
 		<!-- Pending Item Display -->
 		<div v-if="cardStatus === 'pending'" class="mystery-item-display">
 			<div class="item-reveal-header">
@@ -173,7 +131,7 @@ watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHa
 		<div v-if="cardStatus !== 'pending'" class="mystery-box-progress">
 			<div class="progress-header">
         <span class="progress-label">
-          {{ t('daily_rewards.daily_rewards_progress') }}
+          {{ t('daily_rewards.mystery_box_title') }}
         </span>
 				<span class="progress-counter">
           {{ progressData.current }}/{{ progressData.required }}
@@ -183,9 +141,8 @@ watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHa
 			<div class="progress-bar-container">
 				<div class="progress-bar">
 					<div
-							class="progress-fill"
-							:class="`progress-fill--${cardStatus}`"
-							:style="{ width: `${progressData.percentage}%` }"
+						class="progress-fill"
+						:style="{ width: `${progressData.percentage}%` }"
 					>
 						<div class="progress-shine"></div>
 					</div>
@@ -204,7 +161,6 @@ watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHa
 
 		<!-- Action Button -->
 		<div class="mystery-box-actions">
-
 			<button
 				v-if="cardStatus === 'claiming'"
 				class="btn"
@@ -356,20 +312,7 @@ watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHa
 	transition: all 0.5s ease;
 	position: relative;
 	overflow: hidden;
-
-	&--progress {
-		background: linear-gradient(90deg, var(--info-color), var(--info-hover));
-	}
-
-	&--ready {
-		background: linear-gradient(90deg, #FFD700, #FFA500);
-		box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-	}
-
-	&--claiming {
-		background: linear-gradient(90deg, var(--success-color), var(--success-hover));
-		box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-	}
+	background: linear-gradient(90deg, var(--info-color), var(--info-hover));
 }
 
 .progress-shine {
