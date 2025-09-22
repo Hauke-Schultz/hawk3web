@@ -163,6 +163,17 @@ export default {
     three_shells: 'Drei Schalen',
     slot_machine: 'Spielautomat',
 
+    // WhackAMole specific
+    whack_subtitle: 'Schlage die Maulwürfe für Belohnungen!',
+    whack_mole_title: 'Maulwurf-Jagd!',
+    whack_mole_instructions: 'Triff alle 6 Maulwürfe für die große Belohnung!',
+    whack_mole_playing: 'Schnell! Triff die Maulwürfe!',
+    moles_hit: 'Treffer',
+    moles_remaining: 'Verbleibend',
+    moles_hit_final: 'Maulwürfe getroffen',
+    perfect_score: 'Perfekte Punktzahl!',
+    good_try: 'Gut versucht!',
+
     // Mystery Box
     mystery_box_unlocked: 'Geheimnisvolle Box freigeschaltet!',
     mystery_box_message: 'Glückwunsch! Du hast 7 tägliche Belohnungen abgeholt und eine spezielle Geheimnisvolle Box freigeschaltet!',

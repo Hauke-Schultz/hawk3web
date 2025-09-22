@@ -164,6 +164,17 @@ export default {
     three_shells: 'Three Shells',
     slot_machine: 'Slot Machine',
 
+    // WhackAMole specific
+    whack_subtitle: 'Hit the moles for rewards!',
+    whack_mole_title: 'Whack-a-Mole!',
+    whack_mole_instructions: 'Hit all 6 moles for the big reward!',
+    whack_mole_playing: 'Quick! Hit the moles!',
+    moles_hit: 'Hits',
+    moles_remaining: 'Remaining',
+    moles_hit_final: 'Moles Hit',
+    perfect_score: 'Perfect Score!',
+    good_try: 'Good Try!',
+
     // Mystery Box
     mystery_box_unlocked: 'Mystery Box Unlocked!',
     mystery_box_message: 'Congratulations! You\'ve claimed 7 daily rewards and unlocked a special Mystery Box!',

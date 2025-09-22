@@ -95,12 +95,6 @@ const handleMysteryBoxClaim = (reward) => {
 const handleMenuClick = () => {
 	router.push('/')
 }
-const updateClick = () => {
-	console.log('🔄 Update clicked - check for updates', gameData.player.dailyRewardsCounter)
-}
-watch(gameData.player.dailyRewardsCounter, (newCount) => {
-	console.log(`🔄 Home change:`, newCount);
-}, { immediate: true })
 </script>
 
 <template>
@@ -117,12 +111,12 @@ watch(gameData.player.dailyRewardsCounter, (newCount) => {
 
 		<!-- Daily Reward Card -->
 		<MysteryBoxCard
-				:key="`mystery-box-${gameData.player.dailyRewardsCounter}`"
+				:key="`mystery-box-${gameData.currency.dailyRewards.counter}`"
 				@claim-mystery-box="handleMysteryBoxClaim"
 		/>
 		<DailyRewardCard
 				v-if="canClaimDailyReward()"
-				:key="`daily-reward-${gameData.player.dailyRewardsCounter}`"
+				:key="`daily-reward-${gameData.currency.dailyRewards.counter}`"
 				@mark-as-read="handleDailyRewardClaimed"
 		/>
 

@@ -5,6 +5,7 @@ import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
 import ThreeShellsGame from '../games/dailyReward/ThreeShellsGame.vue'
 import SlotMachineGame from '../games/dailyReward/SlotMachineGame.vue'
+import WhackAMoleGame from '../games/dailyReward/WhackAMoleGame.vue'
 
 // Props
 const props = defineProps({
@@ -31,16 +32,43 @@ const { t } = useI18n()
 
 // State
 const gamePhase = ref('minigame') // 'minigame', 'claimed'
-const games = ['shells', 'slots'];
-const selectedGame = ref('shells') // 'shells', 'slots'
+const games = ['shells', 'slots', 'whack'] // ← Drittes Spiel hinzugefügt
+const selectedGame = ref('shells') // 'shells', 'slots', 'whack'
 
 const canClaim = computed(() => canClaimDailyReward())
 
-const selectRandomGame = () => {
-	const idx = Math.floor(Math.random() * games.length)
-	selectedGame.value = games[idx]
-	console.log(`🎲 Daily game selected: ${selectedGame.value}`)
+// Deterministische Spielauswahl basierend auf heutigem Datum
+const selectDailyGame = () => {
+	const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+
+	// Einfacher Hash vom Datum für deterministische Zufälligkeit
+	let hash = 0
+	for (let i = 0; i < today.length; i++) {
+		const char = today.charCodeAt(i)
+		hash = ((hash << 5) - hash) + char
+		hash = hash & hash // Convert to 32-bit integer
+	}
+
+	// Positiven Index generieren
+	const gameIndex = Math.abs(hash) % games.length
+	selectedGame.value = games[2]
+
+	console.log(`🎲 Daily game for ${today}: ${selectedGame.value} (index: ${gameIndex})`)
 }
+
+// Game-specific subtitles
+const getGameSubtitle = computed(() => {
+	switch (selectedGame.value) {
+		case 'shells':
+			return t('daily_rewards.shells_subtitle')
+		case 'slots':
+			return t('daily_rewards.slots_subtitle')
+		case 'whack':
+			return t('daily_rewards.whack_subtitle')
+		default:
+			return t('daily_rewards.minigame_subtitle')
+	}
+})
 
 // Handle game completion
 const handleGameComplete = (reward) => {
@@ -48,7 +76,7 @@ const handleGameComplete = (reward) => {
 
 	gamePhase.value = 'claimed'
 
-	console.log(`🎁 Daily rewards counter: ${gameData.player.dailyRewardsCounter}`, reward)
+	console.log(`🎁 Daily rewards counter: ${gameData.currency.dailyRewards.counter}`, reward)
 
 	emit('mark-as-read', reward)
 	emit('click')
@@ -58,7 +86,7 @@ const handleGameComplete = (reward) => {
 onMounted(() => {
 	if (canClaim.value) {
 		gamePhase.value = 'minigame'
-		selectRandomGame()
+		selectDailyGame() // ← Deterministische Spielauswahl
 	}
 })
 </script>
@@ -71,9 +99,7 @@ onMounted(() => {
 	>
 		<div class="reward-card-header">
 			<h4 class="reward-title">{{ t('daily_rewards.title') }}</h4>
-			<p class="reward-subtitle">
-				{{ selectedGame === 'shells' ? t('daily_rewards.shells_subtitle') : t('daily_rewards.slots_subtitle') }}
-			</p>
+			<p class="reward-subtitle">{{ getGameSubtitle }}</p>
 		</div>
 
 		<!-- Minigame Phase -->
@@ -84,6 +110,10 @@ onMounted(() => {
 			/>
 			<SlotMachineGame
 					v-if="selectedGame === 'slots'"
+					@game-complete="handleGameComplete"
+			/>
+			<WhackAMoleGame
+					v-if="selectedGame === 'whack'"
 					@game-complete="handleGameComplete"
 			/>
 		</div>

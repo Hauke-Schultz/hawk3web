@@ -80,7 +80,7 @@ const handleClaimMysteryBox = (event) => {
 	}
 }
 
-watch([() => gameData.player.dailyRewardsCounter, hasPending], ([newCount, newHasPending], [oldCount, oldHasPending]) => {
+watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, newHasPending], [oldCount, oldHasPending]) => {
 	// Update state based on current conditions
 	if (newHasPending) {
 		mysteryBoxState.value = 'pending'
