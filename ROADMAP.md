@@ -87,12 +87,17 @@
 - **Service Worker** - Basic service worker for offline caching and performance
 - **PWA Badge API** - App-Icon Badge showing unread cards and notifications
 - **Home Page Overhaul** - Redesigned home page
+- **Mystery Boxes** - Special boxes with new items (cosmetics not buyable in shop)
+- **Whack A Mole Minigame** - New minigame to win coins and diamonds
 
 ---
 
 ## 🚀 Version 0.3.3 - Enhancements
 
-- **🔮 Mystery Boxes** - Special boxes with new items (cosmetics not buyable in shop)
+- **NumNum Game**
+  - Add randomly a Number 7 tile to the game
+  - decrease the number 7 every slide by 1 until it reaches 4, then it behaves like a normal 4 tile
+  - only one Number 7 can be on the board at a time
 
 ---
 

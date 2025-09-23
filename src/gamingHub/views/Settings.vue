@@ -6,6 +6,7 @@ import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
 import Header from "../components/Header.vue";
+import InstallPrompt from "../../components/InstallPrompt.vue";
 
 // Props
 const props = defineProps({
@@ -237,6 +238,8 @@ const handleMenuClick = () => {
 				@cancel="cancelDelete"
 		/>
 	</main>
+	<!-- PWA Install Prompt -->
+	<InstallPrompt />
 </template>
 
 <style lang="scss" scoped>
