@@ -280,6 +280,16 @@ onMounted(() => {
 	gap: var(--space-4);
 	text-align: center;
 	pointer-events: auto;
+	touch-action: manipulation;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	overscroll-behavior: contain;
+	overscroll-behavior-y: contain;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-overflow-scrolling: touch;
 
 	* {
 		pointer-events: auto;

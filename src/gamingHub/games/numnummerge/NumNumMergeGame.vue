@@ -518,7 +518,7 @@ const countdownNumber7 = () => {
 	if (!number7Position.value &&
 			isEndlessMode.value &&
 			getEmptyCells().length > 4 &&
-			Math.random() < 0.5) {
+			Math.random() < 0.05) {
 		spawnNumber7()
 		return
 	}
