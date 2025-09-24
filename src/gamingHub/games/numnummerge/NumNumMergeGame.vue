@@ -91,6 +91,7 @@ const rewardBreakdown = ref(null)
 const hasSavedState = ref(false)
 const isSaving = ref(false)
 const isRestoringState = ref(false)
+const number7Position = ref(null)
 
 // Touch/Swipe handling
 const touchStartX = ref(0)
@@ -460,6 +461,7 @@ const resetGame = () => {
 	undoRemaining.value = getItemQuantity('undo_move')
 	enableScreenshotCapture.value = false
 	currentGameScreenshotData.value = null
+	number7Position.value = null
 
 	// Clear grid
 	for (let row = 0; row < 4; row++) {
@@ -481,6 +483,90 @@ const resetGame = () => {
 		stopSessionTimer()
 		startSessionTimer()
 	}
+}
+
+const spawnNumber7 = () => {
+	// Only if no Number 7 exists and we have empty cells
+	if (number7Position.value || !hasEmptyCell()) {
+		console.log(`🔢 Cannot spawn Number 7: ${number7Position.value ? 'already exists' : 'no empty cells'}`)
+		return false
+	}
+
+	const emptyCells = getEmptyCells()
+	const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)]
+
+	setNumberAt(randomCell.row, randomCell.col, 7)
+	number7Position.value = {
+		row: randomCell.row,
+		col: randomCell.col,
+		value: 7
+	}
+
+	// Add to new tiles for animation
+	newTiles.value.push({
+		row: randomCell.row,
+		col: randomCell.col,
+		value: 7
+	})
+
+	console.log(`🔢 Number 7 spawned at (${randomCell.row}, ${randomCell.col})`)
+	return true
+}
+
+// Countdown Number 7 after each move
+const countdownNumber7 = () => {
+	if (!number7Position.value && Math.random() < 0.5) {
+		spawnNumber7()
+		return
+	}
+	if (!number7Position.value) return
+
+	const { value } = number7Position.value
+
+	// Find the countdown tile anywhere on the board
+	let foundPosition = null
+	for (let row = 0; row < 4; row++) {
+		for (let col = 0; col < 4; col++) {
+			if (getNumberAt(row, col) === value) {
+				foundPosition = { row, col }
+				break
+			}
+		}
+		if (foundPosition) break
+	}
+
+	if (foundPosition && value > 4) {
+		const newValue = value - 1
+		setNumberAt(foundPosition.row, foundPosition.col, newValue)
+
+		// Update tracking with new position and value
+		number7Position.value = {
+			row: foundPosition.row,
+			col: foundPosition.col,
+			value: newValue
+		}
+
+		console.log(`🔢 Number countdown: ${value} → ${newValue} at (${foundPosition.row}, ${foundPosition.col})`)
+
+		// If it became 4, remove tracking
+		if (newValue === 4) {
+			number7Position.value = null
+			console.log(`🔢 Number countdown completed - now normal 4`)
+		}
+	} else {
+		// Number was merged or disappeared, stop tracking
+		number7Position.value = null
+		console.log(`🔢 Number ${value} was merged/disappeared, stopped tracking`)
+	}
+}
+
+// Check if a tile is the tracked Number 7
+const isTrackedNumber7 = (row, col) => {
+	if (!number7Position.value) return false
+
+	// Check if this position contains our tracked countdown number
+	const boardValue = getNumberAt(row, col)
+	return boardValue === number7Position.value.value && [5, 6, 7].includes(boardValue)
 }
 
 const addRandomNumber = () => {
@@ -626,6 +712,8 @@ const moveLeft = () => {
 		score.value += scoreGained
 		moves.value++
 
+		countdownNumber7()
+
 		if (scoreGained > 0) {
 			// Trigger score pop animation
 			const scoreElement = document.querySelector('.stat-value')
@@ -714,6 +802,8 @@ const moveRight = () => {
 	if (moved) {
 		score.value += scoreGained
 		moves.value++
+
+		countdownNumber7()
 
 		if (scoreGained > 0) {
 			// Trigger score pop animation
@@ -804,6 +894,8 @@ const moveUp = () => {
 		score.value += scoreGained
 		moves.value++
 
+		countdownNumber7()
+
 		if (scoreGained > 0) {
 			// Trigger score pop animation
 			const scoreElement = document.querySelector('.stat-value')
@@ -893,6 +985,8 @@ const moveDown = () => {
 	if (moved) {
 		score.value += scoreGained
 		moves.value++
+
+		countdownNumber7()
 
 		if (scoreGained > 0) {
 			// Trigger score pop animation
@@ -1630,6 +1724,8 @@ const captureCurrentState = () => {
 			timeRemaining: comboSystem.timeRemaining.value
 		},
 
+		number7Data: number7Position.value,
+
 		// Game settings
 		gameStateValue: gameState.value,
 
@@ -1657,6 +1753,8 @@ const restoreGameState = (savedState) => {
 		sessionTime.value = savedState.sessionTime || 0
 		totalMerges.value = savedState.totalMerges || 0
 		gameState.value = savedState.gameStateValue || 'playing'
+
+		number7Position.value = savedState.number7Data || null
 
 		if (savedState.undoStack && Array.isArray(savedState.undoStack)) {
 			undoStack.value = savedState.undoStack.map(state => ({
@@ -1707,15 +1805,10 @@ const restoreGameState = (savedState) => {
 	}
 }
 
-// Helper functions for tile styling
-const getTileClass = (value) => {
-	if (!value) return ''
-	return 'cell-number'
-}
-
 const getTileStyle = (value) => {
 	if (!value) return {}
 
+	// Regular numbers
 	const numberType = Object.values(NUMBER_TYPES).find(type => type.number === value)
 	if (!numberType) return {}
 
@@ -1918,16 +2011,16 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 						    'grid-cell--occupied': hasNumberAt(rowIndex, colIndex),
 						    'grid-cell--new': isNewTile(rowIndex, colIndex),
 						    'grid-cell--merging': isMergingTile(rowIndex, colIndex),
-						    'grid-cell--target-reached': isTargetTile(rowIndex, colIndex)
+						    'grid-cell--target-reached': isTargetTile(rowIndex, colIndex),
 						  }"
-							:data-row="rowIndex"
-							:data-col="colIndex"
 						>
 							<div
-									v-if="hasNumberAt(rowIndex, colIndex)"
-									class="cell-number"
-									:class="getTileClass(getNumberAt(rowIndex, colIndex))"
-									:style="getTileStyle(getNumberAt(rowIndex, colIndex))"
+								v-if="hasNumberAt(rowIndex, colIndex)"
+								class="cell-number"
+								:class="{
+							    'cell-number--countdown': isTrackedNumber7(rowIndex, colIndex)
+							  }"
+								:style="getTileStyle(getNumberAt(rowIndex, colIndex))"
 							>
 								{{ getNumberAt(rowIndex, colIndex) }}
 							</div>
@@ -2303,6 +2396,16 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 
 .undo-feedback {
 	animation: undoFeedback 0.5s ease-out;
+}
+
+.cell-number--countdown {
+	position: relative;
+	animation: countdownGlow 2s infinite alternate;
+}
+
+@keyframes countdownGlow {
+	0% { box-shadow: 0 0 8px rgba(255, 107, 107, 0.3); }
+	100% { box-shadow: 0 0 15px rgba(255, 107, 107, 0.7); }
 }
 
 // Animations

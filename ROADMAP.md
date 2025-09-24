@@ -89,20 +89,15 @@
 - **Home Page Overhaul** - Redesigned home page
 - **Mystery Boxes** - Special boxes with new items (cosmetics not buyable in shop)
 - **Whack A Mole Minigame** - New minigame to win coins and diamonds
+- **NumNum Game 7 Tile** - New tile that decreases every slide until it reaches 4
 
 ---
 
 ## 🚀 Version 0.3.3 - Enhancements
 
-- **NumNum Game**
-  - Add randomly a Number 7 tile to the game
-  - decrease the number 7 every slide by 1 until it reaches 4, then it behaves like a normal 4 tile
-  - only one Number 7 can be on the board at a time
-
 ---
 
 ## 🚀 Version 0.3.4 - Enhancements
-
 
 - **🎁 Gift System** - Send and receive gifts with friends
 
