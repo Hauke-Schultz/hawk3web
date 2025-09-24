@@ -515,7 +515,10 @@ const spawnNumber7 = () => {
 
 // Countdown Number 7 after each move
 const countdownNumber7 = () => {
-	if (!number7Position.value && Math.random() < 0.5) {
+	if (!number7Position.value &&
+			isEndlessMode.value &&
+			getEmptyCells().length > 4 &&
+			Math.random() < 0.5) {
 		spawnNumber7()
 		return
 	}
