@@ -1,7 +1,7 @@
 // Mystery Box system configuration
 export const MYSTERY_BOX_CONFIG = {
   // Requirements
-  requiredDailyRewards: 7,           // How many daily rewards needed
+  requiredDailyRewards: 5,           // How many daily rewards needed
 
   // Achievement thresholds
   achievementThresholds: [

@@ -1035,7 +1035,7 @@ export function useLocalStorage() {
     gameData.currency.transactions.push(transaction)
 
     // Check for mystery box unlock
-    if (gameData.currency.dailyRewards.counter % 7 === 0) {
+    if (gameData.currency.dailyRewards.counter % 5 === 0) {
       // Create pending mystery box instead of auto-claiming
       const pendingBox = createPendingMysteryBox()
       if (pendingBox) {

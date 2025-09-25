@@ -37,7 +37,6 @@ const selectedGame = ref('shells') // 'shells', 'slots', 'whack'
 
 const canClaim = computed(() => canClaimDailyReward())
 
-// Deterministische Spielauswahl basierend auf heutigem Datum
 const selectDailyGame = () => {
 	const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
 
@@ -48,10 +47,8 @@ const selectDailyGame = () => {
 		hash = ((hash << 5) - hash) + char
 		hash = hash & hash // Convert to 32-bit integer
 	}
-
-	// Positiven Index generieren
 	const gameIndex = Math.abs(hash) % games.length
-	selectedGame.value = games[2]
+	selectedGame.value = games[gameIndex]
 
 	console.log(`🎲 Daily game for ${today}: ${selectedGame.value} (index: ${gameIndex})`)
 }

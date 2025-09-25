@@ -117,7 +117,7 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 
 			<button
 				v-if="cardStatus === 'pending'"
-				class="btn btn--success"
+				class="item-reveal-button btn btn--warning"
 				@click="handleClaimMysteryBox"
 				@mousedown.stop
 				@touchstart.stop
@@ -148,27 +148,6 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 					</div>
 				</div>
 			</div>
-
-			<div v-if="cardStatus === 'ready'" class="progress-text">
-				<Icon name="star-filled" size="14" />
-				{{ t('daily_rewards.mystery_box_ready') }}
-			</div>
-			<div v-if="cardStatus === 'claiming'" class="progress-text">
-				<Icon name="loading" size="14" />
-				{{ t('daily_rewards.mystery_box_opening') }}
-			</div>
-		</div>
-
-		<!-- Action Button -->
-		<div class="mystery-box-actions">
-			<button
-				v-if="cardStatus === 'claiming'"
-				class="btn"
-				disabled
-			>
-				<Icon name="loading" size="16" class="icon-spin" />
-				{{ t('daily_rewards.mystery_box_opening') }}
-			</button>
 		</div>
 	</div>
 </template>
@@ -185,61 +164,6 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 
 	* {
 		pointer-events: auto;
-	}
-
-	// Status-based styling
-	&--progress {
-		background: linear-gradient(135deg, rgba(107, 114, 128, 0.1), rgba(156, 163, 175, 0.2));
-		border-color: var(--info-color);
-		color: var(--text-color);
-	}
-
-	&--ready {
-		background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.3));
-		border-color: #FFD700;
-		color: var(--text-color);
-		animation: mysteryBoxReadyPulse 2s ease-in-out infinite;
-	}
-
-	&--claiming {
-		background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3));
-		border-color: var(--success-color);
-		color: var(--text-color);
-		animation: mysteryBoxClaiming 1s ease-in-out infinite;
-	}
-}
-
-.mystery-box-header {
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
-	margin-bottom: var(--space-3);
-}
-
-.mystery-box-icon-container {
-	position: relative;
-	flex-shrink: 0;
-}
-
-.mystery-box-icon {
-	font-size: 2.5rem;
-	line-height: 1;
-	transition: all 0.3s ease;
-	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-
-	&--progress {
-		opacity: 0.6;
-		transform: scale(0.9);
-	}
-
-	&--ready {
-		animation: mysteryBoxIconReady 1.5s ease-in-out infinite;
-		filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-	}
-
-	&--claiming {
-		animation: mysteryBoxIconSpin 2s linear infinite;
-		filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6));
 	}
 }
 
@@ -258,25 +182,6 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 	font-size: var(--font-size-xs);
 	font-weight: var(--font-weight-bold);
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-.mystery-box-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.mystery-box-title {
-	font-size: var(--font-size-base);
-	font-weight: var(--font-weight-bold);
-	margin: 0 0 var(--space-1) 0;
-	color: var(--text-color);
-}
-
-.mystery-box-subtitle {
-	font-size: var(--font-size-sm);
-	margin: 0;
-	color: var(--text-secondary);
-	line-height: 1.3;
 }
 
 .progress-header {
@@ -330,21 +235,6 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 	animation: progressShine 2s ease-in-out infinite;
 }
 
-.progress-text {
-	display: flex;
-	align-items: center;
-	gap: var(--space-1);
-	font-size: var(--font-size-sm);
-	color: var(--text-secondary);
-	justify-content: center;
-}
-
-.mystery-box-actions {
-	display: flex;
-	justify-content: center;
-}
-
-
 // Mystery Item Display
 .mystery-item-display {
 	display: flex;
@@ -366,6 +256,10 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 	display: flex;
 	gap: var(--space-3);
 	align-items: center;
+}
+
+.item-reveal-button {
+	width: 100%;
 }
 
 .item-icon-large {
@@ -403,32 +297,11 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 	line-height: 1.4;
 }
 
-.item-meta {
-	display: flex;
-	gap: var(--space-3);
-	align-items: center;
-}
-
-.item-rarity {
-	padding: var(--space-1) var(--space-2);
-	border-radius: var(--border-radius-sm);
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-	text-transform: uppercase;
-	background-color: var(--primary-color);
-	color: white;
-}
-
-.item-source {
-	font-size: var(--font-size-xs);
-	color: var(--text-muted);
-	font-style: italic;
-}
-
 // Pending state styling
 .mystery-box-card--pending {
 	border-color: #FFD700;
 	animation: mysteryBoxPendingGlow 2s ease-in-out infinite;
+	filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
 }
 
 @keyframes mysteryBoxPendingGlow {
@@ -440,46 +313,12 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 	}
 }
 
-.mystery-box-icon--pending {
-	animation: mysteryBoxIconPending 1.5s ease-in-out infinite;
-	filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
-}
-
-@keyframes mysteryBoxIconPending {
-	0%, 100% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(1.1);
-	}
-}
-
-
-// Animations
-@keyframes mysteryBoxReadyPulse {
-	0%, 100% {
-		box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-	}
-	50% {
-		box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-	}
-}
-
 @keyframes mysteryBoxClaiming {
 	0%, 100% {
 		transform: scale(1);
 	}
 	50% {
 		transform: scale(1.02);
-	}
-}
-
-@keyframes mysteryBoxIconReady {
-	0%, 100% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(1.1);
 	}
 }
 
