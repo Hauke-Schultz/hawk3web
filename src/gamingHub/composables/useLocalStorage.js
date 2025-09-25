@@ -72,7 +72,7 @@ const getDefaultData = () => ({
 			stars: 0,
 			completedLevels: 0
 		},
-    numNumMerge: {
+    numMerge: {
       highScore: 0,
       gamesPlayed: 0,
       totalScore: 0,
@@ -182,16 +182,16 @@ const validateGameData = (games) => {
 			completedLevels: typeof games?.fruitMerge?.completedLevels === 'number' ? games.fruitMerge.completedLevels : 0,
 			levels: typeof games?.fruitMerge?.levels === 'object' ? games.fruitMerge.levels : {}
 		},
-    numNumMerge: {
-      highScore: typeof games?.numNumMerge?.highScore === 'number' ? games.numNumMerge.highScore : defaultGames.numNumMerge.highScore,
-      totalScore: typeof games?.numNumMerge?.totalScore === 'number' ? games.numNumMerge.totalScore : defaultGames.numNumMerge.totalScore,
-      gamesPlayed: typeof games?.numNumMerge?.gamesPlayed === 'number' ? games.numNumMerge.gamesPlayed : defaultGames.numNumMerge.gamesPlayed,
-      maxLevel: typeof games?.numNumMerge?.maxLevel === 'number' ? games.numNumMerge.maxLevel : defaultGames.numNumMerge.maxLevel,
-      totalMerges: typeof games?.numNumMerge?.totalMerges === 'number' ? games.numNumMerge.totalMerges : defaultGames.numNumMerge.totalMerges,
-      maxCombo: typeof games?.numNumMerge?.maxCombo === 'number' ? games.numNumMerge.maxCombo : defaultGames.numNumMerge.maxCombo,
-      stars: typeof games?.numNumMerge?.stars === 'number' ? games.numNumMerge.stars : 0,
-      completedLevels: typeof games?.numNumMerge?.completedLevels === 'number' ? games.numNumMerge.completedLevels : 0,
-      levels: typeof games?.numNumMerge?.levels === 'object' ? games.numNumMerge.levels : {}
+    numMerge: {
+      highScore: typeof games?.numMerge?.highScore === 'number' ? games.numMerge.highScore : defaultGames.numMerge.highScore,
+      totalScore: typeof games?.numMerge?.totalScore === 'number' ? games.numMerge.totalScore : defaultGames.numMerge.totalScore,
+      gamesPlayed: typeof games?.numMerge?.gamesPlayed === 'number' ? games.numMerge.gamesPlayed : defaultGames.numMerge.gamesPlayed,
+      maxLevel: typeof games?.numMerge?.maxLevel === 'number' ? games.numMerge.maxLevel : defaultGames.numMerge.maxLevel,
+      totalMerges: typeof games?.numMerge?.totalMerges === 'number' ? games.numMerge.totalMerges : defaultGames.numMerge.totalMerges,
+      maxCombo: typeof games?.numMerge?.maxCombo === 'number' ? games.numMerge.maxCombo : defaultGames.numMerge.maxCombo,
+      stars: typeof games?.numMerge?.stars === 'number' ? games.numMerge.stars : 0,
+      completedLevels: typeof games?.numMerge?.completedLevels === 'number' ? games.numMerge.completedLevels : 0,
+      levels: typeof games?.numMerge?.levels === 'object' ? games.numMerge.levels : {}
     }
 	}
 }
@@ -915,7 +915,7 @@ export function useLocalStorage() {
     const achievements = []
 
     // Check individual game perfectionist achievements
-    const gameIds = ['memory', 'fruitMerge', 'numNumMerge']
+    const gameIds = ['memory', 'fruitMerge', 'numMerge']
 
     gameIds.forEach(gameId => {
       const achievementId = `${gameId}_perfectionist`

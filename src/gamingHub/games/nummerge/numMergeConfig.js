@@ -274,7 +274,7 @@ export const NUMBER_TYPES = {
 }
 
 // Level Goal Configuration
-export const NUM_NUM_MERGE_LEVELS = {
+export const NUM_MERGE_LEVELS = {
 	1: {
     targetNum: 'NUM_128',
     randomNumbers: [2, 2, 2, 4],
@@ -339,12 +339,12 @@ export const NUM_NUM_MERGE_LEVELS = {
   }
 };
 
-export const numNumMergeConfig = {
-	gameId: 'numNumMerge',
-  gameTitle: 'Num Num Merge',
+export const numMergeConfig = {
+	gameId: 'numMerge',
+  gameTitle: 'Num Merge',
   gameDescription: 'Merge numbers to reach the target score!',
-  gameIcon: 'num-num-merge-game',
-  levels: Object.values(NUM_NUM_MERGE_LEVELS).map((level, index) => ({
+  gameIcon: 'num-merge-game',
+  levels: Object.values(NUM_MERGE_LEVELS).map((level, index) => ({
     level: index + 1,
     ...level
   }))

@@ -5,7 +5,7 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
 import { memoryConfig } from '../games/memory/memoryConfig.js'
 import { fruitMergeConfig } from '../games/fruitmerge/fruitMergeConfig.js'
-import { numNumMergeConfig } from '../games/numnummerge/numNumMergeConfig.js'
+import { numMergeConfig } from '../games/nummerge/numMergeConfig.js'
 import Icon from "../../components/Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
 import DailyRewardCard from "./DailyRewardCard.vue"
@@ -92,14 +92,14 @@ const availableGames = computed(() => [
 		highlight: route.path.includes('/games/fruitmerge'),
 	},
 	{
-		id: 'numNumMerge',
-		title: numNumMergeConfig.gameTitle,
-		icon: numNumMergeConfig.gameIcon,
-		route: '/games/numnummerge',
+		id: 'numMerge',
+		title: numMergeConfig.gameTitle,
+		icon: numMergeConfig.gameIcon,
+		route: '/games/nummerge',
 		color: 'info',
-		levels: gameData.games.numNumMerge.levels || {},
-		totalLevels: numNumMergeConfig.levels.length,
-		highlight: route.path.includes('/games/numnummerge'),
+		levels: gameData.games.numMerge.levels || {},
+		totalLevels: numMergeConfig.levels.length,
+		highlight: route.path.includes('/games/nummerge'),
 	}
 ])
 
@@ -255,14 +255,14 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'fruit-merge-game'
 	}))
 
-	const numNumMergeeLevels = getRecentLevelsForGame('numNumMerge', 10).map(level => ({
+	const numMergeeLevels = getRecentLevelsForGame('numMerge', 10).map(level => ({
 		...level,
-		gameId: 'numNumMerge',
-		gameTitle: t('numNumMerge.title'),
-		gameIcon: 'num-num-merge-game'
+		gameId: 'numMerge',
+		gameTitle: t('numMerge.title'),
+		gameIcon: 'num-merge-game'
 	}))
 
-	const combined = [...memoryLevels, ...fruitMergeLevels, ...numNumMergeeLevels]
+	const combined = [...memoryLevels, ...fruitMergeLevels, ...numMergeeLevels]
 			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
 			.slice(0, 3) // Nur die 3 neuesten
 
@@ -432,7 +432,8 @@ const navigateTo = (path) => {
 const navigateToLevel = (gameId, level) => {
 	const gameRoutes = {
 		'fruitMerge': 'fruitmerge',
-		'memory': 'memory'
+		'memory': 'memory',
+		'numMerge': 'nummerge'
 	}
 
 	const routeName = gameRoutes[gameId]

@@ -53,18 +53,18 @@
 - **In-Game Shop Integration** - Direct item purchasing during gameplay (Hammer power-up)
 - **Save/Restore System** - Complete game state persistence across sessions for both games
 - **Auto-Save Functionality** - Automatic game state saving via header menu
-- **NumNum Merge Game Implementation** - Complete 2048-style number merge game
+- **Num Merge Game Implementation** - Complete 2048-style number merge game
 - **Progressive Number System** - 2→4→8→16→32→64→128→256→512→1024→2048+ progression
 - **Level & Endless Modes** - 6 structured levels plus infinite progression mode
 - **Number-Specific Achievements** - Reach 128, 256, 512, 1024, 2048+ milestones
-- **NumNum Save/Restore Integration** - Full game state persistence like other games
+- **Num Save/Restore Integration** - Full game state persistence like other games
 - **Touch & Keyboard Controls** - WASD + Arrow keys + Swipe gestures for 4x4 grid
-- **NumNum Star System** - Performance-based 3-star rating for each level
+- **Num Star System** - Performance-based 3-star rating for each level
 - **Dynamic Number Styling** - Color-coded number tiles with smooth animations
 - **Smooth Animations** - Polished number merge animations and transitions
 - **Perfect Score Achievements** - Complete all levels with a perfect 3 star score (all games)
-- **NumNum Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
-- **Undo Item** - Shop item to undo last move in NumNum game
+- **Num Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
+- **Undo Item** - Shop item to undo last move in Num game
 - **In-Game Shop Integration** - Direct item purchasing during gameplay (Undo item)
 - **Mold Fruit Mechanic** - Special fruit that randomly spawns and disappears after 3 minutes
 - **Bomb Fruit Mechanic** - Explodes and removes all fruits in a 3x3 radius
@@ -77,7 +77,7 @@
 - **Slot Machine Minigame** - Spin to win coins, diamonds, or power-ups with animated reels
 - **Screenshot System for FruitMerge** - Save and view game state screenshots with metadata
 - **Screenshot gallery** - View saved screenshots on level overview page and in GameCompletedModal
-- **Multi-Game Support** - Screenshot functionality for NumNum Game
+- **Multi-Game Support** - Screenshot functionality for Num Game
 - **Rainbow Fruit** - don't merge with giant fruits
 - **Screenshot Watermark** - Game logo and timestamp overlay on screenshots
 - **Screenshot Watermark** - Game logo and timestamp overlay on screenshots
@@ -89,7 +89,7 @@
 - **Home Page Overhaul** - Redesigned home page
 - **Mystery Boxes** - Special boxes with new items (cosmetics not buyable in shop)
 - **Whack A Mole Minigame** - New minigame to win coins and diamonds
-- **NumNum Game 7 Tile** - New tile that decreases every slide until it reaches 4
+- **Num Game 7 Tile** - New tile that decreases every slide until it reaches 4
 
 ---
 

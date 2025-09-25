@@ -356,7 +356,7 @@ export default {
       feature_list: {
         memory_game: 'Memory Game with 6 levels',
         fruit_merge: 'Fruit Merge Game with 6 levels + endless mode',
-        numnum_merge: 'NumNum Merge Game with 6 levels + endless mode',
+        num_merge: 'Num Merge Game with 6 levels + endless mode',
         achievements: 'Achievement/Trophy System',
         profile: 'Player Profile with stats and avatar selection',
         currency: 'In-game Currency (Coins & Diamonds)',
@@ -656,9 +656,9 @@ export default {
 		}
 	},
 
-  // NumNumMerge Game
-  numNumMerge: {
-    title: 'Num Num Merge',
+  // NumMerge Game
+  numMerge: {
+    title: 'Num Merge',
     description: 'Merge numbers to reach the target score!',
     target: 'Target',
     level_title: 'Level {level}',
@@ -783,7 +783,7 @@ export default {
 			special: 'Special',
 			memory: 'Memory Game',
 			fruitMerge: 'Fruit Merge Game',
-      numNumMerge: 'Num Num Merge Game',
+      numMerge: 'Num Merge Game',
 		},
 		rarities: {
 			common: 'Common',
@@ -895,21 +895,21 @@ export default {
 				description: 'Reached 35,000 points in a single game'
 			},
 
-      numnum_beginner: {
+      num_beginner: {
         name: 'Number Novice',
-        description: 'Completed first NumNumMerge level'
+        description: 'Completed first NumMerge level'
       },
-      numnum_intermediate: {
+      num_intermediate: {
         name: 'Number Apprentice',
-        description: 'Completed NumNumMerge Level 3'
+        description: 'Completed NumMerge Level 3'
       },
-      numnum_expert: {
+      num_expert: {
         name: 'Number Expert',
-        description: 'Completed NumNumMerge Level 5'
+        description: 'Completed NumMerge Level 5'
       },
-      numnum_master: {
+      num_master: {
         name: 'Number Master',
-        description: 'Completed the ultimate NumNumMerge challenge'
+        description: 'Completed the ultimate NumMerge challenge'
       },
 
       reach_128: {
@@ -966,9 +966,9 @@ export default {
         name: 'Fruit Merge Perfectionist',
         description: 'Complete all Fruit Merge levels with 3 stars'
       },
-      numNumMerge_perfectionist: {
-        name: 'NumNum Merge Perfectionist',
-        description: 'Complete all NumNum Merge levels with 3 stars'
+      numMerge_perfectionist: {
+        name: 'Num Merge Perfectionist',
+        description: 'Complete all Num Merge levels with 3 stars'
       },
 
       ultimate_perfectionist: {

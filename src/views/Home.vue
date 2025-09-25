@@ -5,7 +5,7 @@ import { useLocalStorage } from "../gamingHub/composables/useLocalStorage.js"
 import {computed, watch} from "vue"
 import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
 import { fruitMergeConfig } from "../gamingHub/games/fruitmerge/fruitMergeConfig.js"
-import { numNumMergeConfig } from "../gamingHub/games/numnummerge/numNumMergeConfig.js"
+import { numMergeConfig } from "../gamingHub/games/nummerge/numMergeConfig.js"
 import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
 import CurrencyDisplay from '../gamingHub/components/CurrencyDisplay.vue'
@@ -21,7 +21,7 @@ const navigateToGame = (gameId) => {
 	const routes = {
 		memory: '/games/memory',
 		fruitMerge: '/games/fruitmerge',
-		numNumMerge: '/games/numnummerge'
+		numMerge: '/games/nummerge'
 	}
 	if (routes[gameId]) {
 		router.push(routes[gameId])
@@ -53,7 +53,7 @@ const getGameProgress = (gameId, config) => {
 
 const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
 const fruitMergeProgress = computed(() => getGameProgress('fruitMerge', fruitMergeConfig))
-const numNumMergeProgress = computed(() => getGameProgress('numNumMerge', numNumMergeConfig))
+const numMergeProgress = computed(() => getGameProgress('numMerge', numMergeConfig))
 
 // Player Summary
 const playerSummary = computed(() => ({
@@ -67,10 +67,10 @@ const playerSummary = computed(() => ({
 
 // Overall Progress
 const overallProgress = computed(() => {
-	const totalCompleted = memoryProgress.value.completed + fruitMergeProgress.value.completed + numNumMergeProgress.value.completed
-	const totalLevels = memoryProgress.value.total + fruitMergeProgress.value.total + numNumMergeProgress.value.total
-	const totalStars = memoryProgress.value.stars + fruitMergeProgress.value.stars + numNumMergeProgress.value.stars
-	const maxStars = memoryProgress.value.maxStars + fruitMergeProgress.value.maxStars + numNumMergeProgress.value.maxStars
+	const totalCompleted = memoryProgress.value.completed + fruitMergeProgress.value.completed + numMergeProgress.value.completed
+	const totalLevels = memoryProgress.value.total + fruitMergeProgress.value.total + numMergeProgress.value.total
+	const totalStars = memoryProgress.value.stars + fruitMergeProgress.value.stars + numMergeProgress.value.stars
+	const maxStars = memoryProgress.value.maxStars + fruitMergeProgress.value.maxStars + numMergeProgress.value.maxStars
 
 	return {
 		levels: totalCompleted,
@@ -216,18 +216,18 @@ const handleMenuClick = () => {
 					</div>
 				</div>
 
-				<!-- NumNum Merge Game -->
-				<div class="game-card" @click="navigateToGame('numNumMerge')">
+				<!-- Num Merge Game -->
+				<div class="game-card" @click="navigateToGame('numMerge')">
 					<div class="game-header">
-						<Icon :name="numNumMergeConfig.gameIcon" size="28" />
+						<Icon :name="numMergeConfig.gameIcon" size="28" />
 						<div class="game-info">
-							<h3 class="game-title">{{ numNumMergeConfig.gameTitle }}</h3>
+							<h3 class="game-title">{{ numMergeConfig.gameTitle }}</h3>
 							<div class="game-progress">
-								<span class="progress-text">{{ numNumMergeProgress.completed }}/{{ numNumMergeProgress.total }}</span>
+								<span class="progress-text">{{ numMergeProgress.completed }}/{{ numMergeProgress.total }}</span>
 								<div class="mini-progress-bar">
 									<div
-											class="mini-progress-fill numnum"
-											:style="{ width: `${numNumMergeProgress.percentage}%` }"
+											class="mini-progress-fill num"
+											:style="{ width: `${numMergeProgress.percentage}%` }"
 									></div>
 								</div>
 							</div>
@@ -236,7 +236,7 @@ const handleMenuClick = () => {
 						<div class="game-stats">
 							<div class="game-stat">
 								<Icon name="star-filled" size="14" />
-								<span>{{ numNumMergeProgress.stars }}</span>
+								<span>{{ numMergeProgress.stars }}</span>
 							</div>
 						</div>
 					</div>

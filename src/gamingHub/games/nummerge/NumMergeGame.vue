@@ -5,7 +5,7 @@ import {useLocalStorage} from "../../composables/useLocalStorage.js";
 import {useI18n} from "../../../composables/useI18n.js";
 import { useScreenshot } from '../../composables/useScreenshot.js'
 import Icon from "../../../components/Icon.vue";
-import {NUM_NUM_MERGE_LEVELS, NUMBER_TYPES, GRID_CONFIG, GRID_UTILS} from "./numNumMergeConfig.js";
+import {NUM_MERGE_LEVELS, NUMBER_TYPES, GRID_CONFIG, GRID_UTILS} from "./numMergeConfig.js";
 import {useRouter} from "vue-router";
 import ProgressOverview from "../../components/ProgressOverview.vue";
 import PerformanceStats from "../../components/PerformanceStats.vue";
@@ -65,7 +65,7 @@ const score = ref(0)
 const moves = ref(0)
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
 const currentLevel = ref(props.level || 1)
-const currentLevelConfig = computed(() => NUM_NUM_MERGE_LEVELS[currentLevel.value])
+const currentLevelConfig = computed(() => NUM_MERGE_LEVELS[currentLevel.value])
 
 // Grid State (4x4 grid)
 const grid = ref([
@@ -215,7 +215,7 @@ const getTargetNumber = () => {
 // Game initialization
 const initializeGame = () => {
 	// Check for saved state first
-	const savedState = loadLevelState('numNumMerge', currentLevel.value)
+	const savedState = loadLevelState('numMerge', currentLevel.value)
 	hasSavedState.value = !!savedState
 
 	if (savedState && !isRestoringState.value) {
@@ -320,7 +320,7 @@ const screenshotHighscoreInfo = computed(() => {
 		return null
 	}
 
-	const levelScreenshots = getScreenshotsForLevel('numNumMerge', currentLevel.value)
+	const levelScreenshots = getScreenshotsForLevel('numMerge', currentLevel.value)
 	// Sort screenshots by score (highest first)
 	let sortedScreenshots = [...levelScreenshots].sort((a, b) => b.score - a.score)
 	sortedScreenshots = sortedScreenshots.filter(screenshot => screenshot.score !== score.value)
@@ -417,7 +417,7 @@ const captureScreenshotData = () => {
 
 		// Metadata
 		capturedAt: new Date().toISOString(),
-		gameTitle: t('numNumMerge.title')
+		gameTitle: t('numMerge.title')
 	}
 
 	return screenshotData
@@ -430,7 +430,7 @@ const handleSaveScreenshot = async (screenshotMetadata) => {
 	}
 
 	try {
-		const success = await saveGameScreenshot('numNumMerge', currentGameScreenshotData.value)
+		const success = await saveGameScreenshot('numMerge', currentGameScreenshotData.value)
 
 		if (success) {
 			console.log('🖼️ Screenshot saved successfully!')
@@ -445,7 +445,7 @@ const handleSaveScreenshot = async (screenshotMetadata) => {
 
 const resetGame = () => {
 	// Clear saved state
-	clearLevelState('numNumMerge', currentLevel.value)
+	clearLevelState('numMerge', currentLevel.value)
 
 	// Reset game state
 	score.value = 0
@@ -1061,7 +1061,7 @@ const handleAutoSave = () => {
 	try {
 		const currentState = captureCurrentState()
 		if (currentState) {
-			saveLevelState('numNumMerge', currentLevel.value, currentState)
+			saveLevelState('numMerge', currentLevel.value, currentState)
 		}
 	} catch (error) {
 		console.error('Error auto-saving game state:', error)
@@ -1172,7 +1172,7 @@ const checkGameStatus = () => {
 const completeEndlessMode = () => {
 	if (gameState.value !== 'playing') return
 
-	clearLevelState('numNumMerge', currentLevel.value)
+	clearLevelState('numMerge', currentLevel.value)
 	gameState.value = 'completed'
 
 	// Prepare screenshot data
@@ -1186,23 +1186,23 @@ const completeEndlessMode = () => {
 
 	// Update endless mode statistics
 	const endlessStats = {
-		gamesPlayed: gameData.games.numNumMerge.gamesPlayed + 1,
-		totalScore: gameData.games.numNumMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.numNumMerge.highScore, score.value),
-		stars: gameData.games.numNumMerge.stars + calculateCurrentStars(),
-		maxCombo: Math.max(gameData.games.numNumMerge.maxCombo || 0, comboSystem.comboCount.value),
-		totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value,
+		gamesPlayed: gameData.games.numMerge.gamesPlayed + 1,
+		totalScore: gameData.games.numMerge.totalScore + score.value,
+		highScore: Math.max(gameData.games.numMerge.highScore, score.value),
+		stars: gameData.games.numMerge.stars + calculateCurrentStars(),
+		maxCombo: Math.max(gameData.games.numMerge.maxCombo || 0, comboSystem.comboCount.value),
+		totalMerges: (gameData.games.numMerge.totalMerges || 0) + totalMerges.value,
 		// Endless specific stats
-		longestSession: Math.max(gameData.games.numNumMerge.longestSession || 0, sessionTime.value),
-		bestEndlessScore: Math.max(gameData.games.numNumMerge.bestEndlessScore || 0, score.value)
+		longestSession: Math.max(gameData.games.numMerge.longestSession || 0, sessionTime.value),
+		bestEndlessScore: Math.max(gameData.games.numMerge.bestEndlessScore || 0, score.value)
 	}
 
-	updateGameStats('numNumMerge', endlessStats)
+	updateGameStats('numMerge', endlessStats)
 
 	// Check endless achievements
 	const achievementsBefore = [...gameData.achievements]
 
-	const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
+	const numAchievements = checkNumAchievements(gameData, currentLevel.value, grid.value, {
 		maxCombo: comboSystem.comboCount.value,
 		moves: moves.value,
 		totalMerges: totalMerges.value,
@@ -1210,10 +1210,10 @@ const completeEndlessMode = () => {
 		endlessScore: score.value
 	})
 
-	numNumAchievements.forEach(achievement => {
+	numAchievements.forEach(achievement => {
 		const wasAdded = addAchievement(achievement)
 		if (wasAdded) {
-			console.log(`🎉 NumNum endless achievement unlocked: ${achievement.name}`)
+			console.log(`🎉 Num endless achievement unlocked: ${achievement.name}`)
 		}
 	})
 
@@ -1253,7 +1253,7 @@ const completeEndlessMode = () => {
 			source: t('rewards.breakdown.merge_bonus', { merges: totalMerges.value }),
 			coins: mergeBonus,
 			diamonds: 0,
-			icon: 'num-num-merge-game',
+			icon: 'num-merge-game',
 			style: 'performance'
 		})
 	}
@@ -1345,7 +1345,7 @@ const completeLevel = () => {
 		return
 	}
 
-	clearLevelState('numNumMerge', currentLevel.value)
+	clearLevelState('numMerge', currentLevel.value)
 	gameState.value = 'completed'
 
 	// Prepare screenshot data
@@ -1368,39 +1368,39 @@ const completeLevel = () => {
 	}
 
 	// Check if first time completion
-	const previousLevelStats = getLevelStats('numNumMerge', currentLevel.value)
+	const previousLevelStats = getLevelStats('numMerge', currentLevel.value)
 	const isFirstTimeCompletion = !previousLevelStats?.completed
 
-	updateLevelStats('numNumMerge', currentLevel.value, levelResult)
+	updateLevelStats('numMerge', currentLevel.value, levelResult)
 
 	// Update game statistics
 	const gameStats = {
-		gamesPlayed: gameData.games.numNumMerge.gamesPlayed + 1,
-		totalScore: gameData.games.numNumMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.numNumMerge.highScore, score.value),
-		stars: gameData.games.numNumMerge.stars + starsEarned,
-		completedLevels: gameData.games.numNumMerge.completedLevels + (isFirstTimeCompletion ? 1 : 0),
-		maxLevel: Math.max(gameData.games.numNumMerge.maxLevel, currentLevel.value),
-		maxCombo: Math.max(gameData.games.numNumMerge.maxCombo || 0, comboSystem.comboCount.value),
-		totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value
+		gamesPlayed: gameData.games.numMerge.gamesPlayed + 1,
+		totalScore: gameData.games.numMerge.totalScore + score.value,
+		highScore: Math.max(gameData.games.numMerge.highScore, score.value),
+		stars: gameData.games.numMerge.stars + starsEarned,
+		completedLevels: gameData.games.numMerge.completedLevels + (isFirstTimeCompletion ? 1 : 0),
+		maxLevel: Math.max(gameData.games.numMerge.maxLevel, currentLevel.value),
+		maxCombo: Math.max(gameData.games.numMerge.maxCombo || 0, comboSystem.comboCount.value),
+		totalMerges: (gameData.games.numMerge.totalMerges || 0) + totalMerges.value
 	}
 
-	updateGameStats('numNumMerge', gameStats)
+	updateGameStats('numMerge', gameStats)
 
 	// Check achievements
 	const achievementsBefore = [...gameData.achievements]
-	checkGameLevelAchievements('numNumMerge', currentLevel.value)
+	checkGameLevelAchievements('numMerge', currentLevel.value)
 
-	const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
+	const numAchievements = checkNumAchievements(gameData, currentLevel.value, grid.value, {
 		maxCombo: comboSystem.comboCount.value,
 		moves: moves.value,
 		totalMerges: totalMerges.value
 	})
 
-	numNumAchievements.forEach(achievement => {
+	numAchievements.forEach(achievement => {
 		const wasAdded = addAchievement(achievement)
 		if (wasAdded) {
-			console.log(`🎉 NumNum achievement unlocked: ${achievement.name}`)
+			console.log(`🎉 Num achievement unlocked: ${achievement.name}`)
 		}
 	})
 
@@ -1464,10 +1464,10 @@ const updateEndlessStats = () => {
 		stars: calculateCurrentStars()
 	}
 	console.log('updateEndlessStats', levelResult);
-	updateLevelStats('numNumMerge', currentLevel.value, levelResult)
+	updateLevelStats('numMerge', currentLevel.value, levelResult)
 }
 
-const checkNumNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
+const checkNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
 	const achievements = []
 
 	// Check for number milestone achievements
@@ -1475,7 +1475,7 @@ const checkNumNumAchievements = (gameData, levelNumber, finalGrid, gameStats) =>
 	const numberAchievements = ACHIEVEMENTS.definitions.filter(
 			achievement =>
 					achievement.trigger.type === 'number_reach' &&
-					achievement.trigger.game === 'numNumMerge' &&
+					achievement.trigger.game === 'numMerge' &&
 					achievement.trigger.number <= highestNumber
 	)
 
@@ -1487,7 +1487,7 @@ const checkNumNumAchievements = (gameData, levelNumber, finalGrid, gameStats) =>
 
 	// Check for combo achievements
 	if (gameStats.maxCombo >= 10) {
-		const comboAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'numnum_combo_master')
+		const comboAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'num_combo_master')
 		if (comboAchievement && !gameData.achievements.some(a => a.id === comboAchievement.id && a.earned)) {
 			achievements.push(comboAchievement)
 		}
@@ -1495,16 +1495,16 @@ const checkNumNumAchievements = (gameData, levelNumber, finalGrid, gameStats) =>
 
 	// Check for moves-based achievements
 	if (gameStats.moves <= 50) {
-		const speedAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'numnum_speedster')
+		const speedAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'num_speedster')
 		if (speedAchievement && !gameData.achievements.some(a => a.id === speedAchievement.id && a.earned)) {
 			achievements.push(speedAchievement)
 		}
 	}
 
 	// Check for total merges across all games
-	const totalMerges = gameData.games.numNumMerge.totalMerges || 0
+	const totalMerges = gameData.games.numMerge.totalMerges || 0
 	if (totalMerges >= 100) {
-		const mergeAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'numnum_merge_master')
+		const mergeAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'num_merge_master')
 		if (mergeAchievement && !gameData.achievements.some(a => a.id === mergeAchievement.id && a.earned)) {
 			achievements.push(mergeAchievement)
 		}
@@ -1527,7 +1527,7 @@ const getHighestNumberFromGrid = (grid) => {
 
 const gameOver = () => {
 	pauseGame()
-	clearLevelState('numNumMerge', currentLevel.value)
+	clearLevelState('numMerge', currentLevel.value)
 
 	// For endless mode, complete instead of game over
 	if (isEndlessMode.value) {
@@ -1540,26 +1540,26 @@ const gameOver = () => {
 
 	// Update game statistics even for game over
 	const gameStats = {
-		gamesPlayed: gameData.games.numNumMerge.gamesPlayed + 1,
-		totalScore: gameData.games.numNumMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.numNumMerge.highScore, score.value),
-		maxCombo: Math.max(gameData.games.numNumMerge.maxCombo || 0, comboSystem.comboCount.value),
-		totalMerges: (gameData.games.numNumMerge.totalMerges || 0) + totalMerges.value
+		gamesPlayed: gameData.games.numMerge.gamesPlayed + 1,
+		totalScore: gameData.games.numMerge.totalScore + score.value,
+		highScore: Math.max(gameData.games.numMerge.highScore, score.value),
+		maxCombo: Math.max(gameData.games.numMerge.maxCombo || 0, comboSystem.comboCount.value),
+		totalMerges: (gameData.games.numMerge.totalMerges || 0) + totalMerges.value
 	}
 
-	updateGameStats('numNumMerge', gameStats)
+	updateGameStats('numMerge', gameStats)
 
 	// Check achievements for regular game over
-	const numNumAchievements = checkNumNumAchievements(gameData, currentLevel.value, grid.value, {
+	const numAchievements = checkNumAchievements(gameData, currentLevel.value, grid.value, {
 		maxCombo: comboSystem.comboCount.value,
 		moves: moves.value,
 		totalMerges: totalMerges.value
 	})
 
-	numNumAchievements.forEach(achievement => {
+	numAchievements.forEach(achievement => {
 		const wasAdded = addAchievement(achievement)
 		if (wasAdded) {
-			console.log(`🎉 NumNum achievement unlocked: ${achievement.name}`)
+			console.log(`🎉 Num achievement unlocked: ${achievement.name}`)
 		}
 	})
 
@@ -1593,7 +1593,7 @@ const stopSessionTimer = () => {
 // Reward calculation
 const calculateLevelReward = () => {
 	const levelNumber = currentLevel.value
-	const previousLevelStats = getLevelStats('numNumMerge', currentLevel.value)
+	const previousLevelStats = getLevelStats('numMerge', currentLevel.value)
 	const isFirstTimeCompletion = !previousLevelStats?.completed
 	const starsEarned = calculateCurrentStars()
 
@@ -1840,7 +1840,7 @@ const handleMenuSaveGame = () => {
 	if (gameState.value === 'playing' && !isRestoringState.value) {
 		const currentState = captureCurrentState()
 		if (currentState) {
-			saveLevelState('numNumMerge', currentLevel.value, currentState)
+			saveLevelState('numMerge', currentLevel.value, currentState)
 			console.log(`✅ Game manually saved via menu for level ${currentLevel.value}`)
 		}
 	}
@@ -1848,9 +1848,9 @@ const handleMenuSaveGame = () => {
 }
 
 const nextLevel = () => {
-	if (currentLevel.value < Object.keys(NUM_NUM_MERGE_LEVELS).length) {
+	if (currentLevel.value < Object.keys(NUM_MERGE_LEVELS).length) {
 		currentLevel.value++
-		router.push(`/games/numnummerge/${currentLevel.value}`)
+		router.push(`/games/nummerge/${currentLevel.value}`)
 		initializeGame()
 	} else {
 		backToGaming()
@@ -1863,7 +1863,7 @@ const handleTryAgain = () => {
 }
 
 const backToGaming = () => {
-	router.push('/games/numnummerge')
+	router.push('/games/nummerge')
 }
 
 // Lifecycle
@@ -1902,13 +1902,13 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 		@menu-click="handleMenuClick"
 		@save-game="handleMenuSaveGame"
 	/>
-	<main class="num-num-merge-game">
+	<main class="num-merge-game">
 		<!-- Game Header -->
 		<div class="game-header">
 			<div class="game-info">
-				<h2 class="game-title">{{ t('numNumMerge.title') }}</h2>
+				<h2 class="game-title">{{ t('numMerge.title') }}</h2>
 				<div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
-					{{ isEndlessMode ? t('numNumMerge.endless_mode') : t('numNumMerge.level_title', { level: currentLevel }) }}
+					{{ isEndlessMode ? t('numMerge.endless_mode') : t('numMerge.level_title', { level: currentLevel }) }}
 				</div>
 			</div>
 
@@ -1923,7 +1923,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 						:levels-label="getTargetNumber().toString()"
 						:show-stars="false"
 						:show-percentage="false"
-						:complete-label="t('numNumMerge.target')"
+						:complete-label="t('numMerge.target')"
 				/>
 
 				<!-- Game Performance Stats -->
@@ -1935,7 +1935,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 						:total-pairs="0"
 						:combo-count="comboSystem.comboLevel.value"
 						:combo-multiplier="comboSystem.comboMultiplier.value"
-						:max-combo="gameData.games.numNumMerge.maxCombo || 0"
+						:max-combo="gameData.games.numMerge.maxCombo || 0"
 						:combo-time-remaining="comboSystem.timeRemaining.value"
 						:combo-time-max="comboSystem.config.comboTimeout"
 						:is-combo-active="comboSystem.isComboActive.value"
@@ -1960,7 +1960,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 			        'btn--success': canUndo,
 			      }"
 						@click="undoRemaining > 0 ? performUndo() : handleBuyUndoClick()"
-						:title="canUndo ? t('numNumMerge.undo_move') : t('numNumMerge.no_undos')"
+						:title="canUndo ? t('numMerge.undo_move') : t('numMerge.no_undos')"
 					>
 						<span class="undo-icon">↩️</span>
 						<span v-if="undoRemaining > 0" class="notification-badge">{{ undoRemaining }}</span>
@@ -2036,9 +2036,9 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 		<!-- Game Completed Modal -->
 		<GameCompletedModal
 				:visible="gameState === 'completed'"
-				game-name="numNumMerge"
+				game-name="numMerge"
 				:level="currentLevel"
-				:game-title="t('numNumMerge.title')"
+				:game-title="t('numMerge.title')"
 				:final-score="score"
 				:time-elapsed="isEndlessMode ? sessionTime : 0"
 				:moves="moves"
@@ -2053,9 +2053,9 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 				:show-completion-phases="true"
 				:enable-phase-transition="true"
 				:show-next-level="!isEndlessMode"
-				:next-level-label="isEndlessMode ? t('numNumMerge.play_again') : t('numNumMerge.next_level')"
-				:play-again-label="t('numNumMerge.play_again')"
-				:back-to-games-label="t('numNumMerge.back_to_levels')"
+				:next-level-label="isEndlessMode ? t('numMerge.play_again') : t('numMerge.next_level')"
+				:play-again-label="t('numMerge.play_again')"
+				:back-to-games-label="t('numMerge.back_to_levels')"
 				:game-state="currentGameScreenshotData"
 				:high-score-info="screenshotHighscoreInfo"
 				:show-reward-breakdown="true"
@@ -2074,11 +2074,11 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 				v-if="!isEndlessMode"
 				:visible="gameState === 'game-over'"
 				:level="currentLevel"
-				:game-title="t('numNumMerge.title')"
+				:game-title="t('numMerge.title')"
 				:final-score="score"
 				:game-over-icon="'🎯'"
-				:try-again-label="t('numNumMerge.try_again')"
-				:back-to-games-label="t('numNumMerge.back_to_levels')"
+				:try-again-label="t('numMerge.try_again')"
+				:back-to-games-label="t('numMerge.back_to_levels')"
 				@try-again="handleTryAgain"
 				@back-to-games="backToGaming"
 				@close="backToGaming"
@@ -2100,13 +2100,13 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 				@click="handleTryAgain()"
 			>
 				<Icon name="refresh" size="16" class="icon--left" />
-				{{ t('numNumMerge.try_again') }}
+				{{ t('numMerge.try_again') }}
 			</button>
 		</div>
 	</main>
 </template>
 <style lang="scss" scoped>
-.num-num-merge-game {
+.num-merge-game {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-4);

@@ -18,7 +18,7 @@ const developerInfo = {
 const platformInfo = {
 	version: '0.3.3',
 	technologies: ['Vue 3', 'Vite', 'SCSS', 'i18n', 'JavaScript', 'Matter.js'],
-	features: ['memory_game', 'fruit_merge', 'numnum_merge', 'achievements', 'profile', 'currency', 'shop', 'daily_rewards', 'local_storage', 'responsive', 'internationalization']
+	features: ['memory_game', 'fruit_merge', 'num_merge', 'achievements', 'profile', 'currency', 'shop', 'daily_rewards', 'local_storage', 'responsive', 'internationalization']
 }
 
 const sendEmail = () => {

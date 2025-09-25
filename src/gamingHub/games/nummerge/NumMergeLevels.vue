@@ -3,7 +3,7 @@ import {computed, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useI18n } from '../../../composables/useI18n.js'
-import { numNumMergeConfig } from './numNumMergeConfig.js'
+import { numMergeConfig } from './numMergeConfig.js'
 import GameLevelTile from '../../components/GameLevelTile.vue'
 import ProgressOverview from "../../components/ProgressOverview.vue";
 import { getLevelTitle, getLevelDescription } from "../../config/levelUtils.js"
@@ -22,28 +22,28 @@ const selectedLevel = ref(null)
 
 // Computed game data
 const gameStats = computed(() => {
-	return gameData.games.numNumMerge || {}
+	return gameData.games.numMerge || {}
 })
 
 // Compute level data with completion status
 const levelData = computed(() => {
-	return numNumMergeConfig.levels.map((level, index) => {
+	return numMergeConfig.levels.map((level, index) => {
 		const levelNumber = index + 1
 		const levelStats = gameStats.value.levels?.[levelNumber] || {}
 
 		const isUnlocked = levelNumber === 1 || level.isEndless ||
 				(gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
-		const title = getLevelTitle(levelNumber, 'numNumMerge', t)
-		const description = getLevelDescription(levelNumber, 'numNumMerge', t)
+		const title = getLevelTitle(levelNumber, 'numMerge', t)
+		const description = getLevelDescription(levelNumber, 'numMerge', t)
 
 		// Check for saved state
-		const savedState = loadLevelState('numNumMerge', levelNumber)
+		const savedState = loadLevelState('numMerge', levelNumber)
 		const hasSaved = !!savedState
 		const savedTimestamp = savedState?.savedAt || null
 
 		// Screenshot data
-		const screenshotCount = getScreenshotCount('numNumMerge', levelNumber)
+		const screenshotCount = getScreenshotCount('numMerge', levelNumber)
 		const hasScreenshots = screenshotCount > 0
 
 		return {
@@ -85,7 +85,7 @@ const completionStats = computed(() => {
 
 // Event handlers using router
 const handlePlayLevel = (levelNumber) => {
-	router.push(`/games/numNumMerge/${levelNumber}`)
+	router.push(`/games/numMerge/${levelNumber}`)
 }
 
 const handleViewScreenshots = (levelNumber) => {
@@ -120,7 +120,7 @@ const handleMenuClick = () => {
 		<!-- Header Section -->
 		<div class="level-header">
 			<div class="level-title-section">
-				<h2 class="level-title">{{ numNumMergeConfig.gameTitle }}</h2>
+				<h2 class="level-title">{{ numMergeConfig.gameTitle }}</h2>
 				<p class="level-subtitle">{{ t('gaming.choose_level') }}</p>
 			</div>
 		</div>
@@ -151,7 +151,7 @@ const handleMenuClick = () => {
 					:high-score="level.highScore"
 					:best-time="level.bestTime"
 					theme="warning"
-					game-type="numNumMerge"
+					game-type="numMerge"
 					:has-saved-state="level.hasSavedState"
 					:saved-state-timestamp="level.savedStateTimestamp"
 					:screenshot-count="level.screenshotCount"
@@ -165,9 +165,9 @@ const handleMenuClick = () => {
 	<ScreenshotGallery
 			v-if="selectedLevel"
 			:visible="showScreenshotGallery"
-			:game-id="'numNumMerge'"
+			:game-id="'numMerge'"
 			:level="selectedLevel"
-			:game-title="numNumMergeConfig.gameTitle"
+			:game-title="numMergeConfig.gameTitle"
 			:show-download="true"
 			:show-metadata="true"
 			:max-width="'400px'"

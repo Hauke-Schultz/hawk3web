@@ -253,7 +253,7 @@ export default {
 			feature_list: {
         memory_game: 'Memory Spiel mit 6 Levels',
         fruit_merge: 'Fruit Merge Game mit 6 Levels + Endlos-Modus',
-        numnum_merge: 'NumNum Merge Game mit 6 Levels + Endlos-Modus',
+        num_merge: 'Num Merge Game mit 6 Levels + Endlos-Modus',
         achievements: 'Erfolgssystem mit Trophäensammlung',
         profile: 'Spielerprofil & Statistiken',
         currency: 'In-game Währungssystem (Münzen & Diamanten)',
@@ -654,9 +654,9 @@ export default {
 	},
 
 
-  // NumNumMerge Game
-  numNumMerge: {
-    title: 'Num Num Merge',
+  // NumMerge Game
+  numMerge: {
+    title: 'Num Merge',
     description: 'Merge numbers to reach the target score!',
     target: 'Ziel',
     level_title: 'Level {level}',
@@ -782,7 +782,7 @@ export default {
 			special: 'Besonders',
 			memory: 'Memory-Spiel',
 			fruitMerge: 'Fruit Merge-Spiel',
-      numNumMerge: 'Num Num Merge-Spiel',
+      numMerge: 'Num Merge-Spiel',
 		},
 		rarities: {
 			common: 'Häufig',
@@ -894,21 +894,21 @@ export default {
 				description: '35.000 Punkte in einem Spiel erreicht'
 			},
 
-      numnum_beginner: {
+      num_beginner: {
         name: 'Nummer Anfänger',
-        description: 'Erstes NumNumMerge Level abgeschlossen'
+        description: 'Erstes NumMerge Level abgeschlossen'
       },
-      numnum_intermediate: {
+      num_intermediate: {
         name: 'Nummer Aufsteiger',
-        description: 'NumNumMerge Level 3 abgeschlossen'
+        description: 'NumMerge Level 3 abgeschlossen'
       },
-      numnum_expert: {
+      num_expert: {
         name: 'Nummer Experte',
-        description: 'NumNumMerge Level 5 abgeschlossen'
+        description: 'NumMerge Level 5 abgeschlossen'
       },
-      numnum_master: {
+      num_master: {
         name: 'Nummer Meister',
-        description: 'Die ultimative NumNumMerge Herausforderung abgeschlossen'
+        description: 'Die ultimative NumMerge Herausforderung abgeschlossen'
       },
 
       reach_128: {
@@ -966,9 +966,9 @@ export default {
         name: 'Fruit Merge Perfektionist',
         description: 'Alle Fruit Merge-Level mit 3 Sternen abgeschlossen'
       },
-      numNumMerge_perfectionist: {
-        name: 'NumNum Merge Perfektionist',
-        description: 'Alle NumNum Merge-Level mit 3 Sternen abgeschlossen'
+      numMerge_perfectionist: {
+        name: 'Num Merge Perfektionist',
+        description: 'Alle Num Merge-Level mit 3 Sternen abgeschlossen'
       },
       ultimate_perfectionist: {
         name: 'Ultimativer Perfektionist',

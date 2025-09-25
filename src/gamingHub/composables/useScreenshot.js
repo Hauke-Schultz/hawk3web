@@ -133,7 +133,7 @@ export function useScreenshot() {
     const gameNames = {
       'Memory': 'Memory Game',
       'Fruit Merge': 'Fruit Merge',
-      'Num Num Merge': 'NumNum Merge'
+      'Num Merge': 'Num Merge'
     }
 
     return gameNames[gameTitle] || gameTitle
@@ -160,10 +160,10 @@ export function useScreenshot() {
 
         // Determine game type and render accordingly
         if (gameStateData.numbers) {
-          // NumNum Merge Game rendering
-          renderNumNumGameState(ctx, gameStateData)
+          // Num Merge Game rendering
+          renderNumGameState(ctx, gameStateData)
 
-          // Add common UI overlay for NumNum
+          // Add common UI overlay for Num
           addGameUIOverlay(ctx, gameStateData)
 
           // NEW: Add watermarks
@@ -224,7 +224,7 @@ export function useScreenshot() {
     ctx.fillText(levelText, 20, 70)
   }
 
-  const renderNumNumGameState = (ctx, gameStateData) => {
+  const renderNumGameState = (ctx, gameStateData) => {
     const { boardConfig } = gameStateData
     const yOffset = 75
 
@@ -441,7 +441,7 @@ export function useScreenshot() {
       // Add game-specific metadata
       if (gameId === 'fruitMerge') {
         screenshotData.fruitsCount = gameStateData.fruits.length
-      } else if (gameId === 'numNumMerge') {
+      } else if (gameId === 'numMerge') {
         screenshotData.numbersCount = gameStateData.numbers.length
         screenshotData.highestNumber = Math.max(...gameStateData.numbers.map(n => n.number), 0)
       }
