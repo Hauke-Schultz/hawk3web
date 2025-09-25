@@ -155,12 +155,12 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
 <style lang="scss" scoped>
 .mystery-box-card {
 	border-radius: var(--border-radius-xl);
-	padding: var(--space-4);
+	padding: var(--space-2) var(--space-3);
 	position: relative;
 	overflow: hidden;
 	pointer-events: auto;
 	transition: all 0.3s ease;
-	border: 2px solid;
+	border: 1px solid;
 
 	* {
 		pointer-events: auto;

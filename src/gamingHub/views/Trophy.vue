@@ -286,7 +286,6 @@ const handleMenuClick = () => {
 // Trophy Header
 .trophy-header {
 	text-align: center;
-	margin-bottom: var(--space-6);
 }
 
 .trophy-title {
@@ -298,7 +297,6 @@ const handleMenuClick = () => {
 
 // Achievement Categories with Accordion
 .achievement-category {
-	background-color: var(--card-bg);
 	border: 1px solid var(--card-border);
 	border-radius: var(--border-radius-xl);
 	overflow: hidden;
@@ -313,6 +311,7 @@ const handleMenuClick = () => {
 	cursor: pointer;
 	transition: all 0.2s ease;
 	border-bottom: 1px solid transparent;
+	background-color: var(--card-bg);
 
 	&:hover {
 		background-color: var(--card-bg-hover);
@@ -320,7 +319,6 @@ const handleMenuClick = () => {
 
 	&--expanded {
 		border-bottom-color: var(--card-border);
-		background-color: var(--bg-secondary);
 	}
 }
 
@@ -351,6 +349,8 @@ const handleMenuClick = () => {
 	font-weight: var(--font-weight-bold);
 	color: var(--text-secondary);
 	min-width: 40px;
+	display: flex;
+	justify-content: center;
 }
 
 .mini-progress-bar {

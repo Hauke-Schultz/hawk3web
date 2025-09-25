@@ -13,8 +13,80 @@ import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
 import MysteryBoxCard from '../gamingHub/components/MysteryBoxCard.vue'
 
 const { t } = useI18n()
-const { gameData, canClaimDailyReward, claimDailyReward, markCardAsRead, updateNotificationCount, canClaimMysteryBox } = useLocalStorage()
+const {
+	gameData,
+	canClaimDailyReward,
+	claimDailyReward,
+	markCardAsRead,
+	updateNotificationCount,
+	canClaimMysteryBox,
+	getRecentLevelsForGame,
+	getAllRecentLevels
+} = useLocalStorage()
 const router = useRouter()
+
+const allRecentLevels = computed(() => {
+	const memoryLevels = getRecentLevelsForGame('memory', 10).map(level => ({
+		...level,
+		gameId: 'memory',
+		gameTitle: t('memory.title'),
+		gameIcon: 'brain'
+	}))
+
+	const fruitMergeLevels = getRecentLevelsForGame('fruitMerge', 10).map(level => ({
+		...level,
+		gameId: 'fruitMerge',
+		gameTitle: t('fruitMerge.title'),
+		gameIcon: 'fruit-merge-game'
+	}))
+
+	const numMergeLevels = getRecentLevelsForGame('numMerge', 10).map(level => ({
+		...level,
+		gameId: 'numMerge',
+		gameTitle: t('numMerge.title'),
+		gameIcon: 'num-merge-game'
+	}))
+
+	const combined = [...memoryLevels, ...fruitMergeLevels, ...numMergeLevels]
+			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
+			.slice(0, 3)
+
+	return combined
+})
+
+// Format relative time function
+const formatRelativeTime = (dateString) => {
+	const date = new Date(dateString)
+	const now = new Date()
+	const diffMs = now - date
+	const diffMinutes = Math.floor(diffMs / (1000 * 60))
+	const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+	if (diffMinutes < 1) {
+		return t('gaming.saved_just_now')
+	} else if (diffMinutes < 60) {
+		return t('gaming.saved_minutes_ago', { minutes: diffMinutes })
+	} else if (diffHours < 24) {
+		return t('gaming.saved_hours_ago', { hours: diffHours })
+	} else {
+		return t('gaming.saved_days_ago', { days: diffDays })
+	}
+}
+
+// Navigation to level function
+const navigateToLevel = (gameId, level) => {
+	const gameRoutes = {
+		'fruitMerge': 'fruitmerge',
+		'memory': 'memory',
+		'numMerge': 'nummerge'
+	}
+
+	const routeName = gameRoutes[gameId]
+	if (routeName) {
+		navigateTo(`/games/${routeName}/${level}`)
+	}
+}
 
 // Game Navigation
 const navigateToGame = (gameId) => {
@@ -27,6 +99,7 @@ const navigateToGame = (gameId) => {
 		router.push(routes[gameId])
 	}
 }
+
 
 // Page Navigation
 const navigateTo = (path) => {
@@ -109,6 +182,31 @@ const handleMenuClick = () => {
 
 	<main class="home">
 
+		<section class="nav-icons-section">
+			<div class="nav-icons-grid">
+				<button class="nav-icon-btn" @click="navigateTo('/shop')">
+					<Icon name="shop" size="20" />
+					<span>{{ t('nav.shop') }}</span>
+				</button>
+				<button class="nav-icon-btn" @click="navigateTo('/trophies')">
+					<Icon name="trophy" size="20" />
+					<span>{{ t('nav.trophies') }}</span>
+				</button>
+				<button class="nav-icon-btn" @click="navigateTo('/profile')">
+					<Icon name="user" size="20" />
+					<span>{{ t('nav.profile') }}</span>
+				</button>
+				<button class="nav-icon-btn" @click="navigateTo('/settings')">
+					<Icon name="settings" size="20" />
+					<span>{{ t('nav.settings') }}</span>
+				</button>
+				<button class="nav-icon-btn" @click="navigateTo('/about')">
+					<Icon name="info" size="20" />
+					<span>{{ t('nav.about') }}</span>
+				</button>
+			</div>
+		</section>
+
 		<!-- Daily Reward Card -->
 		<MysteryBoxCard
 				:key="`mystery-box-${gameData.currency.dailyRewards.counter}`"
@@ -119,6 +217,24 @@ const handleMenuClick = () => {
 				:key="`daily-reward-${gameData.currency.dailyRewards.counter}`"
 				@mark-as-read="handleDailyRewardClaimed"
 		/>
+
+		<section v-if="allRecentLevels.length > 0" class="recent-games-section">
+			<div class="recent-games-list">
+				<div
+						v-for="levelInfo in allRecentLevels"
+						:key="`${levelInfo.gameId}-${levelInfo.level}`"
+						class="recent-game-item"
+						@click="navigateToLevel(levelInfo.gameId, levelInfo.level)"
+				>
+					<Icon :name="levelInfo.gameIcon" size="24" />
+					<div class="recent-game-info">
+						<span class="recent-game-title">{{ levelInfo.gameTitle }}</span>
+						<span class="recent-game-level"><Icon name="play" size="16" /> {{ t('memory.level_title', { level: levelInfo.level }) }}</span>
+						<span class="recent-game-time">{{ formatRelativeTime(levelInfo.savedAt) }}</span>
+					</div>
+				</div>
+			</div>
+		</section>
 
 		<!-- Overall Progress Card -->
 		<section class="progress-section">
@@ -500,6 +616,96 @@ const handleMenuClick = () => {
 	font-size: var(--font-size-base);
 	color: var(--text-secondary);
 	margin: 0;
+}
+
+// Recent Games Section
+.recent-games-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.recent-game-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-3);
+	border-radius: var(--border-radius-xl);
+	border: 1px solid;
+	background: var(--card-bg);
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		transform: translateY(-1px);
+		box-shadow: var(--card-shadow-hover);
+	}
+}
+
+.recent-game-info {
+	flex: 1;
+	display: flex;
+	gap: var(--space-2);
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.recent-game-title {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+}
+
+.recent-game-level {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	display: flex;
+	gap: var(--space-1);
+}
+
+.recent-game-time {
+	font-size: var(--font-size-xs);
+	color: var(--text-muted);
+	font-style: italic;
+	flex-grow: 2;
+	text-align: right;
+}
+
+.nav-icons-grid {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: var(--space-2);
+}
+
+.nav-icon-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-1);
+	padding: var(--space-2) var(--space-1);
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	color: var(--text-color);
+	font-family: var(--font-family-base);
+	min-height: 60px;
+	text-align: center;
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		transform: translateY(-1px);
+		box-shadow: var(--card-shadow-hover);
+	}
+
+	span {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		line-height: 1;
+	}
 }
 
 // H1 Animation (from original)

@@ -1,26 +1,17 @@
 <script setup>
-import {ref, computed, watch, onMounted, reactive, onUpdated} from 'vue'
+import {ref, computed, watch, onMounted} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
-import { memoryConfig } from '../games/memory/memoryConfig.js'
-import { fruitMergeConfig } from '../games/fruitmerge/fruitMergeConfig.js'
-import { numMergeConfig } from '../games/nummerge/numMergeConfig.js'
 import Icon from "../../components/Icon.vue"
 import CurrencyDisplay from "./CurrencyDisplay.vue"
-import DailyRewardCard from "./DailyRewardCard.vue"
-import MysteryBoxCard from './MysteryBoxCard.vue'
 
 // Services
 const {
 	gameData,
-	getRecentLevelsForGame,
 	updateNotificationCount,
-	isCardRead,
-	markCardAsRead,
-	canClaimDailyReward,
-	claimDailyReward,
-	hasAchievement } = useLocalStorage()
+	isCardRead
+} = useLocalStorage()
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -54,54 +45,16 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits([
-	'menu-click',
-	'save-game',
-	'notification-click',
-])
+const emit = defineEmits(['notification-click'])
 
 // Menu state
 const showMenu = ref(false)
-const isMenuAnimating = ref(false)
-const isSaving = ref(false)
 const isMenuTransitioning = ref(false)
 const showNotifications = ref(false)
 const isNotificationAnimating = ref(false)
 const isNotificationTransitioning = ref(false)
 const coins = ref(props.player.coins || 0)
 const diamonds = ref(props.player.diamonds || 0)
-const availableGames = computed(() => [
-	{
-		id: 'memory',
-		title: t('memory.title'),
-		icon: memoryConfig.gameIcon,
-		route: '/games/memory',
-		color: 'primary',
-		levels: gameData.games.memory.levels || {},
-		totalLevels: memoryConfig.levels.length,
-		highlight: route.path.includes('/games/memory'),
-	},
-	{
-		id: 'fruitMerge',
-		title: fruitMergeConfig.gameTitle,
-		icon: fruitMergeConfig.gameIcon,
-		route: '/games/fruitmerge',
-		color: 'warning',
-		levels: gameData.games.fruitMerge.levels || {},
-		totalLevels: fruitMergeConfig.levels.length,
-		highlight: route.path.includes('/games/fruitmerge'),
-	},
-	{
-		id: 'numMerge',
-		title: numMergeConfig.gameTitle,
-		icon: numMergeConfig.gameIcon,
-		route: '/games/nummerge',
-		color: 'info',
-		levels: gameData.games.numMerge.levels || {},
-		totalLevels: numMergeConfig.levels.length,
-		highlight: route.path.includes('/games/nummerge'),
-	}
-])
 
 const toggleNotifications = async (event) => {
 	if (isNotificationAnimating.value || isNotificationTransitioning.value) return
@@ -152,17 +105,6 @@ const displayTitle = computed(() => {
 
 const displaySubtitle = computed(() => {
 	return props.subtitle || t('app.subtitle')
-})
-
-// Check current route context
-const currentRoute = computed(() => {
-	return {
-		isHome: route.path === '/',
-		isShop: route.path === '/shop',
-		isFruitMergeGame: route.path.includes('/games/fruitmerge/'),
-		isMemoryGame: route.path.includes('/games/memory/'),
-		currentLevel: getCurrentLevelFromRoute()
-	}
 })
 
 const notificationItems = computed(() => {
@@ -235,48 +177,6 @@ const allNotificationItems = computed(() => {
 	}
 })
 
-function getCurrentLevelFromRoute() {
-	const matches = route.path.match(/\/games\/(fruitmerge|memory)\/(\d+)/)
-	return matches ? parseInt(matches[2]) : null
-}
-
-const allRecentLevels = computed(() => {
-	const memoryLevels = getRecentLevelsForGame('memory', 10).map(level => ({
-		...level,
-		gameId: 'memory',
-		gameTitle: t('memory.title'),
-		gameIcon: 'brain'
-	}))
-
-	const fruitMergeLevels = getRecentLevelsForGame('fruitMerge', 10).map(level => ({
-		...level,
-		gameId: 'fruitMerge',
-		gameTitle: t('fruitMerge.title'),
-		gameIcon: 'fruit-merge-game'
-	}))
-
-	const numMergeeLevels = getRecentLevelsForGame('numMerge', 10).map(level => ({
-		...level,
-		gameId: 'numMerge',
-		gameTitle: t('numMerge.title'),
-		gameIcon: 'num-merge-game'
-	}))
-
-	const combined = [...memoryLevels, ...fruitMergeLevels, ...numMergeeLevels]
-			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
-			.slice(0, 3) // Nur die 3 neuesten
-
-	return combined
-})
-
-const lastPlayedActivity = computed(() => {
-	return allRecentLevels.value.length > 0 ? allRecentLevels.value[0] : null
-})
-
-const otherRecentLevels = computed(() => {
-	return allRecentLevels.value.slice(1) // Alle außer dem ersten
-})
-
 // Format relative time
 const formatRelativeTime = (dateString) => {
 	const date = new Date(dateString)
@@ -297,157 +197,14 @@ const formatRelativeTime = (dateString) => {
 	}
 }
 
-// Menu items based on context (without save button)
-const menuItems = computed(() => {
-	const items = [
-		{
-			id: 'home',
-			label: t('nav.home'),
-			icon: 'menu',
-			action: () => navigateTo('/'),
-			highlight: currentRoute.value.isHome,
-			visible: true
-		},
-		{
-			id: 'about',
-			label: t('nav.about'),
-			icon: 'info',
-			action: () => navigateTo('/about'),
-			highlight: route.path.includes('/about'),
-			visible: true
-		},
-		{
-			id: 'shop',
-			label: t('nav.shop'),
-			icon: 'shop',
-			action: () => navigateTo('/shop'),
-			highlight: currentRoute.value.isShop,
-			visible: true
-		},
-		{
-			id: 'profile',
-			label: t('nav.profile'),
-			icon: 'user',
-			action: () => navigateTo('/profile'),
-			highlight: route.path.includes('/profile'),
-			visible: true
-		},
-		{
-			id: 'trophies',
-			label: t('nav.trophies'),
-			icon: 'trophy',
-			action: () => navigateTo('/trophies'),
-			highlight: route.path.includes('/trophies'),
-			visible: true
-		},
-		{
-			id: 'settings',
-			label: t('nav.settings'),
-			icon: 'settings',
-			action: () => navigateTo('/settings'),
-			highlight: route.path.includes('/settings'),
-			visible: true
-		}
-	]
-
-	return items.filter(item => item.visible)
-})
-
-// Menu methods with auto-save functionality
-const toggleMenu = async (event) => {
-	if (isMenuAnimating.value || isMenuTransitioning.value) return
-
-	// Prevent event bubbling
-	if (event) {
-		event.stopPropagation()
-	}
-
-	isMenuTransitioning.value = true
-
-	if (showMenu.value) {
-		closeMenu()
-	} else {
-		await openMenuWithAutoSave()
-		closeNotifications()
-	}
-
-	// Reset transition flag after animation
-	setTimeout(() => {
-		isMenuTransitioning.value = false
-	}, 350)
-}
-
-const menuIcon = computed(() => {
-	return showMenu.value ? 'close' : 'menu'
-})
-
-const openMenuWithAutoSave = async () => {
-	// Auto-save
-	if (currentRoute.value.isFruitMergeGame || currentRoute.value.isMemoryGame) {
-		isSaving.value = true
-
-		try {
-			// Emit save-game event and wait a moment for the game to process it
-			emit('save-game')
-
-			// Show saving feedback briefly
-			await new Promise(resolve => setTimeout(resolve, 500))
-		} catch (error) {
-			console.error('Auto-save failed:', error)
-		} finally {
-			isSaving.value = false
-		}
-	}
-
-	// Open the menu
-	openMenu()
-}
-
-const openMenu = () => {
-	showMenu.value = true
-	isMenuAnimating.value = true
-
-	setTimeout(() => {
-		isMenuAnimating.value = false
-	}, 300)
-}
-
-const closeMenu = () => {
-	if (!showMenu.value) return
-
-	isMenuAnimating.value = true
-
-	setTimeout(() => {
-		showMenu.value = false
-		isMenuAnimating.value = false
-	}, 300)
-}
-
 // Navigation methods
 const navigateTo = (path) => {
 	closeMenu()
 	router.push(path)
 }
 
-const navigateToLevel = (gameId, level) => {
-	const gameRoutes = {
-		'fruitMerge': 'fruitmerge',
-		'memory': 'memory',
-		'numMerge': 'nummerge'
-	}
-
-	const routeName = gameRoutes[gameId]
-	if (routeName) {
-		navigateTo(`/games/${routeName}/${level}`)
-	}
-}
-
-const handleMenuClick = (event) => {
-	if (props.showMenuButton) {
-		toggleMenu(event)
-	} else {
-		emit('menu-click')
-	}
+const handleMenuClick = () => {
+	router.push('/')
 }
 
 // Close menu when clicking outside
@@ -521,116 +278,12 @@ watch(() => props.player.diamonds, () => {
 				<!-- Menu Button -->
 				<div class="menu-container">
 					<button
-						v-if="showMenuButton"
 						class="btn btn--circle-ghost menu-button"
-						:class="{
-              'menu-button--saving': isSaving,
-              'menu-button--active': showMenu
-            }"
-						@click="handleMenuClick($event)"
+						@click="handleMenuClick"
 						:aria-label="t('a11y.menu_button')"
-						:aria-expanded="showMenu"
-						:disabled="isMenuAnimating"
 					>
-						<Icon
-							:name="isSaving ? 'loading' : menuIcon"
-							size="24"
-							:class="{ 'icon-spin': isSaving }"
-						/>
+						<Icon name="menu" size="24" />
 					</button>
-
-					<!-- Menu Dropdown -->
-					<transition name="menu">
-						<div v-if="showMenu" class="menu-dropdown" :class="{ 'menu-dropdown--animating': isMenuAnimating }">
-							<!-- Auto-Save Status (if just saved) -->
-							<div v-if="(currentRoute.isFruitMergeGame || currentRoute.isMemoryGame) && !isSaving" class="save-status">
-								<Icon name="save" size="16" />
-								<span class="save-status-text">
-							    {{ currentRoute.isFruitMergeGame ? t('fruitMerge.state_saved') : t('memory.state_saved') }}
-							  </span>
-							</div>
-
-							<nav class="menu-nav">
-								<ul class="menu-list">
-									<li
-										v-for="item in menuItems"
-										:key="item.id"
-										class="menu-item"
-									>
-										<button
-											class="menu-link"
-											:class="{ 'menu-link--highlight': item.highlight }"
-											@click="item.action"
-										>
-											<Icon :name="item.icon" size="20" />
-											<span class="menu-label">{{ item.label }}</span>
-										</button>
-									</li>
-									<li
-										v-for="game in availableGames"
-										:key="game.id"
-										class="menu-item"
-									>
-										<button
-											class="menu-link"
-											:class="{ 'menu-link--highlight': game.highlight }"
-											@click="navigateTo(game.route)"
-										>
-											<Icon :name="game.icon" size="80" />
-											<span class="menu-label">{{ game.title }}</span>
-										</button>
-									</li>
-								</ul>
-							</nav>
-
-							<!-- Recent Games Section -->
-							<div
-									v-if="allRecentLevels.length > 0"
-									class="menu-recent-games"
-							>
-								<div v-if="lastPlayedActivity" class="recent-activity">
-									<h5 class="activity-subtitle">{{ t('gaming.last_played') }}</h5>
-									<div
-										class="recent-game-button recent-game-button--primary"
-										@click="navigateToLevel(lastPlayedActivity.gameId, lastPlayedActivity.level)"
-									>
-										<Icon :name="lastPlayedActivity.gameIcon" size="20" />
-										<div class="recent-game-info">
-											<span class="recent-game-title">{{ lastPlayedActivity.gameTitle }}</span>
-											<span class="recent-game-level">
-							          {{ t('memory.level_title', { level: lastPlayedActivity.level }) }}
-							        </span>
-											<span class="recent-game-time">
-							          {{ formatRelativeTime(lastPlayedActivity.savedAt) }}
-							        </span>
-										</div>
-									</div>
-
-									<!-- Andere recent levels -->
-									<template v-if="otherRecentLevels.length > 0">
-										<h5 v-if="otherRecentLevels.length > 0" class="activity-subtitle">{{ t('gaming.other_recent_levels') }}</h5>
-										<div
-											v-for="levelInfo in otherRecentLevels"
-											:key="`${levelInfo.gameId}-${levelInfo.level}`"
-											class="recent-game-button"
-											@click="navigateToLevel(levelInfo.gameId, levelInfo.level)"
-										>
-											<Icon :name="levelInfo.gameIcon" size="20" />
-											<div class="recent-game-info">
-												<span class="recent-game-title">{{ levelInfo.gameTitle }}</span>
-												<span class="recent-game-level">
-							            {{ t('memory.level_title', { level: levelInfo.level }) }}
-							          </span>
-												<span class="recent-game-time">
-							            {{ formatRelativeTime(levelInfo.savedAt) }}
-							          </span>
-											</div>
-										</div>
-									</template>
-								</div>
-							</div>
-						</div>
-					</transition>
 				</div>
 
 				<!-- App Title/Logo for home page -->
