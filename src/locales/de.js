@@ -250,19 +250,14 @@ export default {
 			status_value: 'Aktive Entwicklung',
 			features: 'Features',
 			technologies: 'Technologien',
-			feature_list: {
-        memory_game: 'Memory Spiel mit 6 Levels',
-        fruit_merge: 'Fruit Merge Game mit 6 Levels + Endlos-Modus',
-        num_merge: 'Num Merge Game mit 6 Levels + Endlos-Modus',
-        achievements: 'Erfolgssystem mit Trophäensammlung',
-        profile: 'Spielerprofil & Statistiken',
-        currency: 'In-game Währungssystem (Münzen & Diamanten)',
-        shop: 'In-app Shop für Gegenstände & Upgrades',
-        daily_rewards: 'Tägliche Belohnungen',
-        local_storage: 'Lokale Speicherung von Fortschritt & Einstellungen (kein Backend)',
-        responsive: 'Responsive Design (mobile first)',
-        internationalization: 'Englisch & Deutsch Unterstützung',
-			}
+      feature_list: {
+        three_games: '3 Spiele (Memory, Fruit Merge, Num Merge)',
+        achievement_system: 'Erfolgssystem mit Trophäensammlung',
+        shop_currency: 'In-Game Shop & Währungssystem (Münzen & Diamanten)',
+        daily_rewards: 'Tägliche Belohnungen mit Mini-Spielen & Geheimnisvollen Boxen',
+        offline_storage: 'Komplettes Offline-Spiel mit lokaler Datenspeicherung',
+        multilingual: 'Englische & Deutsche Sprachunterstützung'
+      }
 		},
 
 		developer: {
@@ -304,7 +299,15 @@ export default {
 			usage: {
 				title: 'Nutzungsbedingungen',
 				description: 'Durch die Nutzung von der Seite stimmst du zu, die Plattform verantwortlich und in Übereinstimmung mit geltenden Gesetzen und Vorschriften zu nutzen.'
-			}
+			},
+      games: {
+        title: 'Spielerechte & Originalität',
+        description: 'Die Spiele (Memory, Fruit Merge, Num Merge) basieren auf klassischen Spielprinzipien und -mechaniken, die nicht dem Urheberrecht unterliegen. Alle visuellen Assets, Code-Implementierungen, Grafiken und Sounds sind Eigenentwicklungen. Während die grundlegenden Spielmechaniken von traditionellen Spielen inspiriert sind, sind die spezifische Umsetzung, das Design und die Benutzererfahrung vollständig unsere eigene Arbeit.'
+      },
+      ai_development: {
+        title: 'KI-unterstützte Entwicklung',
+        description: 'Diese Spieleplattform wurde in Zusammenarbeit mit KI-Unterstützung (Claude von Anthropic) entwickelt. Bedeutende Teile des Codes, der Architektur und Implementierung entstanden durch Mensch-KI-Kollaboration. Die kreative Leitung, Spieldesign-Entscheidungen und finale Umsetzungen bleiben unter menschlicher Kontrolle und im Besitz des Menschen.'
+      }
 		},
 
 		contact: {

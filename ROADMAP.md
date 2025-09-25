@@ -93,13 +93,24 @@
 
 ---
 
-## 🚀 Version 0.3.3 - Enhancements
-
----
-
 ## 🚀 Version 0.3.4 - Enhancements
 
 - **🎁 Gift System** - Send and receive gifts with friends
+- Shop new category "Gifts"
+- Gift item types: Cosmetics only (no power-ups/utilities)
+- Gift Item must be owned to send
+- Player selects owned gift item
+- Gift Button opens modal to copy unique gift code
+- Gift code contains: sender name, item ID, timestamp, unique code
+- Code can be shared with friends (outside app)
+- Friend enters code in "Redeem Gift" input on Profile page
+- Received gifts appear on Profile page in inventory with "gift from [sender]" label
+- Only one gift can be sent and received per day
+
+---
+
+## 🚀 Version 0.3.5 - Enhancements
+
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges
@@ -152,7 +163,6 @@
 
 #### 🌐 Social Features (Potential)
 - **Friend System** - Add and compete with friends (if backend implemented)
-- **Gift System** - Send items to other players
 - **Community Challenges** - Global collaborative goals
 
 #### 🎯 Advanced Game Features

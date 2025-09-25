@@ -354,17 +354,12 @@ export default {
       features: 'Features',
       technologies: 'Technologies',
       feature_list: {
-        memory_game: 'Memory Game with 6 levels',
-        fruit_merge: 'Fruit Merge Game with 6 levels + endless mode',
-        num_merge: 'Num Merge Game with 6 levels + endless mode',
-        achievements: 'Achievement/Trophy System',
-        profile: 'Player Profile with stats and avatar selection',
-        currency: 'In-game Currency (Coins & Diamonds)',
-        shop: 'In-app Shop for items and upgrades',
-        daily_rewards: 'Daily Rewards System',
-        local_storage: 'Local Data Storage (no backend)',
-        responsive: 'Responsive Design (mobile first)',
-        internationalization: 'English & German support'
+        three_games: '3 Games (Memory, Fruit Merge, Num Merge)',
+        achievement_system: 'Achievement System with Trophy Collection',
+        shop_currency: 'In-Game Shop & Currency System (Coins & Diamonds)',
+        daily_rewards: 'Daily Rewards with Mini-Games & Mystery Boxes',
+        offline_storage: 'Complete Offline Play with Local Data Storage',
+        multilingual: 'English & German Language Support'
       }
     },
 
@@ -409,6 +404,14 @@ export default {
       usage: {
         title: 'Terms of Use',
         description: 'By using this platform, you agree to use it responsibly and in accordance with applicable laws and regulations.'
+      },
+      games: {
+        title: 'Game Rights & Originality',
+        description: 'The games (Memory, Fruit Merge, Num Merge) are based on classic game principles and mechanics that are not subject to copyright protection. All visual assets, code implementations, graphics, and sounds are original creations. While the core game mechanics are inspired by traditional games, the specific implementation, design, and user experience are entirely our own work.'
+      },
+      ai_development: {
+        title: 'AI-Assisted Development',
+        description: 'This gaming platform was developed in collaboration with AI assistance (Claude by Anthropic). Significant portions of the code, architecture, and implementation were created through human-AI collaboration. The creative direction, game design decisions, and final implementations remain under human control and ownership.'
       }
     },
 

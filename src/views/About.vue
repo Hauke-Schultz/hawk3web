@@ -17,8 +17,25 @@ const developerInfo = {
 
 const platformInfo = {
 	version: '0.3.3',
-	technologies: ['Vue 3', 'Vite', 'SCSS', 'i18n', 'JavaScript', 'Matter.js'],
-	features: ['memory_game', 'fruit_merge', 'num_merge', 'achievements', 'profile', 'currency', 'shop', 'daily_rewards', 'local_storage', 'responsive', 'internationalization']
+	technologies: [
+		'Vue 3',
+		'Vite',
+		'SCSS',
+		'JavaScript',
+		'Matter.js',
+		'Vue Router',
+		'PWA',
+		'i18n',
+		'LocalStorage'
+	],
+	features: [
+		'three_games',
+		'achievement_system',
+		'shop_currency',
+		'daily_rewards',
+		'offline_storage',
+		'multilingual'
+	]
 }
 
 const sendEmail = () => {
@@ -173,6 +190,16 @@ const handleMenuClick = () => {
 						<div class="legal-item">
 							<h4 class="legal-point-title">{{ t('about.legal.usage.title') }}</h4>
 							<p class="legal-point-description">{{ t('about.legal.usage.description') }}</p>
+						</div>
+
+						<div class="legal-item">
+							<h4 class="legal-point-title">{{ t('about.legal.games.title') }}</h4>
+							<p class="legal-point-description">{{ t('about.legal.games.description') }}</p>
+						</div>
+
+						<div class="legal-item">
+							<h4 class="legal-point-title">{{ t('about.legal.ai_development.title') }}</h4>
+							<p class="legal-point-description">{{ t('about.legal.ai_development.description') }}</p>
 						</div>
 					</div>
 				</div>
