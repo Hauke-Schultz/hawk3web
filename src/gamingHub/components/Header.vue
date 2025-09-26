@@ -45,10 +45,11 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['notification-click'])
+const emit = defineEmits(['save-game', 'notification-click'])
 
 // Menu state
 const showMenu = ref(false)
+const isSaving = ref(false)
 const isMenuTransitioning = ref(false)
 const showNotifications = ref(false)
 const isNotificationAnimating = ref(false)
@@ -70,7 +71,6 @@ const toggleNotifications = async (event) => {
 		closeNotifications()
 	} else {
 		openNotifications()
-		closeMenu()
 	}
 
 	// Reset transition flag after animation
@@ -105,6 +105,17 @@ const displayTitle = computed(() => {
 
 const displaySubtitle = computed(() => {
 	return props.subtitle || t('app.subtitle')
+})
+
+// Check current route context
+const currentRoute = computed(() => {
+	return {
+		isHome: route.path === '/',
+		isShop: route.path === '/shop',
+		isFruitMergeGame: route.path.includes('/games/fruitmerge/'),
+		isMemoryGame: route.path.includes('/games/memory/'),
+		currentLevel: getCurrentLevelFromRoute()
+	}
 })
 
 const notificationItems = computed(() => {
@@ -177,6 +188,11 @@ const allNotificationItems = computed(() => {
 	}
 })
 
+function getCurrentLevelFromRoute() {
+	const matches = route.path.match(/\/games\/(fruitmerge|memory)\/(\d+)/)
+	return matches ? parseInt(matches[2]) : null
+}
+
 // Format relative time
 const formatRelativeTime = (dateString) => {
 	const date = new Date(dateString)
@@ -203,8 +219,47 @@ const navigateTo = (path) => {
 	router.push(path)
 }
 
-const handleMenuClick = () => {
-	router.push('/')
+// Menu methods with auto-save functionality
+const toggleMenu = async (event) => {
+	if (isMenuTransitioning.value) return
+
+	// Prevent event bubbling
+	if (event) {
+		event.stopPropagation()
+	}
+
+	isMenuTransitioning.value = true
+
+	if (!showMenu.value) {
+		await openMenuWithAutoSave()
+		closeNotifications()
+	}
+
+	// Reset transition flag after animation
+	setTimeout(() => {
+		isMenuTransitioning.value = false
+	}, 350)
+}
+
+const openMenuWithAutoSave = async () => {
+	// Auto-save
+	if (currentRoute.value.isFruitMergeGame || currentRoute.value.isMemoryGame) {
+		isSaving.value = true
+
+		try {
+			// Emit save-game event and wait a moment for the game to process it
+			emit('save-game')
+
+			// Show saving feedback briefly
+			await new Promise(resolve => setTimeout(resolve, 500))
+		} catch (error) {
+			console.error('Auto-save failed:', error)
+		} finally {
+			isSaving.value = false
+		}
+	}
+
+	await router.push('/')
 }
 
 // Close menu when clicking outside
@@ -279,8 +334,13 @@ watch(() => props.player.diamonds, () => {
 				<div class="menu-container">
 					<button
 						class="btn btn--circle-ghost menu-button"
-						@click="handleMenuClick"
+						:class="{
+              'menu-button--saving': isSaving,
+              'menu-button--active': showMenu
+            }"
+						@click="toggleMenu($event)"
 						:aria-label="t('a11y.menu_button')"
+						:aria-expanded="showMenu"
 					>
 						<Icon name="menu" size="24" />
 					</button>
