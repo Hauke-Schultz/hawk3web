@@ -300,7 +300,8 @@ export default {
 		categories: {
 			profile: 'Profile',
 			items: 'Items',
-			utilities: 'Utilities'
+			utilities: 'Utilities',
+      gifts: 'Gifts'
 		},
 		buy: 'Buy',
 		buy_item: 'Buy Item',
@@ -337,7 +338,52 @@ export default {
 			rare: 'Rare',
 			epic: 'Epic',
 			legendary: 'Legendary'
-		}
+		},
+
+    gifts: {
+      send_gift: 'Send Gift',
+      gift_mode: 'Gift Mode',
+      not_owned: 'Not Owned',
+      daily_limit: 'Daily Limit Reached',
+      no_giftable_items: 'No Giftable Items',
+      no_giftable_items_description: 'Purchase cosmetic items first to send them as gifts!',
+      gift_sent_successfully: 'Gift sent successfully!',
+      gift_code_copied: 'Gift code copied to clipboard',
+      share_this_code: 'Share this code with your friend:',
+      gift_expires_in: 'Gift expires in {days} days',
+      daily_gift_limit: 'You can only send 1 gift per day',
+      item_not_owned_gift: 'You must own this item to send it as a gift',
+      redeem_gift: 'Redeem Gift',
+      enter_gift_code: 'Enter gift code',
+      gift_code_placeholder: 'HAWK3-XXXXXXXX',
+      invalid_gift_code: 'Invalid gift code format',
+      gift_redeemed: 'Gift redeemed successfully!',
+      gift_from: 'Gift from {sender}',
+      how_it_works: 'How It Works',
+      info_step1: 'Generate a unique gift code for this item',
+      info_step2: 'Share the code with your friend',
+      info_step3: 'They redeem it on their profile page',
+      final_confirmation: 'Final Confirmation',
+      final_confirmation_text: 'Are you sure you want to send "{itemName}" as a gift?',
+      one_gift_per_day: 'You can only send 1 gift per day',
+      expires_warning: 'Gift codes expire after {days} days',
+      prepare_gift: 'Prepare Gift',
+      send_now: 'Send Gift Now',
+      creating_gift: 'Creating Gift...',
+      confirm_send: 'Confirm Send',
+      copy_code: 'Copy Code',
+      share_instructions: 'Share this code with your friend to redeem the gift!',
+      gift_error: 'Gift Error',
+      daily_limit_message: 'Come back tomorrow to send another gift!',
+      must_own_to_gift: 'Purchase this item first to send it as a gift.',
+      item_not_found: 'This item is no longer available.',
+      item_not_giftable: 'This item cannot be sent as a gift.',
+      unknown_error: 'Something went wrong. Please try again.',
+      buy_to_gift: 'Buy to Gift',
+      gift_item: 'Gift Item',
+      owned_item: 'Owned',
+      ready_to_send: 'Ready to Send'
+    },
 	},
 
 	// About Page

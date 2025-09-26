@@ -5,14 +5,16 @@ import { useShop } from '../composables/useShop.js'
 import { useInventory } from '../composables/useInventory.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
-import { SHOP_CATEGORIES, RARITY_CONFIG } from '../config/shopConfig.js'
+import { SHOP_ITEMS, SHOP_CATEGORIES, RARITY_CONFIG } from '../config/shopConfig.js'
+import { GIFT_CONFIG, isItemGiftable } from '../config/giftConfig.js'
+import GiftModal from '../components/GiftModal.vue'
 import Header from '../components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import CurrencyDisplay from '../components/CurrencyDisplay.vue'
 import ShopModal from '../components/ShopModal.vue'
 
 // Services
-const { gameData, buyItem } = useLocalStorage()
+const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift } = useLocalStorage()
 const { selectedCategory, currentCategoryItems, canAffordItem, canPurchaseItem } = useShop()
 const { hasItem } = useInventory()
 const { t } = useI18n()
@@ -20,6 +22,7 @@ const router = useRouter()
 
 // Modal state
 const showModal = ref(false)
+const showGiftModal = ref(false)
 const selectedItem = ref(null)
 const modalType = ref('purchase') // 'purchase', 'insufficient', 'owned'
 const justPurchasedItems = ref([])
@@ -138,6 +141,10 @@ const isItemAffordable = (item) => {
 }
 
 const getItemButtonClass = (item) => {
+	if (selectedCategory.value === 'gifts') {
+		return getGiftButtonClass(item)
+	}
+
 	// Für Consumables ohne purchaseLimit: immer basierend auf Affordability
 	if (item.type === 'consumable' && !item.purchaseLimit) {
 		return canAffordItem(item) ? 'item-button--buyable' : 'item-button--expensive'
@@ -159,6 +166,138 @@ const getItemButtonText = (item) => {
 	if (isItemOwned(item)) return t('shop.owned')
 	if (!canAffordItem(item)) return t('shop.cant_afford')
 	return t('shop.buy')
+}
+
+// Gift-specific computed properties
+const giftCategoryItems = computed(() => {
+	// Alle Items aus der gifts category
+	return currentCategoryItems.value.filter(item => item.category === 'gifts')
+})
+
+const giftableProfileItems = computed(() => {
+	// Profile items die als Geschenk versendet werden können
+	if (selectedCategory.value !== 'gifts') return []
+
+	return getGiftableItems()
+			.map(itemId => {
+				const shopItem = SHOP_ITEMS.find(item => item.id === itemId && item.category === 'profile')
+				return shopItem
+			})
+			.filter(Boolean)
+})
+
+// Gift-specific computed properties
+const giftableItems = computed(() => {
+	if (selectedCategory.value !== 'gifts') return []
+
+	return getGiftableItems().map(itemId => {
+		const shopItem = currentCategoryItems.value.find(item => item.id === itemId)
+		return shopItem
+	}).filter(Boolean)
+})
+
+const displayItems = computed(() => {
+	if (selectedCategory.value === 'gifts') {
+		// Zeige sowohl Gift-Items als auch besitzbare Profile-Items
+		return [...giftCategoryItems.value, ...giftableProfileItems.value]
+	}
+	return currentCategoryItems.value
+})
+
+// Gift-related methods
+const handleGiftClick = (item) => {
+	if (selectedCategory.value !== 'gifts') {
+		handleItemClick(item)
+		return
+	}
+
+	// If gift item is not owned, allow purchase
+	if (item.category === 'gifts' && !hasItem(item.id)) {
+		handleItemClick(item) // Use normal purchase flow
+		return
+	}
+
+	// Check if can send gift today
+	if (!canSendGiftToday()) {
+		modalType.value = 'gift_limit'
+		selectedItem.value = item
+		showModal.value = true
+		return
+	}
+
+	// Check if item is owned
+	if (!hasItem(item.id)) {
+		modalType.value = 'gift_not_owned'
+		selectedItem.value = item
+		showModal.value = true
+		return
+	}
+
+	// Open gift modal
+	selectedItem.value = item
+	showGiftModal.value = true
+}
+
+const handleGiftSend = async (item) => {
+	try {
+		const result = createGift(item.id)
+
+		if (result.success) {
+			showGiftModal.value = false
+			// Show success with gift code
+			modalType.value = 'gift_success'
+			selectedItem.value = { ...item, giftCode: result.gift.code, giftData: result.gift }
+			showModal.value = true
+		} else {
+			showGiftModal.value = false
+			modalType.value = 'gift_error'
+			selectedItem.value = { ...item, error: result.error }
+			showModal.value = true
+		}
+	} catch (error) {
+		console.error('Gift creation error:', error)
+		showGiftModal.value = false
+		modalType.value = 'gift_error'
+		selectedItem.value = { ...item, error: 'unknown_error' }
+		showModal.value = true
+	}
+}
+
+const closeGiftModal = () => {
+	showGiftModal.value = false
+	selectedItem.value = null
+}
+
+const getGiftButtonText = (item) => {
+	if (item.category === 'gifts' && !hasItem(item.id)) {
+		return t('shop.gifts.buy_to_gift')
+	}
+
+	if (!hasItem(item.id)) {
+		return t('shop.gifts.not_owned')
+	}
+
+	if (!canSendGiftToday()) {
+		return t('shop.gifts.daily_limit')
+	}
+
+	return t('shop.gifts.send_gift')
+}
+
+const getGiftButtonClass = (item) => {
+	if (item.category === 'gifts' && !hasItem(item.id)) {
+		return 'item-button--buy-to-gift'
+	}
+
+	if (!hasItem(item.id)) {
+		return 'item-button--disabled'
+	}
+
+	if (!canSendGiftToday()) {
+		return 'item-button--disabled'
+	}
+
+	return 'item-button--gift'
 }
 
 // Navigation
@@ -208,25 +347,48 @@ watch(() => gameData, (newData) => {
 		<!-- Items Grid -->
 		<div class="items-section">
 			<!-- Empty State -->
-			<div v-if="currentCategoryItems.length === 0" class="empty-state">
+			<div v-if="displayItems.length === 0" class="empty-state">
 				<Icon name="shop" size="48" />
-				<h3>{{ t('shop.empty_category') }}</h3>
-				<p>{{ t('shop.empty_category_description') }}</p>
+				<h3>
+					{{ selectedCategory === 'gifts'
+						? t('shop.gifts.no_giftable_items')
+						: t('shop.empty_category')
+					}}
+				</h3>
+				<p>
+					{{ selectedCategory === 'gifts'
+						? t('shop.gifts.no_giftable_items_description')
+						: t('shop.empty_category_description')
+					}}
+				</p>
 			</div>
 
 			<!-- Items Grid -->
 			<div v-else class="items-grid">
 				<div
-					v-for="item in currentCategoryItems"
+					v-for="item in displayItems"
 					:key="item.id"
 					class="shop-item"
 					:class="{
-						'shop-item--owned': isItemOwned(item),
-						'shop-item--just-purchased': justPurchasedItems.includes(item.id),
-						'shop-item--consumable': item.type === 'consumable'
-					}"
-					@click="handleItemClick(item)"
+		        'shop-item--owned': isItemOwned(item),
+		        'shop-item--gift-mode': selectedCategory === 'gifts',
+		        'shop-item--giftable': selectedCategory === 'gifts' && hasItem(item.id),
+		        'shop-item--gift-purchasable': selectedCategory === 'gifts' && item.category === 'gifts' && !hasItem(item.id)
+		      }"
+					@click="selectedCategory === 'gifts' ? handleGiftClick(item) : handleItemClick(item)"
 				>
+					<!-- Gift Category Badge -->
+					<div v-if="selectedCategory === 'gifts' && item.category === 'gifts'" class="gift-category-badge">
+						<Icon name="heart" size="14" />
+						{{ t('shop.gifts.gift_item') }}
+					</div>
+
+					<!-- Profile Item Badge in Gift Mode -->
+					<div v-if="selectedCategory === 'gifts' && item.category === 'profile'" class="profile-gift-badge">
+						<Icon name="user" size="14" />
+						{{ t('shop.gifts.owned_item') }}
+					</div>
+
 					<!-- Item Icon -->
 					<div
 						class="item-icon"
@@ -250,7 +412,7 @@ watch(() => gameData, (newData) => {
 					<!-- Item Price & Action -->
 					<div class="item-action">
 						<!-- Price Display -->
-						<div class="item-price">
+						<div v-if="selectedCategory !== 'gifts' || (item.category === 'gifts' && !hasItem(item.id))" class="item-price">
 							<CurrencyDisplay
 									:coins="item.price.coins"
 									:diamonds="item.price.diamonds"
@@ -261,17 +423,38 @@ watch(() => gameData, (newData) => {
 							/>
 						</div>
 
+						<!-- Gift Instructions for owned items -->
+						<div v-if="selectedCategory === 'gifts' && hasItem(item.id)" class="gift-ready-indicator">
+							<Icon name="heart" size="16" />
+							<span>{{ t('shop.gifts.ready_to_send') }}</span>
+						</div>
+
 						<!-- Action Button -->
 						<button
 								class="item-button"
 								:class="getItemButtonClass(item)"
 						>
 							<Icon
-									v-if="isItemOwned(item)"
+									v-if="selectedCategory === 'gifts' && hasItem(item.id)"
+									name="heart"
+									size="16"
+							/>
+							<Icon
+									v-else-if="selectedCategory === 'gifts' && item.category === 'gifts'"
+									name="shop"
+									size="16"
+							/>
+							<Icon
+									v-else-if="isItemOwned(item)"
 									name="completion-badge"
 									size="16"
 							/>
-							<span>{{ getItemButtonText(item) }}</span>
+							<span>
+		            {{ selectedCategory === 'gifts'
+											? getGiftButtonText(item)
+											: getItemButtonText(item)
+										}}
+		          </span>
 						</button>
 					</div>
 				</div>
@@ -287,6 +470,16 @@ watch(() => gameData, (newData) => {
 				@confirm="handlePurchaseConfirm"
 				@cancel="handleModalCancel"
 				@close="closeModal"
+		/>
+
+		<!-- Gift Modal -->
+		<GiftModal
+				:visible="showGiftModal"
+				:item="selectedItem"
+				:player-balance="playerBalance"
+				@confirm="handleGiftSend"
+				@cancel="closeGiftModal"
+				@close="closeGiftModal"
 		/>
 	</main>
 </template>
@@ -348,7 +541,7 @@ watch(() => gameData, (newData) => {
 	flex-direction: column;
 	align-items: center;
 	gap: var(--space-1);
-	padding: var(--space-2) var(--space-3);
+	padding: var(--space-2);
 	background: none;
 	border: none;
 	border-radius: var(--border-radius-md);
@@ -359,7 +552,7 @@ watch(() => gameData, (newData) => {
 	cursor: pointer;
 	transition: all 0.2s ease;
 	white-space: nowrap;
-	min-width: 80px;
+	min-width: 60px;
 
 	&:hover {
 		background-color: var(--card-bg-hover);
@@ -580,6 +773,102 @@ watch(() => gameData, (newData) => {
 .shop-item--consumable {
 	.item-icon {
 		position: relative;
+	}
+}
+
+
+// Gift-specific styles
+.shop-item--gift-mode {
+	position: relative;
+
+	&.shop-item--giftable {
+		border-color: var(--success-color);
+		box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+	}
+
+	&:not(.shop-item--giftable) {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.gift-mode-badge {
+	position: absolute;
+	top: var(--space-1);
+	left: var(--space-1);
+	background: linear-gradient(135deg, var(--success-color), var(--success-hover));
+	color: white;
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	z-index: 2;
+}
+
+.shop-item--gift-purchasable {
+	border-color: var(--warning-color);
+	box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
+.gift-category-badge {
+	position: absolute;
+	top: var(--space-1);
+	left: var(--space-1);
+	background: linear-gradient(135deg, var(--success-color), var(--success-hover));
+	color: white;
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	z-index: 2;
+}
+
+.profile-gift-badge {
+	position: absolute;
+	top: var(--space-1);
+	right: var(--space-1);
+	background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+	color: white;
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	z-index: 2;
+}
+
+.gift-ready-indicator {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	font-size: var(--font-size-xs);
+	color: var(--success-color);
+	font-weight: var(--font-weight-bold);
+}
+
+.item-button--buy-to-gift {
+	background-color: var(--warning-color);
+	color: white;
+
+	&:hover {
+		background-color: var(--warning-hover);
+	}
+}
+
+.item-button--gift {
+	background-color: var(--success-color);
+	color: white;
+
+	&:hover {
+		background-color: var(--success-hover);
 	}
 }
 

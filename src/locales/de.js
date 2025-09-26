@@ -380,7 +380,8 @@ export default {
 		categories: {
 			profile: 'Profil',
 			items: 'Items',
-			utilities: 'Werkzeuge'
+			utilities: 'Werkzeuge',
+      gifts: 'Geschenke'
 		},
 		buy: 'Kaufen',
 		buy_item: 'Artikel kaufen',
@@ -417,7 +418,52 @@ export default {
 			rare: 'Selten',
 			epic: 'Episch',
 			legendary: 'Legendär'
-		}
+		},
+
+    gifts: {
+      send_gift: 'Geschenk senden',
+      gift_mode: 'Geschenk-Modus',
+      not_owned: 'Nicht besessen',
+      daily_limit: 'Tageslimit erreicht',
+      no_giftable_items: 'Keine verschenkbaren Items',
+      no_giftable_items_description: 'Kaufe zuerst kosmetische Items, um sie als Geschenke zu versenden!',
+      gift_sent_successfully: 'Geschenk erfolgreich gesendet!',
+      gift_code_copied: 'Geschenkcode in Zwischenablage kopiert',
+      share_this_code: 'Teile diesen Code mit deinem Freund:',
+      gift_expires_in: 'Geschenk läuft in {days} Tagen ab',
+      daily_gift_limit: 'Du kannst nur 1 Geschenk pro Tag senden',
+      item_not_owned_gift: 'Du musst dieses Item besitzen, um es als Geschenk zu versenden',
+      redeem_gift: 'Geschenk einlösen',
+      enter_gift_code: 'Geschenkcode eingeben',
+      gift_code_placeholder: 'HAWK3-XXXXXXXX',
+      invalid_gift_code: 'Ungültiges Geschenkcode-Format',
+      gift_redeemed: 'Geschenk erfolgreich eingelöst!',
+      gift_from: 'Geschenk von {sender}',
+      how_it_works: 'So funktioniert es',
+      info_step1: 'Einzigartigen Geschenkcode für dieses Item generieren',
+      info_step2: 'Code mit deinem Freund teilen',
+      info_step3: 'Freund löst den Code auf seiner Profilseite ein',
+      final_confirmation: 'Finale Bestätigung',
+      final_confirmation_text: 'Bist du sicher, dass du "{itemName}" als Geschenk senden möchtest?',
+      one_gift_per_day: 'Du kannst nur 1 Geschenk pro Tag senden',
+      expires_warning: 'Geschenkcodes laufen nach {days} Tagen ab',
+      prepare_gift: 'Geschenk vorbereiten',
+      send_now: 'Geschenk jetzt senden',
+      creating_gift: 'Geschenk wird erstellt...',
+      confirm_send: 'Senden bestätigen',
+      copy_code: 'Code kopieren',
+      share_instructions: 'Teile diesen Code mit deinem Freund, um das Geschenk einzulösen!',
+      gift_error: 'Geschenk-Fehler',
+      daily_limit_message: 'Komm morgen wieder, um ein weiteres Geschenk zu senden!',
+      must_own_to_gift: 'Kaufe dieses Item zuerst, um es als Geschenk zu senden.',
+      item_not_found: 'Dieses Item ist nicht mehr verfügbar.',
+      item_not_giftable: 'Dieses Item kann nicht als Geschenk gesendet werden.',
+      unknown_error: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
+      buy_to_gift: 'Kaufen zum Verschenken',
+      gift_item: 'Geschenk-Item',
+      owned_item: 'Besessen',
+      ready_to_send: 'Bereit zum Senden'
+    },
 	},
 
 	// Einstellungen

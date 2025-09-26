@@ -6,6 +6,8 @@ import {
 	REWARDS
 } from '../config/achievementsConfig.js'
 import { MYSTERY_BOX_CONFIG, calculateMysteryBoxReward, getMysteryBoxProgress, canClaimMysteryBox as canClaimMysteryBoxHelper } from '../config/mysteryBoxConfig.js'
+import { GIFT_CONFIG, generateGiftCode, validateGiftCodeFormat, isItemGiftable, calculateGiftExpiration } from '../config/giftConfig.js'
+import { SHOP_ITEMS } from '../config/shopConfig.js'
 import {useI18n} from "../../composables/useI18n.js";
 const { t } = useI18n()
 
@@ -36,7 +38,16 @@ const getDefaultData = () => ({
 			},
 			activeBoosts: [],
 			consumables: {}
-		}
+		},
+    gifts: {
+      sentToday: 0,
+      receivedToday: 0,
+      lastSentDate: '2023-01-01',
+      lastReceivedDate: '2023-01-01',
+      sentGifts: [], // Array of sent gift codes
+      receivedGifts: [], // Array of received gift data
+      redeemedCodes: [] // Array of redeemed codes to prevent duplicates
+    }
 	},
 	notifications: {
 		unreadCount: 0,
@@ -144,8 +155,33 @@ const validatePlayerData = (player) => {
 		diamonds: typeof player?.diamonds === 'number' ? player.diamonds : 0,
     createdAt: player?.createdAt || new Date().toISOString().split('T')[0],
 		lastPlayed: new Date().toISOString().split('T')[0],
-		inventory: validateInventoryData(player?.inventory)
+		inventory: validateInventoryData(player?.inventory),
+    gifts: validateGiftsData(player?.gifts)
 	}
+}
+
+const validateGiftsData = (gifts) => {
+  if (!gifts || typeof gifts !== 'object') {
+    return {
+      sentToday: 0,
+      receivedToday: 0,
+      lastSentDate: '2023-01-01',
+      lastReceivedDate: '2023-01-01',
+      sentGifts: [],
+      receivedGifts: [],
+      redeemedCodes: []
+    }
+  }
+
+  return {
+    sentToday: typeof gifts.sentToday === 'number' ? gifts.sentToday : 0,
+    receivedToday: typeof gifts.receivedToday === 'number' ? gifts.receivedToday : 0,
+    lastSentDate: typeof gifts.lastSentDate === 'string' ? gifts.lastSentDate : '2023-01-01',
+    lastReceivedDate: typeof gifts.lastReceivedDate === 'string' ? gifts.lastReceivedDate : '2023-01-01',
+    sentGifts: Array.isArray(gifts.sentGifts) ? gifts.sentGifts : [],
+    receivedGifts: Array.isArray(gifts.receivedGifts) ? gifts.receivedGifts : [],
+    redeemedCodes: Array.isArray(gifts.redeemedCodes) ? gifts.redeemedCodes : []
+  }
 }
 
 const validateSettingsData = (settings) => {
@@ -260,12 +296,26 @@ const migrateData = (data) => {
 			data.currency = getDefaultData().currency
 		}
 
-    if (data.player?.dailyRewardsCounter !== undefined && !data.currency?.dailyRewards?.counter) {
+    if (data.player?.dailyRewardsCounter !== undefined) {
       if (!data.currency.dailyRewards) {
         data.currency.dailyRewards = { lastClaimed: '2023-01-01', counter: 0 }
       }
       data.currency.dailyRewards.counter = data.player.dailyRewardsCounter
       delete data.player.dailyRewardsCounter
+    }
+
+    if (!data.player?.gifts) {
+      if (!data.player) data.player = {}
+      data.player.gifts = {
+        sentToday: 0,
+        receivedToday: 0,
+        lastSentDate: '2023-01-01',
+        lastReceivedDate: '2023-01-01',
+        sentGifts: [],
+        receivedGifts: [],
+        redeemedCodes: []
+      }
+      console.log('🎁 Gift system data structure added')
     }
 
     if (!data.currency.mysteryBoxes) {
@@ -1669,6 +1719,225 @@ export function useLocalStorage() {
 		updateNotificationCount()
 	}
 
+  // Gift System Methods
+  const canSendGiftToday = () => {
+    // Stelle sicher, dass Gift-Daten existieren
+    if (!gameData.player.gifts) {
+      gameData.player.gifts = validateGiftsData(null)
+    }
+
+    const today = new Date().toISOString().split('T')[0]
+    const lastSentDate = gameData.player.gifts.lastSentDate
+
+    if (today !== lastSentDate) {
+      // Reset daily counter
+      gameData.player.gifts.sentToday = 0
+      gameData.player.gifts.lastSentDate = today
+    }
+
+    return gameData.player.gifts.sentToday < GIFT_CONFIG.maxSentPerDay
+  }
+
+  const canReceiveGiftToday = () => {
+    // Stelle sicher, dass Gift-Daten existieren
+    if (!gameData.player.gifts) {
+      gameData.player.gifts = validateGiftsData(null)
+    }
+
+    const today = new Date().toISOString().split('T')[0]
+    const lastReceivedDate = gameData.player.gifts.lastReceivedDate
+
+    if (today !== lastReceivedDate) {
+      // Reset daily counter
+      gameData.player.gifts.receivedToday = 0
+      gameData.player.gifts.lastReceivedDate = today
+    }
+
+    return gameData.player.gifts.receivedToday < GIFT_CONFIG.maxReceivedPerDay
+  }
+
+  const getGiftableItems = () => {
+    const ownedItems = Object.keys(gameData.player.inventory.items || {})
+
+    return ownedItems.filter(itemId => {
+      const inventoryItem = gameData.player.inventory.items[itemId]
+      if (!inventoryItem || inventoryItem.quantity <= 0) return false
+
+      // Find item details from shop
+      const shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+      if (!shopItem) return false
+
+      return isItemGiftable(itemId, shopItem.category, shopItem.type)
+    })
+  }
+
+  const createGift = (itemId) => {
+    // Stelle sicher, dass Gift-Daten existieren
+    if (!gameData.player.gifts) {
+      gameData.player.gifts = validateGiftsData(null)
+    }
+
+    if (!canSendGiftToday()) {
+      return {
+        success: false,
+        error: 'daily_limit_reached'
+      }
+    }
+
+    // Check if player owns the item
+    if (!hasInventoryItem(itemId)) {
+      return {
+        success: false,
+        error: 'item_not_owned'
+      }
+    }
+
+    // Get item details
+    const shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+    if (!shopItem) {
+      return {
+        success: false,
+        error: 'item_not_found'
+      }
+    }
+
+    // Check if item can be gifted
+    if (!isItemGiftable(itemId, shopItem.category, shopItem.type)) {
+      return {
+        success: false,
+        error: 'item_not_giftable'
+      }
+    }
+
+    // Generate gift code
+    const giftCode = generateGiftCode()
+    const now = new Date().toISOString()
+
+    // Create gift data
+    const giftData = {
+      code: giftCode,
+      itemId: itemId,
+      itemName: shopItem.name,
+      itemIcon: shopItem.icon,
+      itemRarity: shopItem.rarity,
+      senderName: gameData.player.name,
+      createdAt: now,
+      expiresAt: calculateGiftExpiration(),
+      redeemed: false
+    }
+
+    // Add to sent gifts
+    gameData.player.gifts.sentGifts.push(giftData)
+    gameData.player.gifts.sentToday += 1
+
+    console.log(`🎁 Gift created: ${shopItem.name} with code ${giftCode}`)
+
+    return {
+      success: true,
+      gift: giftData
+    }
+  }
+
+  const redeemGift = (giftCode) => {
+    // Stelle sicher, dass Gift-Daten existieren
+    if (!gameData.player.gifts) {
+      gameData.player.gifts = validateGiftsData(null)
+    }
+
+    if (!giftCode || !validateGiftCodeFormat(giftCode)) {
+      return {
+        success: false,
+        error: 'invalid_code_format'
+      }
+    }
+
+    // Check if already redeemed
+    if (gameData.player.gifts.redeemedCodes.includes(giftCode)) {
+      return {
+        success: false,
+        error: 'already_redeemed'
+      }
+    }
+
+    if (!canReceiveGiftToday()) {
+      return {
+        success: false,
+        error: 'daily_receive_limit'
+      }
+    }
+
+    // Mock gift data (in real implementation, this would validate against a server)
+    // For demo purposes, we'll create a mock gift
+
+    // Erweiterte Mock-Daten basierend auf tatsächlichen Gift-Items
+    const mockGiftDatabase = {
+      // Beispiele mit verschiedenen Gift-Items
+      'HAWK3-TEST1-ABCD-EF': {
+        itemId: 'friendship_ring',
+        itemName: 'Friendship Ring',
+        itemIcon: '💍',
+        itemRarity: 'rare',
+        senderName: 'TestFriend',
+        createdAt: new Date().toISOString(),
+        expiresAt: calculateGiftExpiration()
+      },
+      'HAWK3-TEST2-WXYZ-GH': {
+        itemId: 'red_rose',
+        itemName: 'Red Rose',
+        itemIcon: '🌹',
+        itemRarity: 'common',
+        senderName: 'BestFriend',
+        createdAt: new Date().toISOString(),
+        expiresAt: calculateGiftExpiration()
+      }
+    }
+
+    const giftData = mockGiftDatabase[giftCode.toUpperCase()]
+    if (!giftData) {
+      return {
+        success: false,
+        error: 'gift_not_found'
+      }
+    }
+
+    // Check expiration
+    if (new Date() > new Date(giftData.expiresAt)) {
+      return {
+        success: false,
+        error: 'gift_expired'
+      }
+    }
+
+    // Add item to inventory with gift metadata
+    addItemToInventory(giftData.itemId, 1, {
+      type: 'cosmetic',
+      category: 'gifts',
+      rarity: giftData.itemRarity,
+      name: giftData.itemName,
+      isGift: true,
+      giftFrom: giftData.senderName,
+      giftCode: giftCode,
+      receivedAt: new Date().toISOString()
+    })
+
+    // Track as received
+    gameData.player.gifts.receivedGifts.push({
+      ...giftData,
+      code: giftCode,
+      receivedAt: new Date().toISOString()
+    })
+
+    gameData.player.gifts.redeemedCodes.push(giftCode)
+    gameData.player.gifts.receivedToday += 1
+
+    console.log(`🎁 Gift redeemed: ${giftData.itemName} from ${giftData.senderName}`)
+
+    return {
+      success: true,
+      gift: giftData
+    }
+  }
+
 	// Return all reactive data and methods
 	return {
 		// Reactive data
@@ -1754,6 +2023,13 @@ export function useLocalStorage() {
     createPendingMysteryBox,
     claimPendingMysteryBox,
     checkMysteryBoxAchievements,
+
+    // Gift System methods
+    canSendGiftToday,
+    canReceiveGiftToday,
+    getGiftableItems,
+    createGift,
+    redeemGift,
 
 		// Data management
 		saveData,
