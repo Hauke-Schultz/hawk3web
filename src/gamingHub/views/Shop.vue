@@ -6,7 +6,7 @@ import { useInventory } from '../composables/useInventory.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
 import { SHOP_ITEMS, SHOP_CATEGORIES, RARITY_CONFIG } from '../config/shopConfig.js'
-import { GIFT_CONFIG, isItemGiftable } from '../config/giftConfig.js'
+import { validateGiftCodeFormat } from '../config/giftConfig.js'
 import GiftModal from '../components/GiftModal.vue'
 import Header from '../components/Header.vue'
 import Icon from '../../components/Icon.vue'
@@ -14,7 +14,7 @@ import CurrencyDisplay from '../components/CurrencyDisplay.vue'
 import ShopModal from '../components/ShopModal.vue'
 
 // Services
-const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift } = useLocalStorage()
+const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift, canReceiveGiftToday, redeemGift } = useLocalStorage()
 const { selectedCategory, currentCategoryItems, canAffordItem, canPurchaseItem } = useShop()
 const { hasItem } = useInventory()
 const { t } = useI18n()
@@ -26,6 +26,9 @@ const showGiftModal = ref(false)
 const selectedItem = ref(null)
 const modalType = ref('purchase') // 'purchase', 'insufficient', 'owned'
 const justPurchasedItems = ref([])
+const giftCode = ref('')
+const giftRedeemResult = ref(null)
+const isRedeeming = ref(false)
 
 // Reactive player balance
 const playerBalance = computed(() => ({
@@ -64,6 +67,81 @@ const handleItemClick = (item) => {
 
 	showModal.value = true
 }
+
+const handleGiftRedeem = async () => {
+	if (!giftCode.value.trim()) return
+
+	const code = giftCode.value.trim().toUpperCase()
+
+	if (!validateGiftCodeFormat(code)) {
+		giftRedeemResult.value = {
+			success: false,
+			error: 'invalid_code_format',
+			message: t('shop.gifts.invalid_gift_code')
+		}
+		return
+	}
+
+	isRedeeming.value = true
+
+	try {
+		const result = redeemGift(code)
+
+		if (result.success) {
+			giftRedeemResult.value = {
+				success: true,
+				gift: result.gift,
+				message: t('shop.gifts.gift_redeemed')
+			}
+			giftCode.value = ''
+			showGiftModal.value = true
+		} else {
+			const errorMessages = {
+				invalid_code_format: t('shop.gifts.invalid_gift_code'),
+				already_redeemed: t('shop.gifts.already_redeemed'),
+				daily_receive_limit: t('shop.gifts.daily_limit_message'),
+				own_gift: t('shop.gifts.cannot_redeem_own_gift'),
+				already_owned: t('shop.gifts.item_already_owned'),
+				expired: t('shop.gifts.gift_expired'),
+				item_not_found: t('shop.gifts.item_not_found'),
+				invalid_code: t('shop.gifts.invalid_gift_code')
+			}
+
+			giftRedeemResult.value = {
+				success: false,
+				error: result.error,
+				message: errorMessages[result.error] || t('shop.gifts.unknown_error')
+			}
+		}
+	} catch (error) {
+		console.error('Gift redemption error:', error)
+		giftRedeemResult.value = {
+			success: false,
+			error: 'unknown_error',
+			message: t('shop.gifts.unknown_error')
+		}
+	} finally {
+		isRedeeming.value = false
+	}
+}
+
+const closeGiftModal = () => {
+	showGiftModal.value = false
+	giftRedeemResult.value = null
+}
+
+const canRedeemGiftsToday = computed(() => {
+	return canReceiveGiftToday()
+})
+
+const giftStats = computed(() => {
+	return {
+		sentToday: gameData.player.gifts?.sentToday || 0,
+		receivedToday: gameData.player.gifts?.receivedToday || 0,
+		totalSent: gameData.player.gifts?.sentGifts?.length || 0,
+		totalReceived: gameData.player.gifts?.receivedGifts?.length || 0
+	}
+})
 
 const handlePurchaseConfirm = async () => {
 	if (!selectedItem.value || modalType.value !== 'purchase') {
@@ -263,11 +341,6 @@ const handleGiftSend = async (item) => {
 	}
 }
 
-const closeGiftModal = () => {
-	showGiftModal.value = false
-	selectedItem.value = null
-}
-
 const getGiftButtonText = (item) => {
 	if (item.category === 'gifts' && !hasItem(item.id)) {
 		return t('shop.gifts.buy_to_gift')
@@ -344,6 +417,51 @@ watch(() => gameData, (newData) => {
 			</button>
 		</div>
 
+		<div
+				v-if="selectedCategory === 'gifts'"
+				class="gift-section"
+		>
+			<label class="item-name">{{ t('shop.gifts.enter_gift_code') }}</label>
+			<div class="gift-redeem-section">
+				<div class="gift-input-group">
+					<input
+							v-model="giftCode"
+							type="text"
+							class="gift-code-input"
+							:placeholder="t('shop.gifts.gift_code_placeholder')"
+							:disabled="!canRedeemGiftsToday || isRedeeming"
+							maxlength="50"
+							@keydown.enter="handleGiftRedeem"
+					/>
+					<button
+							class="btn btn--primary"
+							:class="{ 'btn--loading': isRedeeming }"
+							@click="handleGiftRedeem"
+					>
+						{{ isRedeeming ? t('common.loading') : t('shop.gifts.redeem_gift') }}
+					</button>
+				</div>
+
+				<!-- Gift Limit Warning -->
+				<div v-if="!canRedeemGiftsToday" class="gift-limit-warning">
+					<Icon name="info" size="16" />
+					<span>{{ t('shop.gifts.daily_limit_message') }}</span>
+				</div>
+
+				<!-- Gift Redeem Result -->
+				<div v-if="giftRedeemResult && !showGiftModal" class="gift-result">
+					<div v-if="giftRedeemResult.success" class="gift-result--success">
+						<Icon name="completion-badge" size="20" />
+						<span>{{ giftRedeemResult.message }}</span>
+					</div>
+					<div v-else class="gift-result--error">
+						<Icon name="close" size="20" />
+						<span>{{ giftRedeemResult.message }}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<!-- Items Grid -->
 		<div class="items-section">
 			<!-- Empty State -->
@@ -371,24 +489,13 @@ watch(() => gameData, (newData) => {
 					class="shop-item"
 					:class="{
 		        'shop-item--owned': isItemOwned(item),
+		        'shop-item--too-expensive': !isItemAffordable(item) && !isItemOwned(item),
 		        'shop-item--gift-mode': selectedCategory === 'gifts',
 		        'shop-item--giftable': selectedCategory === 'gifts' && hasItem(item.id),
 		        'shop-item--gift-purchasable': selectedCategory === 'gifts' && item.category === 'gifts' && !hasItem(item.id)
 		      }"
 					@click="selectedCategory === 'gifts' ? handleGiftClick(item) : handleItemClick(item)"
 				>
-					<!-- Gift Category Badge -->
-					<div v-if="selectedCategory === 'gifts' && item.category === 'gifts'" class="gift-category-badge">
-						<Icon name="heart" size="14" />
-						{{ t('shop.gifts.gift_item') }}
-					</div>
-
-					<!-- Profile Item Badge in Gift Mode -->
-					<div v-if="selectedCategory === 'gifts' && item.category === 'profile'" class="profile-gift-badge">
-						<Icon name="user" size="14" />
-						{{ t('shop.gifts.owned_item') }}
-					</div>
-
 					<!-- Item Icon -->
 					<div
 						class="item-icon"
@@ -423,31 +530,20 @@ watch(() => gameData, (newData) => {
 							/>
 						</div>
 
-						<!-- Gift Instructions for owned items -->
-						<div v-if="selectedCategory === 'gifts' && hasItem(item.id)" class="gift-ready-indicator">
-							<Icon name="heart" size="16" />
-							<span>{{ t('shop.gifts.ready_to_send') }}</span>
-						</div>
-
 						<!-- Action Button -->
 						<button
-								class="item-button"
-								:class="getItemButtonClass(item)"
+							class="item-button"
+							:class="getItemButtonClass(item)"
 						>
 							<Icon
-									v-if="selectedCategory === 'gifts' && hasItem(item.id)"
-									name="heart"
-									size="16"
+								v-if="selectedCategory === 'gifts' && hasItem(item.id)"
+								name="heart"
+								size="16"
 							/>
 							<Icon
-									v-else-if="selectedCategory === 'gifts' && item.category === 'gifts'"
-									name="shop"
-									size="16"
-							/>
-							<Icon
-									v-else-if="isItemOwned(item)"
-									name="completion-badge"
-									size="16"
+								v-else-if="selectedCategory === 'gifts' && item.category === 'gifts'"
+								name="shop"
+								size="16"
 							/>
 							<span>
 		            {{ selectedCategory === 'gifts'
@@ -484,7 +580,7 @@ watch(() => gameData, (newData) => {
 	</main>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 // Main Shop Container
 .shop {
 	display: flex;
@@ -611,9 +707,14 @@ watch(() => gameData, (newData) => {
 	border: 1px solid var(--card-border);
 	border-radius: var(--border-radius-lg);
 	padding: var(--space-3);
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
+	display: grid;
+	grid-template-areas:
+		"icon info info"
+		"action action action";
+	grid-template-columns: auto 1fr auto;
+	grid-template-rows: auto auto;
+	align-items: flex-start;
+	gap: var(--space-2) var(--space-4);
 	cursor: pointer;
 	transition: all 0.2s ease;
 	position: relative;
@@ -626,16 +727,21 @@ watch(() => gameData, (newData) => {
 	}
 
 	&--owned {
-		opacity: 0.8;
+		border-color: var(--success-color);
 
 		&:hover {
 			transform: none;
 		}
 	}
+
+	&--too-expensive {
+		border-color: var(--error-color);
+	}
 }
 
 // Item Icon
 .item-icon {
+	grid-area: icon;
 	width: var(--space-12);
 	height: var(--space-12);
 	border-radius: var(--border-radius-lg);
@@ -643,7 +749,7 @@ watch(() => gameData, (newData) => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	flex-shrink: 0;
+	position: relative;
 }
 
 .item-emoji {
@@ -653,11 +759,10 @@ watch(() => gameData, (newData) => {
 
 // Item Info
 .item-info {
-	flex: 1;
+	grid-area: info;
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-1);
-	min-width: 0; // Prevent text overflow
 }
 
 .item-name {
@@ -681,16 +786,20 @@ watch(() => gameData, (newData) => {
 
 // Item Action
 .item-action {
+	grid-area: action;
 	display: flex;
-	flex-direction: column;
 	align-items: flex-end;
 	gap: var(--space-2);
-	flex-shrink: 0;
+	justify-content: flex-end;
 }
 
 .item-price {
 	display: flex;
 	justify-content: flex-end;
+
+	.currency-item {
+		height: 28px;
+	}
 }
 
 // Item Button
@@ -700,7 +809,7 @@ watch(() => gameData, (newData) => {
 	gap: var(--space-1);
 	padding: var(--space-1) var(--space-3);
 	border: none;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--border-radius-sm);
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 	font-family: var(--font-family-base);
@@ -715,14 +824,12 @@ watch(() => gameData, (newData) => {
 
 		&:hover {
 			background-color: var(--success-hover);
-			transform: translateY(-1px);
 		}
 	}
 
 	&--expensive {
 		background-color: var(--error-color);
 		color: white;
-		opacity: 0.7;
 
 		&:hover {
 			background-color: var(--error-hover);
@@ -776,18 +883,24 @@ watch(() => gameData, (newData) => {
 	}
 }
 
-
 // Gift-specific styles
+.gift-section {
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-lg);
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
 .shop-item--gift-mode {
 	position: relative;
 
 	&.shop-item--giftable {
 		border-color: var(--success-color);
-		box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
 	}
 
 	&:not(.shop-item--giftable) {
-		opacity: 0.6;
 		cursor: not-allowed;
 	}
 }
@@ -797,43 +910,6 @@ watch(() => gameData, (newData) => {
 	top: var(--space-1);
 	left: var(--space-1);
 	background: linear-gradient(135deg, var(--success-color), var(--success-hover));
-	color: white;
-	padding: var(--space-1) var(--space-2);
-	border-radius: var(--border-radius-sm);
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-	display: flex;
-	align-items: center;
-	gap: var(--space-1);
-	z-index: 2;
-}
-
-.shop-item--gift-purchasable {
-	border-color: var(--warning-color);
-	box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
-}
-
-.gift-category-badge {
-	position: absolute;
-	top: var(--space-1);
-	left: var(--space-1);
-	background: linear-gradient(135deg, var(--success-color), var(--success-hover));
-	color: white;
-	padding: var(--space-1) var(--space-2);
-	border-radius: var(--border-radius-sm);
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-bold);
-	display: flex;
-	align-items: center;
-	gap: var(--space-1);
-	z-index: 2;
-}
-
-.profile-gift-badge {
-	position: absolute;
-	top: var(--space-1);
-	right: var(--space-1);
-	background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
 	color: white;
 	padding: var(--space-1) var(--space-2);
 	border-radius: var(--border-radius-sm);
@@ -855,15 +931,6 @@ watch(() => gameData, (newData) => {
 }
 
 .item-button--buy-to-gift {
-	background-color: var(--warning-color);
-	color: white;
-
-	&:hover {
-		background-color: var(--warning-hover);
-	}
-}
-
-.item-button--gift {
 	background-color: var(--success-color);
 	color: white;
 
@@ -872,21 +939,148 @@ watch(() => gameData, (newData) => {
 	}
 }
 
-// Responsive adjustments
-@media (max-width: 375px) {
-	.shop-item {
-		flex-direction: column;
-		text-align: center;
+.item-button--gift {
+	background-color: var(--primary-color);
+	color: white;
+
+	&:hover {
+		background-color: var(--primary-hover);
+	}
+}
+
+
+// Gift Redeem Section
+.gift-redeem-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.gift-input-group {
+	display: flex;
+	gap: var(--space-2);
+}
+
+.gift-code-input {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	padding: var(--space-3) var(--space-4);
+	font-size: var(--font-size-base);
+	color: var(--text-color);
+	font-family: 'Courier New', monospace;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	transition: all 0.2s ease;
+	width: 100%;
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+		box-shadow: 0 0 0 0.125rem rgba(79, 70, 229, 0.25);
+	}
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	&::placeholder {
+		color: var(--text-muted);
+		text-transform: none;
+		letter-spacing: normal;
+	}
+}
+
+.gift-limit-warning {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-2);
+	background-color: var(--warning-color);
+	color: white;
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+}
+
+.gift-result {
+	padding: var(--space-2);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+
+	&--success {
+		background-color: var(--success-color);
+		color: white;
+		display: flex;
+		align-items: center;
 		gap: var(--space-2);
 	}
 
-	.item-action {
+	&--error {
+		background-color: var(--error-color);
+		color: white;
+		display: flex;
 		align-items: center;
-		flex-direction: column-reverse;
-	}
-
-	.category-nav {
-		justify-content: center;
+		gap: var(--space-2);
 	}
 }
+
+.gift-stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--space-2);
+	padding: var(--space-3);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-md);
+}
+
+.gift-success-content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	align-items: center;
+}
+
+.gift-item-display {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-3);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-lg);
+}
+
+.gift-item-icon {
+	font-size: var(--font-size-2xl);
+}
+
+.gift-item-info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+}
+
+.gift-item-info h4 {
+	margin: 0;
+	font-size: var(--font-size-base);
+	color: var(--text-color);
+}
+
+.gift-item-info p {
+	margin: 0;
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+}
+
+.icon-spin {
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
 </style>

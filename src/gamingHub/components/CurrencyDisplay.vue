@@ -69,6 +69,7 @@ const props = defineProps({
 // Format currency numbers
 const formatCurrency = (amount) => {
 	if (!props.formatNumbers) return amount.toString()
+	if (props.size === 'large') return amount.toLocaleString()
 
 	if (amount >= 1000000) {
 		return `${(amount / 1000000).toFixed(1)}M`
@@ -122,10 +123,10 @@ const containerClass = computed(() => {
 <template>
 	<div :class="containerClass">
 		<div
-				v-for="item in displayItems"
-				:key="item.type"
-				class="currency-item"
-				:class="{
+			v-for="item in displayItems"
+			:key="item.type"
+			class="currency-item"
+			:class="{
         'currency-item--premium': item.premium,
         'currency-item--with-label': showLabels
       }"
@@ -142,7 +143,7 @@ const containerClass = computed(() => {
 	</div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 // Base Currency Display Container
 .currency-display {
 	display: flex;

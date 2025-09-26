@@ -29,7 +29,6 @@ const { t } = useI18n()
 
 // State
 const isConfirming = ref(false)
-const showConfirmation = ref(false)
 
 // Computed properties
 const giftExpiration = computed(() => {
@@ -50,35 +49,19 @@ const rarityConfig = computed(() => {
 	return rarities[props.item.rarity] || rarities.common
 })
 
-// Methods
-const handleFirstConfirm = () => {
-	showConfirmation.value = true
-}
-
 const handleFinalConfirm = async () => {
 	isConfirming.value = true
-
-	try {
-		await nextTick()
-		emit('confirm', props.item)
-	} catch (error) {
-		console.error('Gift sending error:', error)
-	} finally {
-		isConfirming.value = false
-		showConfirmation.value = false
-	}
+	await nextTick()
+	emit('confirm', props.item)
 }
 
 const handleCancel = () => {
-	showConfirmation.value = false
 	emit('cancel')
 	emit('close')
 }
 
 const handleOverlayClick = () => {
-	if (!showConfirmation.value) {
-		handleCancel()
-	}
+	handleCancel()
 }
 
 const handleKeyDown = (event) => {
@@ -107,7 +90,6 @@ const handleKeyDown = (event) => {
 				<!-- Modal Header -->
 				<div class="modal-header">
 					<div class="header-content">
-						<Icon name="heart" size="24" />
 						<h3 class="modal-title">
 							{{ showConfirmation ? t('shop.gifts.confirm_send') : t('shop.gifts.send_gift') }}
 						</h3>
@@ -122,12 +104,12 @@ const handleKeyDown = (event) => {
 				</div>
 
 				<!-- Initial Gift Preview -->
-				<div v-if="!showConfirmation" class="modal-content">
+				<div class="modal-content">
 					<!-- Item Preview -->
 					<div class="gift-preview">
 						<div
-								class="item-icon"
-								:style="{
+							class="item-icon"
+							:style="{
                 borderColor: rarityConfig.borderColor,
                 backgroundColor: `${rarityConfig.color}20`
               }"
@@ -138,52 +120,21 @@ const handleKeyDown = (event) => {
 						<div class="item-details">
 							<h4 class="item-name">{{ item.name }}</h4>
 							<p class="item-description">{{ item.description }}</p>
-							<div class="item-rarity" :style="{ color: rarityConfig.color }">
-								{{ t(`shop.rarities.${item.rarity}`) }}
-							</div>
 						</div>
 					</div>
 
 					<!-- Gift Information -->
 					<div class="gift-info">
 						<div class="info-section">
-							<Icon name="info" size="20" />
 							<div class="info-content">
-								<h4>{{ t('shop.gifts.how_it_works') }}</h4>
+								<h4><Icon name="info" size="20" /> {{ t('shop.gifts.how_it_works') }}</h4>
 								<ul class="info-list">
 									<li>{{ t('shop.gifts.info_step1') }}</li>
 									<li>{{ t('shop.gifts.info_step2') }}</li>
 									<li>{{ t('shop.gifts.info_step3') }}</li>
+									<li>{{ t('shop.gifts.one_gift_per_day') }}</li>
 								</ul>
 							</div>
-						</div>
-
-						<div class="warning-section">
-							<Icon name="clock" size="20" />
-							<span>{{ t('shop.gifts.gift_expires_in', { days: giftExpiration }) }}</span>
-						</div>
-					</div>
-				</div>
-
-				<!-- Confirmation Step -->
-				<div v-else class="modal-content confirmation-content">
-					<div class="confirmation-icon">
-						<Icon name="heart" size="48" />
-					</div>
-
-					<div class="confirmation-text">
-						<h4>{{ t('shop.gifts.final_confirmation') }}</h4>
-						<p>{{ t('shop.gifts.final_confirmation_text', { itemName: item.name }) }}</p>
-					</div>
-
-					<div class="confirmation-warnings">
-						<div class="warning-item">
-							<Icon name="info" size="16" />
-							<span>{{ t('shop.gifts.one_gift_per_day') }}</span>
-						</div>
-						<div class="warning-item">
-							<Icon name="clock" size="16" />
-							<span>{{ t('shop.gifts.expires_warning', { days: giftExpiration }) }}</span>
 						</div>
 					</div>
 				</div>
@@ -193,29 +144,15 @@ const handleKeyDown = (event) => {
 					<button
 							class="btn btn--ghost"
 							@click="handleCancel"
-							:disabled="isConfirming"
 					>
 						{{ t('common.cancel') }}
 					</button>
 
 					<button
-							v-if="!showConfirmation"
-							class="btn btn--success"
-							@click="handleFirstConfirm"
+						class="btn btn--warning"
+						@click="handleFinalConfirm"
 					>
-						<Icon name="heart" size="16" />
-						{{ t('shop.gifts.prepare_gift') }}
-					</button>
-
-					<button
-							v-else
-							class="btn btn--warning"
-							@click="handleFinalConfirm"
-							:disabled="isConfirming"
-					>
-						<Icon v-if="!isConfirming" name="heart" size="16" />
-						<Icon v-else name="loading" size="16" class="icon-spin" />
-						{{ isConfirming ? t('shop.gifts.creating_gift') : t('shop.gifts.send_now') }}
+						{{ t('shop.gifts.send_now') }}
 					</button>
 				</div>
 			</div>
@@ -243,8 +180,8 @@ const handleKeyDown = (event) => {
 .gift-modal {
 	background-color: var(--card-bg);
 	border-radius: var(--border-radius-xl);
-	border: 1px solid var(--success-color);
-	box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+	border: 1px solid var(--primary-color);
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 	max-width: 90%;
 	width: 420px;
 	animation: slideIn 0.3s ease;
@@ -259,7 +196,7 @@ const handleKeyDown = (event) => {
 	justify-content: space-between;
 	padding: var(--space-4);
 	border-bottom: 1px solid var(--card-border);
-	background: linear-gradient(135deg, var(--success-color), var(--success-hover));
+	background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
 	color: white;
 	border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
 }
@@ -376,6 +313,9 @@ const handleKeyDown = (event) => {
 	font-size: var(--font-size-base);
 	font-weight: var(--font-weight-bold);
 	margin: 0 0 var(--space-2) 0;
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
 }
 
 .info-list {
@@ -406,7 +346,7 @@ const handleKeyDown = (event) => {
 	align-items: center;
 	gap: var(--space-2);
 	padding: var(--space-2);
-	background-color: var(--warning-color);
+	background-color: var(--success-color);
 	color: white;
 	border-radius: var(--border-radius-md);
 	font-size: var(--font-size-sm);

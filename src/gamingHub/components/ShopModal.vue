@@ -213,20 +213,6 @@ const handleKeyDown = (event) => {
 							<h4>{{ modalConfig.message }}</h4>
 							<div class="gift-code-display">
 								<code class="gift-code">{{ item.giftCode }}</code>
-								<button
-										class="copy-code-btn btn btn--ghost btn--small"
-										@click="copyGiftCode(item.giftCode)"
-								>
-									<Icon name="copy" size="16" />
-								</button>
-							</div>
-						</div>
-
-						<div class="gift-instructions">
-							<p>{{ t('shop.gifts.share_instructions') }}</p>
-							<div class="expiration-notice">
-								<Icon name="clock" size="16" />
-								<span>{{ t('shop.gifts.gift_expires_in', { days: 7 }) }}</span>
 							</div>
 						</div>
 					</div>
@@ -234,8 +220,8 @@ const handleKeyDown = (event) => {
 					<!-- Item Display -->
 					<div class="item-preview">
 						<div
-								class="item-icon"
-								:style="{
+							class="item-icon"
+							:style="{
                 borderColor: rarityConfig.borderColor,
                 backgroundColor: `${rarityConfig.color}20`
               }"
@@ -246,13 +232,13 @@ const handleKeyDown = (event) => {
 						<div class="item-details">
 							<h4 class="item-name">{{ item.name }}</h4>
 							<p class="item-description">{{ item.description }}</p>
-							<div class="item-rarity" :style="{ color: rarityConfig.color }">
-								{{ t(`shop.rarities.${item.rarity}`) }}
-							</div>
 						</div>
 					</div>
 					<!-- Price Display -->
-					<div class="price-section">
+					<div
+							v-if="type !== 'gift_success'"
+							class="price-section"
+					>
 						<CurrencyDisplay
 								:coins="item.price.coins"
 								:diamonds="item.price.diamonds"

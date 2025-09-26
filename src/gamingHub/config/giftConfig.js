@@ -53,20 +53,95 @@ export const GIFTABLE_ITEMS = [
 ]
 
 // Generate unique gift code
-export const generateGiftCode = () => {
-  const timestamp = Date.now().toString(36)
-  const random = Math.random().toString(36).substring(2, 6)
-  const uniqueId = Math.random().toString(36).substring(2, 4)
+export const generateGiftCode = (playerName, itemId) => {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase()
+  const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '')
 
-  return `${GIFT_CONFIG.codePrefix}-${timestamp}-${random}-${uniqueId}`.toUpperCase()
+  // Simple format: HAWK3-PLAYERNAME-ITEMID-DATE-RANDOM
+  return `${GIFT_CONFIG.codePrefix}-${playerName.substring(0, 8).toUpperCase()}-${itemId.toUpperCase()}-${dateStr}-${random}`
+}
+
+
+// Add new decode function
+export const decodeGiftCode = (giftCode) => {
+  try {
+    const parts = giftCode.toUpperCase().split('-')
+    if (parts.length !== 5 || parts[0] !== GIFT_CONFIG.codePrefix) {
+      return null
+    }
+
+    const [prefix, senderName, itemId, sentDate, random] = parts
+
+    // Convert date back to ISO format
+    const year = sentDate.substring(0, 4)
+    const month = sentDate.substring(4, 6)
+    const day = sentDate.substring(6, 8)
+    const dateISO = `${year}-${month}-${day}`
+
+    return {
+      senderName: senderName,
+      itemId: itemId.toLowerCase(),
+      sentDate: dateISO,
+      isValid: true
+    }
+  } catch (error) {
+    console.error('Gift code decode error:', error)
+    return null
+  }
 }
 
 // Validate gift code format
 export const validateGiftCodeFormat = (code) => {
   if (!code || typeof code !== 'string') return false
-
-  const pattern = new RegExp(`^${GIFT_CONFIG.codePrefix}-[A-Z0-9]+-[A-Z0-9]+-[A-Z0-9]+$`)
+  const pattern = new RegExp(`^${GIFT_CONFIG.codePrefix}-[A-Z0-9]+-[A-Z0-9_]+-[0-9]{8}-[A-Z0-9]+$`)
   return pattern.test(code.toUpperCase())
+}
+
+export const validateGiftRedemption = (giftCode, currentPlayerName, receivedToday, ownedItems, redeemedCodes) => {
+  const decoded = decodeGiftCode(giftCode)
+
+  if (!decoded || !decoded.isValid) {
+    return { valid: false, error: 'invalid_code' }
+  }
+
+  // Check if already redeemed
+  if (redeemedCodes.includes(giftCode.toUpperCase())) {
+    return { valid: false, error: 'already_redeemed' }
+  }
+
+  // Check if player is trying to redeem their own gift
+  if (decoded.senderName.toUpperCase() === currentPlayerName.toUpperCase()) {
+    return { valid: false, error: 'own_gift' }
+  }
+
+  // Check daily limit
+  if (receivedToday >= GIFT_CONFIG.maxReceivedPerDay) {
+    return { valid: false, error: 'daily_limit_reached' }
+  }
+
+  // Check if item already owned (for non-stackable items)
+  if (ownedItems.includes(decoded.itemId)) {
+    return { valid: false, error: 'already_owned' }
+  }
+
+  // Check expiration (7 days)
+  const sentDate = new Date(decoded.sentDate)
+  const now = new Date()
+  const daysDiff = Math.floor((now - sentDate) / (1000 * 60 * 60 * 24))
+
+  if (daysDiff > GIFT_CONFIG.giftCodeExpirationDays) {
+    return { valid: false, error: 'expired' }
+  }
+
+  return {
+    valid: true,
+    gift: {
+      senderName: decoded.senderName,
+      itemId: decoded.itemId,
+      sentDate: decoded.sentDate
+    }
+  }
 }
 
 // Check if item can be gifted

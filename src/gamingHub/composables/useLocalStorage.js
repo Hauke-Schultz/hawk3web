@@ -6,7 +6,7 @@ import {
 	REWARDS
 } from '../config/achievementsConfig.js'
 import { MYSTERY_BOX_CONFIG, calculateMysteryBoxReward, getMysteryBoxProgress, canClaimMysteryBox as canClaimMysteryBoxHelper } from '../config/mysteryBoxConfig.js'
-import { GIFT_CONFIG, generateGiftCode, validateGiftCodeFormat, isItemGiftable, calculateGiftExpiration } from '../config/giftConfig.js'
+import { GIFT_CONFIG, validateGiftRedemption, generateGiftCode, validateGiftCodeFormat, isItemGiftable, calculateGiftExpiration } from '../config/giftConfig.js'
 import { SHOP_ITEMS } from '../config/shopConfig.js'
 import {useI18n} from "../../composables/useI18n.js";
 const { t } = useI18n()
@@ -1772,7 +1772,7 @@ export function useLocalStorage() {
   }
 
   const createGift = (itemId) => {
-    // Stelle sicher, dass Gift-Daten existieren
+    // Ensure gift data exists
     if (!gameData.player.gifts) {
       gameData.player.gifts = validateGiftsData(null)
     }
@@ -1792,8 +1792,15 @@ export function useLocalStorage() {
       }
     }
 
-    // Get item details
-    const shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+    // Get item details - check both shop and mystery items
+    let shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+
+    if (!shopItem) {
+      // Check mystery items too
+      const { MYSTERY_ITEMS } = require('../config/mysteryBoxConfig.js')
+      shopItem = MYSTERY_ITEMS.find(item => item.id === itemId)
+    }
+
     if (!shopItem) {
       return {
         success: false,
@@ -1809,8 +1816,8 @@ export function useLocalStorage() {
       }
     }
 
-    // Generate gift code
-    const giftCode = generateGiftCode()
+    // Generate gift code with player name and item
+    const giftCode = generateGiftCode(gameData.player.name, itemId)
     const now = new Date().toISOString()
 
     // Create gift data
@@ -1839,12 +1846,14 @@ export function useLocalStorage() {
   }
 
   const redeemGift = (giftCode) => {
-    // Stelle sicher, dass Gift-Daten existieren
+    // Ensure gift data exists
     if (!gameData.player.gifts) {
       gameData.player.gifts = validateGiftsData(null)
     }
 
-    if (!giftCode || !validateGiftCodeFormat(giftCode)) {
+    const normalizedCode = giftCode.toUpperCase().trim()
+
+    if (!normalizedCode || !validateGiftCodeFormat(normalizedCode)) {
       return {
         success: false,
         error: 'invalid_code_format'
@@ -1852,7 +1861,7 @@ export function useLocalStorage() {
     }
 
     // Check if already redeemed
-    if (gameData.player.gifts.redeemedCodes.includes(giftCode)) {
+    if (gameData.player.gifts.redeemedCodes.includes(normalizedCode)) {
       return {
         success: false,
         error: 'already_redeemed'
@@ -1866,75 +1875,80 @@ export function useLocalStorage() {
       }
     }
 
-    // Mock gift data (in real implementation, this would validate against a server)
-    // For demo purposes, we'll create a mock gift
+    // Get owned items for validation
+    const ownedItems = Object.keys(gameData.player.inventory.items || {})
 
-    // Erweiterte Mock-Daten basierend auf tatsächlichen Gift-Items
-    const mockGiftDatabase = {
-      // Beispiele mit verschiedenen Gift-Items
-      'HAWK3-TEST1-ABCD-EF': {
-        itemId: 'friendship_ring',
-        itemName: 'Friendship Ring',
-        itemIcon: '💍',
-        itemRarity: 'rare',
-        senderName: 'TestFriend',
-        createdAt: new Date().toISOString(),
-        expiresAt: calculateGiftExpiration()
-      },
-      'HAWK3-TEST2-WXYZ-GH': {
-        itemId: 'red_rose',
-        itemName: 'Red Rose',
-        itemIcon: '🌹',
-        itemRarity: 'common',
-        senderName: 'BestFriend',
-        createdAt: new Date().toISOString(),
-        expiresAt: calculateGiftExpiration()
+    // Validate gift redemption with redeemed codes
+    const validation = validateGiftRedemption(
+        normalizedCode,
+        gameData.player.name,
+        gameData.player.gifts.receivedToday,
+        ownedItems,
+        gameData.player.gifts.redeemedCodes
+    )
+
+    if (!validation.valid) {
+      return {
+        success: false,
+        error: validation.error
       }
     }
 
-    const giftData = mockGiftDatabase[giftCode.toUpperCase()]
-    if (!giftData) {
-      return {
-        success: false,
-        error: 'gift_not_found'
-      }
+    const { gift } = validation
+
+    // Find the actual item details - check both regular shop and mystery items
+    let shopItem = SHOP_ITEMS.find(item => item.id === gift.itemId)
+
+    // If not found in shop items, it might be a mystery item
+    if (!shopItem) {
+      // Import MYSTERY_ITEMS for validation
+      const { MYSTERY_ITEMS } = require('../config/mysteryBoxConfig.js')
+      shopItem = MYSTERY_ITEMS.find(item => item.id === gift.itemId)
     }
 
-    // Check expiration
-    if (new Date() > new Date(giftData.expiresAt)) {
+    if (!shopItem) {
       return {
         success: false,
-        error: 'gift_expired'
+        error: 'item_not_found'
       }
     }
 
     // Add item to inventory with gift metadata
-    addItemToInventory(giftData.itemId, 1, {
-      type: 'cosmetic',
-      category: 'gifts',
-      rarity: giftData.itemRarity,
-      name: giftData.itemName,
+    addItemToInventory(gift.itemId, 1, {
+      type: shopItem.type,
+      category: shopItem.category,
+      rarity: shopItem.rarity,
+      name: shopItem.name,
+      description: shopItem.description,
       isGift: true,
-      giftFrom: giftData.senderName,
-      giftCode: giftCode,
+      giftFrom: gift.senderName,
+      giftCode: normalizedCode,
       receivedAt: new Date().toISOString()
     })
 
     // Track as received
     gameData.player.gifts.receivedGifts.push({
-      ...giftData,
-      code: giftCode,
+      ...gift,
+      itemName: shopItem.name,
+      itemIcon: shopItem.icon,
+      itemRarity: shopItem.rarity,
+      code: normalizedCode,
       receivedAt: new Date().toISOString()
     })
 
-    gameData.player.gifts.redeemedCodes.push(giftCode)
+    gameData.player.gifts.redeemedCodes.push(normalizedCode)
     gameData.player.gifts.receivedToday += 1
 
-    console.log(`🎁 Gift redeemed: ${giftData.itemName} from ${giftData.senderName}`)
+    console.log(`🎁 Gift redeemed: ${shopItem.name} from ${gift.senderName}`)
 
     return {
       success: true,
-      gift: giftData
+      gift: {
+        ...gift,
+        itemName: shopItem.name,
+        itemIcon: shopItem.icon,
+        itemRarity: shopItem.rarity
+      }
     }
   }
 

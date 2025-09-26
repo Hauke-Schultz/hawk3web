@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import {computed, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
@@ -7,12 +7,25 @@ import { useInventory } from '../composables/useInventory.js'
 import Icon from "../../components/Icon.vue"
 import CurrencyDisplay from "../components/CurrencyDisplay.vue";
 import Header from "../components/Header.vue";
+import {RARITY_CONFIG, SHOP_ITEMS} from '../config/shopConfig.js'
+import ConfirmationModal from '../components/ConfirmationModal.vue'
 
 // Services
-const { gameData, updatePlayer, formatCurrency } = useLocalStorage()
+const {
+	gameData,
+	updatePlayer,
+	formatCurrency,
+	canReceiveGiftToday,
+	redeemGift
+} = useLocalStorage()
 const { t } = useI18n()
 const { getAllOwnedItems } = useInventory()
 const router = useRouter()
+
+const giftCode = ref('')
+const giftRedeemResult = ref(null)
+const showGiftModal = ref(false)
+const isRedeeming = ref(false)
 
 // Available avatar options
 const avatarOptions = [
@@ -63,6 +76,14 @@ const selectedAvatar = computed({
 		updatePlayer({ avatar: value })
 	}
 })
+
+const getItemRarityStyle = (rarity) => {
+	const config = RARITY_CONFIG[rarity] || RARITY_CONFIG.common
+	return {
+		borderColor: config.borderColor,
+		backgroundColor: `${config.color}20`
+	}
+}
 
 // Methods
 const selectAvatar = (avatar) => {
@@ -154,53 +175,35 @@ const handleMenuClick = () => {
 						:format-numbers="true"
 				/>
 			</div>
+
 			<!-- Inventory Section -->
 			<div class="profile-section">
 				<label class="setting-label">{{ t('profile.inventory.title') }}</label>
 
-				<!-- Mystery Items Section -->
-				<div v-if="hasMysteryItems" class="mystery-items-section">
-					<h4 class="mystery-items-title">
-						<Icon name="star-filled" size="16" />
-						{{ t('profile.inventory.mystery_items') }}
-					</h4>
-					<div class="inventory-simple">
-						<div
-							v-for="item in ownedItems.filter(item => {
-			          const inventoryData = gameData.player.inventory.items[item.id]
-			          return inventoryData && inventoryData.mysteryBoxNumber !== undefined
-			        })"
-							:key="`mystery-${item.id}`"
-							class="inventory-item inventory-item--mystery"
-						>
-							<span class="item-icon">{{ item.icon }}</span>
-							<div class="item-details">
-								<span class="item-name">{{ item.name }}</span>
-								<span class="item-source">
-            {{ t('profile.inventory.mystery_box_item', {
-									boxNumber: gameData.player.inventory.items[item.id].mysteryBoxNumber
-								}) }}
-          </span>
-							</div>
-							<span class="item-rarity" :class="`rarity--${item.rarity}`">
-          {{ t(`shop.rarities.${item.rarity}`) }}
-        </span>
-						</div>
-					</div>
-				</div>
-
-				<!-- Regular Items Section -->
 				<div v-if="ownedItems.length > 0" class="inventory-simple">
 					<div
-						v-for="item in ownedItems.filter(item => {
-			        const inventoryData = gameData.player.inventory.items[item.id]
-			        return !inventoryData || inventoryData.mysteryBoxNumber === undefined
-			      })"
+						v-for="item in ownedItems"
 						:key="item.id"
 						class="inventory-item"
+						:class="{
+							'inventory-item--mystery': item.mysteryBoxNumber > 0
+						}"
 					>
-						<span class="item-icon">{{ item.icon }}</span>
+						<span
+							class="item-icon"
+							:style="getItemRarityStyle(item.rarity)"
+						>{{ item.icon }}</span>
 						<span class="item-name">{{ item.name }}</span>
+						<span
+								v-if="item.mysteryBoxNumber > 0"
+								class="item-source"
+						>
+	            {{
+								t('profile.inventory.mystery_box_item', {
+									boxNumber: gameData.player.inventory.items[item.id].mysteryBoxNumber
+								})
+							}}
+            </span>
 						<span v-if="item.quantity > 1" class="item-quantity">x{{ item.quantity }}</span>
 					</div>
 				</div>
@@ -210,6 +213,31 @@ const handleMenuClick = () => {
 				</div>
 			</div>
 		</section>
+
+		<ConfirmationModal
+			:visible="showGiftModal && giftRedeemResult?.success"
+			:title="t('shop.gifts.gift_redeemed')"
+			:message="t('shop.gifts.gift_received_from', {
+		    itemName: giftRedeemResult?.gift?.itemName,
+		    senderName: giftRedeemResult?.gift?.senderName
+		  })"
+			:confirm-text="t('common.ok')"
+			confirm-variant="success"
+			@confirm="closeGiftModal"
+			@close="closeGiftModal"
+		>
+			<template v-if="giftRedeemResult?.gift">
+				<div class="gift-success-content">
+					<div class="gift-item-display">
+						<span class="gift-item-icon">{{ giftRedeemResult.gift.itemIcon }}</span>
+						<div class="gift-item-info">
+							<h4>{{ giftRedeemResult.gift.itemName }}</h4>
+							<p>{{ t('shop.gifts.gift_from', { sender: giftRedeemResult.gift.senderName }) }}</p>
+						</div>
+					</div>
+				</div>
+			</template>
+		</ConfirmationModal>
 	</main>
 </template>
 
@@ -310,7 +338,7 @@ const handleMenuClick = () => {
 .name-input {
 	background-color: var(--card-bg);
 	border: 1px solid var(--card-border);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--border-radius-md);
 	padding: var(--space-3) var(--space-4);
 	font-size: var(--font-size-base);
 	color: var(--text-color);
@@ -395,25 +423,26 @@ const handleMenuClick = () => {
 
 .inventory-item {
 	display: flex;
+	justify-content: space-between;
 	align-items: center;
-	gap: var(--space-2);
-	padding: var(--space-2);
+	gap: var(--space-3);
+	padding: var(--space-3);
 	background-color: var(--bg-secondary);
 	border-radius: var(--border-radius-md);
 }
 
 .item-icon {
 	font-size: var(--font-size-lg);
-	width: 32px;
 	display: flex;
 	justify-content: center;
 }
 
-.item-name {
-	flex: 1;
+.item-name,
+.item-source {
 	font-size: var(--font-size-sm);
 	color: var(--text-color);
 	font-weight: var(--font-weight-medium);
+	flex-grow: 2;
 }
 
 .item-quantity {
@@ -422,6 +451,14 @@ const handleMenuClick = () => {
 	background-color: var(--card-border);
 	padding: var(--space-1) var(--space-2);
 	border-radius: var(--border-radius-sm);
+}
+
+.item-details {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--space-2);
+	align-items: center;
+	flex: 1;
 }
 
 // Empty Inventory
@@ -435,4 +472,5 @@ const handleMenuClick = () => {
 		font-size: var(--font-size-sm);
 	}
 }
+
 </style>
