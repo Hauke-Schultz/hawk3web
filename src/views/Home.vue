@@ -229,7 +229,7 @@ const handleMenuClick = () => {
 					<Icon :name="levelInfo.gameIcon" size="24" />
 					<div class="recent-game-info">
 						<span class="recent-game-title">{{ levelInfo.gameTitle }}</span>
-						<span class="recent-game-level"><Icon name="play" size="16" /> {{ t('memory.level_title', { level: levelInfo.level }) }}</span>
+						<span class="recent-game-level btn btn--primary btn--small"><Icon name="resume" size="16" /> {{ t('memory.level_title', { level: levelInfo.level }) }}</span>
 						<span class="recent-game-time">{{ formatRelativeTime(levelInfo.savedAt) }}</span>
 					</div>
 				</div>
@@ -655,6 +655,7 @@ const handleMenuClick = () => {
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
+	width: 95px;
 }
 
 .recent-game-level {

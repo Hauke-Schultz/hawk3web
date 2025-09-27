@@ -355,7 +355,13 @@ export default {
       empty: 'Noch keine Gegenstände',
       empty_description: 'Besuche den Shop, um Gegenstände und Upgrades zu kaufen!',
       mystery_items: 'Geheimnisvolle Box Items',
+      gift_items: 'Geschenk Items',
+      consumable_items: 'Power-ups',
+      cosmetic_items: 'Kosmetische Items',
       mystery_box_item: 'Geheimnisvolle Box #{boxNumber}',
+      gift_from: 'Geschenk von {sender}',
+      power_up: 'Power-up',
+      cosmetic_item: 'Kosmetisches Item'
     }
 	},
 

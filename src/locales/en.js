@@ -275,7 +275,13 @@ export default {
       empty: 'No items yet',
       empty_description: 'Visit the shop to purchase items and upgrades!',
       mystery_items: 'Mystery Box Items',
+      gift_items: 'Gift Items',
+      consumable_items: 'Power-ups',
+      cosmetic_items: 'Cosmetic Items',
       mystery_box_item: 'Mystery Box #{boxNumber}',
+      gift_from: 'Gift from {sender}',
+      power_up: 'Power-up',
+      cosmetic_item: 'Cosmetic Item',
     }
 	},
 

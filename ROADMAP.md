@@ -90,22 +90,13 @@
 - **Mystery Boxes** - Special boxes with new items (cosmetics not buyable in shop)
 - **Whack A Mole Minigame** - New minigame to win coins and diamonds
 - **Num Game 7 Tile** - New tile that decreases every slide until it reaches 4
+- **Gift System** - Send and receive gifts with friends
 
 ---
 
 ## 🚀 Version 0.3.4 - Enhancements
 
 - **🎁 Gift System** - Send and receive gifts with friends
-- Shop new category "Gifts"
-- Gift item types: Cosmetics only (no power-ups/utilities)
-- Gift Item must be owned to send
-- Player selects owned gift item
-- Gift Button opens modal to copy unique gift code
-- Gift code contains: sender name, item ID, timestamp, unique code
-- Code can be shared with friends (outside app)
-- Friend enters code in "Redeem Gift" input on Profile page
-- Received gifts appear on Profile page in inventory with "gift from [sender]" label
-- Only one gift can be sent and received per day
 
 ---
 
