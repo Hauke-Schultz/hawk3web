@@ -183,6 +183,16 @@ const getGiftSender = (itemId) => {
 	return inventoryData?.giftFrom || 'Unknown'
 }
 
+const getGiftDate = (itemId) => {
+	const inventoryData = gameData.player.inventory.items[itemId]
+	return inventoryData?.receivedAt ? new Date(inventoryData.receivedAt).toLocaleDateString() : 'Unknown'
+}
+
+const getMysteryBoxDate = (itemId) => {
+	const inventoryData = gameData.player.inventory.items[itemId]
+	return inventoryData?.purchasedAt ? new Date(inventoryData.purchasedAt).toLocaleDateString() : 'Unknown'
+}
+
 // Navigation helper
 const navigateToShop = () => {
 	router.push('/shop')
@@ -437,7 +447,7 @@ onUnmounted(() => {
 													boxNumber: gameData.player.inventory.items[item.id].mysteryBoxNumber
 												}) }}
 			            </span>
-									<span v-if="item.quantity > 1" class="item-quantity">x{{ item.quantity }}</span>
+									<span class="item-quantity">{{ getMysteryBoxDate(item.id) }}</span>
 								</div>
 							</div>
 
@@ -458,7 +468,7 @@ onUnmounted(() => {
 										sender: getGiftSender(item.id)
 									}) }}
             </span>
-									<span v-if="item.quantity > 1" class="item-quantity">x{{ item.quantity }}</span>
+									<span class="item-quantity">{{ getGiftDate(item.id) }}</span>
 								</div>
 							</div>
 							<!-- Regular Items -->
@@ -906,8 +916,10 @@ onUnmounted(() => {
 .item-details {
 	flex: 1;
 	display: flex;
-	flex-direction: column;
+	flex-wrap: wrap;
 	gap: var(--space-1);
+	justify-content: space-between;
+	align-items: center;
 }
 
 .item-name {
@@ -915,6 +927,7 @@ onUnmounted(() => {
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
 	line-height: 1.2;
+	width: 100%;
 }
 
 .item-source {

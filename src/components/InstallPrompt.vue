@@ -5,6 +5,16 @@ import Icon from './Icon.vue'
 
 const { t } = useI18n()
 
+// Props hinzufügen
+const props = defineProps({
+	forceShow: {
+		type: Boolean,
+		default: false
+	}
+})
+
+const emit = defineEmits(['close'])
+
 const showInstallPrompt = ref(false)
 const deferredPrompt = ref(null)
 const isStandalone = ref(false)
@@ -23,7 +33,6 @@ const isIOSDevice = () => {
 const isStandaloneModeActive = () => {
 	if (typeof window === 'undefined') return false
 
-	// Check various standalone indicators
 	const matchMedia = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
 	const navigatorStandalone = typeof navigator !== 'undefined' && navigator.standalone
 	const androidApp = typeof document !== 'undefined' && document.referrer.includes('android-app://')
@@ -42,7 +51,8 @@ const handleBeforeInstallPrompt = (e) => {
 	e.preventDefault()
 	deferredPrompt.value = e
 
-	if (!isStandalone.value) {
+	// Only show automatically if not in manual mode
+	if (!props.forceShow && !isStandalone.value) {
 		showInstallPrompt.value = true
 	}
 }
@@ -61,19 +71,19 @@ const installApp = async () => {
 	}
 
 	deferredPrompt.value = null
-	showInstallPrompt.value = false
+	dismissInstall()
 }
 
 const dismissInstall = () => {
 	showInstallPrompt.value = false
-	sessionStorage.setItem('pwa-dismissed', 'true')
-	console.log('❌ PWA prompt dismissed')
-}
 
-const forceShowPrompt = () => {
-	installReason.value = 'Manually triggered for testing'
-	showInstallPrompt.value = true
-	console.log('🔧 PWA prompt force-shown for testing')
+	// Only set session storage if not in manual mode
+	if (!props.forceShow) {
+		sessionStorage.setItem('pwa-dismissed', 'true')
+	}
+
+	emit('close')
+	console.log('❌ PWA prompt dismissed')
 }
 
 onMounted(() => {
@@ -82,6 +92,14 @@ onMounted(() => {
 
 	checkStandalone()
 
+	// If force show is enabled, show immediately
+	if (props.forceShow) {
+		showInstallPrompt.value = true
+		installReason.value = 'Manual trigger from settings'
+		return
+	}
+
+	// Original automatic logic only if not force showing
 	const wasDismissed = sessionStorage.getItem('pwa-dismissed')
 	if (wasDismissed) {
 		console.log('⏭️ PWA prompt skipped - dismissed this session')
@@ -112,19 +130,15 @@ onMounted(() => {
 		}, 3000)
 	}
 
-	// DEBUG: Development mode test
+	// DEBUG: Development mode test (only if not force showing)
 	if (import.meta.env.DEV) {
 		console.log('🔧 DEV mode - will show test prompt in 5s')
 		setTimeout(() => {
 			if (!showInstallPrompt.value && !wasDismissed) {
-				forceShowPrompt()
+				installReason.value = 'Development mode test'
+				showInstallPrompt.value = true
 			}
 		}, 5000)
-	}
-
-	// Expose debug function globally (safe check)
-	if (typeof window !== 'undefined') {
-		window.showPWAPrompt = forceShowPrompt
 	}
 })
 </script>

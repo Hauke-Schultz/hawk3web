@@ -5,8 +5,8 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
-import Header from "../components/Header.vue";
-import InstallPrompt from "../../components/InstallPrompt.vue";
+import Header from "../components/Header.vue"
+import InstallPrompt from "../../components/InstallPrompt.vue"
 
 // Props
 const props = defineProps({
@@ -33,6 +33,9 @@ const selectedFontSize = ref(gameData.settings.fontSize || 'small')
 const isDeleteUnlocked = ref(false)
 const showDeleteConfirmation = ref(false)
 
+// PWA Install State
+const showInstallPrompt = ref(false)
+
 // Theme options
 const themeOptions = [
 	{ value: 'dark', label: () => t('settings.themes.dark') },
@@ -45,6 +48,25 @@ const fontSizeOptions = [
 	{ value: 'medium', label: () => t('settings.font_sizes.medium') },
 	{ value: 'large', label: () => t('settings.font_sizes.large') }
 ]
+
+// PWA Install methods
+const showInstallOptions = () => {
+	showInstallPrompt.value = true
+}
+
+const closeInstallPrompt = () => {
+	showInstallPrompt.value = false
+}
+
+// Check if PWA is already installed
+const isPWAInstalled = () => {
+	// Check various standalone indicators
+	const matchMedia = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
+	const navigatorStandalone = typeof navigator !== 'undefined' && navigator.standalone
+	const androidApp = typeof document !== 'undefined' && document.referrer.includes('android-app://')
+
+	return matchMedia || navigatorStandalone || androidApp
+}
 
 // Watch for prop changes
 watch(() => props.currentTheme, (newTheme) => {
@@ -146,6 +168,7 @@ const handleMenuClick = () => {
 				</button>
 			</div>
 		</section>
+
 		<!-- Font Size Section -->
 		<section class="font-size-section">
 			<h2 class="section-title">{{ t('settings.font_size') }}</h2>
@@ -163,6 +186,7 @@ const handleMenuClick = () => {
 				</button>
 			</div>
 		</section>
+
 		<!-- Language Section -->
 		<section class="language-section">
 			<h2 class="section-title">{{ t('settings.language') }}</h2>
@@ -179,6 +203,37 @@ const handleMenuClick = () => {
 					<span class="language-flag">{{ language.flag }}</span>
 					<span class="language-name">{{ language.nativeName }}</span>
 				</button>
+			</div>
+		</section>
+
+		<!-- PWA Install Section -->
+		<section class="pwa-section">
+			<h2 class="section-title">{{ t('settings.app_installation') }}</h2>
+
+			<div class="pwa-container">
+				<div class="pwa-info">
+					<h3 class="pwa-title">{{ t('settings.install_app') }}</h3>
+					<p class="pwa-description">
+						{{ t('settings.install_app_description') }}
+					</p>
+				</div>
+
+				<div class="pwa-controls">
+					<button
+							v-if="!isPWAInstalled()"
+							class="btn btn--primary"
+							@click="showInstallOptions"
+							:aria-label="t('settings.install_app')"
+					>
+						<Icon name="download" size="20" />
+						{{ t('settings.install_app') }}
+					</button>
+
+					<div v-else class="pwa-installed">
+						<Icon name="completion-badge" size="20" />
+						<span>{{ t('settings.app_already_installed') }}</span>
+					</div>
+				</div>
 			</div>
 		</section>
 
@@ -225,11 +280,11 @@ const handleMenuClick = () => {
 				:title="t('settings.delete_confirmation.title')"
 				:message="t('settings.delete_confirmation.message')"
 				:items="[
-        t('settings.delete_confirmation.items.0'),
-        t('settings.delete_confirmation.items.1'),
-        t('settings.delete_confirmation.items.2'),
-        t('settings.delete_confirmation.items.3')
-      ]"
+				t('settings.delete_confirmation.items.0'),
+				t('settings.delete_confirmation.items.1'),
+				t('settings.delete_confirmation.items.2'),
+				t('settings.delete_confirmation.items.3')
+			]"
 				:warning="t('settings.delete_confirmation.warning')"
 				:confirm-text="t('settings.delete_confirmation.confirm')"
 				:cancel-text="t('common.cancel')"
@@ -237,9 +292,14 @@ const handleMenuClick = () => {
 				@confirm="confirmDelete"
 				@cancel="cancelDelete"
 		/>
+
+		<!-- Manual PWA Install Prompt (only shows when button is clicked) -->
+		<InstallPrompt
+				v-if="showInstallPrompt"
+				:force-show="true"
+				@close="closeInstallPrompt"
+		/>
 	</main>
-	<!-- PWA Install Prompt -->
-	<InstallPrompt />
 </template>
 
 <style lang="scss" scoped>
@@ -473,5 +533,61 @@ const handleMenuClick = () => {
 	display: flex;
 	align-items: center;
 	gap: var(--space-3);
+}
+
+
+// PWA Install Section
+.pwa-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.pwa-container {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-xl);
+	padding: var(--space-4);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.pwa-info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.pwa-title {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.pwa-description {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	margin: 0;
+	line-height: 1.4;
+}
+
+.pwa-controls {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pwa-installed {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-3) var(--space-4);
+	background-color: var(--success-color);
+	color: white;
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
 }
 </style>

@@ -489,6 +489,10 @@ export default {
 		language: 'Language',
 		sound: 'Sound',
 		music: 'Music',
+    app_installation: 'App Installation',
+    install_app: 'Install App',
+    install_app_description: 'Install Hawk3 as an app for better performance, offline access, and a native app experience.',
+    app_already_installed: 'App is already installed',
 		profile_management: 'Profile Management',
 		delete_profile: 'Delete Profile',
 		delete_profile_description: 'This will permanently delete all your game progress, achievements, and settings. This action cannot be undone.',
@@ -519,7 +523,7 @@ export default {
 		languages: {
 			english: 'English',
 			german: 'Deutsch'
-		}
+		},
 	},
 
 	// Gaming Hub

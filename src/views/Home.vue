@@ -261,10 +261,6 @@ const handleMenuClick = () => {
 						<span class="progress-number">{{ overallProgress.stars }}/{{ overallProgress.maxStars }}</span>
 						<span class="progress-label">{{ t('gaming.stats.stars') }}</span>
 					</div>
-					<div class="progress-item">
-						<span class="progress-number">{{ overallProgress.percentage }}%</span>
-						<span class="progress-label">{{ t('common.complete') }}</span>
-					</div>
 				</div>
 
 				<!-- Overall Progress Bar -->
@@ -424,7 +420,7 @@ const handleMenuClick = () => {
 
 .progress-stats {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(4, auto);
 	gap: var(--space-2);
 }
 
