@@ -54,12 +54,11 @@ export const GIFTABLE_ITEMS = [
 
 // Generate unique gift code
 export const generateGiftCode = (playerName, itemId) => {
-  const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 6).toUpperCase()
   const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '')
 
   // Simple format: HAWK3-PLAYERNAME-ITEMID-DATE-RANDOM
-  return `${GIFT_CONFIG.codePrefix}-${playerName.substring(0, 8).toUpperCase()}-${itemId.toUpperCase()}-${dateStr}-${random}`
+  return `${GIFT_CONFIG.codePrefix}-${playerName.replace(' ', '_').substring(0, 8).toUpperCase()}-${itemId.toUpperCase()}-${dateStr}-${random}`
 }
 
 
@@ -94,7 +93,7 @@ export const decodeGiftCode = (giftCode) => {
 // Validate gift code format
 export const validateGiftCodeFormat = (code) => {
   if (!code || typeof code !== 'string') return false
-  const pattern = new RegExp(`^${GIFT_CONFIG.codePrefix}-[A-Z0-9]+-[A-Z0-9_]+-[0-9]{8}-[A-Z0-9]+$`)
+  const pattern = new RegExp(`^${GIFT_CONFIG.codePrefix}-[A-Z0-9_-]+-[A-Z0-9_-]+-[0-9]{8}-[A-Z0-9]+$`)
   return pattern.test(code.toUpperCase())
 }
 

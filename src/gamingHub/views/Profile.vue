@@ -3,38 +3,25 @@ import {computed, onMounted, onUnmounted, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
-import { useInventory } from '../composables/useInventory.js'
+import { useInventory} from '../composables/useInventory.js'
 import Icon from "../../components/Icon.vue"
-import CurrencyDisplay from "../components/CurrencyDisplay.vue";
 import Header from "../components/Header.vue";
-import {RARITY_CONFIG, SHOP_ITEMS} from '../config/shopConfig.js'
+import {RARITY_CONFIG} from '../config/shopConfig.js'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
 import {ACHIEVEMENTS} from "../config/achievementsConfig.js";
 
 // Services
-const {
-	gameData,
-	updatePlayer,
-	formatCurrency,
-	canReceiveGiftToday,
-	redeemGift
-} = useLocalStorage()
+const { gameData, updatePlayer } = useLocalStorage()
 const { t } = useI18n()
-const { getAllOwnedItems } = useInventory()
+const { getAllOwnedItems, hasItem } = useInventory()
 const router = useRouter()
 
-const giftCode = ref('')
 const giftRedeemResult = ref(null)
 const showGiftModal = ref(false)
-const isRedeeming = ref(false)
-
 
 const showAvatarSelector = ref(false)
-const isEditingName = ref(false)
-const editingName = ref('')
+const editingName = ref(gameData.player.name)
 const nameInput = ref(null)
-
-const isEditing = computed(() => showAvatarSelector.value || isEditingName.value)
 
 // Enhanced player summary
 const playerSummary = computed(() => ({
@@ -78,47 +65,36 @@ const overallProgress = computed(() => {
 // Avatar Methods
 const toggleAvatarSelector = () => {
 	showAvatarSelector.value = !showAvatarSelector.value
-	if (isEditingName.value) {
-		cancelNameEdit()
-	}
-}
-
-// Name Editing Methods
-const startNameEdit = () => {
-	if (showAvatarSelector.value) {
-		showAvatarSelector.value = false
-	}
-	isEditingName.value = true
-	editingName.value = playerName.value
-	nextTick(() => {
-		if (nameInput.value) {
-			nameInput.value.focus()
-			nameInput.value.select()
-		}
-	})
 }
 
 const finishNameEdit = () => {
-	if (editingName.value.trim()) {
-		playerName.value = editingName.value.trim()
+	const sanitizedName = sanitizeName(editingName.value)
+
+	if (sanitizedName.length > 0) {
+		playerName.value = sanitizedName
+	} else {
+		playerName.value = gameData.player.name // Revert to previous valid name
 	}
-	isEditingName.value = false
+
+	editingName.value = playerName.value
 }
 
-const cancelNameEdit = () => {
-	isEditingName.value = false
-	editingName.value = ''
+const sanitizeName = (name) => {
+	if (!name || typeof name !== 'string') return ''
+
+	return name
+			.trim() // Remove whitespace from start/end
+			.replace(/[^a-zA-Z0-9\s\-]/g, '') // Only allow letters, numbers, spaces, and hyphens
+			.replace(/\s+/g, ' ') // Replace multiple spaces with single space
+			.replace(/\-+/g, '-') // Replace multiple hyphens with single hyphen
+			.substring(0, 20) // Limit to 30 characters
+			.trim() // Final trim in case we cut off in the middle of spaces
 }
 
 // Close dropdowns when clicking outside
 const handleOutsideClick = (event) => {
 	if (!event.target.closest('.avatar-section') && !event.target.closest('.name-section')) {
 		showAvatarSelector.value = false
-	}
-	if (!event.target.closest('.name-editor') && !event.target.closest('.name-section')) {
-		if (isEditingName.value) {
-			cancelNameEdit()
-		}
 	}
 }
 
@@ -140,31 +116,6 @@ const playerName = computed({
 	}
 })
 
-const ownedItems = computed(() => {
-	const allItems = getAllOwnedItems()
-
-	// Separate mystery items from regular shop items
-	const mysteryItems = allItems.filter(item => {
-		const inventoryData = gameData.player.inventory.items[item.id]
-		return inventoryData && inventoryData.mysteryBoxNumber !== undefined
-	})
-
-	const regularItems = allItems.filter(item => {
-		const inventoryData = gameData.player.inventory.items[item.id]
-		return !inventoryData || inventoryData.mysteryBoxNumber === undefined
-	})
-
-	// Show mystery items first, then regular items, limit to 12 total
-	return [...mysteryItems, ...regularItems].slice(0, 12)
-})
-
-const hasMysteryItems = computed(() => {
-	return ownedItems.value.some(item => {
-		const inventoryData = gameData.player.inventory.items[item.id]
-		return inventoryData && inventoryData.mysteryBoxNumber !== undefined
-	})
-})
-
 const mysteryItems = computed(() => organizedItems.value.mystery)
 const giftItems = computed(() => organizedItems.value.gifts)
 const consumableItems = computed(() => organizedItems.value.consumables)
@@ -176,17 +127,6 @@ const hasAnyItems = computed(() => {
 			consumableItems.value.length > 0 ||
 			regularItems.value.length > 0
 })
-
-// Helper function to get gift sender
-const getGiftSender = (itemId) => {
-	const inventoryData = gameData.player.inventory.items[itemId]
-	return inventoryData?.giftFrom || 'Unknown'
-}
-
-const getGiftDate = (itemId) => {
-	const inventoryData = gameData.player.inventory.items[itemId]
-	return inventoryData?.receivedAt ? new Date(inventoryData.receivedAt).toLocaleDateString() : 'Unknown'
-}
 
 const getMysteryBoxDate = (itemId) => {
 	const inventoryData = gameData.player.inventory.items[itemId]
@@ -213,15 +153,32 @@ const organizedItems = computed(() => {
 		if (inventoryData && inventoryData.mysteryBoxNumber !== undefined) {
 			mystery.push(item)
 		}
-		// Check if it's a gift item
+		// Check if it's a received gift item
 		else if (inventoryData && inventoryData.isGift) {
-			gifts.push(item)
+			gifts.push({
+				...item,
+				giftType: 'received',
+				giftFrom: inventoryData.giftFrom,
+				giftDate: inventoryData.receivedAt
+			})
+		}
+		// Check if it's a sent gift item (from today's sent gifts)
+		else if (isSentGiftItem(item.id)) {
+			const sentGiftInfo = getSentGiftInfo(item.id)
+			gifts.push({
+				...item,
+				giftType: sentGiftInfo.received ? 'sent' : 'pending',
+				giftTo: sentGiftInfo.recipient || 'Unknown',
+				giftDate: sentGiftInfo.receivedAt || sentGiftInfo.sentDate,
+				giftCode: sentGiftInfo.code,
+				giftReceived: sentGiftInfo.received
+			})
 		}
 		// Check if it's a consumable
 		else if (item.type === 'consumable') {
 			consumables.push(item)
 		}
-		// Regular cosmetic items
+		// Regular cosmetic items (not sent as gifts)
 		else {
 			regular.push(item)
 		}
@@ -234,15 +191,58 @@ const organizedItems = computed(() => {
 			return bBox - aBox // Newest mystery boxes first
 		}),
 		gifts: gifts.sort((a, b) => {
-			const aReceived = gameData.player.inventory.items[a.id].receivedAt
-			const bReceived = gameData.player.inventory.items[b.id].receivedAt
-			return new Date(bReceived) - new Date(aReceived) // Newest gifts first
+			const aDate = new Date(a.giftDate)
+			const bDate = new Date(b.giftDate)
+			return bDate - aDate // Newest gifts first
 		}),
 		consumables: consumables.sort((a, b) => b.quantity - a.quantity), // Highest quantity first
 		regular: regular.sort((a, b) => a.name.localeCompare(b.name)) // Alphabetical
 	}
 })
 
+// Helper functions for sent gifts
+const isSentGiftItem = (itemId) => {
+	const sentGifts = gameData.player.gifts?.sentGifts || []
+	return sentGifts.some(gift => gift.itemId === itemId && hasItem(itemId))
+}
+
+const getSentGiftInfo = (itemId) => {
+	const sentGifts = gameData.player.gifts?.sentGifts || []
+
+	// Get the most recent sent gift for this item
+	const recentGift = sentGifts
+			.filter(gift => gift.itemId === itemId)
+			.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
+
+	return {
+		recipient: 'Friend', // Could be enhanced to show actual recipient
+		sentDate: recentGift?.createdAt,
+		code: recentGift?.code,
+		received: recentGift?.received || false
+	}
+}
+
+// Enhanced gift helper functions
+const getGiftSender = (item) => {
+	if (item.giftType === 'received') {
+		return item.giftFrom || 'Unknown'
+	}
+	return null
+}
+
+const getGiftRecipient = (item) => {
+	if (item.giftType === 'sent' || item.giftType === 'pending') {
+		return item.giftTo || 'Friend'
+	}
+	return null
+}
+
+const getGiftDate = (item) => {
+	if (item.giftDate) {
+		return new Date(item.giftDate).toLocaleDateString()
+	}
+	return 'Unknown'
+}
 
 const selectedAvatar = computed({
 	get: () => gameData.player.avatar,
@@ -262,10 +262,7 @@ const getItemRarityStyle = (rarity) => {
 // Methods
 const selectAvatar = (avatar) => {
 	selectedAvatar.value = avatar
-}
-
-const updatePlayerName = () => {
-	playerName.value = playerName.value
+	showAvatarSelector.value = false
 }
 
 const handleMenuClick = () => {
@@ -301,10 +298,7 @@ onUnmounted(() => {
 					<div class="progress-header">
 						<div class="avatar-section" @click="toggleAvatarSelector">
 							<div class="avatar-display" :class="{ 'avatar-display--clickable': !showAvatarSelector }">
-								<Icon :name="selectedAvatar" size="48" />
-								<div class="avatar-edit-hint">
-									<Icon name="settings" size="12" />
-								</div>
+								<Icon :name="selectedAvatar" size="54" />
 							</div>
 
 							<!-- Avatar Selector -->
@@ -312,14 +306,14 @@ onUnmounted(() => {
 								<div v-if="showAvatarSelector" class="avatar-dropdown" @click.stop>
 									<div class="avatar-options">
 										<button
-												v-for="option in avatarOptions"
-												:key="option.value"
-												class="avatar-option"
-												:class="{ 'avatar-option--active': selectedAvatar === option.value }"
-												@click="selectAvatar(option.value)"
-												:aria-label="option.label"
+											v-for="option in avatarOptions"
+											:key="option.value"
+											class="avatar-option"
+											:class="{ 'avatar-option--active': selectedAvatar === option.value }"
+											@click="selectAvatar(option.value)"
+											:aria-label="option.label"
 										>
-											<Icon :name="option.icon" size="24" />
+											<Icon :name="option.icon" size="84" />
 										</button>
 									</div>
 								</div>
@@ -327,15 +321,8 @@ onUnmounted(() => {
 						</div>
 
 						<div class="player-info">
-							<div class="name-section" @click="startNameEdit" v-if="!isEditingName">
-								<h2 class="player-name">{{ playerName }}</h2>
-								<div class="name-edit-hint">
-									<Icon name="settings" size="12" />
-								</div>
-							</div>
-
 							<!-- Name Editor -->
-							<div v-else class="name-editor" @click.stop>
+							<div class="name-editor" @click.stop>
 								<input
 										ref="nameInput"
 										v-model="editingName"
@@ -345,14 +332,11 @@ onUnmounted(() => {
 										maxlength="20"
 										@blur="finishNameEdit"
 										@keydown.enter="finishNameEdit"
-										@keydown.escape="cancelNameEdit"
+										@keydown.escape="finishNameEdit"
 								/>
 								<div class="name-actions">
-									<button class="btn-icon btn-icon--success" @click="finishNameEdit">
-										<Icon name="completion-badge" size="14" />
-									</button>
-									<button class="btn-icon btn-icon--cancel" @click="cancelNameEdit">
-										<Icon name="close" size="14" />
+									<button class="btn btn--save" @click="finishNameEdit">
+										<Icon name="save" size="14" />
 									</button>
 								</div>
 							</div>
@@ -400,19 +384,19 @@ onUnmounted(() => {
 					<div v-if="consumableItems.length > 0">
 						<div class="inventory-items">
 							<div
-									v-for="item in consumableItems"
-									:key="`consumable-${item.id}`"
-									class="inventory-item inventory-item--consumable"
+								v-for="item in consumableItems"
+								:key="`consumable-${item.id}`"
+								class="inventory-item inventory-item--consumable"
 							>
-          <span
-		          class="item-icon item-icon--consumable"
-		          :style="getItemRarityStyle(item.rarity)"
-          >{{ item.icon }}</span>
+		          <span
+			          class="item-icon item-icon--consumable"
+			          :style="getItemRarityStyle(item.rarity)"
+		          >{{ item.icon }}</span>
 								<div class="item-details">
 									<span class="item-name">{{ item.name }}</span>
 									<span class="item-source item-source--consumable">
-              {{ t('profile.inventory.power_up') }}
-            </span>
+			              {{ t('profile.inventory.power_up') }}
+			            </span>
 								</div>
 								<span class="item-quantity item-quantity--consumable">x{{ item.quantity }}</span>
 							</div>
@@ -436,56 +420,113 @@ onUnmounted(() => {
 								:key="item.id"
 								class="inventory-item inventory-item--mystery"
 							>
-	              <span
-				          class="item-icon item-icon--mystery"
-				          :style="getItemRarityStyle(item.rarity)"
-	              >{{ item.icon }}</span>
+                <span
+			            class="item-icon item-icon--mystery"
+			            :style="getItemRarityStyle(item.rarity)"
+                >{{ item.icon }}</span>
 								<div class="item-details">
 									<span class="item-name">{{ item.name }}</span>
 									<span class="item-source item-source--mystery">
-			              {{ t('profile.inventory.mystery_box_item', {
-													boxNumber: gameData.player.inventory.items[item.id].mysteryBoxNumber
-												}) }}
-			            </span>
+		                {{ t('profile.inventory.mystery_box_item', {
+												boxNumber: gameData.player.inventory.items[item.id].mysteryBoxNumber
+											}) }}
+		              </span>
 									<span class="item-quantity">{{ getMysteryBoxDate(item.id) }}</span>
 								</div>
 							</div>
 
-							<!-- Gift Items -->
+							<!-- Enhanced Gift Items (Received + Sent) -->
 							<div
-									v-for="item in giftItems"
-									:key="`gift-${item.id}`"
-									class="inventory-item inventory-item--gift"
+								v-for="item in giftItems"
+								:key="`gift-${item.id}-${item.giftType}`"
+								class="inventory-item"
+								:class="{
+		              'inventory-item--gift-received': item.giftType === 'received',
+		              'inventory-item--gift-sent': item.giftType === 'sent' || item.giftType === 'pending'
+		            }"
 							>
-          <span
-		          class="item-icon item-icon--gift"
-		          :style="getItemRarityStyle(item.rarity)"
-          >{{ item.icon }}</span>
+		            <span
+			            class="item-icon"
+			            :class="{
+		                'item-icon--gift-received': item.giftType === 'received',
+		                'item-icon--gift-sent': item.giftType === 'sent' || item.giftType === 'pending'
+		              }"
+			            :style="getItemRarityStyle(item.rarity)"
+		            >{{ item.icon }}</span>
+
 								<div class="item-details">
 									<span class="item-name">{{ item.name }}</span>
-									<span class="item-source item-source--gift">
-              {{ t('profile.inventory.gift_from', {
-										sender: getGiftSender(item.id)
-									}) }}
-            </span>
-									<span class="item-quantity">{{ getGiftDate(item.id) }}</span>
+
+									<!-- Received Gift -->
+									<span
+										v-if="item.giftType === 'received'"
+										class="item-source item-source--gift-received"
+									>
+		                {{ t('profile.inventory.gift_from', {
+												sender: getGiftSender(item)
+											}) }}
+		              </span>
+
+									<!-- Sent Gift -->
+									<span
+										v-if="item.giftType === 'sent'"
+										class="item-source item-source--gift-sent"
+									>
+		                {{ t('profile.inventory.gift_sent_to', {
+												recipient: getGiftRecipient(item)
+											}) }}
+		              </span>
+
+									<!-- Pending Gift -->
+									<span
+										v-if="item.giftType === 'pending'"
+										class="item-source item-source--gift-sent"
+									>
+		                {{ t('profile.inventory.gift_pending_to', {
+												recipient: getGiftRecipient(item)
+											}) }}
+		              </span>
+
+									<div class="gift-meta">
+										<span class="item-quantity">{{ getGiftDate(item) }}</span>
+									</div>
 								</div>
 							</div>
+
+							<!-- Consumable Items -->
+							<div
+								v-for="item in consumableItems"
+								:key="`consumable-${item.id}`"
+								class="inventory-item inventory-item--consumable"
+							>
+		            <span
+			            class="item-icon item-icon--consumable"
+			            :style="getItemRarityStyle(item.rarity)"
+		            >{{ item.icon }}</span>
+								<div class="item-details">
+									<span class="item-name">{{ item.name }}</span>
+									<span class="item-source item-source--consumable">
+                    {{ t('profile.inventory.power_up') }}
+                  </span>
+								</div>
+								<span class="item-quantity item-quantity--consumable">x{{ item.quantity }}</span>
+							</div>
+
 							<!-- Regular Items -->
 							<div
-									v-for="item in regularItems"
-									:key="`regular-${item.id}`"
-									class="inventory-item inventory-item--regular"
+								v-for="item in regularItems"
+								:key="`regular-${item.id}`"
+								class="inventory-item inventory-item--regular"
 							>
-          <span
-		          class="item-icon item-icon--regular"
-		          :style="getItemRarityStyle(item.rarity)"
-          >{{ item.icon }}</span>
+		            <span
+			            class="item-icon item-icon--regular"
+			            :style="getItemRarityStyle(item.rarity)"
+		            >{{ item.icon }}</span>
 								<div class="item-details">
 									<span class="item-name">{{ item.name }}</span>
 									<span class="item-source item-source--regular">
-              {{ t('profile.inventory.cosmetic_item') }}
-            </span>
+		                {{ t('profile.inventory.cosmetic_item') }}
+		              </span>
 									<span v-if="item.quantity > 1" class="item-quantity">x{{ item.quantity }}</span>
 								</div>
 							</div>
@@ -493,6 +534,7 @@ onUnmounted(() => {
 					</div>
 				</div>
 
+				<!-- Empty state remains the same -->
 				<div v-else class="inventory-empty">
 					<Icon name="shop" size="48" />
 					<h3>{{ t('profile.inventory.empty') }}</h3>
@@ -580,48 +622,27 @@ onUnmounted(() => {
 }
 
 .avatar-display {
+	display: flex;
 	position: relative;
 	cursor: pointer;
 	border-radius: var(--border-radius-lg);
-	padding: var(--space-1);
 	transition: all 0.2s ease;
+	border: 2px solid var(--primary-color);
+	padding: var(--space-1) var(--space-2);
 
 	&--clickable:hover {
 		background-color: var(--card-bg-hover);
-		transform: scale(1.05);
 	}
-
-	.avatar-edit-hint {
-		opacity: 1;
-	}
-}
-
-.avatar-edit-hint {
-	position: absolute;
-	bottom: -2px;
-	right: -2px;
-	background-color: var(--primary-color);
-	color: white;
-	border-radius: 50%;
-	width: var(--space-5);
-	height: var(--space-5);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	opacity: 0;
-	transition: opacity 0.2s ease;
-	font-size: var(--font-size-xs);
 }
 
 // Avatar Dropdown
 .avatar-dropdown {
 	position: absolute;
 	top: 100%;
-	left: 50%;
-	transform: translateX(-50%);
+	left: 0;
 	margin-top: var(--space-2);
 	background-color: var(--card-bg);
-	border: 1px solid var(--card-border);
+	border: 1px solid var(--primary-color);
 	border-radius: var(--border-radius-lg);
 	padding: var(--space-2);
 	box-shadow: var(--card-shadow-hover);
@@ -638,17 +659,14 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: var(--space-10);
-	height: var(--space-10);
-	border: 2px solid transparent;
+	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-md);
 	background-color: var(--card-bg-hover);
 	cursor: pointer;
 	transition: all 0.2s ease;
 
 	&:hover {
-		background-color: var(--card-border);
-		transform: scale(1.05);
+		background-color: var(--primary-color);
 	}
 
 	&--active {
@@ -667,6 +685,7 @@ onUnmounted(() => {
 }
 
 .name-section {
+	background-color: var(--bg-secondary);
 	position: relative;
 	cursor: pointer;
 	padding: var(--space-2);
@@ -675,42 +694,8 @@ onUnmounted(() => {
 	transition: all 0.2s ease;
 
 	&:hover {
-		background-color: var(--card-bg-hover);
+		border: 1px solid var(--primary-color);
 	}
-
-	.name-edit-hint {
-		opacity: 1;
-	}
-}
-
-.player-name {
-	font-size: var(--font-size-lg);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	margin: 0;
-	line-height: 1.2;
-}
-
-.player-level {
-	font-size: var(--font-size-sm);
-	color: var(--text-secondary);
-	font-weight: var(--font-weight-bold);
-}
-
-.name-edit-hint {
-	position: absolute;
-	top: 2px;
-	right: 2px;
-	background-color: var(--primary-color);
-	color: white;
-	border-radius: 50%;
-	width: var(--space-4);
-	height: var(--space-4);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	opacity: 0;
-	transition: opacity 0.2s ease;
 }
 
 // Name Editor
@@ -721,7 +706,7 @@ onUnmounted(() => {
 }
 
 .name-input-inline {
-	background-color: var(--card-bg);
+	background-color: var(--bg-secondary);
 	border: 2px solid var(--primary-color);
 	border-radius: var(--border-radius-md);
 	padding: var(--space-2) var(--space-3);
@@ -730,7 +715,7 @@ onUnmounted(() => {
 	color: var(--text-color);
 	font-family: var(--font-family-base);
 	flex: 1;
-	max-width: 205px;
+	max-width: 200px;
 
 	&:focus {
 		outline: none;
@@ -743,43 +728,10 @@ onUnmounted(() => {
 	gap: var(--space-1);
 }
 
-.btn-icon {
-	width: var(--space-7);
-	height: var(--space-7);
-	border: none;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	aspect-ratio: 1;
-
-	&--success {
-		background-color: var(--success-color);
-		color: white;
-
-		&:hover {
-			background-color: var(--success-hover);
-		}
-	}
-
-	&--cancel {
-		background-color: var(--error-color);
-		color: white;
-
-		&:hover {
-			background-color: var(--error-hover);
-		}
-	}
+.btn--save {
+	padding: var(--space-4);
 }
 
-// Currency Section
-.currency-section {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
 
 // Compact Stats
 .progress-stats-compact {
@@ -1025,6 +977,35 @@ onUnmounted(() => {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-2);
+}
+
+
+
+// Enhanced Gift Item Styles
+.inventory-item--gift-received {
+	border-color: var(--success-color);
+	background: rgba(16, 185, 129, 0.05);
+}
+
+.inventory-item--gift-sent {
+	border-color: var(--warning-color);
+	background: rgba(245, 158, 11, 0.05);
+}
+
+.item-icon--gift-received {
+	box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.item-icon--gift-sent {
+	box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.item-source--gift-received {
+	color: var(--success-color);
+}
+
+.item-source--gift-sent {
+	color: var(--warning-color);
 }
 
 </style>

@@ -12,9 +12,10 @@ import Header from '../components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import CurrencyDisplay from '../components/CurrencyDisplay.vue'
 import ShopModal from '../components/ShopModal.vue'
+import GiftCodeModal from "../components/GiftCodeModal.vue";
 
 // Services
-const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift, canReceiveGiftToday, redeemGift } = useLocalStorage()
+const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift, canReceiveGiftToday, redeemGift, markGiftAsReceived, unmarkGiftAsReceived } = useLocalStorage()
 const { selectedCategory, currentCategoryItems, canAffordItem, canPurchaseItem } = useShop()
 const { hasItem } = useInventory()
 const { t } = useI18n()
@@ -373,6 +374,76 @@ const getGiftButtonClass = (item) => {
 	return 'item-button--gift'
 }
 
+const getGiftStatus = (item) => {
+	if (selectedCategory.value !== 'gifts') return null
+
+	const today = new Date().toISOString().split('T')[0]
+	const sentGifts = gameData.player.gifts?.sentGifts || []
+	const receivedGifts = gameData.player.gifts?.receivedGifts || []
+
+	// Check if sent today
+	const sentToday = sentGifts.find(gift =>
+			gift.itemId === item.id && gift.sentDate === today
+	)
+
+	// Check if received today
+	const receivedToday = receivedGifts.find(gift =>
+			gift.itemId === item.id &&
+			gift.receivedAt &&
+			gift.receivedAt.split('T')[0] === today
+	)
+
+	return {
+		sentToday: sentToday || null,
+		receivedToday: receivedToday || null,
+		hasSentHistory: sentGifts.some(gift => gift.itemId === item.id),
+		hasReceivedHistory: receivedGifts.some(gift => gift.itemId === item.id)
+	}
+}
+
+// Gift Code Modal State
+const showGiftCodeModal = ref(false)
+const selectedGiftCode = ref(null)
+
+const handleGiftStatusClick = (item) => {
+	const status = getGiftStatus(item)
+
+	if (status.sentToday) {
+		// Show gift code modal
+		selectedGiftCode.value = status.sentToday
+		showGiftCodeModal.value = true
+	} else {
+		// Normal gift flow
+		handleGiftClick(item)
+	}
+}
+
+const closeGiftCodeModal = () => {
+	showGiftCodeModal.value = false
+	selectedGiftCode.value = null
+}
+
+const unMarkAsReceived = () => {
+	if (selectedGiftCode.value) {
+		const success = markGiftAsReceived(selectedGiftCode.value.code)
+		if (success) {
+			selectedGiftCode.value.received = false
+			selectedGiftCode.value.receivedAt = null
+		}
+	}
+}
+
+const markAsReceived = async () => {
+	if (selectedGiftCode.value) {
+		const success = markGiftAsReceived(selectedGiftCode.value.code)
+		if (success) {
+			// Update local state
+			selectedGiftCode.value.received = true
+			selectedGiftCode.value.receivedAt = new Date().toISOString()
+		}
+	}
+}
+
 // Navigation
 const handleMenuClick = () => {
 	router.push('/')
@@ -484,24 +555,27 @@ watch(() => gameData, (newData) => {
 			<!-- Items Grid -->
 			<div v-else class="items-grid">
 				<div
-					v-for="item in displayItems"
-					:key="item.id"
-					class="shop-item"
-					:class="{
-		        'shop-item--owned': isItemOwned(item),
-		        'shop-item--too-expensive': !isItemAffordable(item) && !isItemOwned(item),
-		        'shop-item--gift-mode': selectedCategory === 'gifts',
-		        'shop-item--giftable': selectedCategory === 'gifts' && hasItem(item.id),
-		        'shop-item--gift-purchasable': selectedCategory === 'gifts' && item.category === 'gifts' && !hasItem(item.id)
-		      }"
-					@click="selectedCategory === 'gifts' ? handleGiftClick(item) : handleItemClick(item)"
+						v-for="item in displayItems"
+						:key="item.id"
+						class="shop-item"
+						:class="{
+      'shop-item--owned': isItemOwned(item),
+      'shop-item--too-expensive': !isItemAffordable(item) && !isItemOwned(item),
+      'shop-item--gift-mode': selectedCategory === 'gifts',
+      'shop-item--giftable': selectedCategory === 'gifts' && hasItem(item.id),
+      'shop-item--gift-purchasable': selectedCategory === 'gifts' && item.category === 'gifts' && !hasItem(item.id),
+      'shop-item--gift-sent': selectedCategory === 'gifts' && getGiftStatus(item)?.sentToday,
+      'shop-item--gift-received': selectedCategory === 'gifts' && getGiftStatus(item)?.receivedToday
+    }"
+						@click="selectedCategory === 'gifts' ? handleGiftStatusClick(item) : handleItemClick(item)"
 				>
-					<!-- Item Icon -->
+					<!-- Item Icon mit Status Badges -->
 					<div
-						class="item-icon"
-						:style="getItemRarityStyle(item.rarity)"
+							class="item-icon"
+							:style="getItemRarityStyle(item.rarity)"
 					>
 						<span class="item-emoji">{{ item.icon }}</span>
+						<!-- Consumable Quantity Badge (existing) -->
 						<div
 							v-if="item.type === 'consumable' && getItemQuantity(item) > 0"
 							class="item-quantity-badge"
@@ -518,6 +592,18 @@ watch(() => gameData, (newData) => {
 
 					<!-- Item Price & Action -->
 					<div class="item-action">
+						<!-- Gift Status Text -->
+						<div v-if="selectedCategory === 'gifts'" class="gift-status-text">
+			        <span v-if="getGiftStatus(item)?.sentToday" class="status-indicator status-indicator--sent">
+			          {{ getGiftStatus(item)?.sentToday?.received ?
+					        t('shop.gifts.gift_received') :
+					        t('shop.gifts.gift_sent_today')
+				        }}
+			        </span>
+							<span v-else-if="getGiftStatus(item)?.receivedToday" class="status-indicator status-indicator--received">
+			          {{ t('shop.gifts.gift_received_today') }}
+			        </span>
+						</div>
 						<!-- Price Display -->
 						<div v-if="selectedCategory !== 'gifts' || (item.category === 'gifts' && !hasItem(item.id))" class="item-price">
 							<CurrencyDisplay
@@ -576,6 +662,14 @@ watch(() => gameData, (newData) => {
 				@confirm="handleGiftSend"
 				@cancel="closeGiftModal"
 				@close="closeGiftModal"
+		/>
+
+		<GiftCodeModal
+				:visible="showGiftCodeModal"
+				:gift-data="selectedGiftCode"
+				@mark-received="markAsReceived"
+				@unmark-received="unMarkAsReceived"
+				@close="closeGiftCodeModal"
 		/>
 	</main>
 </template>
@@ -1083,4 +1177,77 @@ watch(() => gameData, (newData) => {
 	to { transform: rotate(360deg); }
 }
 
+
+.gift-status-badges {
+	position: absolute;
+	top: -4px;
+	right: -4px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	z-index: 3;
+}
+
+.gift-badge {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid var(--card-bg);
+	font-size: 10px;
+
+	&--sent {
+		background-color: var(--warning-color);
+		color: white;
+
+		&.gift-badge--received {
+			background-color: var(--success-color);
+		}
+	}
+
+	&--received-today {
+		background-color: var(--error-color);
+		color: white;
+	}
+}
+
+// Item Status Styling
+.shop-item--gift-sent {
+	border-color: var(--warning-color);
+	background: rgba(245, 158, 11, 0.1);
+
+	&.shop-item--gift-sent .gift-badge--received {
+		background-color: var(--success-color);
+	}
+}
+
+.shop-item--gift-received {
+	border-color: var(--success-color);
+	background: rgba(16, 185, 129, 0.1);
+}
+
+.status-indicator {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-1) var(--space-3);
+	border: none;
+	border-radius: var(--border-radius-sm);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	cursor: pointer;
+	justify-content: center;
+
+	&--sent {
+		background-color: var(--warning-color);
+		color: white;
+	}
+
+	&--received {
+		background-color: var(--success-color);
+		color: white;
+	}
+}
 </style>

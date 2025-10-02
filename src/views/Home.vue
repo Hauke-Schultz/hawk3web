@@ -8,7 +8,6 @@ import { fruitMergeConfig } from "../gamingHub/games/fruitmerge/fruitMergeConfig
 import { numMergeConfig } from "../gamingHub/games/nummerge/numMergeConfig.js"
 import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
-import CurrencyDisplay from '../gamingHub/components/CurrencyDisplay.vue'
 import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
 import MysteryBoxCard from '../gamingHub/components/MysteryBoxCard.vue'
 
@@ -19,9 +18,7 @@ const {
 	claimDailyReward,
 	markCardAsRead,
 	updateNotificationCount,
-	canClaimMysteryBox,
 	getRecentLevelsForGame,
-	getAllRecentLevels
 } = useLocalStorage()
 const router = useRouter()
 
@@ -128,16 +125,6 @@ const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
 const fruitMergeProgress = computed(() => getGameProgress('fruitMerge', fruitMergeConfig))
 const numMergeProgress = computed(() => getGameProgress('numMerge', numMergeConfig))
 
-// Player Summary
-const playerSummary = computed(() => ({
-	level: gameData.player.level,
-	totalScore: gameData.player.totalScore,
-	gamesPlayed: gameData.player.gamesPlayed,
-	coins: gameData.player.coins,
-	diamonds: gameData.player.diamonds,
-	achievements: gameData.achievements.filter(a => a.earned).length
-}))
-
 // Overall Progress
 const overallProgress = computed(() => {
 	const totalCompleted = memoryProgress.value.completed + fruitMergeProgress.value.completed + numMergeProgress.value.completed
@@ -207,6 +194,24 @@ const handleMenuClick = () => {
 			</div>
 		</section>
 
+		<!-- Overall Progress Card -->
+		<section class="progress-section">
+			<div class="progress-card" @click="navigateTo('/profile')">
+				<div class="progress-header">
+					<Icon :name="gameData.player.avatar" size="48" />
+					<h2 class="progress-title">{{ t('home.welcome_back', { name: gameData.player.name }) }}</h2>
+				</div>
+
+				<!-- Overall Progress Bar -->
+				<div class="overall-progress-bar">
+					<div
+							class="overall-progress-fill"
+							:style="{ width: `${overallProgress.percentage}%` }"
+					></div>
+				</div>
+			</div>
+		</section>
+
 		<!-- Daily Reward Card -->
 		<MysteryBoxCard
 				:key="`mystery-box-${gameData.currency.dailyRewards.counter}`"
@@ -232,43 +237,6 @@ const handleMenuClick = () => {
 						<span class="recent-game-level btn btn--primary btn--small"><Icon name="resume" size="16" /> {{ t('memory.level_title', { level: levelInfo.level }) }}</span>
 						<span class="recent-game-time">{{ formatRelativeTime(levelInfo.savedAt) }}</span>
 					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- Overall Progress Card -->
-		<section class="progress-section">
-			<div class="progress-card" @click="navigateTo('/profile')">
-				<div class="progress-header">
-					<Icon :name="gameData.player.avatar" size="48" />
-					<h2 class="progress-title">{{ t('home.welcome_back', { name: gameData.player.name }) }}</h2>
-				</div>
-
-				<div class="progress-stats">
-					<div class="progress-item">
-						<span class="progress-number">{{ playerSummary.achievements }}</span>
-						<span class="progress-label">{{ t('nav.trophies') }}</span>
-					</div>
-					<div class="progress-item">
-						<span class="progress-number">{{ playerSummary.gamesPlayed }}</span>
-						<span class="progress-label">{{ t('gaming.stats.games_played') }}</span>
-					</div>
-					<div class="progress-item">
-						<span class="progress-number">{{ overallProgress.levels }}/{{ overallProgress.totalLevels }}</span>
-						<span class="progress-label">{{ t('gaming.stats.levels') }}</span>
-					</div>
-					<div class="progress-item">
-						<span class="progress-number">{{ overallProgress.stars }}/{{ overallProgress.maxStars }}</span>
-						<span class="progress-label">{{ t('gaming.stats.stars') }}</span>
-					</div>
-				</div>
-
-				<!-- Overall Progress Bar -->
-				<div class="overall-progress-bar">
-					<div
-							class="overall-progress-fill"
-							:style="{ width: `${overallProgress.percentage}%` }"
-					></div>
 				</div>
 			</div>
 		</section>
@@ -392,11 +360,11 @@ const handleMenuClick = () => {
 	background-color: var(--card-bg);
 	border: 1px solid var(--card-border);
 	border-radius: var(--border-radius-xl);
-	padding: var(--space-4);
+	padding: var(--space-2);
 	cursor: pointer;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-3);
+	gap: var(--space-2);
 
 	&:hover {
 		background-color: var(--card-bg-hover);
@@ -408,39 +376,14 @@ const handleMenuClick = () => {
 .progress-header {
 	display: flex;
 	align-items: center;
-	gap: var(--space-3);
-}
-
-.progress-title {
-	font-size: var(--font-size-lg);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	margin: 0;
-}
-
-.progress-stats {
-	display: grid;
-	grid-template-columns: repeat(4, auto);
 	gap: var(--space-2);
 }
 
-.progress-item {
-	display: flex;
-	align-items: center;
-	gap: var(--space-1);
-	text-align: center;
-}
-
-.progress-number {
+.progress-title {
 	font-size: var(--font-size-base);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
-}
-
-.progress-label {
-	font-size: var(--font-size-xs);
-	color: var(--text-secondary);
-	font-weight: var(--font-weight-bold);
+	margin: 0;
 }
 
 .overall-progress-bar {

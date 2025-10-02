@@ -361,7 +361,11 @@ export default {
       mystery_box_item: 'Geheimnisvolle Box #{boxNumber}',
       gift_from: 'Geschenk von {sender}',
       power_up: 'Power-up',
-      cosmetic_item: 'Kosmetisches Item'
+      cosmetic_item: 'Kosmetisches Item',
+      gift_sent_to: 'Geschenkt an {recipient}',
+      gift_pending_to: 'Ausstehend an {recipient}',
+      gift_received: 'Erhalten',
+      gift_pending: 'Ausstehend',
     }
 	},
 
@@ -476,6 +480,18 @@ export default {
       cannot_redeem_own_gift: 'Du kannst dein eigenes Geschenk nicht einlösen',
       item_already_owned: 'Du besitzt dieses Item bereits',
       gift_expired: 'Dieser Geschenkcode ist abgelaufen',
+      gift_sent_today: 'Heute verschickt',
+      gift_received_today: 'Heute erhalten',
+      gift_received: 'Erhalten',
+      sent_gift_details: 'Verschicktes Geschenk',
+      sent_on: 'Verschickt am {date}',
+      gift_code: 'Geschenkcode',
+      reception_status: 'Empfangsstatus',
+      gift_was_received: 'Geschenk wurde empfangen',
+      marked_on: 'Markiert am {date}',
+      mark_as_received: 'Als empfangen markieren',
+      mark_received_note: 'Markiere das Geschenk als empfangen, wenn dein Freund es erfolgreich eingelöst hat.',
+      expires_on: 'Läuft ab am {date}',
     },
 	},
 

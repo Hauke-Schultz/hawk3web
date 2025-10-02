@@ -1830,7 +1830,10 @@ export function useLocalStorage() {
       senderName: gameData.player.name,
       createdAt: now,
       expiresAt: calculateGiftExpiration(),
-      redeemed: false
+      redeemed: false,
+      received: false,
+      receivedAt: null,
+      sentDate: now.split('T')[0]
     }
 
     // Add to sent gifts
@@ -1843,6 +1846,32 @@ export function useLocalStorage() {
       success: true,
       gift: giftData
     }
+  }
+
+  const markGiftAsReceived = (giftCode) => {
+    if (!gameData.player.gifts) {
+      gameData.player.gifts = validateGiftsData(null)
+    }
+
+    const gift = gameData.player.gifts.sentGifts.find(g => g.code === giftCode)
+    if (gift) {
+      gift.received = true
+      gift.receivedAt = new Date().toISOString()
+      saveData()
+      return true
+    }
+    return false
+  }
+
+  const unmarkGiftAsReceived = (giftCode) => {
+    const gift = gameData.player.gifts.sentGifts.find(g => g.code === giftCode)
+    if (gift) {
+      gift.received = false
+      gift.receivedAt = null
+      saveData()
+      return true
+    }
+    return false
   }
 
   const redeemGift = (giftCode) => {
@@ -2044,6 +2073,8 @@ export function useLocalStorage() {
     getGiftableItems,
     createGift,
     redeemGift,
+    markGiftAsReceived,
+    unmarkGiftAsReceived,
 
 		// Data management
 		saveData,
