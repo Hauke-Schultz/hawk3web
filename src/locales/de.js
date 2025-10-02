@@ -366,6 +366,7 @@ export default {
       gift_pending_to: 'Ausstehend an {recipient}',
       gift_received: 'Erhalten',
       gift_pending: 'Ausstehend',
+      gifts_from_multiple: '{count} Geschenke (zuletzt von {sender})',
     }
 	},
 
@@ -492,6 +493,16 @@ export default {
       mark_as_received: 'Als empfangen markieren',
       mark_received_note: 'Markiere das Geschenk als empfangen, wenn dein Freund es erfolgreich eingelöst hat.',
       expires_on: 'Läuft ab am {date}',
+      share_link: 'Link Teilen',
+      gift_link_copied: 'Gift-Link in Zwischenablage kopiert',
+      auto_redeeming: 'Geschenk wird eingelöst...',
+      can_receive_as_gift: 'Du besitzt dieses Item bereits, aber du kannst es trotzdem als Geschenk von Freunden erhalten!',
+      limit_reached_title: 'Tägliches Geschenk-Limit erreicht',
+      limit_reached_message: 'Du hast heute bereits 3 Geschenke erhalten. Komm morgen wieder, um weitere Geschenke von deinen Freunden zu empfangen!',
+      already_redeemed_title: 'Geschenk bereits eingelöst',
+      already_redeemed_message: 'Du hast diesen Geschenkcode bereits eingelöst. Jeder Geschenkcode kann nur einmal verwendet werden.',
+      invalid_recipient_title: 'Ungültiger Empfänger',
+      invalid_recipient_message: 'Dieses Geschenk wurde an einen anderen Spieler gesendet und kann von dir nicht eingelöst werden.',
     },
 	},
 

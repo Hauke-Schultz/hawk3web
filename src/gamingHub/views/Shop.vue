@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed, watch, nextTick} from 'vue'
+import {ref, computed, watch, nextTick, onMounted} from 'vue'
 import { useRouter } from 'vue-router'
 import { useShop } from '../composables/useShop.js'
 import { useInventory } from '../composables/useInventory.js'
@@ -13,6 +13,13 @@ import Icon from '../../components/Icon.vue'
 import CurrencyDisplay from '../components/CurrencyDisplay.vue'
 import ShopModal from '../components/ShopModal.vue'
 import GiftCodeModal from "../components/GiftCodeModal.vue";
+
+const props = defineProps({
+	autoRedeemCode: {
+		type: String,
+		default: null
+	}
+})
 
 // Services
 const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift, canReceiveGiftToday, redeemGift, markGiftAsReceived, unmarkGiftAsReceived } = useLocalStorage()
@@ -70,57 +77,45 @@ const handleItemClick = (item) => {
 }
 
 const handleGiftRedeem = async () => {
-	if (!giftCode.value.trim()) return
-
-	const code = giftCode.value.trim().toUpperCase()
-
-	if (!validateGiftCodeFormat(code)) {
-		giftRedeemResult.value = {
-			success: false,
-			error: 'invalid_code_format',
-			message: t('shop.gifts.invalid_gift_code')
-		}
+	if (!giftCode.value.trim()) {
+		modalType.value = 'invalid_code'
+		showModal.value = true
 		return
 	}
 
 	isRedeeming.value = true
 
 	try {
-		const result = redeemGift(code)
+		const result = await redeemGift(giftCode.value.trim())
 
 		if (result.success) {
+			modalType.value = 'gift_received'
+			showModal.value = true
 			giftRedeemResult.value = {
 				success: true,
-				gift: result.gift,
-				message: t('shop.gifts.gift_redeemed')
-			}
-			giftCode.value = ''
-			showGiftModal.value = true
-		} else {
-			const errorMessages = {
-				invalid_code_format: t('shop.gifts.invalid_gift_code'),
-				already_redeemed: t('shop.gifts.already_redeemed'),
-				daily_receive_limit: t('shop.gifts.daily_limit_message'),
-				own_gift: t('shop.gifts.cannot_redeem_own_gift'),
-				already_owned: t('shop.gifts.item_already_owned'),
-				expired: t('shop.gifts.gift_expired'),
-				item_not_found: t('shop.gifts.item_not_found'),
-				invalid_code: t('shop.gifts.invalid_gift_code')
+				message: t('shop.gifts.gift_received')
 			}
 
-			giftRedeemResult.value = {
-				success: false,
-				error: result.error,
-				message: errorMessages[result.error] || t('shop.gifts.unknown_error')
+			// Clear input
+			giftCode.value = ''
+		} else {
+			// Map specific error types to modal types
+			const errorModalMap = {
+				'limit_reached': 'gift_limit_reached',
+				'already_redeemed': 'gift_already_redeemed',
+				'invalid_recipient': 'gift_invalid_recipient',
+				'already_owned': 'invalid_code',
+				'item_not_found': 'invalid_code',
+				'invalid_format': 'invalid_code'
 			}
+
+			modalType.value = errorModalMap[result.error] || 'invalid_code'
+			showModal.value = true
 		}
 	} catch (error) {
 		console.error('Gift redemption error:', error)
-		giftRedeemResult.value = {
-			success: false,
-			error: 'unknown_error',
-			message: t('shop.gifts.unknown_error')
-		}
+		modalType.value = 'invalid_code'
+		showModal.value = true
 	} finally {
 		isRedeeming.value = false
 	}
@@ -449,6 +444,19 @@ const handleMenuClick = () => {
 	router.push('/')
 }
 
+onMounted(() => {
+	// Auto-redeem wenn Code in URL
+	if (props.autoRedeemCode) {
+		giftCode.value = props.autoRedeemCode
+		selectedCategory.value = 'gifts' // Switch to gifts tab
+
+		// Small delay for UI to render
+		setTimeout(() => {
+			handleGiftRedeem()
+		}, 500)
+	}
+})
+
 // watch gameData if changes are needed
 watch(() => gameData, (newData) => {
 	// Handle any necessary updates when gameData changes
@@ -466,6 +474,13 @@ watch(() => gameData, (newData) => {
 	/>
 
 	<main class="shop">
+		<div v-if="props.autoRedeemCode && isRedeeming" class="auto-redeem-overlay">
+			<div class="auto-redeem-content">
+				<Icon name="heart" size="48" class="icon-spin" />
+				<p>{{ t('shop.gifts.auto_redeeming') }}</p>
+			</div>
+		</div>
+
 		<!-- Shop Header -->
 		<div class="shop-header">
 			<div class="shop-title-section">
@@ -513,22 +528,22 @@ watch(() => gameData, (newData) => {
 					</button>
 				</div>
 
-				<!-- Gift Limit Warning -->
-				<div v-if="!canRedeemGiftsToday" class="gift-limit-warning">
-					<Icon name="info" size="16" />
-					<span>{{ t('shop.gifts.daily_limit_message') }}</span>
-				</div>
-
 				<!-- Gift Redeem Result -->
-				<div v-if="giftRedeemResult && !showGiftModal" class="gift-result">
-					<div v-if="giftRedeemResult.success" class="gift-result--success">
+				<template v-if="giftRedeemResult && !showGiftModal">
+					<div v-if="giftRedeemResult.success" class="gift-result gift-result--success">
 						<Icon name="completion-badge" size="20" />
 						<span>{{ giftRedeemResult.message }}</span>
 					</div>
-					<div v-else class="gift-result--error">
+					<div v-else class="gift-result gift-result--error">
 						<Icon name="close" size="20" />
 						<span>{{ giftRedeemResult.message }}</span>
 					</div>
+				</template>
+
+				<!-- Gift Limit Warning -->
+				<div v-if="!canRedeemGiftsToday" class="gift-result gift-result--warning">
+					<Icon name="info" size="16" />
+					<span>{{ t('shop.gifts.daily_limit_message') }}</span>
 				</div>
 			</div>
 		</div>
@@ -621,21 +636,8 @@ watch(() => gameData, (newData) => {
 							class="item-button"
 							:class="getItemButtonClass(item)"
 						>
-							<Icon
-								v-if="selectedCategory === 'gifts' && isItemOwned(item)"
-								name="heart"
-								size="16"
-							/>
-							<Icon
-								v-else-if="selectedCategory === 'gifts' && item.category === 'gifts'"
-								name="shop"
-								size="16"
-							/>
 							<span>
-		            {{ selectedCategory === 'gifts'
-											? getGiftButtonText(item)
-											: getItemButtonText(item)
-										}}
+		            {{ selectedCategory === 'gifts' ? getGiftButtonText(item) : getItemButtonText(item) }}
 		          </span>
 						</button>
 					</div>
@@ -1086,38 +1088,26 @@ watch(() => gameData, (newData) => {
 	}
 }
 
-.gift-limit-warning {
+.gift-result {
 	display: flex;
 	align-items: center;
 	gap: var(--space-2);
 	padding: var(--space-2);
-	background-color: var(--warning-color);
 	color: white;
-	border-radius: var(--border-radius-md);
-	font-size: var(--font-size-sm);
-	font-weight: var(--font-weight-bold);
-}
-
-.gift-result {
-	padding: var(--space-2);
 	border-radius: var(--border-radius-md);
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 
 	&--success {
 		background-color: var(--success-color);
-		color: white;
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
+	}
+
+	&--warning {
+		background-color: var(--warning-color);
 	}
 
 	&--error {
 		background-color: var(--error-color);
-		color: white;
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
 	}
 }
 
@@ -1248,6 +1238,32 @@ watch(() => gameData, (newData) => {
 	&--received {
 		background-color: var(--success-color);
 		color: white;
+	}
+}
+
+.auto-redeem-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.8);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 2000;
+}
+
+.auto-redeem-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-4);
+	color: white;
+
+	p {
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
 	}
 }
 </style>

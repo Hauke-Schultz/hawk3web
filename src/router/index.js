@@ -80,6 +80,14 @@ const routes = [
     component: Shop
   },
   {
+    path: '/shop/redeem/:giftCode',
+    name: 'ShopRedeem',
+    component: Shop,
+    props: route => ({
+      autoRedeemCode: route.params.giftCode
+    })
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: Profile

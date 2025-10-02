@@ -4,34 +4,25 @@ export const GIFT_CONFIG = {
   maxReceivedPerDay: 1,
 
   // Code generation
-  codeLength: 8,
+  codeLength: 20,
   codePrefix: 'HAWK3',
 
   // Expiration
-  giftCodeExpirationDays: 7, // 7 days to redeem
+  giftCodeExpirationDays: 7,
 
   // Categories that can be gifted
-  allowedCategories: ['gifts', 'profile'],
+  allowedCategories: ['gifts'],
   allowedTypes: ['cosmetic'],
 
-  // Excluded items (items that cannot be gifted)
+  // Excluded items
   excludedItems: [
     'hammer_powerup',
     'undo_move',
   ]
 }
 
-// Gift-specific items (cosmetics that can be gifted)
+// Gift-specific items
 export const GIFTABLE_ITEMS = [
-  // Profile Items (existing)
-  'regular_glasses',
-  'cap',
-  'sunglasses',
-  'tophat',
-  'car',
-  'crown',
-
-  // Gift-spezifische Items
   'friendship_ring',
   'friendship_bracelet',
   'love_letter',
@@ -117,11 +108,6 @@ export const validateGiftRedemption = (giftCode, currentPlayerName, receivedToda
   // Check daily limit
   if (receivedToday >= GIFT_CONFIG.maxReceivedPerDay) {
     return { valid: false, error: 'daily_limit_reached' }
-  }
-
-  // Check if item already owned (for non-stackable items)
-  if (ownedItems.includes(decoded.itemId)) {
-    return { valid: false, error: 'already_owned' }
   }
 
   // Check expiration (7 days)

@@ -286,6 +286,7 @@ export default {
       gift_pending_to: 'Pending to {recipient}',
       gift_received: 'Received',
       gift_pending: 'Pending',
+      gifts_from_multiple: '{count} gifts (latest from {sender})',
     }
 	},
 
@@ -334,7 +335,7 @@ export default {
 		quantity: 'Quantity',
 		in_inventory: 'In Inventory',
 
-		types: {
+    types: {
 			avatar_pack: 'Avatar Pack',
 			profile_frame: 'Profile Frame',
 			theme: 'Theme',
@@ -412,6 +413,16 @@ export default {
       mark_as_received: 'Mark as received',
       mark_received_note: 'Mark the gift as received when your friend has successfully redeemed it.',
       expires_on: 'Expires on {date}',
+      share_link: 'Share Link',
+      gift_link_copied: 'Gift link copied to clipboard',
+      auto_redeeming: 'Redeeming gift...',
+      can_receive_as_gift: 'You already own this item, but you can still receive it as a gift from friends!',
+      limit_reached_title: 'Daily Gift Limit Reached',
+      limit_reached_message: 'You have already received 3 gifts today. Come back tomorrow to receive more gifts from your friends!',
+      already_redeemed_title: 'Gift Already Redeemed',
+      already_redeemed_message: 'You have already redeemed this gift code. Each gift code can only be used once.',
+      invalid_recipient_title: 'Invalid Recipient',
+      invalid_recipient_message: 'This gift was sent to another player and cannot be redeemed by you.',
     },
 	},
 

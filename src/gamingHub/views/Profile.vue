@@ -259,6 +259,23 @@ const getItemRarityStyle = (rarity) => {
 	}
 }
 
+const getGiftCount = (item) => {
+	const inventoryData = gameData.player.inventory.items[item.id]
+	if (!inventoryData || !inventoryData.giftsReceived) return 0
+	return inventoryData.giftsReceived.length
+}
+
+const getLatestGiftSender = (item) => {
+	const inventoryData = gameData.player.inventory.items[item.id]
+	if (!inventoryData || !inventoryData.giftsReceived || inventoryData.giftsReceived.length === 0) {
+		return item.giftFrom || 'Unknown'
+	}
+
+	// Get the most recent gift
+	const latestGift = inventoryData.giftsReceived[inventoryData.giftsReceived.length - 1]
+	return latestGift.giftFrom
+}
+
 // Methods
 const selectAvatar = (avatar) => {
 	selectedAvatar.value = avatar
@@ -458,14 +475,19 @@ onUnmounted(() => {
 									<span class="item-name">{{ item.name }}</span>
 
 									<!-- Received Gift -->
-									<span
-										v-if="item.giftType === 'received'"
-										class="item-source item-source--gift-received"
-									>
-		                {{ t('profile.inventory.gift_from', {
-												sender: getGiftSender(item)
-											}) }}
-		              </span>
+									<span v-if="item.giftType === 'received'" class="item-source item-source--gift-received">
+									  <template v-if="getGiftCount(item) > 1">
+									    {{ t('profile.inventory.gifts_from_multiple', {
+										  count: getGiftCount(item),
+										  sender: getLatestGiftSender(item)
+									  }) }}
+									  </template>
+									  <template v-else>
+									    {{ t('profile.inventory.gift_from', {
+										  sender: getGiftSender(item)
+									  }) }}
+									  </template>
+									</span>
 
 									<!-- Sent Gift -->
 									<span
@@ -491,25 +513,6 @@ onUnmounted(() => {
 										<span class="item-quantity">{{ getGiftDate(item) }}</span>
 									</div>
 								</div>
-							</div>
-
-							<!-- Consumable Items -->
-							<div
-								v-for="item in consumableItems"
-								:key="`consumable-${item.id}`"
-								class="inventory-item inventory-item--consumable"
-							>
-		            <span
-			            class="item-icon item-icon--consumable"
-			            :style="getItemRarityStyle(item.rarity)"
-		            >{{ item.icon }}</span>
-								<div class="item-details">
-									<span class="item-name">{{ item.name }}</span>
-									<span class="item-source item-source--consumable">
-                    {{ t('profile.inventory.power_up') }}
-                  </span>
-								</div>
-								<span class="item-quantity item-quantity--consumable">x{{ item.quantity }}</span>
 							</div>
 
 							<!-- Regular Items -->

@@ -64,6 +64,14 @@ const modalConfig = computed(() => {
 				confirmVariant: 'info',
 				hideCancel: true
 			}
+		case 'already_owned':
+			return {
+				title: t('shop.already_owned'),
+				message: t('shop.gifts.can_receive_as_gift'),
+				confirmText: t('common.ok'),
+				confirmVariant: 'info',
+				hideCancel: true
+			}
 		case 'gift_success':
 			return {
 				title: t('shop.gifts.gift_sent_successfully'),
@@ -94,6 +102,30 @@ const modalConfig = computed(() => {
 				message: t('shop.gifts.must_own_to_gift'),
 				confirmText: t('common.ok'),
 				confirmVariant: 'info',
+				hideCancel: true
+			}
+		case 'gift_limit_reached':
+			return {
+				title: t('shop.gifts.limit_reached_title'),
+				message: t('shop.gifts.limit_reached_message'),
+				confirmText: t('common.ok'),
+				confirmVariant: 'warning',
+				hideCancel: true
+			}
+		case 'gift_already_redeemed':
+			return {
+				title: t('shop.gifts.already_redeemed_title'),
+				message: t('shop.gifts.already_redeemed_message'),
+				confirmText: t('common.ok'),
+				confirmVariant: 'info',
+				hideCancel: true
+			}
+		case 'gift_invalid_recipient':
+			return {
+				title: t('shop.gifts.invalid_recipient_title'),
+				message: t('shop.gifts.invalid_recipient_message'),
+				confirmText: t('common.ok'),
+				confirmVariant: 'warning',
 				hideCancel: true
 			}
 		default:

@@ -22,6 +22,20 @@ const giftReceived = computed(() => {
 	return props.giftData?.received || false
 })
 
+const shareGiftLink = async () => {
+	if (props.giftData?.code) {
+		const baseUrl = window.location.origin
+		const giftUrl = `${baseUrl}/shop/redeem/${props.giftData.code}`
+
+		try {
+			await navigator.clipboard.writeText(giftUrl)
+			console.log('Gift link copied:', giftUrl)
+		} catch (error) {
+			console.error('Failed to copy gift link:', error)
+		}
+	}
+}
+
 const copyGiftCode = async () => {
 	if (props.giftData?.code) {
 		try {
@@ -99,13 +113,22 @@ const handleClose = () => {
 						<label class="code-label">{{ t('shop.gifts.gift_code') }}</label>
 						<div class="gift-code-display">
 							<code class="gift-code">{{ giftData.code }}</code>
-							<button
-									class="btn btn--ghost btn--small"
-									@click="copyGiftCode"
-							>
-								<Icon name="document" size="16" />
-								{{ t('shop.gifts.copy_code') }}
-							</button>
+							<div class="gift-actions">
+								<button
+										class="btn btn--ghost btn--small"
+										@click="copyGiftCode"
+								>
+									<Icon name="document" size="16" />
+									{{ t('shop.gifts.copy_code') }}
+								</button>
+								<button
+										class="btn btn--primary btn--small"
+										@click="shareGiftLink"
+								>
+									<Icon name="heart" size="16" />
+									{{ t('shop.gifts.share_link') }}
+								</button>
+							</div>
 						</div>
 					</div>
 
@@ -295,12 +318,22 @@ const handleClose = () => {
 
 .gift-code-display {
 	display: flex;
-	align-items: center;
+	flex-direction: column;
 	gap: var(--space-2);
 	padding: var(--space-3);
 	background-color: var(--bg-secondary);
 	border-radius: var(--border-radius-lg);
 	border: 2px solid var(--primary-color);
+}
+
+.gift-actions {
+	display: flex;
+	gap: var(--space-2);
+	width: 100%;
+}
+
+.gift-actions .btn {
+	flex: 1; // Buttons gleich breit
 }
 
 .gift-code {

@@ -1904,15 +1904,12 @@ export function useLocalStorage() {
       }
     }
 
-    // Get owned items for validation
-    const ownedItems = Object.keys(gameData.player.inventory.items || {})
-
     // Validate gift redemption with redeemed codes
     const validation = validateGiftRedemption(
         normalizedCode,
         gameData.player.name,
         gameData.player.gifts.receivedToday,
-        ownedItems,
+        [],
         gameData.player.gifts.redeemedCodes
     )
 
@@ -1943,17 +1940,43 @@ export function useLocalStorage() {
     }
 
     // Add item to inventory with gift metadata
-    addItemToInventory(gift.itemId, 1, {
-      type: shopItem.type,
-      category: shopItem.category,
-      rarity: shopItem.rarity,
-      name: shopItem.name,
-      description: shopItem.description,
-      isGift: true,
-      giftFrom: gift.senderName,
-      giftCode: normalizedCode,
-      receivedAt: new Date().toISOString()
-    })
+    const isAlreadyOwned = gameData.player.inventory.items[gift.itemId]
+
+    if (isAlreadyOwned) {
+      // Item already exists - just increment quantity
+      gameData.player.inventory.items[gift.itemId].quantity += 1
+
+      // Add gift metadata to existing item
+      if (!gameData.player.inventory.items[gift.itemId].giftsReceived) {
+        gameData.player.inventory.items[gift.itemId].giftsReceived = []
+      }
+
+      gameData.player.inventory.items[gift.itemId].giftsReceived.push({
+        giftFrom: gift.senderName,
+        giftCode: normalizedCode,
+        receivedAt: new Date().toISOString()
+      })
+
+      console.log(`🎁 Gift added to existing item: ${shopItem.name} (quantity: ${gameData.player.inventory.items[gift.itemId].quantity})`)
+    } else {
+      // Add new item to inventory with gift metadata
+      addItemToInventory(gift.itemId, 1, {
+        type: shopItem.type,
+        category: shopItem.category,
+        rarity: shopItem.rarity,
+        name: shopItem.name,
+        description: shopItem.description,
+        isGift: true,
+        giftFrom: gift.senderName,
+        giftCode: normalizedCode,
+        receivedAt: new Date().toISOString(),
+        giftsReceived: [{
+          giftFrom: gift.senderName,
+          giftCode: normalizedCode,
+          receivedAt: new Date().toISOString()
+        }]
+      })
+    }
 
     // Track as received
     gameData.player.gifts.receivedGifts.push({
