@@ -58,7 +58,7 @@ export const generateGiftCode = (playerName, itemId) => {
   const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '')
 
   // Simple format: HAWK3-PLAYERNAME-ITEMID-DATE-RANDOM
-  return `${GIFT_CONFIG.codePrefix}-${playerName.replace(' ', '_').substring(0, 8).toUpperCase()}-${itemId.toUpperCase()}-${dateStr}-${random}`
+  return `${GIFT_CONFIG.codePrefix}-${playerName.replace(' ', '_').substring(0, 20).toUpperCase()}-${itemId.toUpperCase()}-${dateStr}-${random}`
 }
 
 

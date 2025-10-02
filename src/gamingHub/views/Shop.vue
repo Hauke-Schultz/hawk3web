@@ -291,7 +291,7 @@ const handleGiftClick = (item) => {
 	}
 
 	// If gift item is not owned, allow purchase
-	if (item.category === 'gifts' && !hasItem(item.id)) {
+	if (item.category === 'gifts' && !isItemOwned(item)) {
 		handleItemClick(item) // Use normal purchase flow
 		return
 	}
@@ -305,7 +305,7 @@ const handleGiftClick = (item) => {
 	}
 
 	// Check if item is owned
-	if (!hasItem(item.id)) {
+	if (!isItemOwned(item)) {
 		modalType.value = 'gift_not_owned'
 		selectedItem.value = item
 		showModal.value = true
@@ -343,11 +343,11 @@ const handleGiftSend = async (item) => {
 }
 
 const getGiftButtonText = (item) => {
-	if (item.category === 'gifts' && !hasItem(item.id)) {
+	if (item.category === 'gifts' && !isItemOwned(item)) {
 		return t('shop.gifts.buy_to_gift')
 	}
 
-	if (!hasItem(item.id)) {
+	if (!isItemOwned(item)) {
 		return t('shop.gifts.not_owned')
 	}
 
@@ -359,11 +359,11 @@ const getGiftButtonText = (item) => {
 }
 
 const getGiftButtonClass = (item) => {
-	if (item.category === 'gifts' && !hasItem(item.id)) {
+	if (item.category === 'gifts' && !isItemOwned(item)) {
 		return 'item-button--buy-to-gift'
 	}
 
-	if (!hasItem(item.id)) {
+	if (!isItemOwned(item)) {
 		return 'item-button--disabled'
 	}
 
@@ -555,19 +555,19 @@ watch(() => gameData, (newData) => {
 			<!-- Items Grid -->
 			<div v-else class="items-grid">
 				<div
-						v-for="item in displayItems"
-						:key="item.id"
-						class="shop-item"
-						:class="{
-      'shop-item--owned': isItemOwned(item),
-      'shop-item--too-expensive': !isItemAffordable(item) && !isItemOwned(item),
-      'shop-item--gift-mode': selectedCategory === 'gifts',
-      'shop-item--giftable': selectedCategory === 'gifts' && hasItem(item.id),
-      'shop-item--gift-purchasable': selectedCategory === 'gifts' && item.category === 'gifts' && !hasItem(item.id),
-      'shop-item--gift-sent': selectedCategory === 'gifts' && getGiftStatus(item)?.sentToday,
-      'shop-item--gift-received': selectedCategory === 'gifts' && getGiftStatus(item)?.receivedToday
-    }"
-						@click="selectedCategory === 'gifts' ? handleGiftStatusClick(item) : handleItemClick(item)"
+					v-for="item in displayItems"
+					:key="item.id"
+					class="shop-item"
+					:class="{
+			      'shop-item--owned': isItemOwned(item),
+			      'shop-item--too-expensive': !isItemAffordable(item) && !isItemOwned(item),
+			      'shop-item--gift-mode': selectedCategory === 'gifts',
+			      'shop-item--giftable': selectedCategory === 'gifts' && hasItem(item.id),
+			      'shop-item--gift-purchasable': selectedCategory === 'gifts' && item.category === 'gifts' && !hasItem(item.id),
+			      'shop-item--gift-sent': selectedCategory === 'gifts' && getGiftStatus(item)?.sentToday,
+			      'shop-item--gift-received': selectedCategory === 'gifts' && getGiftStatus(item)?.receivedToday
+			    }"
+					@click="selectedCategory === 'gifts' ? handleGiftStatusClick(item) : handleItemClick(item)"
 				>
 					<!-- Item Icon mit Status Badges -->
 					<div
@@ -605,7 +605,7 @@ watch(() => gameData, (newData) => {
 			        </span>
 						</div>
 						<!-- Price Display -->
-						<div v-if="selectedCategory !== 'gifts' || (item.category === 'gifts' && !hasItem(item.id))" class="item-price">
+						<div v-if="selectedCategory !== 'gifts' || (item.category === 'gifts' && !isItemOwned(item))" class="item-price">
 							<CurrencyDisplay
 									:coins="item.price.coins"
 									:diamonds="item.price.diamonds"
@@ -622,7 +622,7 @@ watch(() => gameData, (newData) => {
 							:class="getItemButtonClass(item)"
 						>
 							<Icon
-								v-if="selectedCategory === 'gifts' && hasItem(item.id)"
+								v-if="selectedCategory === 'gifts' && isItemOwned(item)"
 								name="heart"
 								size="16"
 							/>
