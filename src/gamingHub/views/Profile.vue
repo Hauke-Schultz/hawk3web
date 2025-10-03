@@ -459,14 +459,16 @@ onUnmounted(() => {
 								class="inventory-item"
 								:class="{
 		              'inventory-item--gift-received': item.giftType === 'received',
-		              'inventory-item--gift-sent': item.giftType === 'sent' || item.giftType === 'pending'
+		              'inventory-item--gift-pending': item.giftType === 'pending',
+		              'inventory-item--gift-sent': item.giftType === 'sent',
 		            }"
 							>
 		            <span
 			            class="item-icon"
 			            :class="{
 		                'item-icon--gift-received': item.giftType === 'received',
-		                'item-icon--gift-sent': item.giftType === 'sent' || item.giftType === 'pending'
+		                'item-icon--gift-pending': item.giftType === 'pending',
+		                'item-icon--gift-sent': item.giftType === 'sent'
 		              }"
 			            :style="getItemRarityStyle(item.rarity)"
 		            >{{ item.icon }}</span>
@@ -502,7 +504,7 @@ onUnmounted(() => {
 									<!-- Pending Gift -->
 									<span
 										v-if="item.giftType === 'pending'"
-										class="item-source item-source--gift-sent"
+										class="item-source item-source--gift-pending"
 									>
 		                {{ t('profile.inventory.gift_pending_to', {
 												recipient: getGiftRecipient(item)
@@ -982,33 +984,36 @@ onUnmounted(() => {
 	gap: var(--space-2);
 }
 
-
-
-// Enhanced Gift Item Styles
 .inventory-item--gift-received {
 	border-color: var(--success-color);
 	background: rgba(16, 185, 129, 0.05);
 }
 
-.inventory-item--gift-sent {
+.inventory-item--gift-pending {
 	border-color: var(--warning-color);
 	background: rgba(245, 158, 11, 0.05);
 }
 
-.item-icon--gift-received {
-	box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+.inventory-item--gift-sent {
+	border-color: var(--pink-color);
+	background: rgba(16, 185, 129, 0.05);
 }
 
+.item-icon--gift-received,
 .item-icon--gift-sent {
-	box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+	box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
 }
 
 .item-source--gift-received {
 	color: var(--success-color);
 }
 
-.item-source--gift-sent {
+.item-source--gift-pending {
 	color: var(--warning-color);
+}
+
+.item-source--gift-sent {
+	color: var(--pink-color);
 }
 
 </style>

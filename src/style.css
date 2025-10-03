@@ -81,7 +81,7 @@
   --highlight-red-box-shadow: 0 0.5rem 2rem rgba(239, 68, 68, 0.5);
   --highlight-purple-box-shadow: 0 0.5rem 2rem rgba(139, 92, 246, 0.5);
 
-  /* Interactive Colors */
+  /* Interactive Colors - Base Palette */
   --primary-color: #4F46E5;
   --primary-hover: #4338CA;
   --primary-active: #3730A3;
@@ -98,10 +98,30 @@
   --info-hover: #4B5563;
   --info-active: #374151;
 
-  /* Status Colors */
   --error-color: #EF4444;
   --error-hover: #F44336;
   --error-light: rgba(239, 68, 68, 0.2);
+
+  /* Extended Color Palette - New Colors */
+  --danger-color: #DC2626;
+  --danger-hover: #B91C1C;
+  --danger-active: #991B1B;
+
+  --secondary-color: #8B5CF6;
+  --secondary-hover: #7C3AED;
+  --secondary-active: #6D28D9;
+
+  --teal-color: #14B8A6;
+  --teal-hover: #0D9488;
+  --teal-active: #0F766E;
+
+  --orange-color: #F97316;
+  --orange-hover: #EA580C;
+  --orange-active: #C2410C;
+
+  --pink-color: #EC4899;
+  --pink-hover: #DB2777;
+  --pink-active: #BE185D;
 
   /* Button Colors */
   --button-bg: var(--primary-color);
@@ -147,41 +167,61 @@
 
 [data-theme="dark"] {
   /* Dark Theme Colors - Based on SVG Design */
-  --bg-color: #0F0F0F;          /* Main background from SVG */
-  --bg-secondary: #1A1A1A;      /* Header background from SVG */
-  --bg-header: #1A1A1A;         /* Header specific background */
-  --text-color: #ffffff;        /* Primary text - white */
-  --text-secondary: #E0E7FF;    /* Secondary text - light indigo from SVG */
-  --text-muted: #9CA3AF;        /* Muted text */
+  --bg-color: #0F0F0F;
+  --bg-secondary: #1A1A1A;
+  --bg-header: #1A1A1A;
+  --text-color: #ffffff;
+  --text-secondary: #E0E7FF;
+  --text-muted: #9CA3AF;
 
   /* Card System from SVG */
-  --card-bg: #2A2A2A;           /* Card background from SVG */
-  --card-bg-hover: #323232;     /* Slightly lighter for hover */
-  --card-border: #3A3A3A;       /* Card border from SVG */
+  --card-bg: #2A2A2A;
+  --card-bg-hover: #323232;
+  --card-border: #3A3A3A;
   --card-shadow: 0 0.25rem 0.375rem rgba(0, 0, 0, 0.4);
   --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.6);
 
   /* Interactive Colors from SVG */
-  --primary-color: #4F46E5;     /* Primary indigo from play button */
-  --primary-hover: #6366F1;     /* Lighter indigo for hover */
-  --primary-active: #4338CA;    /* Darker indigo for active */
+  --primary-color: #4F46E5;
+  --primary-hover: #6366F1;
+  --primary-active: #4338CA;
 
-  --success-color: #10B981;     /* Green from user profile icon */
-  --success-hover: #34D399;     /* Lighter green for hover */
-  --success-active: #059669;    /* Darker green for active */
+  --success-color: #10B981;
+  --success-hover: #34D399;
+  --success-active: #059669;
 
-  --warning-color: #F59E0B;     /* Amber from trophy icon */
-  --warning-hover: #FBBF24;     /* Lighter amber for hover */
-  --warning-active: #D97706;    /* Darker amber for active */
+  --warning-color: #F59E0B;
+  --warning-hover: #FBBF24;
+  --warning-active: #D97706;
 
-  --info-color: #6B7280;        /* Gray from settings icon */
-  --info-hover: #9CA3AF;        /* Lighter gray for hover */
-  --info-active: #4B5563;       /* Darker gray for active */
+  --info-color: #6B7280;
+  --info-hover: #9CA3AF;
+  --info-active: #4B5563;
 
   /* Status Colors */
   --error-color: #EF4444;
   --error-hover: #F87171;
   --error-light: rgba(239, 68, 68, 0.2);
+
+  --danger-color: #DC2626;
+  --danger-hover: #EF4444;
+  --danger-active: #B91C1C;
+
+  --secondary-color: #8B5CF6;
+  --secondary-hover: #A78BFA;
+  --secondary-active: #7C3AED;
+
+  --teal-color: #14B8A6;
+  --teal-hover: #2DD4BF;
+  --teal-active: #0D9488;
+
+  --orange-color: #F97316;
+  --orange-hover: #FB923C;
+  --orange-active: #EA580C;
+
+  --pink-color: #EC4899;
+  --pink-hover: #F472B6;
+  --pink-active: #DB2777;
 
   /* Button Colors */
   --button-bg: var(--primary-color);
@@ -332,6 +372,38 @@ body {
   background-color: var(--info-hover);
 }
 
+.btn--secondary {
+  color: var(--white);
+  background-color: var(--secondary-color);
+}
+.btn--secondary:hover {
+  background-color: var(--secondary-hover);
+}
+
+.btn--teal {
+  color: var(--white);
+  background-color: var(--teal-color);
+}
+.btn--teal:hover {
+  background-color: var(--teal-hover);
+}
+
+.btn--orange {
+  color: var(--white);
+  background-color: var(--orange-color);
+}
+.btn--orange:hover {
+  background-color: var(--orange-hover);
+}
+
+.btn--pink {
+  color: var(--white);
+  background-color: var(--pink-color);
+}
+.btn--pink:hover {
+  background-color: var(--pink-hover);
+}
+
 .btn--ghost {
   background-color: transparent;
   color: var(--button-ghost-text);
@@ -382,17 +454,15 @@ body {
   background-color: var(--button-ghost-bg-hover);
 }
 
-/* Delete Button Styles */
 .btn--danger {
   color: var(--white);
-  background-color: var(--error-color);
+  background-color: var(--danger-color);
 }
 .btn--danger:hover {
-  background-color: var(--error-hover);
-  box-shadow:  0 0 0 0.25rem var(--error-light);
+  background-color: var(--danger-hover);
+  box-shadow:  0 0 0 0.25rem rgba(220, 38, 38, 0.25);
 }
 
-/* Lock Button Styles */
 .btn--lock {
   background-color: var(--info-color);
   color: white;
@@ -447,30 +517,6 @@ body {
 .card:hover {
   background-color: var(--card-bg-hover);
   box-shadow: var(--card-shadow-hover);
-}
-
-
-/* Level/Badge Components */
-.level-badge {
-  background-color: var(--level-bg);
-  border: 1px solid var(--level-border);
-  border-radius: var(--border-radius-md);
-  color: var(--level-text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-1) var(--space-2);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm);
-}
-
-.level-number {
-  color: var(--level-number-color);
-  font-weight: var(--font-weight-bold);
-}
-
-.level-star {
-  color: var(--level-star-color);
 }
 
 /* Icon buttons */
@@ -550,5 +596,25 @@ body {
 
   .btn--info:hover {
     background-color: var(--info-hover);
+  }
+
+  .btn--secondary:hover {
+    background-color: var(--secondary-hover);
+  }
+
+  .btn--teal:hover {
+    background-color: var(--teal-hover);
+  }
+
+  .btn--orange:hover {
+    background-color: var(--orange-hover);
+  }
+
+  .btn--pink:hover {
+    background-color: var(--pink-hover);
+  }
+
+  .btn--danger:hover {
+    background-color: var(--danger-hover);
   }
 }

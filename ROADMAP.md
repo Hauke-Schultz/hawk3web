@@ -97,6 +97,7 @@
 ## 🚀 Version 0.3.4 - Enhancements
 
 - **🎁 Gift System** - Send and receive gifts with friends
+- 
 
 ---
 
