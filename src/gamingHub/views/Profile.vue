@@ -6,12 +6,13 @@ import { useI18n } from '../../composables/useI18n.js'
 import { useInventory} from '../composables/useInventory.js'
 import Icon from "../../components/Icon.vue"
 import Header from "../components/Header.vue";
-import {RARITY_CONFIG} from '../config/shopConfig.js'
-import ConfirmationModal from '../components/ConfirmationModal.vue'
 import {ACHIEVEMENTS} from "../config/achievementsConfig.js";
+import {RARITY_CONFIG, SHOP_ITEMS} from '../config/shopConfig.js'
+import ConfirmationModal from '../components/ConfirmationModal.vue'
+import GiftCodeModal from '../components/GiftCodeModal.vue'
 
 // Services
-const { gameData, updatePlayer } = useLocalStorage()
+const { gameData, updatePlayer, markGiftAsReceived, unmarkGiftAsReceived  } = useLocalStorage()
 const { t } = useI18n()
 const { getAllOwnedItems, hasItem } = useInventory()
 const router = useRouter()
@@ -188,22 +189,56 @@ const organizedItems = computed(() => {
 		mystery: mystery.sort((a, b) => {
 			const aBox = gameData.player.inventory.items[a.id].mysteryBoxNumber
 			const bBox = gameData.player.inventory.items[b.id].mysteryBoxNumber
-			return bBox - aBox // Newest mystery boxes first
+			return bBox - aBox
 		}),
 		gifts: gifts.sort((a, b) => {
 			const aDate = new Date(a.giftDate)
 			const bDate = new Date(b.giftDate)
-			return bDate - aDate // Newest gifts first
+			return bDate - aDate
 		}),
-		consumables: consumables.sort((a, b) => b.quantity - a.quantity), // Highest quantity first
-		regular: regular.sort((a, b) => a.name.localeCompare(b.name)) // Alphabetical
+		consumables: consumables.sort((a, b) => b.quantity - a.quantity),
+		regular: regular.sort((a, b) => a.name.localeCompare(b.name))
 	}
+})
+
+const sentGifts = computed(() => {
+	const allSentGifts = gameData.player.gifts?.sentGifts || []
+
+	return allSentGifts
+			.map(gift => {
+				// Find item details
+				let shopItem = SHOP_ITEMS.find(item => item.id === gift.itemId)
+
+				if (!shopItem) {
+					const { MYSTERY_ITEMS } = require('../config/mysteryBoxConfig.js')
+					shopItem = MYSTERY_ITEMS.find(item => item.id === gift.itemId)
+				}
+
+				if (!shopItem) return null
+
+				return {
+					...shopItem,
+					giftCode: gift.code,
+					sentDate: gift.createdAt,
+					received: gift.received || false,
+					receivedAt: gift.receivedAt,
+					expiresAt: gift.expiresAt,
+					giftType: gift.received ? 'sent-received' : 'sent-pending'
+				}
+			})
+			.filter(Boolean)
+			.sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
 })
 
 // Helper functions for sent gifts
 const isSentGiftItem = (itemId) => {
 	const sentGifts = gameData.player.gifts?.sentGifts || []
-	return sentGifts.some(gift => gift.itemId === itemId && hasItem(itemId))
+	// Only count as "sent gift item" if still in inventory AND not received yet
+	return sentGifts.some(gift =>
+			gift.itemId === itemId &&
+			hasItem(itemId) &&
+			!gift.received
+	)
 }
 
 const getSentGiftInfo = (itemId) => {
@@ -219,6 +254,49 @@ const getSentGiftInfo = (itemId) => {
 		sentDate: recentGift?.createdAt,
 		code: recentGift?.code,
 		received: recentGift?.received || false
+	}
+}
+
+const selectedSentGift = ref(null)
+const showSentGiftModal = ref(false)
+
+const handleSentGiftClick = (gift) => {
+	selectedSentGift.value = {
+		code: gift.giftCode,
+		itemId: gift.id,
+		itemName: gift.name,
+		itemIcon: gift.icon,
+		itemRarity: gift.rarity,
+		createdAt: gift.sentDate,
+		expiresAt: gift.expiresAt,
+		received: gift.received,
+		receivedAt: gift.receivedAt
+	}
+	showSentGiftModal.value = true
+}
+
+const closeSentGiftModal = () => {
+	showSentGiftModal.value = false
+	selectedSentGift.value = null
+}
+
+const handleSentGiftMarkReceived = () => {
+	if (selectedSentGift.value) {
+		const success = markGiftAsReceived(selectedSentGift.value.code)
+		if (success) {
+			selectedSentGift.value.received = true
+			selectedSentGift.value.receivedAt = new Date().toISOString()
+		}
+	}
+}
+
+const handleSentGiftUnmarkReceived = () => {
+	if (selectedSentGift.value) {
+		const success = unmarkGiftAsReceived(selectedSentGift.value.code)
+		if (success) {
+			selectedSentGift.value.received = false
+			selectedSentGift.value.receivedAt = null
+		}
 	}
 }
 
@@ -573,6 +651,74 @@ onUnmounted(() => {
 							</div>
 						</div>
 					</div>
+
+					<!-- Sent Gifts Group -->
+					<div v-if="sentGifts.length > 0" class="inventory-group inventory-group--sent-gifts">
+						<h4 class="inventory-group-title">
+							<Icon name="heart" size="16" />
+							{{ t('profile.inventory.sent_gifts') }}
+						</h4>
+						<div class="inventory-items">
+							<div
+									v-for="gift in sentGifts"
+									:key="`sent-gift-${gift.giftCode}`"
+									class="inventory-item inventory-item--sent-gift"
+									:class="{
+				'inventory-item--gift-received': gift.received,
+				'inventory-item--gift-pending': !gift.received
+			}"
+									@click="handleSentGiftClick(gift)"
+							>
+			<span
+					class="item-icon"
+					:class="{
+					'item-icon--gift-received': gift.received,
+					'item-icon--gift-pending': !gift.received
+				}"
+					:style="getItemRarityStyle(gift.rarity)"
+			>{{ gift.icon }}</span>
+
+								<div class="item-details">
+									<span class="item-name">{{ gift.name }}</span>
+
+									<div class="gift-status-row">
+					<span
+							class="item-source"
+							:class="{
+							'item-source--gift-received': gift.received,
+							'item-source--gift-pending': !gift.received
+						}"
+					>
+						<Icon
+								:name="gift.received ? 'completion-badge' : 'heart'"
+								size="12"
+						/>
+						{{ gift.received
+							? t('profile.inventory.gift_received_by_friend')
+							: t('profile.inventory.gift_sent_waiting')
+						}}
+					</span>
+									</div>
+
+									<span class="item-quantity">
+					{{ getGiftDate(gift) }}
+				</span>
+								</div>
+
+								<!-- Status Badge -->
+								<div class="gift-status-badge">
+									<Icon
+											:name="gift.received ? 'completion-badge' : 'clock'"
+											size="20"
+											:class="{
+						'text-success': gift.received,
+						'text-warning': !gift.received
+					}"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<!-- Empty state remains the same -->
@@ -611,6 +757,15 @@ onUnmounted(() => {
 				</div>
 			</template>
 		</ConfirmationModal>
+
+		<GiftCodeModal
+				:visible="showSentGiftModal"
+				:gift-data="selectedSentGift"
+				mode="view"
+				@mark-received="handleSentGiftMarkReceived"
+				@unmark-received="handleSentGiftUnmarkReceived"
+				@close="closeSentGiftModal"
+		/>
 	</main>
 </template>
 
@@ -1087,5 +1242,75 @@ onUnmounted(() => {
 	color: var(--text-secondary);
 	font-style: italic;
 	white-space: nowrap;
+}
+
+
+.inventory-group--sent-gifts {
+	border-left: 3px solid var(--pink-color);
+	background: linear-gradient(
+					to right,
+					rgba(236, 72, 153, 0.05) 0%,
+					var(--bg-secondary) 10%
+	);
+}
+
+.inventory-item--sent-gift {
+	cursor: pointer;
+	position: relative;
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		transform: translateY(-1px);
+		box-shadow: var(--card-shadow-hover);
+	}
+}
+
+.inventory-item--gift-received {
+	border-color: var(--success-color);
+	background: rgba(16, 185, 129, 0.05);
+}
+
+.inventory-item--gift-pending {
+	border-color: var(--warning-color);
+	background: rgba(245, 158, 11, 0.05);
+}
+
+.gift-status-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	width: 100%;
+}
+
+.item-source--gift-received {
+	color: var(--success-color);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.item-source--gift-pending {
+	color: var(--warning-color);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.gift-status-badge {
+	position: absolute;
+	right: var(--space-2);
+	top: 50%;
+	transform: translateY(-50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.text-success {
+	color: var(--success-color);
+}
+
+.text-warning {
+	color: var(--warning-color);
 }
 </style>

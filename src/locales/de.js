@@ -356,6 +356,7 @@ export default {
       empty_description: 'Besuche den Shop, um Gegenstände und Upgrades zu kaufen!',
       mystery_items: 'Geheimnisvolle Box Items',
       gift_items: 'Geschenk Items',
+      sent_gifts: 'Versendete Geschenke',
       consumable_items: 'Power-ups',
       cosmetic_items: 'Kosmetische Items',
       mystery_box_item: 'Geheimnisvolle Box #{boxNumber}',
@@ -367,6 +368,8 @@ export default {
       gift_received: 'Erhalten',
       gift_pending: 'Ausstehend',
       gifts_from_multiple: '{count} Geschenke (zuletzt von {sender})',
+      gift_received_by_friend: 'Von Freund erhalten',
+      gift_sent_waiting: 'Wartet auf Empfänger',
     }
 	},
 

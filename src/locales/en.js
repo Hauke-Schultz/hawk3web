@@ -276,6 +276,7 @@ export default {
       empty_description: 'Visit the shop to purchase items and upgrades!',
       mystery_items: 'Mystery Box Items',
       gift_items: 'Gift Items',
+      sent_gifts: 'Sent Gifts',
       consumable_items: 'Power-ups',
       cosmetic_items: 'Cosmetic Items',
       mystery_box_item: 'Mystery Box #{boxNumber}',
@@ -287,6 +288,8 @@ export default {
       gift_received: 'Received',
       gift_pending: 'Pending',
       gifts_from_multiple: '{count} gifts (latest from {sender})',
+      gift_received_by_friend: 'Received by friend',
+      gift_sent_waiting: 'Waiting for recipient',
     }
 	},
 
