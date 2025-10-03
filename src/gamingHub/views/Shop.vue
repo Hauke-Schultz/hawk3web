@@ -6,8 +6,6 @@ import { useInventory } from '../composables/useInventory.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
 import { SHOP_ITEMS, SHOP_CATEGORIES, RARITY_CONFIG } from '../config/shopConfig.js'
-import { validateGiftCodeFormat } from '../config/giftConfig.js'
-import GiftModal from '../components/GiftModal.vue'
 import Header from '../components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import CurrencyDisplay from '../components/CurrencyDisplay.vue'
@@ -23,7 +21,7 @@ const props = defineProps({
 
 // Services
 const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift, canReceiveGiftToday, redeemGift, markGiftAsReceived, unmarkGiftAsReceived } = useLocalStorage()
-const { selectedCategory, currentCategoryItems, canAffordItem, canPurchaseItem } = useShop()
+const { selectedCategory, currentCategoryItems, canAffordItem } = useShop()
 const { hasItem } = useInventory()
 const { t } = useI18n()
 const router = useRouter()
@@ -120,22 +118,8 @@ const handleGiftRedeem = async () => {
 	}
 }
 
-const closeGiftModal = () => {
-	showGiftModal.value = false
-	giftRedeemResult.value = null
-}
-
 const canRedeemGiftsToday = computed(() => {
 	return canReceiveGiftToday()
-})
-
-const giftStats = computed(() => {
-	return {
-		sentToday: gameData.player.gifts?.sentToday || 0,
-		receivedToday: gameData.player.gifts?.receivedToday || 0,
-		totalSent: gameData.player.gifts?.sentGifts?.length || 0,
-		totalReceived: gameData.player.gifts?.receivedGifts?.length || 0
-	}
 })
 
 const handlePurchaseConfirm = async () => {
@@ -259,16 +243,6 @@ const giftableProfileItems = computed(() => {
 			.filter(Boolean)
 })
 
-// Gift-specific computed properties
-const giftableItems = computed(() => {
-	if (selectedCategory.value !== 'gifts') return []
-
-	return getGiftableItems().map(itemId => {
-		const shopItem = currentCategoryItems.value.find(item => item.id === itemId)
-		return shopItem
-	}).filter(Boolean)
-})
-
 const displayItems = computed(() => {
 	if (selectedCategory.value === 'gifts') {
 		// Zeige sowohl Gift-Items als auch besitzbare Profile-Items
@@ -284,13 +258,11 @@ const handleGiftClick = (item) => {
 		return
 	}
 
-	// If gift item is not owned, allow purchase
 	if (item.category === 'gifts' && !isItemOwned(item)) {
-		handleItemClick(item) // Use normal purchase flow
+		handleItemClick(item)
 		return
 	}
 
-	// Check if can send gift today
 	if (!canSendGiftToday()) {
 		modalType.value = 'gift_limit'
 		selectedItem.value = item
@@ -298,7 +270,6 @@ const handleGiftClick = (item) => {
 		return
 	}
 
-	// Check if item is owned
 	if (!isItemOwned(item)) {
 		modalType.value = 'gift_not_owned'
 		selectedItem.value = item
@@ -306,9 +277,11 @@ const handleGiftClick = (item) => {
 		return
 	}
 
-	// Open gift modal
-	selectedItem.value = item
-	showGiftModal.value = true
+	// Open gift code modal in send mode
+	selectedGiftForSend.value = item
+	sentGiftData.value = null
+	giftCodeModalMode.value = 'send'
+	showGiftCodeModal.value = true
 }
 
 const handleGiftSend = async (item) => {
@@ -316,20 +289,19 @@ const handleGiftSend = async (item) => {
 		const result = createGift(item.id)
 
 		if (result.success) {
-			showGiftModal.value = false
-			// Show success with gift code
-			modalType.value = 'gift_success'
-			selectedItem.value = { ...item, giftCode: result.gift.code, giftData: result.gift }
-			showModal.value = true
+			// Switch to success mode in same modal
+			sentGiftData.value = result.gift
+			giftCodeModalMode.value = 'success'
 		} else {
-			showGiftModal.value = false
+			// Close modal and show error
+			showGiftCodeModal.value = false
 			modalType.value = 'gift_error'
 			selectedItem.value = { ...item, error: result.error }
 			showModal.value = true
 		}
 	} catch (error) {
 		console.error('Gift creation error:', error)
-		showGiftModal.value = false
+		showGiftCodeModal.value = false
 		modalType.value = 'gift_error'
 		selectedItem.value = { ...item, error: 'unknown_error' }
 		showModal.value = true
@@ -398,16 +370,19 @@ const getGiftStatus = (item) => {
 // Gift Code Modal State
 const showGiftCodeModal = ref(false)
 const selectedGiftCode = ref(null)
+const selectedGiftForSend = ref(null)
+const giftCodeModalMode = ref('view')
+const sentGiftData = ref(null)
 
 const handleGiftStatusClick = (item) => {
 	const status = getGiftStatus(item)
 
 	if (status.sentToday) {
-		// Show gift code modal
 		selectedGiftCode.value = status.sentToday
+		sentGiftData.value = null
+		giftCodeModalMode.value = 'view'
 		showGiftCodeModal.value = true
 	} else {
-		// Normal gift flow
 		handleGiftClick(item)
 	}
 }
@@ -415,6 +390,9 @@ const handleGiftStatusClick = (item) => {
 const closeGiftCodeModal = () => {
 	showGiftCodeModal.value = false
 	selectedGiftCode.value = null
+	selectedGiftForSend.value = null
+	sentGiftData.value = null
+	giftCodeModalMode.value = 'view'
 }
 
 const unMarkAsReceived = () => {
@@ -655,19 +633,13 @@ watch(() => gameData, (newData) => {
 				@close="closeModal"
 		/>
 
-		<!-- Gift Modal -->
-		<GiftModal
-				:visible="showGiftModal"
-				:item="selectedItem"
-				:player-balance="playerBalance"
-				@confirm="handleGiftSend"
-				@cancel="closeGiftModal"
-				@close="closeGiftModal"
-		/>
-
 		<GiftCodeModal
 				:visible="showGiftCodeModal"
-				:gift-data="selectedGiftCode"
+				:mode="giftCodeModalMode"
+				:gift-data="giftCodeModalMode === 'success' ? sentGiftData : selectedGiftCode"
+				:item="selectedGiftForSend"
+				:player-balance="playerBalance"
+				@confirm="handleGiftSend"
 				@mark-received="markAsReceived"
 				@unmark-received="unMarkAsReceived"
 				@close="closeGiftCodeModal"

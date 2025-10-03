@@ -1857,6 +1857,19 @@ export function useLocalStorage() {
     if (gift) {
       gift.received = true
       gift.receivedAt = new Date().toISOString()
+
+      // Remove item from inventory since it was gifted away
+      const itemId = gift.itemId
+      if (gameData.player.inventory.items[itemId]) {
+        const success = removeItemFromInventory(itemId, 1)
+
+        if (success) {
+          console.log(`🎁 Item ${itemId} removed from inventory after gift was received`)
+        } else {
+          console.warn(`⚠️ Could not remove item ${itemId} from inventory`)
+        }
+      }
+
       saveData()
       return true
     }
@@ -1864,10 +1877,42 @@ export function useLocalStorage() {
   }
 
   const unmarkGiftAsReceived = (giftCode) => {
+    if (!gameData.player.gifts) {
+      gameData.player.gifts = validateGiftsData(null)
+    }
+
     const gift = gameData.player.gifts.sentGifts.find(g => g.code === giftCode)
     if (gift) {
       gift.received = false
       gift.receivedAt = null
+
+      // Add item back to inventory since gift was marked as not received
+      const itemId = gift.itemId
+
+      // Get item details from shop or mystery items
+      let shopItem = SHOP_ITEMS.find(item => item.id === itemId)
+
+      if (!shopItem) {
+        const { MYSTERY_ITEMS } = require('../config/mysteryBoxConfig.js')
+        shopItem = MYSTERY_ITEMS.find(item => item.id === itemId)
+      }
+
+      if (shopItem) {
+        addItemToInventory(itemId, 1, {
+          type: shopItem.type,
+          category: shopItem.category,
+          rarity: shopItem.rarity,
+          name: shopItem.name,
+          description: shopItem.description,
+          returnedFromGift: true,
+          returnedAt: new Date().toISOString()
+        })
+
+        console.log(`🎁 Item ${itemId} returned to inventory after unmarking gift as received`)
+      } else {
+        console.warn(`⚠️ Could not find item details for ${itemId}`)
+      }
+
       saveData()
       return true
     }

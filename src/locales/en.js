@@ -423,6 +423,9 @@ export default {
       already_redeemed_message: 'You have already redeemed this gift code. Each gift code can only be used once.',
       invalid_recipient_title: 'Invalid Recipient',
       invalid_recipient_message: 'This gift was sent to another player and cannot be redeemed by you.',
+      item_removed_from_inventory: 'Item has been removed from inventory',
+      item_will_be_removed: 'Warning: Item will be removed from your inventory',
+      item_returned_to_inventory: 'Item has been returned to inventory',
     },
 	},
 

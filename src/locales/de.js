@@ -503,6 +503,9 @@ export default {
       already_redeemed_message: 'Du hast diesen Geschenkcode bereits eingelöst. Jeder Geschenkcode kann nur einmal verwendet werden.',
       invalid_recipient_title: 'Ungültiger Empfänger',
       invalid_recipient_message: 'Dieses Geschenk wurde an einen anderen Spieler gesendet und kann von dir nicht eingelöst werden.',
+      item_removed_from_inventory: 'Item wurde aus dem Inventar entfernt',
+      item_will_be_removed: 'Warnung: Item wird aus deinem Inventar entfernt',
+      item_returned_to_inventory: 'Item wurde zurück ins Inventar gelegt',
     },
 	},
 

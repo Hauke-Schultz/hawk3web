@@ -19,10 +19,9 @@ const props = defineProps({
 	},
 	type: {
 		type: String,
-		default: 'purchase', // 'purchase', 'insufficient', 'owned', 'gift_success', 'gift_error', 'gift_limit', 'gift_not_owned'
+		default: 'purchase',
 		validator: (value) => [
-			'purchase', 'insufficient', 'owned',
-			'gift_success', 'gift_error', 'gift_limit', 'gift_not_owned'
+			'purchase', 'insufficient', 'owned', 'gift_limit'
 		].includes(value)
 	}
 })
@@ -72,58 +71,10 @@ const modalConfig = computed(() => {
 				confirmVariant: 'info',
 				hideCancel: true
 			}
-		case 'gift_success':
-			return {
-				title: t('shop.gifts.gift_sent_successfully'),
-				message: t('shop.gifts.share_this_code'),
-				confirmText: t('shop.gifts.copy_code'),
-				confirmVariant: 'success',
-				hideCancel: true
-			}
-		case 'gift_error':
-			return {
-				title: t('shop.gifts.gift_error'),
-				message: getGiftErrorMessage(props.item.error),
-				confirmText: t('common.ok'),
-				confirmVariant: 'info',
-				hideCancel: true
-			}
 		case 'gift_limit':
 			return {
 				title: t('shop.gifts.daily_gift_limit'),
 				message: t('shop.gifts.daily_limit_message'),
-				confirmText: t('common.ok'),
-				confirmVariant: 'warning',
-				hideCancel: true
-			}
-		case 'gift_not_owned':
-			return {
-				title: t('shop.gifts.item_not_owned_gift'),
-				message: t('shop.gifts.must_own_to_gift'),
-				confirmText: t('common.ok'),
-				confirmVariant: 'info',
-				hideCancel: true
-			}
-		case 'gift_limit_reached':
-			return {
-				title: t('shop.gifts.limit_reached_title'),
-				message: t('shop.gifts.limit_reached_message'),
-				confirmText: t('common.ok'),
-				confirmVariant: 'warning',
-				hideCancel: true
-			}
-		case 'gift_already_redeemed':
-			return {
-				title: t('shop.gifts.already_redeemed_title'),
-				message: t('shop.gifts.already_redeemed_message'),
-				confirmText: t('common.ok'),
-				confirmVariant: 'info',
-				hideCancel: true
-			}
-		case 'gift_invalid_recipient':
-			return {
-				title: t('shop.gifts.invalid_recipient_title'),
-				message: t('shop.gifts.invalid_recipient_message'),
 				confirmText: t('common.ok'),
 				confirmVariant: 'warning',
 				hideCancel: true
@@ -154,33 +105,8 @@ const rarityConfig = computed(() => {
 	return rarities[props.item.rarity] || rarities.common
 })
 
-const getGiftErrorMessage = (error) => {
-	const errorMessages = {
-		daily_limit_reached: t('shop.gifts.daily_limit_message'),
-		item_not_owned: t('shop.gifts.must_own_to_gift'),
-		item_not_found: t('shop.gifts.item_not_found'),
-		item_not_giftable: t('shop.gifts.item_not_giftable'),
-		unknown_error: t('shop.gifts.unknown_error')
-	}
-
-	return errorMessages[error] || t('shop.gifts.unknown_error')
-}
-
-const copyGiftCode = async (code) => {
-	try {
-		await navigator.clipboard.writeText(code)
-		console.log('Gift code copied to clipboard:', code)
-	} catch (error) {
-		console.error('Failed to copy gift code:', error)
-	}
-}
-
 // Event handlers
 const handleConfirm = () => {
-	if (props.type === 'gift_success' && props.item.giftCode) {
-		// Copy gift code to clipboard
-		copyGiftCode(props.item.giftCode)
-	}
 	emit('confirm')
 }
 
@@ -211,15 +137,11 @@ const handleKeyDown = (event) => {
 				tabindex="-1"
 		>
 			<div
-					class="shop-modal"
-					:class="{
-          'shop-modal--gift-success': type === 'gift_success',
-          'shop-modal--gift-error': type === 'gift_error'
-        }"
-					@click.stop
-					role="dialog"
-					aria-modal="true"
-					:aria-labelledby="modalConfig.title"
+				class="shop-modal"
+				@click.stop
+				role="dialog"
+				aria-modal="true"
+				:aria-labelledby="modalConfig.title"
 			>
 				<!-- Modal Header -->
 				<div class="modal-header">
@@ -235,20 +157,6 @@ const handleKeyDown = (event) => {
 
 				<!-- Modal Content -->
 				<div class="modal-content">
-					<!-- Gift Success Content -->
-					<div v-if="type === 'gift_success'" class="gift-success-content">
-						<div class="success-icon">
-							<Icon name="heart" size="48" />
-						</div>
-
-						<div class="gift-code-section">
-							<h4>{{ modalConfig.message }}</h4>
-							<div class="gift-code-display">
-								<code class="gift-code">{{ item.giftCode }}</code>
-							</div>
-						</div>
-					</div>
-
 					<!-- Item Display -->
 					<div class="item-preview">
 						<div
@@ -268,8 +176,8 @@ const handleKeyDown = (event) => {
 					</div>
 					<!-- Price Display -->
 					<div
-							v-if="type !== 'gift_success'"
-							class="price-section"
+						v-if="type !== 'gift_limit'"
+						class="price-section"
 					>
 						<CurrencyDisplay
 								:coins="item.price.coins"
@@ -487,88 +395,6 @@ const handleKeyDown = (event) => {
 
 .modal-actions .btn {
 	min-width: 100px;
-}
-
-// Gift Success Styles
-.shop-modal--gift-success {
-	border-color: var(--success-color);
-	box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-}
-
-.gift-success-content {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--space-4);
-	text-align: center;
-}
-
-.success-icon {
-	color: var(--success-color);
-}
-
-.gift-code-section {
-	width: 100%;
-}
-
-.gift-code-section h4 {
-	font-size: var(--font-size-base);
-	font-weight: var(--font-weight-bold);
-	color: var(--text-color);
-	margin: 0 0 var(--space-3) 0;
-}
-
-.gift-code-display {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	padding: var(--space-3);
-	background-color: var(--bg-secondary);
-	border-radius: var(--border-radius-lg);
-	border: 2px solid var(--success-color);
-}
-
-.gift-code {
-	flex: 1;
-	font-family: 'Courier New', monospace;
-	font-size: var(--font-size-lg);
-	font-weight: var(--font-weight-bold);
-	color: var(--success-color);
-	letter-spacing: 2px;
-	word-break: break-all;
-}
-
-.copy-code-btn {
-	flex-shrink: 0;
-}
-
-.gift-instructions {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-2);
-	width: 100%;
-}
-
-.gift-instructions p {
-	font-size: var(--font-size-sm);
-	color: var(--text-secondary);
-	margin: 0;
-	line-height: 1.4;
-}
-
-.expiration-notice {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	font-size: var(--font-size-sm);
-	color: var(--warning-color);
-	font-weight: var(--font-weight-bold);
-	justify-content: center;
-}
-
-// Gift Error Styles
-.shop-modal--gift-error {
-	border-color: var(--error-color);
 }
 
 // Animations
