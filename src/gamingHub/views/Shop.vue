@@ -79,7 +79,10 @@ const handleItemClick = (item) => {
 const handleGiftRedeem = async () => {
 	if (!giftCode.value.trim()) {
 		modalType.value = 'invalid_code'
-		showModal.value = true
+		giftRedeemResult.value = {
+			success: false,
+			message: t('shop.gifts.unknown_error')
+		}
 		return
 	}
 
@@ -99,23 +102,19 @@ const handleGiftRedeem = async () => {
 			// Clear input
 			giftCode.value = ''
 		} else {
-			// Map specific error types to modal types
-			const errorModalMap = {
-				'limit_reached': 'gift_limit_reached',
-				'already_redeemed': 'gift_already_redeemed',
-				'invalid_recipient': 'gift_invalid_recipient',
-				'already_owned': 'invalid_code',
-				'item_not_found': 'invalid_code',
-				'invalid_format': 'invalid_code'
+			modalType.value = 'invalid_code'
+			giftRedeemResult.value = {
+				success: false,
+				message: t('shop.gifts.unknown_error')
 			}
-
-			modalType.value = errorModalMap[result.error] || 'invalid_code'
-			showModal.value = true
 		}
 	} catch (error) {
 		console.error('Gift redemption error:', error)
 		modalType.value = 'invalid_code'
-		showModal.value = true
+		giftRedeemResult.value = {
+			success: false,
+			message: t('shop.gifts.unknown_error')
+		}
 	} finally {
 		isRedeeming.value = false
 	}

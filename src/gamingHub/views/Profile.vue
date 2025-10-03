@@ -276,6 +276,28 @@ const getLatestGiftSender = (item) => {
 	return latestGift.giftFrom
 }
 
+const getGiftHistory = (item) => {
+	const inventoryData = gameData.player.inventory.items[item.id]
+	if (!inventoryData || !inventoryData.giftsReceived) {
+		// Fallback to single gift data
+		if (item.giftFrom && item.giftDate) {
+			return [{
+				sender: item.giftFrom,
+				date: new Date(item.giftDate).toLocaleDateString()
+			}]
+		}
+		return []
+	}
+
+	// Return all gifts sorted by date (newest first)
+	return inventoryData.giftsReceived
+			.map(gift => ({
+				sender: gift.giftFrom,
+				date: new Date(gift.receivedAt).toLocaleDateString()
+			}))
+			.sort((a, b) => new Date(b.date) - new Date(a.date))
+}
+
 // Methods
 const selectAvatar = (avatar) => {
 	selectedAvatar.value = avatar
@@ -458,60 +480,74 @@ onUnmounted(() => {
 								:key="`gift-${item.id}-${item.giftType}`"
 								class="inventory-item"
 								:class="{
-		              'inventory-item--gift-received': item.giftType === 'received',
-		              'inventory-item--gift-pending': item.giftType === 'pending',
-		              'inventory-item--gift-sent': item.giftType === 'sent',
-		            }"
+									'inventory-item--gift-received': item.giftType === 'received',
+									'inventory-item--gift-pending': item.giftType === 'pending',
+									'inventory-item--gift-sent': item.giftType === 'sent',
+								}"
 							>
-		            <span
-			            class="item-icon"
-			            :class="{
-		                'item-icon--gift-received': item.giftType === 'received',
-		                'item-icon--gift-pending': item.giftType === 'pending',
-		                'item-icon--gift-sent': item.giftType === 'sent'
-		              }"
-			            :style="getItemRarityStyle(item.rarity)"
-		            >{{ item.icon }}</span>
+								<span
+									class="item-icon"
+									:class="{
+										'item-icon--gift-received': item.giftType === 'received',
+										'item-icon--gift-pending': item.giftType === 'pending',
+										'item-icon--gift-sent': item.giftType === 'sent'
+									}"
+									:style="getItemRarityStyle(item.rarity)"
+								>{{ item.icon }}</span>
 
 								<div class="item-details">
 									<span class="item-name">{{ item.name }}</span>
 
 									<!-- Received Gift -->
-									<span v-if="item.giftType === 'received'" class="item-source item-source--gift-received">
-									  <template v-if="getGiftCount(item) > 1">
-									    {{ t('profile.inventory.gifts_from_multiple', {
-										  count: getGiftCount(item),
-										  sender: getLatestGiftSender(item)
-									  }) }}
-									  </template>
-									  <template v-else>
-									    {{ t('profile.inventory.gift_from', {
-										  sender: getGiftSender(item)
-									  }) }}
-									  </template>
-									</span>
+									<div v-if="item.giftType === 'received'" class="gift-received-section">
+										<span class="item-source item-source--gift-received">
+											<template v-if="getGiftCount(item) > 1">
+												{{ t('profile.inventory.gifts_from_multiple', {
+													count: getGiftCount(item),
+													sender: getLatestGiftSender(item)
+												}) }}
+											</template>
+											<template v-else>
+												{{ t('profile.inventory.gift_from', {
+													sender: getGiftSender(item)
+												}) }}
+											</template>
+										</span>
+
+										<!-- Gift History List -->
+										<div v-if="getGiftHistory(item).length > 0" class="gift-history">
+											<div
+												v-for="(gift, index) in getGiftHistory(item)"
+												:key="`gift-history-${index}`"
+												class="gift-history-item"
+											>
+												<span class="gift-sender">{{ gift.sender }}</span>
+												<span class="gift-date">{{ gift.date }}</span>
+											</div>
+										</div>
+									</div>
 
 									<!-- Sent Gift -->
 									<span
 										v-if="item.giftType === 'sent'"
 										class="item-source item-source--gift-sent"
 									>
-		                {{ t('profile.inventory.gift_sent_to', {
+										{{ t('profile.inventory.gift_sent_to', {
 												recipient: getGiftRecipient(item)
 											}) }}
-		              </span>
+									</span>
 
 									<!-- Pending Gift -->
 									<span
-										v-if="item.giftType === 'pending'"
-										class="item-source item-source--gift-pending"
+											v-if="item.giftType === 'pending'"
+											class="item-source item-source--gift-pending"
 									>
-		                {{ t('profile.inventory.gift_pending_to', {
+										{{ t('profile.inventory.gift_pending_to', {
 												recipient: getGiftRecipient(item)
 											}) }}
-		              </span>
+									</span>
 
-									<div class="gift-meta">
+									<div v-if="item.giftType !== 'received'" class="gift-meta">
 										<span class="item-quantity">{{ getGiftDate(item) }}</span>
 									</div>
 								</div>
@@ -1016,4 +1052,40 @@ onUnmounted(() => {
 	color: var(--pink-color);
 }
 
+.gift-received-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	width: 100%;
+}
+
+.gift-history {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	padding: var(--space-2);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-sm);
+	border-left: 3px solid var(--success-color);
+}
+
+.gift-history-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: var(--font-size-xs);
+	gap: var(--space-2);
+}
+
+.gift-sender {
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	flex: 1;
+}
+
+.gift-date {
+	color: var(--text-secondary);
+	font-style: italic;
+	white-space: nowrap;
+}
 </style>
