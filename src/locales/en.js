@@ -275,7 +275,7 @@ export default {
       empty: 'No items yet',
       empty_description: 'Visit the shop to purchase items and upgrades!',
       mystery_items: 'Mystery Box Items',
-      gift_items: 'Gift Items',
+      gift_items: 'Gifts',
       sent_gifts: 'Sent Gifts',
       consumable_items: 'Power-ups',
       cosmetic_items: 'Cosmetic Items',
@@ -312,7 +312,7 @@ export default {
 		title: 'Shop',
 		subtitle: 'Buy items and upgrades',
 		categories: {
-			profile: 'Profile',
+			profile: 'Stuff',
 			items: 'Items',
 			utilities: 'Utilities',
       gifts: 'Gifts'

@@ -602,6 +602,7 @@ const handleMenuClick = () => {
 	color: var(--text-secondary);
 	display: flex;
 	gap: var(--space-1);
+	white-space: nowrap;
 }
 
 .recent-game-time {
@@ -610,6 +611,7 @@ const handleMenuClick = () => {
 	font-style: italic;
 	flex-grow: 2;
 	text-align: right;
+	line-height: 1;
 }
 
 .nav-icons-grid {

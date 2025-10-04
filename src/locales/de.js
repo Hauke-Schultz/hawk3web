@@ -392,7 +392,7 @@ export default {
 		title: 'Shop',
 		subtitle: 'Gegenstände und Upgrades kaufen',
 		categories: {
-			profile: 'Profil',
+			profile: 'Sachen',
 			items: 'Items',
 			utilities: 'Werkzeuge',
       gifts: 'Geschenke'

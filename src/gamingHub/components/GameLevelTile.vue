@@ -231,13 +231,13 @@ const handleViewScreenshots = (event) => {
 
 		  <div class="level-tile__badges">
 			  <div v-if="isCompleted" class="level-tile__completion-badge">
-				  <Icon name="completion-badge" size="16" />
+				  <Icon name="completion-badge" size="24" />
 			  </div>
 			  <div v-if="hasSavedState" class="level-tile__saved-badge" :title="savedStateTooltip">
-				  <Icon name="save" size="14" />
+				  <Icon name="save" size="18" />
 			  </div>
 			  <div v-if="hasScreenshots" class="level-tile__screenshot-badge" @click="handleViewScreenshots" :title="t('fruitMerge.view_screenshots_tooltip', { count: screenshotCount })">
-				  <Icon name="camera" size="12" />
+				  <Icon name="camera" size="18" />
 				  <span class="screenshot-count">{{ screenshotCount }}</span>
 			  </div>
 		  </div>
@@ -532,7 +532,7 @@ const handleViewScreenshots = (event) => {
 	display: flex;
 	align-items: center;
 	gap: var(--space-1);
-	font-size: var(--font-size-xs);
+	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 	cursor: pointer;
 	transition: all 0.2s ease;
