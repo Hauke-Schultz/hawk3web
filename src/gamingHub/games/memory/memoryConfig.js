@@ -47,9 +47,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 4,
 		minHeight: 60,
 		starThresholds: {
-			1: { moves: 28 },
-			2: { moves: 26 },
-			3: { moves: 20 }
+			1: { moves: 32 },
+			2: { moves: 28 },
+			3: { moves: 24 }
 		}
 	},
 	5: {
@@ -60,9 +60,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 4,
 		minHeight: 60,
 		starThresholds: {
-			1: { moves: 32 },
-			2: { moves: 30 },
-			3: { moves: 24 }
+			1: { moves: 42 },
+			2: { moves: 36 },
+			3: { moves: 30 }
 		}
 	},
 	6: {
@@ -73,9 +73,9 @@ export const MEMORY_LEVELS = {
 		gridCols: 4,
 		minHeight: 60,
 		starThresholds: {
-			1: { moves: 48 },
-			2: { moves: 44 },
-			3: { moves: 36 }
+			1: { moves: 72 },
+			2: { moves: 62 },
+			3: { moves: 52 }
 		}
 	}
 }

@@ -147,8 +147,8 @@ export const SHOP_ITEMS = [
     rarity: 'rare',
     icon: '💍',
     type: 'cosmetic',
-    purchaseLimit: 1,
-    giftOnly: false // Kann gekauft UND verschenkt werden
+    purchaseLimit: 10,
+    giftOnly: false
   },
   {
     id: 'friendship_bracelet',
@@ -159,7 +159,7 @@ export const SHOP_ITEMS = [
     rarity: 'uncommon',
     icon: '📿',
     type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 10,
     giftOnly: false
   },
   {
@@ -171,7 +171,7 @@ export const SHOP_ITEMS = [
     rarity: 'common',
     icon: '💌',
     type: 'cosmetic',
-    purchaseLimit: 5, // Kann mehrfach gekauft werden
+    purchaseLimit: 10,
     giftOnly: false
   },
 
@@ -185,7 +185,7 @@ export const SHOP_ITEMS = [
     rarity: 'rare',
     icon: '🎂',
     type: 'cosmetic',
-    purchaseLimit: 3,
+    purchaseLimit: 10,
     giftOnly: false
   },
   {
@@ -197,7 +197,7 @@ export const SHOP_ITEMS = [
     rarity: 'uncommon',
     icon: '🎉',
     type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 10,
     giftOnly: false
   },
   {
@@ -209,7 +209,7 @@ export const SHOP_ITEMS = [
     rarity: 'uncommon',
     icon: '🍾',
     type: 'cosmetic',
-    purchaseLimit: 2,
+    purchaseLimit: 5,
     giftOnly: false
   },
 
@@ -219,11 +219,11 @@ export const SHOP_ITEMS = [
     name: 'Four Leaf Clover',
     description: 'Share some luck with your friends',
     category: 'gifts',
-    price: { coins: 1800, diamonds: 7 },
+    price: { coins: 3800, diamonds: 7 },
     rarity: 'rare',
     icon: '🍀',
     type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 5,
     giftOnly: false
   },
   {
@@ -231,23 +231,11 @@ export const SHOP_ITEMS = [
     name: 'Lucky Coin',
     description: 'An ancient coin that brings good fortune',
     category: 'gifts',
-    price: { coins: 1000, diamonds: 4 },
+    price: { coins: 10000, diamonds: 10 },
     rarity: 'uncommon',
     icon: '🪙',
     type: 'cosmetic',
-    purchaseLimit: 1,
-    giftOnly: false
-  },
-  {
-    id: 'crystal_ball',
-    name: 'Crystal Ball',
-    description: 'Mystical crystal ball for fortune telling',
-    category: 'gifts',
-    price: { coins: 4500, diamonds: 15 },
-    rarity: 'epic',
-    icon: '🔮',
-    type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 5,
     giftOnly: false
   },
 
@@ -273,7 +261,7 @@ export const SHOP_ITEMS = [
     rarity: 'uncommon',
     icon: '💐',
     type: 'cosmetic',
-    purchaseLimit: 3,
+    purchaseLimit: 10,
     giftOnly: false
   },
   {
@@ -281,11 +269,11 @@ export const SHOP_ITEMS = [
     name: 'Magical Butterfly',
     description: 'Delicate butterfly that brings joy and beauty',
     category: 'gifts',
-    price: { coins: 2200, diamonds: 8 },
+    price: { coins: 22000, diamonds: 18 },
     rarity: 'rare',
     icon: '🦋',
     type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 10,
     giftOnly: false
   },
 
@@ -295,11 +283,23 @@ export const SHOP_ITEMS = [
     name: 'Precious Diamond',
     description: 'A rare and valuable diamond for special friends',
     category: 'gifts',
-    price: { coins: 8000, diamonds: 25 },
+    price: { coins: 30000, diamonds: 25 },
     rarity: 'epic',
     icon: '💎',
     type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 5,
+    giftOnly: false
+  },
+  {
+    id: 'crystal_ball',
+    name: 'Crystal Ball',
+    description: 'Mystical crystal ball for fortune telling',
+    category: 'gifts',
+    price: { coins: 45000, diamonds: 28 },
+    rarity: 'epic',
+    icon: '🔮',
+    type: 'cosmetic',
+    purchaseLimit: 5,
     giftOnly: false
   },
   {
@@ -307,11 +307,11 @@ export const SHOP_ITEMS = [
     name: 'Golden Star',
     description: 'Shining golden star to honor achievements',
     category: 'gifts',
-    price: { coins: 5000, diamonds: 18 },
+    price: { coins: 50000, diamonds: 30 },
     rarity: 'epic',
     icon: '⭐',
     type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 5,
     giftOnly: false
   },
   {
@@ -319,11 +319,11 @@ export const SHOP_ITEMS = [
     name: 'Treasure Chest',
     description: 'Mysterious chest filled with precious memories',
     category: 'gifts',
-    price: { coins: 12000, diamonds: 35 },
+    price: { coins: 120000, diamonds: 50 },
     rarity: 'legendary',
     icon: '🏆',
     type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 5,
     giftOnly: false
   },
 
@@ -333,7 +333,7 @@ export const SHOP_ITEMS = [
     name: 'Cute Teddy Bear',
     description: 'Adorable teddy bear for comfort and companionship',
     category: 'gifts',
-    price: { coins: 1500, diamonds: 5 },
+    price: { coins: 130000, diamonds: 100 },
     rarity: 'uncommon',
     icon: '🧸',
     type: 'cosmetic',
@@ -345,23 +345,11 @@ export const SHOP_ITEMS = [
     name: 'Rainbow Bridge',
     description: 'Beautiful rainbow connecting hearts and dreams',
     category: 'gifts',
-    price: { coins: 3500, diamonds: 12 },
+    price: { coins: 250000, diamonds: 200 },
     rarity: 'rare',
     icon: '🌈',
     type: 'cosmetic',
-    purchaseLimit: 1,
-    giftOnly: false
-  },
-  {
-    id: 'shooting_star',
-    name: 'Shooting Star',
-    description: 'Make a wish on this magical shooting star',
-    category: 'gifts',
-    price: { coins: 2800, diamonds: 10 },
-    rarity: 'rare',
-    icon: '🌟',
-    type: 'cosmetic',
-    purchaseLimit: 1,
+    purchaseLimit: 5,
     giftOnly: false
   }
 ]

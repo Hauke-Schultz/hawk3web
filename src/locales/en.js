@@ -280,7 +280,7 @@ export default {
       consumable_items: 'Power-ups',
       cosmetic_items: 'Cosmetic Items',
       mystery_box_item: 'Mystery Box #{boxNumber}',
-      gift_from: 'Gift from {sender}',
+      gift_from: 'Gift from',
       power_up: 'Power-up',
       cosmetic_item: 'Cosmetic Item',
       gift_sent_to: 'Gifted to {recipient}',

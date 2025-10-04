@@ -316,8 +316,9 @@ const getGiftRecipient = (item) => {
 }
 
 const getGiftDate = (item) => {
-	if (item.giftDate) {
-		return new Date(item.giftDate).toLocaleDateString()
+	const date = item.giftDate || item.sentDate || item.receivedAt
+	if (date) {
+		return new Date(date).toLocaleDateString()
 	}
 	return 'Unknown'
 }
@@ -579,17 +580,7 @@ onUnmounted(() => {
 									<!-- Received Gift -->
 									<div v-if="item.giftType === 'received'" class="gift-received-section">
 										<span class="item-source item-source--gift-received">
-											<template v-if="getGiftCount(item) > 1">
-												{{ t('profile.inventory.gifts_from_multiple', {
-													count: getGiftCount(item),
-													sender: getLatestGiftSender(item)
-												}) }}
-											</template>
-											<template v-else>
-												{{ t('profile.inventory.gift_from', {
-													sender: getGiftSender(item)
-												}) }}
-											</template>
+											{{ t('profile.inventory.gift_from') }}
 										</span>
 
 										<!-- Gift History List -->
@@ -660,61 +651,53 @@ onUnmounted(() => {
 						</h4>
 						<div class="inventory-items">
 							<div
-									v-for="gift in sentGifts"
-									:key="`sent-gift-${gift.giftCode}`"
-									class="inventory-item inventory-item--sent-gift"
-									:class="{
-				'inventory-item--gift-received': gift.received,
-				'inventory-item--gift-pending': !gift.received
-			}"
-									@click="handleSentGiftClick(gift)"
+								v-for="gift in sentGifts"
+								:key="`sent-gift-${gift.giftCode}`"
+								class="inventory-item inventory-item--sent-gift"
+								:class="{
+								'inventory-item--gift-received': gift.received,
+								'inventory-item--gift-pending': !gift.received
+							}"
+								@click="handleSentGiftClick(gift)"
 							>
-			<span
-					class="item-icon"
-					:class="{
-					'item-icon--gift-received': gift.received,
-					'item-icon--gift-pending': !gift.received
-				}"
-					:style="getItemRarityStyle(gift.rarity)"
-			>{{ gift.icon }}</span>
+								<span
+									class="item-icon"
+									:class="{
+										'item-icon--gift-received': gift.received,
+										'item-icon--gift-pending': !gift.received
+									}"
+									:style="getItemRarityStyle(gift.rarity)"
+								>{{ gift.icon }}</span>
 
 								<div class="item-details">
-									<span class="item-name">{{ gift.name }}</span>
-
-									<div class="gift-status-row">
-					<span
-							class="item-source"
-							:class="{
-							'item-source--gift-received': gift.received,
-							'item-source--gift-pending': !gift.received
-						}"
-					>
-						<Icon
-								:name="gift.received ? 'completion-badge' : 'heart'"
-								size="12"
-						/>
-						{{ gift.received
-							? t('profile.inventory.gift_received_by_friend')
-							: t('profile.inventory.gift_sent_waiting')
-						}}
-					</span>
+									<div class="item-name">
+										{{ gift.name }}
 									</div>
 
-									<span class="item-quantity">
-					{{ getGiftDate(gift) }}
-				</span>
-								</div>
+									<div
+										class="item-source"
+										:class="{
+											'item-source--gift-received': gift.received,
+											'item-source--gift-pending': !gift.received
+										}"
+									>
+										<Icon
+												:name="gift.received ? 'completion-badge' : 'clock'"
+												size="20"
+												:class="{
+												'text-success': gift.received,
+												'text-warning': !gift.received
+											}"
+										/>
+										{{ gift.received
+											? t('profile.inventory.gift_received_by_friend')
+											: t('profile.inventory.gift_sent_waiting')
+										}}
+									</div>
 
-								<!-- Status Badge -->
-								<div class="gift-status-badge">
-									<Icon
-											:name="gift.received ? 'completion-badge' : 'clock'"
-											size="20"
-											:class="{
-						'text-success': gift.received,
-						'text-warning': !gift.received
-					}"
-									/>
+									<div class="gift-meta">
+										<span class="item-quantity">{{ getGiftDate(gift) }}</span>
+									</div>
 								</div>
 							</div>
 						</div>

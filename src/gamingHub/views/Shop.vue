@@ -198,28 +198,20 @@ const isItemAffordable = (item) => {
 }
 
 const getItemButtonClass = (item) => {
-	if (selectedCategory.value === 'gifts') {
-		return getGiftButtonClass(item)
-	}
-
-	// Für Consumables ohne purchaseLimit: immer basierend auf Affordability
 	if (item.type === 'consumable' && !item.purchaseLimit) {
 		return canAffordItem(item) ? 'item-button--buyable' : 'item-button--expensive'
 	}
 
-	// Für normale Items
 	if (isItemOwned(item)) return 'item-button--owned'
 	if (!canAffordItem(item)) return 'item-button--expensive'
 	return 'item-button--buyable'
 }
 
 const getItemButtonText = (item) => {
-	// Für Consumables ohne purchaseLimit: immer "Buy" oder "Can't afford"
 	if (item.type === 'consumable' && !item.purchaseLimit) {
 		return canAffordItem(item) ? t('shop.buy') : t('shop.cant_afford')
 	}
 
-	// Für normale Items
 	if (isItemOwned(item)) return t('shop.owned')
 	if (!canAffordItem(item)) return t('shop.cant_afford')
 	return t('shop.buy')
@@ -227,12 +219,10 @@ const getItemButtonText = (item) => {
 
 // Gift-specific computed properties
 const giftCategoryItems = computed(() => {
-	// Alle Items aus der gifts category
 	return currentCategoryItems.value.filter(item => item.category === 'gifts')
 })
 
 const giftableProfileItems = computed(() => {
-	// Profile items die als Geschenk versendet werden können
 	if (selectedCategory.value !== 'gifts') return []
 
 	return getGiftableItems()
@@ -245,7 +235,6 @@ const giftableProfileItems = computed(() => {
 
 const displayItems = computed(() => {
 	if (selectedCategory.value === 'gifts') {
-		// Zeige sowohl Gift-Items als auch besitzbare Profile-Items
 		return [...giftCategoryItems.value, ...giftableProfileItems.value]
 	}
 	return currentCategoryItems.value
@@ -310,7 +299,7 @@ const handleGiftSend = async (item) => {
 
 const getGiftButtonText = (item) => {
 	if (item.category === 'gifts' && !isItemOwned(item)) {
-		return t('shop.gifts.buy_to_gift')
+		return canAffordItem(item) ? t('shop.gifts.buy_to_gift') : t('shop.cant_afford')
 	}
 
 	if (!isItemOwned(item)) {
@@ -322,22 +311,6 @@ const getGiftButtonText = (item) => {
 	}
 
 	return t('shop.gifts.send_gift')
-}
-
-const getGiftButtonClass = (item) => {
-	if (item.category === 'gifts' && !isItemOwned(item)) {
-		return 'item-button--buy-to-gift'
-	}
-
-	if (!isItemOwned(item)) {
-		return 'item-button--disabled'
-	}
-
-	if (!canSendGiftToday()) {
-		return 'item-button--disabled'
-	}
-
-	return 'item-button--gift'
 }
 
 const getGiftStatus = (item) => {
