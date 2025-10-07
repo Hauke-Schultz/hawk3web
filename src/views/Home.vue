@@ -10,6 +10,7 @@ import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
 import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
 import MysteryBoxCard from '../gamingHub/components/MysteryBoxCard.vue'
+import {ACHIEVEMENTS} from "../gamingHub/config/achievementsConfig.js";
 
 const { t } = useI18n()
 const {
@@ -127,17 +128,51 @@ const numMergeProgress = computed(() => getGameProgress('numMerge', numMergeConf
 
 // Overall Progress
 const overallProgress = computed(() => {
-	const totalCompleted = memoryProgress.value.completed + fruitMergeProgress.value.completed + numMergeProgress.value.completed
-	const totalLevels = memoryProgress.value.total + fruitMergeProgress.value.total + numMergeProgress.value.total
-	const totalStars = memoryProgress.value.stars + fruitMergeProgress.value.stars + numMergeProgress.value.stars
-	const maxStars = memoryProgress.value.maxStars + fruitMergeProgress.value.maxStars + numMergeProgress.value.maxStars
+	const allGames = ['memory', 'fruitMerge', 'numMerge']
+	let totalCompleted = 0
+	let totalLevels = 0
+	let totalStars = 0
+	let maxStars = 0
+
+	allGames.forEach(gameId => {
+		const levels = gameData.games[gameId].levels || {}
+		const completed = Object.values(levels).filter(level => level.completed).length
+		const stars = Object.values(levels).reduce((sum, level) => sum + (level.stars || 0), 0)
+
+		totalCompleted += completed
+		totalLevels += 6 // Each game has 6 levels
+		totalStars += stars
+		maxStars += 18 // 6 levels * 3 stars each
+	})
+
+	// Calculate achievements progress
+	const earnedAchievements = gameData.achievements.filter(a => a.earned).length
+	const totalAchievements = ACHIEVEMENTS.definitions.length
+
+	// Combined percentage calculation
+	// Weight: 40% levels, 35% stars, 25% achievements
+	const levelPercentage = totalLevels > 0 ? (totalCompleted / totalLevels) * 100 : 0
+	const starPercentage = maxStars > 0 ? (totalStars / maxStars) * 100 : 0
+	const achievementPercentage = totalAchievements > 0 ? (earnedAchievements / totalAchievements) * 100 : 0
+
+	const combinedPercentage = Math.round(
+			(levelPercentage * 0.40) +
+			(starPercentage * 0.35) +
+			(achievementPercentage * 0.25)
+	)
 
 	return {
 		levels: totalCompleted,
-		totalLevels: totalLevels,
-		percentage: totalLevels > 0 ? Math.round((totalCompleted / totalLevels) * 100) : 0,
+		totalLevels,
 		stars: totalStars,
-		maxStars: maxStars
+		maxStars,
+		achievements: earnedAchievements,
+		totalAchievements,
+		percentage: combinedPercentage,
+		// Individual percentages for potential display
+		levelPercentage: Math.round(levelPercentage),
+		starPercentage: Math.round(starPercentage),
+		achievementPercentage: Math.round(achievementPercentage)
 	}
 })
 

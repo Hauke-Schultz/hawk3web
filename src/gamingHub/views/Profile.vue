@@ -10,6 +10,7 @@ import {ACHIEVEMENTS} from "../config/achievementsConfig.js";
 import {RARITY_CONFIG, SHOP_ITEMS} from '../config/shopConfig.js'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
 import GiftCodeModal from '../components/GiftCodeModal.vue'
+import {MYSTERY_ITEMS} from "../config/mysteryBoxConfig.js";
 
 // Services
 const { gameData, updatePlayer, markGiftAsReceived, unmarkGiftAsReceived  } = useLocalStorage()
@@ -53,13 +54,34 @@ const overallProgress = computed(() => {
 		maxStars += 18 // 6 levels * 3 stars each
 	})
 
+	// Calculate achievements progress
+	const earnedAchievements = gameData.achievements.filter(a => a.earned).length
+	const totalAchievements = ACHIEVEMENTS.definitions.length
+
+	// Combined percentage calculation
+	// Weight: 40% levels, 35% stars, 25% achievements
+	const levelPercentage = totalLevels > 0 ? (totalCompleted / totalLevels) * 100 : 0
+	const starPercentage = maxStars > 0 ? (totalStars / maxStars) * 100 : 0
+	const achievementPercentage = totalAchievements > 0 ? (earnedAchievements / totalAchievements) * 100 : 0
+
+	const combinedPercentage = Math.round(
+			(levelPercentage * 0.40) +
+			(starPercentage * 0.35) +
+			(achievementPercentage * 0.25)
+	)
+
 	return {
 		levels: totalCompleted,
 		totalLevels,
-		totalAchievements: ACHIEVEMENTS.definitions.length,
-		percentage: totalLevels > 0 ? Math.round((totalCompleted / totalLevels) * 100) : 0,
 		stars: totalStars,
-		maxStars
+		maxStars,
+		achievements: earnedAchievements,
+		totalAchievements,
+		percentage: combinedPercentage,
+		// Individual percentages for potential display
+		levelPercentage: Math.round(levelPercentage),
+		starPercentage: Math.round(starPercentage),
+		achievementPercentage: Math.round(achievementPercentage)
 	}
 })
 
@@ -171,22 +193,26 @@ const regularInventory = computed(() => {
 })
 
 const receivedGifts = computed(() => {
-	const allItems = getAllOwnedItems()
+	const receivedGiftsData = gameData.player.gifts?.receivedGifts || []
 
-	return allItems
-			.filter(item => {
-				const inventoryData = gameData.player.inventory.items[item.id]
-				return inventoryData?.isGift
+	return receivedGiftsData
+			.map(gift => {
+				let shopItem = SHOP_ITEMS.find(item => item.id === gift.itemId)
+				if (!shopItem) {
+					shopItem = MYSTERY_ITEMS.find(item => item.id === gift.itemId)
+				}
+				if (!shopItem) return null
+
+				return {
+					...shopItem,
+					senderName: gift.senderName,
+					receivedAt: gift.receivedAt,
+					giftCode: gift.code,
+					giftType: 'received'
+				}
 			})
-			.map(item => ({
-				...item,
-				giftHistory: getGiftHistory(item)
-			}))
-			.sort((a, b) => {
-				const aLatest = new Date(a.giftHistory[0]?.receivedAt || 0)
-				const bLatest = new Date(b.giftHistory[0]?.receivedAt || 0)
-				return bLatest - aLatest
-			})
+			.filter(Boolean)
+			.sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt))
 })
 
 const sentGifts = computed(() => {
@@ -269,7 +295,7 @@ const handleSentGiftUnmarkReceived = () => {
 }
 
 const getGiftDate = (item) => {
-	const date = item.giftDate || item.sentDate || item.receivedAt
+	const date = item.receivedAt || item.sentDate || item.giftDate
 	if (date) {
 		return new Date(date).toLocaleDateString()
 	}
@@ -404,7 +430,12 @@ onUnmounted(() => {
 							<span class="stat-number">{{ gameData.player.diamonds.toLocaleString() }}</span>
 							<span class="stat-label">{{ t('profile.currency.diamonds') }}</span>
 						</div>
-						<div class="stat-compact">
+						<div
+							class="stat-compact"
+							:class="{
+								'stat-compact--highlight': playerSummary.achievements === overallProgress.totalAchievements
+							}"
+						>
 							<span class="stat-number">{{ playerSummary.achievements }}/{{ overallProgress.totalAchievements }}</span>
 							<span class="stat-label">{{ t('nav.trophies') }}</span>
 						</div>
@@ -412,11 +443,21 @@ onUnmounted(() => {
 							<span class="stat-number">{{ playerSummary.gamesPlayed }}</span>
 							<span class="stat-label">{{ t('profile.stats.played') }}</span>
 						</div>
-						<div class="stat-compact">
+						<div
+							class="stat-compact"
+							:class="{
+								'stat-compact--highlight': overallProgress.levels === overallProgress.totalLevels
+							}"
+						>
 							<span class="stat-number">{{ overallProgress.levels }}/{{ overallProgress.totalLevels }}</span>
 							<span class="stat-label">{{ t('gaming.stats.levels') }}</span>
 						</div>
-						<div class="stat-compact">
+						<div
+							class="stat-compact"
+							:class="{
+								'stat-compact--highlight': overallProgress.stars === overallProgress.maxStars
+							}"
+						>
 							<span class="stat-number">{{ overallProgress.stars }}/{{ overallProgress.maxStars }}</span>
 							<span class="stat-label">{{ t('gaming.stats.stars') }}</span>
 						</div>
@@ -516,13 +557,13 @@ onUnmounted(() => {
 						<div class="inventory-items">
 							<div
 								v-for="item in receivedGifts"
-								:key="`received-${item.id}`"
+								:key="`received-${item.giftCode}`"
 								class="inventory-item inventory-item--gift-received"
 							>
-			          <span
-				          class="item-icon item-icon--gift-received"
-				          :style="getItemRarityStyle(item.rarity)"
-			          >{{ item.icon }}</span>
+							  <span
+								  class="item-icon item-icon--gift-received"
+								  :style="getItemRarityStyle(item.rarity)"
+							  >{{ item.icon }}</span>
 
 								<div class="item-details">
 									<span class="item-name">{{ item.name }}</span>
@@ -530,15 +571,11 @@ onUnmounted(() => {
 			              {{ item.description }}
 			            </span>
 
-									<!-- Gift History -->
-									<div v-if="item.giftHistory.length > 0" class="gift-history">
-										<div
-											v-for="(gift, index) in item.giftHistory"
-											:key="`gift-history-${index}`"
-											class="gift-history-item"
-										>
-											<span class="gift-sender">{{ gift.sender }}</span>
-											<span class="gift-date">{{ gift.date }}</span>
+									<!-- Gift Date -->
+									<div class="gift-history">
+										<div class="gift-history-item">
+											<span class="gift-sender">{{ item.senderName }}</span>
+											<span class="gift-date">{{ getGiftDate(item) }}</span>
 										</div>
 									</div>
 								</div>
@@ -900,20 +937,27 @@ onUnmounted(() => {
 	&--mystery {
 		border-color: var(--primary-color);
 		background: rgba(139, 92, 246, 0.05);
-	}
-
-	&--gift {
-		border-color: var(--error-color);
-		background: rgba(239, 68, 68, 0.05);
+		box-shadow: rgb(55 63 229) 0 0 10px 0 !important;
 	}
 
 	&--consumable {
 		border-color: var(--warning-color);
 		background: rgba(245, 158, 11, 0.05);
+		box-shadow: rgb(245 158 11) 0 0 5px 0 !important;
 	}
 
 	&--regular {
 		border-color: var(--card-border);
+	}
+
+	&--gift-received {
+		border-color: var(--success-color);
+		box-shadow: rgb(16 185 129) 0 0 5px 0 !important;
+	}
+
+	&--gift-pending {
+		border-color: var(--warning-color);
+		box-shadow: rgb(234 179 8) 0 0 5px 0 !important;
 	}
 }
 
@@ -968,10 +1012,6 @@ onUnmounted(() => {
 	grid-area: source;
 	font-size: var(--font-size-xs);
 	line-height: 1.2;
-
-	&--mystery {
-		color: var(--primary-color);
-	}
 
 	&--gift {
 		color: var(--error-color);
@@ -1044,14 +1084,6 @@ onUnmounted(() => {
 	border: 1px solid var(--card-border);
 }
 
-.inventory-group--received-gifts {
-	background: linear-gradient(
-					to right,
-					rgba(16, 185, 129, 0.2) 0%,
-					var(--bg-secondary) 100%
-	);
-}
-
 .inventory-group-title {
 	display: flex;
 	align-items: center;
@@ -1068,21 +1100,6 @@ onUnmounted(() => {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-2);
-}
-
-.inventory-item--gift-received {
-	border-color: var(--success-color);
-	background: rgba(16, 185, 129, 0.05);
-}
-
-.inventory-item--gift-pending {
-	border-color: var(--warning-color);
-	background: rgba(245, 158, 11, 0.05);
-}
-
-.inventory-item--gift-sent {
-	border-color: var(--pink-color);
-	background: rgba(16, 185, 129, 0.05);
 }
 
 .item-icon--gift-received,
@@ -1120,7 +1137,7 @@ onUnmounted(() => {
 	border-radius: var(--border-radius-sm);
 	border-left: 3px solid var(--success-color);
 	width: 100%;
-	margin-top: var(--space-2);
+	margin-top: var(--space-1);
 }
 
 .gift-history-item {
@@ -1143,14 +1160,6 @@ onUnmounted(() => {
 	white-space: nowrap;
 }
 
-.inventory-group--sent-gifts {
-	background: linear-gradient(
-					to right,
-					rgba(236, 72, 153, 0.2) 0%,
-					var(--bg-secondary) 100%
-	);
-}
-
 .inventory-item--sent-gift {
 	cursor: pointer;
 	position: relative;
@@ -1160,17 +1169,6 @@ onUnmounted(() => {
 		transform: translateY(-1px);
 		box-shadow: var(--card-shadow-hover);
 	}
-}
-
-.inventory-item--gift-received {
-	align-items: flex-start;
-	border-color: var(--success-color);
-	background: rgba(16, 185, 129, 0.05);
-}
-
-.inventory-item--gift-pending {
-	border-color: var(--warning-color);
-	background: rgba(245, 158, 11, 0.05);
 }
 
 .gift-status-row {

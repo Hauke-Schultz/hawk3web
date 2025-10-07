@@ -134,7 +134,7 @@ watch([() => gameData.currency.dailyRewards.counter, hasPending], ([newCount, ne
           {{ t('daily_rewards.mystery_box_title') }}
         </span>
 				<span class="progress-counter">
-          {{ t('daily_rewards.mystery_box_progress_subtitle', { remaining: progressData.remaining } ) }}
+          {{ t('daily_rewards.mystery_box_remaining', { count: progressData.remaining } ) }}
         </span>
 			</div>
 

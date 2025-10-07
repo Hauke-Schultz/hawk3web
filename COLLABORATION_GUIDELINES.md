@@ -138,4 +138,174 @@ const newVariable = ref(false)
 
 ---
 
-*This document ensures efficient collaboration and high-quality code development for the Hawk3Games project.*
+## 📦 Working with Large Repositories
+
+### Communication Protocol for AI Assistance
+
+#### Request Format
+When requesting changes or new features, provide:
+
+1. **Task Description**
+    - Clear goal and expected outcome
+    - User-facing behavior changes
+    - Technical requirements
+
+2. **Relevant Files**
+    - Only files that need changes
+    - Configuration files if affected
+    - Related components for context
+
+3. **Context Information**
+    - Which system/feature is affected
+    - Current behavior vs desired behavior
+    - Any constraints or dependencies
+
+4. **Translation Requirements**
+    - Does this require new translation keys?
+    - Which locales are affected? (en.js, de.js)
+
+5. **Data Structure Impact**
+    - Does this change localStorage structure?
+    - Are there migration considerations?
+    - Will existing saves be affected?
+
+### File Categories
+
+#### Core System Files
+- **Data Management**: useLocalStorage.js, useInventory.js, useShop.js
+- **Routing**: router/index.js
+- **Internationalization**: useI18n.js, locales/*.js
+- **PWA**: useServiceWorker.js, sw-custom.js
+
+#### UI Components
+- **Reusable**: components/Icon.vue, components/InstallPrompt.vue
+- **Game Components**: gamingHub/components/*.vue
+- **Modals**: ConfirmationModal.vue, ShopModal.vue, GiftCodeModal.vue
+
+#### Views/Pages
+- **Top Level**: views/Home.vue, views/About.vue
+- **Gaming Hub**: gamingHub/views/*.vue (Profile, Shop, Trophy, Settings)
+- **Game Pages**: gamingHub/games/*/
+
+#### Configuration Files
+- **Game Config**: gamingHub/config/*.js
+- **Achievements**: achievementsConfig.js
+- **Shop**: shopConfig.js
+- **Gifts**: giftConfig.js
+- **Mystery Boxes**: mysteryBoxConfig.js
+
+#### Styling
+- **Global**: style.css
+- **Component**: Scoped SCSS in .vue files
+
+### Example Requests
+
+#### Example 1: Simple UI Change
+Task: Add new icon to header
+Files needed:
+
+src/gamingHub/components/Header.vue (lines 50-80)
+src/assets/svg/new-icon.svg
+
+Context: Adding quick link to achievements page
+
+#### Example 2: Feature Addition
+Task: Add new achievement category
+Files needed:
+
+src/gamingHub/config/achievementsConfig.js
+src/gamingHub/views/Trophy.vue (achievement display section)
+src/locales/en.js (achievements.categories section)
+src/locales/de.js (achievements.categories section)
+src/gamingHub/composables/useLocalStorage.js (checkAutoAchievements function)
+
+Context: New category for social features (gifts, friends)
+Translation: Yes - category name and descriptions
+Data Impact: No breaking changes, additive only
+
+#### Example 3: System Enhancement
+Task: Improve gift system validation
+Files needed:
+
+src/gamingHub/config/giftConfig.js
+src/gamingHub/composables/useLocalStorage.js (redeemGift, createGift)
+src/gamingHub/views/Shop.vue (gift redemption UI)
+src/gamingHub/views/Profile.vue (gift display)
+
+Context: Add expiration dates, improve validation messages
+Translation: Yes - new error messages
+Data Impact: Yes - add expiresAt field to gift objects (non-breaking)
+
+### Efficient Workflow
+
+#### For Small Changes (1-2 files)
+- Send full file content
+- Specify exact lines if possible
+- Include brief context
+
+#### For Medium Changes (3-5 files)
+- Send PROJECT_CONTEXT.md
+- Send relevant file sections
+- Describe connections between files
+
+#### For Large Changes (6+ files)
+- Send PROJECT_CONTEXT.md
+- Send file list with brief descriptions
+- AI will request specific files as needed
+
+### What AI May Request
+
+During implementation, AI may ask for:
+- Related component files for context
+- Translation file sections
+- Configuration file structures
+- Similar existing implementations
+- Test data or example states
+
+### Response Format Expectations
+
+AI responses will include:
+- Clear file names and sections
+- Line numbers for changes
+- OLD code and NEW code comparisons
+- Explanation of why changes are needed
+- Potential side effects or considerations
+- Testing suggestions
+
+### Version Control Best Practices
+
+Before AI changes:
+1. Commit current work
+2. Create feature branch if needed
+3. Note current app state
+
+After AI changes:
+1. Review all changes carefully
+2. Test affected features
+3. Check translations in both languages
+4. Verify localStorage compatibility
+5. Test on mobile viewport (375px)
+
+### Common Pitfalls to Avoid
+
+- Don't send entire codebase for small changes
+- Don't forget to mention translation needs
+- Don't skip data migration considerations
+- Don't ignore mobile-first design requirements
+- Don't forget to update relevant documentation
+
+### Quality Checklist
+
+Before marking task complete:
+- [ ] Changes work as expected
+- [ ] No console errors
+- [ ] Translations complete (EN + DE)
+- [ ] Mobile-responsive (375px base)
+- [ ] localStorage data persists correctly
+- [ ] Existing features still work
+- [ ] Code follows project conventions (BEM, Vue 3 style)
+- [ ] Comments in English (as per guidelines)
+
+---
+
+*This workflow ensures efficient collaboration while maintaining code quality and project consistency.*

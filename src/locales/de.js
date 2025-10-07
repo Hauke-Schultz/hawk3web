@@ -190,7 +190,7 @@ export default {
     mystery_box_progress_subtitle: '{remaining, plural, =1 {Noch 1 tägliche Belohnung} other {Noch # tägliche Belohnungen}} benötigt',
     mystery_box_ready: 'Bereit zum Abholen!',
     mystery_box_opening: 'Wird geöffnet...',
-    mystery_box_remaining: '{count, plural, =1 {1 Belohnung benötigt} other {# Belohnungen benötigt}}',
+    mystery_box_remaining: '{count} Belohnungen benötigt',
     daily_rewards_progress: 'Tägliche Belohnungen Fortschritt',
     collect_daily_rewards: 'Sammle tägliche Belohnungen für Fortschritt',
     mystery_item_preview: 'Geheimnisvolles Item Vorschau',
