@@ -1,23 +1,16 @@
-# 🎮 Hawk3 - Gaming Platform
+# 🎮 Hawk3 Gaming Platform
 
-A modern, interactive gaming platform built with Vue 3, featuring multiple mini-games and a sleek dark/light theme interface.
-
-## ✨ Features
-
-- **🏠 Homepage** - Welcome dashboard with quick navigation
-- **🎯 Gaming Hub** - Collection of various mini-games
-- **👤 Profile** - User data and personalization
-- **🏆 Trophy** - Achievements and rewards system
-- **⚙️ Settings** - Theme selection and preferences
-- **🔔 Notifications** - Activity and updates center
+A modern mobile-first gaming platform built with Vue 3, featuring multiple mini-games, achievements, shop system, and PWA support.
 
 ## 🛠️ Tech Stack
 
 - **Vue 3** with Composition API (`<script setup>`)
-- **Vite** for fast development and building
+- **Vite** for fast development
 - **SCSS** with BEM methodology
 - **Matter.js** for physics-based games
-- **Mobile-first** responsive design (375px base)
+- **i18n** for English/German localization
+- **PWA** for offline support and installability
+- **Mobile-first** design (375px optimized)
 
 ## 🚀 Quick Start
 
@@ -35,27 +28,40 @@ npm run build
 npm run preview
 ```
 
-## 📱 Pages Overview
+## 📱 Current Games
 
-- **Home** - Main dashboard with welcome card and navigation tiles
-- **Gaming** - Game selection hub (games to be implemented)
-- **Profile** - User settings and avatar customization
-- **Trophy** - Achievement gallery and progress tracking
-- **Settings** - Theme toggle and app preferences
-- **Notifications** - Activity feed and alerts
+- **Memory Game** - Card matching with 6 levels + achievements
+- **FruitMerge** - Physics-based merge game with special fruits (Mold, Bomb, Rainbow)
+- **Num Merge** - 2048-style number merging with 6 levels + endless mode
+- **Whack-A-Mole** - Classic arcade mini-game for rewards
 
-## 🎨 Themes
+## 🎯 Core Features
 
-Supports both **Dark** and **Light** themes with smooth transitions and consistent design language.
+- **Shop System** - Cosmetics, power-ups, and utilities with rarity system
+- **Achievement System** - 20+ achievements with coin/diamond rewards
+- **Daily Rewards** - Interactive mini-games (Three Shells, Slot Machine)
+- **Mystery Boxes** - Special cosmetic items not available in shop
+- **Inventory System** - Item ownership and equipping
+- **Screenshot System** - Save and share game moments
+- **PWA Support** - Install as app with offline functionality
+- **Theme System** - Dark/Light mode with smooth transitions
 
-## 📋 Contributing
+## 📚 Documentation
 
-Please refer to [COLLABORATION_GUIDELINES.md](./COLLABORATION_GUIDELINES.md) for development workflow and coding standards.
+- **[COLLABORATION_GUIDELINES.md](./COLLABORATION_GUIDELINES.md)** - Development workflow and coding standards
+- **[ROADMAP.md](./ROADMAP.md)** - Feature timeline and version history
 
-## 🗺️ Roadmap
+## 🎨 Design Principles
 
-See [ROADMAP.md](./ROADMAP.md) for planned features and development timeline.
+- **Mobile-First** - Optimized for 375px viewport
+- **Touch-Friendly** - Min 44px interactive elements
+- **Performance** - Optimized loading and smooth animations
+- **Accessibility** - Semantic HTML and proper ARIA labels
+
+## 🌐 Internationalization
+
+Full English and German language support with Vue i18n integration.
 
 ---
 
-*Built with ❤️ for gaming enthusiasts*
+**Current Version:** 0.3.3+ | **Built with ❤️ for gaming enthusiasts**
