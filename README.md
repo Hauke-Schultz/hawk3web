@@ -1,16 +1,6 @@
 # 🎮 Hawk3 Gaming Platform
 
-A modern mobile-first gaming platform built with Vue 3, featuring multiple mini-games, achievements, shop system, and PWA support.
-
-## 🛠️ Tech Stack
-
-- **Vue 3** with Composition API (`<script setup>`)
-- **Vite** for fast development
-- **SCSS** with BEM methodology
-- **Matter.js** for physics-based games
-- **i18n** for English/German localization
-- **PWA** for offline support and installability
-- **Mobile-first** design (375px optimized)
+A modern mobile-first gaming platform built with Vue 3, featuring multiple mini-games, achievements, economy system, and PWA support.
 
 ## 🚀 Quick Start
 
@@ -28,40 +18,96 @@ npm run build
 npm run preview
 ```
 
-## 📱 Current Games
+## 🎯 Current Features (v0.3.3+)
 
-- **Memory Game** - Card matching with 6 levels + achievements
-- **FruitMerge** - Physics-based merge game with special fruits (Mold, Bomb, Rainbow)
-- **Num Merge** - 2048-style number merging with 6 levels + endless mode
-- **Whack-A-Mole** - Classic arcade mini-game for rewards
+### Games
+- **Memory Game** - 6 levels with card matching and combo system
+- **FruitMerge** - Physics-based merge game (5 levels + endless mode)
+    - Special fruits: Mold, Bomb, Rainbow, Next fruit preview
+- **NumMerge** - 2048-style number merging (5 levels + endless mode)
+    - Special tile: 7-tile that decreases each move
+- **Mini-Games** - Three Shells, Slot Machine, Whack-a-Mole
 
-## 🎯 Core Features
+### Core Systems
+- **Achievement System** - 30+ achievements with coin/diamond rewards
+- **Shop & Inventory** - Cosmetics, power-ups, utilities with rarity system
+- **Daily Rewards** - Interactive mini-games for daily bonuses
+- **Mystery Boxes** - Exclusive cosmetic items (unlocked every 5 daily rewards)
+- **Gift System** - Send and receive gifts with friends (daily limits)
+- **Currency Economy** - Coins and diamonds with transaction tracking
+- **Screenshot System** - Save and share game moments with watermarks
 
-- **Shop System** - Cosmetics, power-ups, and utilities with rarity system
-- **Achievement System** - 20+ achievements with coin/diamond rewards
-- **Daily Rewards** - Interactive mini-games (Three Shells, Slot Machine)
-- **Mystery Boxes** - Special cosmetic items not available in shop
-- **Inventory System** - Item ownership and equipping
-- **Screenshot System** - Save and share game moments
-- **PWA Support** - Install as app with offline functionality
+### Technical Features
+- **PWA Support** - Install as app, offline functionality, badge notifications
 - **Theme System** - Dark/Light mode with smooth transitions
+- **Internationalization** - Full English/German language support
+- **Save/Restore** - Auto-save game states across sessions
+- **Mobile-First** - Optimized for 375px viewport with touch controls
+
+## 🛠️ Tech Stack
+
+- **Vue 3** - Composition API with `<script setup>`
+- **Vite** - Fast development and optimized builds
+- **SCSS** - BEM methodology for styling
+- **Matter.js** - Physics engine for FruitMerge
+- **Vue Router** - Client-side navigation
+- **PWA** - Progressive Web App with service worker
 
 ## 📚 Documentation
 
+- **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)** - Project structure, systems, and technical reference
 - **[COLLABORATION_GUIDELINES.md](./COLLABORATION_GUIDELINES.md)** - Development workflow and coding standards
-- **[ROADMAP.md](./ROADMAP.md)** - Feature timeline and version history
+- **[ROADMAP.md](./ROADMAP.md)** - Feature timeline, version history, and future plans
 
 ## 🎨 Design Principles
 
-- **Mobile-First** - Optimized for 375px viewport
-- **Touch-Friendly** - Min 44px interactive elements
+- **Mobile-First** - Base width 375px, progressive enhancement
+- **Touch-Friendly** - Minimum 44px interactive elements
 - **Performance** - Optimized loading and smooth animations
-- **Accessibility** - Semantic HTML and proper ARIA labels
+- **Accessibility** - Semantic HTML, ARIA labels, keyboard navigation
+- **BEM Methodology** - Consistent CSS class naming
 
-## 🌐 Internationalization
+## 🌍 Browser Support
 
-Full English and German language support with Vue i18n integration.
+- Modern browsers with ES6+ support
+- PWA features require HTTPS in production
+- Optimized for mobile Safari and Chrome
+
+## 📦 Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+├── composables/         # Vue composables (i18n, service worker)
+├── gamingHub/
+│   ├── components/      # Game-specific components
+│   ├── composables/     # Game logic (storage, inventory, shop)
+│   ├── config/          # Game configurations
+│   ├── games/           # Individual game implementations
+│   └── views/           # Main pages (Profile, Shop, Trophy, Settings)
+├── locales/             # i18n translations (en.js, de.js)
+├── router/              # Vue Router configuration
+└── views/               # Top-level pages (Home, About)
+```
+
+## 🤝 Contributing
+
+Please read [COLLABORATION_GUIDELINES.md](./COLLABORATION_GUIDELINES.md) for:
+- Task confirmation protocol
+- Code modification approach
+- Incremental development process
+- Communication style and quality standards
+
+## 📈 Development Status
+
+**Current Version:** 0.3.3+ (Gift System implemented)
+
+**Next Up (v0.3.4):** Enhancements and polish
+
+**Upcoming (v0.4.0):** Social & Competition features
+
+See [ROADMAP.md](./ROADMAP.md) for detailed feature timeline.
 
 ---
 
-**Current Version:** 0.3.3+ | **Built with ❤️ for gaming enthusiasts**
+**Built with ❤️ for gaming enthusiasts** | Mobile-optimized | PWA-enabled | Fully offline-capable
