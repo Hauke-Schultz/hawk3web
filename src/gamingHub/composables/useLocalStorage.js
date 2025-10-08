@@ -2138,8 +2138,6 @@ export function useLocalStorage() {
       gameData.games.stackMerge.highScore = stats.score
     }
 
-    saveToLocalStorage()
-
     // Check for first completion achievement
     if (stats.completed && !wasCompleted) {
       checkAutoAchievements()
@@ -2149,13 +2147,11 @@ export function useLocalStorage() {
   // Save StackMerge game state
   const saveStackMergeState = (state) => {
     gameData.games.stackMerge.saveState = state
-    saveToLocalStorage()
   }
 
   // Clear StackMerge save state
   const clearStackMergeState = () => {
     gameData.games.stackMerge.saveState = null
-    saveToLocalStorage()
   }
 
 	// Return all reactive data and methods

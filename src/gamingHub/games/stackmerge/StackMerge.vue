@@ -1,13 +1,15 @@
 <script setup>
-import {ref, onMounted, onUnmounted, computed} from 'vue'
+import {ref, onMounted, onUnmounted, computed, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useI18n } from '../../../composables/useI18n.js'
-import { getLevelConfig } from './stackConfig'
+import { getLevelConfig, getColorForHeight, STACK_CONFIG } from './stackConfig'
+import { StackEngine } from './StackEngine.js'
 import Header from '../../components/Header.vue'
 import Icon from '../../../components/Icon.vue'
 import ProgressOverview from '../../components/ProgressOverview.vue'
 import PerformanceStats from '../../components/PerformanceStats.vue'
+import GameCanvas from './GameCanvas.vue'
 
 // Props
 const props = defineProps({
@@ -33,8 +35,10 @@ const gameBoard = ref(null)
 // Game state
 const currentLevel = ref(props.level || 1)
 const gameState = ref('playing') // 'playing', 'completed', 'gameover'
+const engine = ref(null)
+const updateLoopId = ref(null)
 
-// Stats
+// Stats (synced with engine)
 const currentHeight = ref(0)
 const currentScore = ref(0)
 const perfectStacks = ref(0)
@@ -43,6 +47,12 @@ const currentCombo = ref(0)
 const maxCombo = ref(0)
 const sessionTime = ref(0)
 const sessionTimer = ref(null)
+
+// Game rendering state (synced with engine)
+const placedBlocks = ref([])
+const currentBlock = ref(null)
+const fallingPieces = ref([])
+const cameraOffset = ref(0)
 
 // Computed
 const currentLevelConfig = computed(() => getLevelConfig(currentLevel.value))
@@ -68,22 +78,137 @@ const perfectPercentage = computed(() => {
 	return Math.round((perfectStacks.value / totalStacks.value) * 100)
 })
 
+const endlessStats = computed(() => {
+	if (!isEndlessMode.value || !engine.value) return null
+	return engine.value.getEndlessStats()
+})
+
+const endlessStarProgress = computed(() => {
+	if (!endlessStats.value) return 0
+	return endlessStats.value.progress
+})
+
+const endlessCurrentStars = computed(() => {
+	if (!endlessStats.value) return 0
+	return endlessStats.value.stars
+})
+
+const endlessBlocksToNextStar = computed(() => {
+	if (!endlessStats.value) return 0
+	return endlessStats.value.blocksToNextStar
+})
+
 // Game functions
 const startGame = () => {
 	gameState.value = 'playing'
-	currentHeight.value = 0
-	currentScore.value = 0
-	perfectStacks.value = 0
-	totalStacks.value = 0
-	currentCombo.value = 0
-	maxCombo.value = 0
-	sessionTime.value = 0
+
+	// Create engine
+	engine.value = new StackEngine(currentLevelConfig.value)
+	engine.value.start()
+
+	// Sync initial state
+	syncEngineState()
+
+	// Start update loop
+	startUpdateLoop()
 
 	if (isEndlessMode.value) {
 		startSessionTimer()
 	}
 
-	// TODO: Initialize game engine (Step 4)
+	console.log('🎮 Game started with engine')
+}
+
+// Sync engine state to reactive refs
+const syncEngineState = () => {
+	if (!engine.value) return
+
+	const state = engine.value.getState()
+
+	currentHeight.value = state.height
+	currentScore.value = state.score
+	perfectStacks.value = state.perfectStacks
+	totalStacks.value = state.totalStacks
+	currentCombo.value = state.currentCombo
+	maxCombo.value = state.maxCombo
+	placedBlocks.value = state.placedBlocks
+	currentBlock.value = state.currentBlock
+	fallingPieces.value = state.fallingPieces
+
+	const targetOffset = engine.value.getCameraOffset()
+	const currentOffset = cameraOffset.value
+
+	cameraOffset.value = currentOffset + (targetOffset - currentOffset) * 0.15
+}
+
+// Update loop
+const startUpdateLoop = () => {
+	const update = (timestamp) => {
+		if (!engine.value || gameState.value !== 'playing') return
+
+		// Update engine
+		engine.value.update(timestamp)
+
+		// Sync state
+		syncEngineState()
+
+		// Continue loop
+		updateLoopId.value = requestAnimationFrame(update)
+	}
+
+	updateLoopId.value = requestAnimationFrame(update)
+}
+
+// Stop update loop
+const stopUpdateLoop = () => {
+	if (updateLoopId.value) {
+		cancelAnimationFrame(updateLoopId.value)
+		updateLoopId.value = null
+	}
+}
+
+// Handle player input (tap/click to drop block)
+const handleDrop = () => {
+	if (!engine.value || gameState.value !== 'playing') return
+
+	const result = engine.value.dropBlock()
+
+	if (!result.success) {
+		if (result.gameOver) {
+			handleGameOver()
+		}
+		return
+	}
+
+	// Sync state after drop
+	syncEngineState()
+
+	// Check level completion
+	if (result.levelComplete) {
+		completeLevel()
+	}
+
+	// Visual/Audio feedback
+	if (result.isPerfect) {
+		console.log('✨ Perfect stack!')
+		// TODO: Add perfect stack animation/sound
+	}
+}
+
+// Handle keyboard/touch input
+const handleKeyDown = (event) => {
+	if (gameState.value !== 'playing') return
+
+	if (event.key === ' ' || event.key === 'Enter') {
+		event.preventDefault()
+		handleDrop()
+	}
+}
+
+const handleTouchStart = (event) => {
+	if (gameState.value !== 'playing') return
+	event.preventDefault()
+	handleDrop()
 }
 
 // Timer functions
@@ -108,6 +233,11 @@ const completeLevel = () => {
 
 	gameState.value = 'completed'
 	stopSessionTimer()
+	stopUpdateLoop()
+
+	if (engine.value) {
+		engine.value.stop()
+	}
 
 	// Calculate statistics
 	const perfectPercent = totalStacks.value > 0
@@ -159,20 +289,26 @@ const completeLevel = () => {
 }
 
 // Game over handler
+
 const handleGameOver = () => {
 	if (gameState.value !== 'playing') return
 
 	gameState.value = 'gameover'
 	stopSessionTimer()
+	stopUpdateLoop()
 
-	// Calculate statistics
-	const perfectPercent = totalStacks.value > 0
-			? Math.round((perfectStacks.value / totalStacks.value) * 100)
-			: 0
+	if (engine.value) {
+		engine.value.stop()
+	}
 
-	// For endless mode, treat game over as completion
+	// For endless mode
 	if (isEndlessMode.value) {
-		const stars = perfectPercent >= 80 ? 3 : perfectPercent >= 60 ? 2 : 1
+		// GEÄNDERT: Use endless star calculation
+		const { calculateEndlessStars } = require('./stackHelpers.js')
+		const stars = calculateEndlessStars(currentHeight.value)
+		const perfectPercent = totalStacks.value > 0
+				? Math.round((perfectStacks.value / totalStacks.value) * 100)
+				: 0
 
 		updateStackMergeLevel(currentLevel.value, {
 			completed: true,
@@ -184,9 +320,21 @@ const handleGameOver = () => {
 			perfectStacks: perfectStacks.value,
 			combo: maxCombo.value
 		})
+
+		console.log('🏗️ Endless mode ended!', {
+			height: currentHeight.value,
+			score: currentScore.value,
+			stars: stars,
+			progress: Math.round((currentHeight.value / 100) * 100) + '%'
+		})
+	} else {
+		// Regular level game over (keine Änderung)
+		const perfectPercent = totalStacks.value > 0
+				? Math.round((perfectStacks.value / totalStacks.value) * 100)
+				: 0
 	}
 
-	// Update game stats
+	// Update game stats (bleibt gleich)
 	const gameStats = {
 		gamesPlayed: gameData.games.stackMerge.gamesPlayed + 1,
 		totalScore: gameData.games.stackMerge.totalScore + currentScore.value,
@@ -199,24 +347,21 @@ const handleGameOver = () => {
 
 	updateGameStats('stackMerge', gameStats)
 	addScore(currentScore.value)
-
-	console.log('🏗️ Game over!', {
-		height: currentHeight.value,
-		score: currentScore.value,
-		perfectPercent
-	})
 }
 
 // Navigation
 const backToLevelSelection = () => {
+	stopUpdateLoop()
 	router.push('/games/stackmerge')
 }
 
 const handleMenuClick = () => {
+	stopUpdateLoop()
 	router.push('/')
 }
 
 const handleTryAgain = () => {
+	stopUpdateLoop()
 	startGame()
 }
 
@@ -224,6 +369,7 @@ const nextLevel = () => {
 	if (currentLevel.value < 6) {
 		currentLevel.value++
 		router.push(`/games/stackmerge/${currentLevel.value}`)
+		stopUpdateLoop()
 		startGame()
 	} else {
 		backToLevelSelection()
@@ -233,10 +379,38 @@ const nextLevel = () => {
 // Lifecycle
 onMounted(() => {
 	startGame()
+
+	// Add event listeners
+	document.addEventListener('keydown', handleKeyDown)
+
+	if (gameBoard.value) {
+		gameBoard.value.addEventListener('touchstart', handleTouchStart, { passive: false })
+		gameBoard.value.addEventListener('click', handleDrop)
+	}
 })
 
 onUnmounted(() => {
 	stopSessionTimer()
+	stopUpdateLoop()
+
+	if (engine.value) {
+		engine.value.stop()
+	}
+
+	// Remove event listeners
+	document.removeEventListener('keydown', handleKeyDown)
+
+	if (gameBoard.value) {
+		gameBoard.value.removeEventListener('touchstart', handleTouchStart)
+		gameBoard.value.removeEventListener('click', handleDrop)
+	}
+})
+
+// Watch level changes
+watch(() => props.level, (newLevel) => {
+	currentLevel.value = newLevel
+	stopUpdateLoop()
+	startGame()
 })
 </script>
 
@@ -309,37 +483,84 @@ onUnmounted(() => {
 					class="game-board"
 					:class="{
           'game-board--endless': isEndlessMode,
-          'game-board--animating': false
+          'game-board--playing': gameState === 'playing'
         }"
 			>
 				<!-- Endless Mode Info Overlay -->
 				<div v-if="isEndlessMode" class="endless-overlay">
 					<div class="stats-preview">
-            <span class="stat-item">
-              <Icon name="star-filled" size="16" />
-              {{ perfectPercentage }}%
-            </span>
+						<!-- Star Progress -->
+						<span class="stat-item">
+							<Icon
+									v-for="starIndex in 3"
+									:key="starIndex"
+									:name="starIndex <= endlessCurrentStars ? 'star-filled' : 'star'"
+									size="16"
+									:class="{
+									'star--earned': starIndex <= endlessCurrentStars,
+									'star--empty': starIndex > endlessCurrentStars
+								}"
+							/>
+						</span>
+
+						<!-- Progress Percentage -->
+						<span class="stat-item stat-item--progress">
+							{{ endlessStarProgress }}%
+						</span>
+
+						<!-- Blocks to Next Star -->
+						<span v-if="!endlessStats?.isMaxStars" class="stat-item stat-item--next">
+							+{{ endlessBlocksToNextStar }} → ⭐
+						</span>
 					</div>
 				</div>
 
-				<!-- Canvas Placeholder -->
-				<div class="canvas-container">
-					<!-- TODO: Add GameCanvas component (Step 3) -->
-					<div class="placeholder-canvas">
-						<p>{{ t('stackMerge.tapToStack') }}</p>
-						<p class="placeholder-hint">{{ t('stackMerge.comingSoon') }}</p>
-					</div>
+				<!-- Tap Instruction -->
+				<div v-if="gameState === 'playing' && totalStacks === 0" class="tap-instruction">
+					<p>{{ t('stackMerge.tapToStack') }}</p>
 				</div>
+
+				<!-- Game Canvas Component -->
+				<GameCanvas
+						:blocks="placedBlocks"
+						:current-block="currentBlock"
+						:falling-pieces="fallingPieces"
+						:camera-offset="cameraOffset"
+						:game-state="gameState"
+				/>
 			</div>
 		</div>
 
 		<!-- Game Over Overlay -->
 		<div v-if="gameState === 'gameover'" class="gameover-overlay">
-			<h2>{{ t('stackMerge.gameOver') }}</h2>
+			<h2>{{ isEndlessMode ? '🏗️ Tower Collapsed!' : t('stackMerge.gameOver') }}</h2>
 			<div class="gameover-stats">
 				<p>{{ t('stackMerge.finalHeight') }}: {{ currentHeight }}</p>
 				<p>{{ t('stackMerge.finalScore') }}: {{ currentScore }}</p>
 				<p>{{ t('stackMerge.perfectStacks') }}: {{ perfectStacks }}/{{ totalStacks }} ({{ perfectPercentage }}%)</p>
+
+				<!-- Endless Mode: Show Star Progress -->
+				<div v-if="isEndlessMode" class="endless-final-stats">
+					<p class="progress-text">{{ t('stackMerge.progress') }}: {{ Math.round((currentHeight / 100) * 100) }}%</p>
+					<div class="stars-display">
+						<Icon
+							v-for="starIndex in 3"
+							:key="starIndex"
+							:name="starIndex <= endlessCurrentStars ? 'star-filled' : 'star'"
+							size="32"
+							:class="{
+								'star--earned': starIndex <= endlessCurrentStars
+							}"
+						/>
+					</div>
+					<p v-if="currentHeight < 100" class="next-milestone">
+						{{ endlessBlocksToNextStar }} blocks to next star!
+					</p>
+					<p v-else class="max-stars">
+						🎉 Maximum Stars Achieved!
+					</p>
+				</div>
+
 				<p v-if="isEndlessMode">
 					{{ t('stackMerge.timeElapsed') }}: {{ Math.floor(sessionTime / 60) }}:{{ String(sessionTime % 60).padStart(2, '0') }}
 				</p>
@@ -471,52 +692,36 @@ onUnmounted(() => {
 	position: relative;
 	touch-action: manipulation;
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	cursor: pointer;
+
+	&--playing {
+		cursor: pointer;
+	}
 
 	&--endless {
-		.canvas-container {
-			box-shadow: inset 0 0 8px var(--danger-color);
-		}
-	}
-
-	&--animating {
-		.canvas-container {
-			transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-		}
+		border: 2px solid var(--danger-color);
+		border-radius: var(--border-radius-lg);
+		padding: var(--space-2);
 	}
 }
 
-.canvas-container {
-	width: 100%;
-	height: 500px;
-	background-color: var(--card-bg);
-	border-radius: var(--border-radius-lg);
-	padding: var(--space-4);
-	box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
-	position: relative;
-	overflow: hidden;
-}
-
-.placeholder-canvas {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: var(--space-2);
-	font-size: var(--font-size-xl);
-	color: rgba(255, 255, 255, 0.5);
-	background: linear-gradient(180deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.15));
-	border-radius: var(--border-radius-md);
+// Tap Instruction
+.tap-instruction {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 5;
+	pointer-events: none;
+	animation: pulse 2s ease-in-out infinite;
 
 	p {
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-bold);
+		color: rgba(255, 255, 255, 0.8);
+		text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 		margin: 0;
 	}
-}
-
-.placeholder-hint {
-	font-size: var(--font-size-sm);
-	opacity: 0.7;
 }
 
 // Endless Mode Overlay
@@ -654,6 +859,44 @@ onUnmounted(() => {
 	margin-right: var(--space-1);
 }
 
+
+.stats-preview {
+	display: flex;
+	gap: var(--space-2);
+	background-color: rgba(0, 0, 0, 0.8);
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--border-radius-md);
+	align-items: center;
+}
+
+.stat-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: white;
+
+	&--progress {
+		color: var(--warning-color);
+		font-size: var(--font-size-base);
+	}
+
+	&--next {
+		color: rgba(255, 255, 255, 0.7);
+		font-size: var(--font-size-xs);
+	}
+}
+
+.star--earned {
+	color: var(--warning-color);
+	filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
+}
+
+.star--empty {
+	color: rgba(255, 255, 255, 0.3);
+}
+
 // Animations
 @keyframes endlessGlow {
 	0% {
@@ -661,6 +904,46 @@ onUnmounted(() => {
 	}
 	100% {
 		box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+	}
+}
+
+@keyframes pulse {
+	0%, 100% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+	50% {
+		opacity: 0.7;
+		transform: translate(-50%, -50%) scale(1.05);
+	}
+}
+
+.endless-final-stats {
+	margin-top: var(--space-4);
+	padding: var(--space-4);
+	background: rgba(239, 68, 68, 0.1);
+	border-radius: var(--border-radius-lg);
+	border: 2px solid var(--danger-color);
+
+	.progress-text {
+		font-size: var(--font-size-xl);
+		color: var(--warning-color);
+		font-weight: var(--font-weight-bold);
+		margin-bottom: var(--space-2);
+	}
+
+	.next-milestone {
+		font-size: var(--font-size-sm);
+		color: rgba(255, 255, 255, 0.7);
+		margin-top: var(--space-2);
+	}
+
+	.max-stars {
+		font-size: var(--font-size-lg);
+		color: var(--warning-color);
+		font-weight: var(--font-weight-bold);
+		margin-top: var(--space-2);
+		animation: pulse 2s ease-in-out infinite;
 	}
 }
 

@@ -2,8 +2,8 @@ export const STACK_CONFIG = {
   // Canvas settings
   canvas: {
     baseWidth: 375,
-    baseHeight: 667,
-    blockStartY: 100, // Starting Y position for first block
+    baseHeight: 400,
+    blockStartY: 300, // Starting Y position for first block
     blockHeight: 40,  // Height of each block
     baseBlockWidth: 200, // Starting width of blocks
     minBlockWidth: 60  // Minimum block width after trimming
@@ -11,15 +11,15 @@ export const STACK_CONFIG = {
 
   // Movement settings
   movement: {
-    baseSpeed: 2,      // Base horizontal speed
-    baseDistance: 150, // Base horizontal movement distance
+    baseSpeed: 100,    // Base horizontal speed
+    baseDistance: 10,  // Base horizontal movement distance
     direction: 1       // 1 = right, -1 = left
   },
 
   // Gameplay constants
   gameplay: {
     perfectThreshold: 5,      // Pixel tolerance for "perfect" stack
-    gameOverHeight: 600,      // Height at which to show game over warning
+    gameOverHeight: 400,      // Height at which to show game over warning
     comboMultiplier: 0.5,     // Score multiplier per combo level
     baseScore: 10,            // Base score per successful stack
     perfectBonus: 5           // Extra score for perfect stack
@@ -69,7 +69,11 @@ export const STACK_CONFIG = {
       targetHeight: Infinity,  // Endless mode
       speedMultiplier: 2.0,
       difficulty: 'endless',
-      milestoneRewards: [10, 20, 30, 40, 50] // Reward at these heights
+      milestoneRewards: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100], // Rewards every 10 blocks
+      starSystem: {
+        maxBlocks: 100,
+        progressPerBlock: 1
+      }
     }
   },
 
@@ -96,7 +100,7 @@ export const STACK_CONFIG = {
   // Difficulty progression settings
   progression: {
     speedIncrease: 0.05,      // Speed increase per block
-    maxSpeed: 6,              // Maximum speed cap
+    maxSpeed: 1000,           // Maximum speed cap
     widthDecrease: 2,         // Width decrease per milestone (optional)
     minWidth: 60,             // Minimum block width
     milestoneInterval: 10     // Apply difficulty increase every X blocks
