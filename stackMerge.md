@@ -42,8 +42,8 @@
 ```
 src/gamingHub/games/stackmerge/
 ├── StackMerge.vue          # Main game component
+├── StackMergeLevels.vue    # Level selection interface
 ├── GameCanvas.vue          # Canvas rendering component
-├── GameHeader.vue          # Score, level, perfect counter
 ├── Block.js                # Block class with position/size
 ├── StackEngine.js          # Core game logic & collision detection
 ├── stackConfig.js          # Level configs, colors, speeds
@@ -82,30 +82,10 @@ src/locales/
 - `stackConfig.js` - Create level configurations
 
 **Tasks:**
-- [ ] Add `stackMerge` object to gameData structure
-- [ ] Define 6 levels with target heights
-- [ ] Configure speed progression
-- [ ] Set up color palette for blocks
-
-**Data Structure:**
-```javascript
-stackMerge: {
-  levels: {
-    1: { completed: false, stars: 0, bestHeight: 0, bestScore: 0, perfectPercent: 0 },
-    2: { completed: false, stars: 0, bestHeight: 0, bestScore: 0, perfectPercent: 0 },
-    3: { completed: false, stars: 0, bestHeight: 0, bestScore: 0, perfectPercent: 0 },
-    4: { completed: false, stars: 0, bestHeight: 0, bestScore: 0, perfectPercent: 0 },
-    5: { completed: false, stars: 0, bestHeight: 0, bestScore: 0, perfectPercent: 0 },
-    6: { completed: false, stars: 0, bestHeight: 0, bestScore: 0, perfectPercent: 0 }
-  },
-  highScore: 0,
-  totalStacks: 0,
-  totalPerfectStacks: 0,
-  bestCombo: 0,
-  totalStars: 0,
-  saveState: null
-}
-```
+- [x] Add `stackMerge` object to gameData structure
+- [x] Define 6 levels with target heights
+- [x] Configure speed progression
+- [x] Set up color palette for blocks
 
 ---
 
@@ -116,13 +96,11 @@ stackMerge: {
 **Files:**
 - `StackMerge.vue` - Main game component skeleton
 - `router/index.js` - Add route
-- `GamingPage.vue` - Add game tile
 
 **Tasks:**
-- [ ] Create Vue component with script setup
-- [ ] Add game route to router
-- [ ] Add StackMerge tile to GamingPage
-- [ ] Create level selection interface
+- [x] Create Vue component with script setup
+- [x] Add game route to router
+- [x] Create level selection interface
 
 ---
 

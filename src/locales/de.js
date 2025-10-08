@@ -849,6 +849,76 @@ export default {
     }
   },
 
+  stackMerge: {
+    title: 'StackMerge',
+    description: 'Stapel Blöcke und baue den höchsten Turm!',
+
+    // Level names
+
+    levels: {
+      1: {
+        title: 'Anfänger',
+        description: 'Baue einen Turm von 10 Blöcken'
+      },
+      2: {
+        title: 'Fortgeschritten',
+        description: 'Baue einen Turm von 15 Blöcken'
+      },
+      3: {
+        title: 'Profi',
+        description: 'Baue einen Turm von 20 Blöcken'
+      },
+      4: {
+        title: 'Experte',
+        description: 'Baue einen Turm von 25 Blöcken'
+      },
+      5: {
+        title: 'Meister',
+        description: 'Baue einen Turm von 30 Blöcken'
+      },
+      6: {
+        title: 'Endlos-Modus',
+        description: 'Baue den höchsten Turm, den du kannst!'
+      }
+    },
+
+    // UI labels
+    height: 'Höhe',
+    score: 'Punkte',
+    combo: 'Kombo',
+    bestHeight: 'Beste Höhe',
+    bestScore: 'Beste Punkte',
+    perfectStacks: 'Perfekte Stapel',
+    finalHeight: 'Endhöhe',
+    finalScore: 'Endpunkte',
+
+    // Instructions
+    tapToStack: 'Tippe zum Stapeln!',
+    gameOver: 'Spiel Vorbei!',
+
+    // Messages
+    perfectStack: 'Perfekt!',
+    goodStack: 'Gut!',
+    almostPerfect: 'Fast perfekt!',
+
+    // Additional UI
+    endless_mode: 'Endlos-Modus',
+    level_title: 'Level {level}',
+    target: 'Ziel',
+    restart: 'Neustart',
+    timeElapsed: 'Zeit',
+
+    // Stats display
+    stats: {
+      perfect: 'Perfekt',
+      good: 'Gut'
+    },
+
+    comingSoon: 'Canvas kommt in Schritt 3!',
+    levelComplete: 'Level Geschafft!',
+    nextLevel: 'Nächstes Level'
+  },
+
 	// Leistungsstatistiken
 	stats: {
 		score: 'Punkte',

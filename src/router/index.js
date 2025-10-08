@@ -75,6 +75,26 @@ const routes = [
     }
   },
   {
+    path: '/games/stackmerge',
+    name: 'StackMerge',
+    component: () => import('../gamingHub/games/stackmerge/StackMergeLevels.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/games/stackmerge/:level',
+    name: 'StackMergeLevels',
+    component: () => import('../gamingHub/games/stackmerge/StackMerge.vue'),
+    props: route => ({ level: parseInt(route.params.level) || 1 }),
+    beforeEnter: (to, from, next) => {
+      const level = parseInt(to.params.level)
+      if (isNaN(level) || level < 1 || level > 6) {
+        next('/games/stackmerge')
+      } else {
+        next()
+      }
+    }
+  },
+  {
     path: '/shop',
     name: 'Shop',
     component: Shop

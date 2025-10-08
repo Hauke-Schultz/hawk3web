@@ -851,6 +851,74 @@ export default {
     }
   },
 
+  stackMerge: {
+    title: 'StackMerge',
+    description: 'Stack blocks to build the tallest tower!',
+
+    // Level names
+    levels: {
+      1: {
+        title: 'Beginner Tower',
+        description: 'Build a tower of 10 blocks'
+      },
+      2: {
+        title: 'Rising Stack',
+        description: 'Build a tower of 15 blocks'
+      },
+      3: {
+        title: 'Sky Builder',
+        description: 'Build a tower of 20 blocks'
+      },
+      4: {
+        title: 'High Rise',
+        description: 'Build a tower of 25 blocks'
+      },
+      5: {
+        title: 'Skyscraper',
+        description: 'Build a tower of 30 blocks'
+      },
+      6: {
+        title: 'Endless Tower',
+        description: 'Build the tallest tower you can!'
+      },
+    },
+
+    // UI labels
+    height: 'Height',
+    score: 'Score',
+    combo: 'Combo',
+    bestHeight: 'Best Height',
+    bestScore: 'Best Score',
+    perfectStacks: 'Perfect Stacks',
+    finalHeight: 'Final Height',
+    finalScore: 'Final Score',
+
+    // Instructions
+    tapToStack: 'Tap to Stack!',
+    gameOver: 'Game Over!',
+
+    // Messages
+    perfectStack: 'Perfect!',
+    goodStack: 'Good!',
+    almostPerfect: 'Almost!',
+
+    endless_mode: 'Endless Mode',
+    level_title: 'Level {level}',
+    target: 'Target',
+    restart: 'Restart',
+    timeElapsed: 'Time',
+
+    // Stats display
+    stats: {
+      perfect: 'Perfect',
+      good: 'Good'
+    },
+
+    comingSoon: 'Canvas coming in Step 3!',
+    levelComplete: 'Level Complete!',
+    nextLevel: 'Next Level'
+  },
+
 	// Performance Stats
 	stats: {
 		score: 'Score',
