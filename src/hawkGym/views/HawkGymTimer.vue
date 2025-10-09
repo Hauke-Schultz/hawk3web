@@ -6,6 +6,7 @@ import Header from '../../gamingHub/components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import { useLocalStorage } from '../../gamingHub/composables/useLocalStorage.js'
 import { getTodaysWorkout, TIMER_CONFIG } from '../config/workoutPlans.js'
+import { getExercise } from '../config/exercisesConfig.js'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -37,16 +38,24 @@ let timerInterval = null
 // Computed properties
 const totalExercises = computed(() => plan.exercises.length)
 
-const currentExercise = computed(() => plan.exercises[currentExerciseIndex.value])
+const currentExercise = computed(() => {
+	const exerciseId = plan.exercises[currentExerciseIndex.value]
+	const exercise = getExercise(exerciseId)
+	return exercise ? t(exercise.nameKey) : exerciseId
+})
 
 const nextExercise = computed(() => {
 	const nextIndex = currentExerciseIndex.value + 1
 	if (nextIndex < plan.exercises.length) {
-		return plan.exercises[nextIndex]
+		const exerciseId = plan.exercises[nextIndex]
+		const exercise = getExercise(exerciseId)
+		return exercise ? t(exercise.nameKey) : exerciseId
 	}
 	// If last exercise in round
 	if (currentRound.value < TIMER_CONFIG.rounds) {
-		return plan.exercises[0] // First exercise of next round
+		const exerciseId = plan.exercises[0]
+		const exercise = getExercise(exerciseId)
+		return exercise ? t(exercise.nameKey) : exerciseId
 	}
 	return null // Workout finished
 })
@@ -84,16 +93,13 @@ const stateLabel = computed(() => {
 
 const currentExerciseName = computed(() => {
 	if (state.value === TIMER_STATES.EXERCISE || state.value === TIMER_STATES.REST) {
-		return t(currentExercise.value)
+		return currentExercise.value
 	}
 	return ''
 })
 
 const nextExerciseName = computed(() => {
-	if (nextExercise.value) {
-		return t(nextExercise.value)
-	}
-	return ''
+	return nextExercise.value || ''
 })
 
 const countdownColor = computed(() => {
@@ -304,6 +310,13 @@ const handleMenuClick = () => {
 	router.push('/hawk-gym')
 }
 
+// Get first exercise name for idle state
+const getFirstExerciseName = () => {
+	const exerciseId = plan.exercises[0]
+	const exercise = getExercise(exerciseId)
+	return exercise ? t(exercise.nameKey) : exerciseId
+}
+
 // Cleanup on unmount
 onUnmounted(() => {
 	stopTimer()
@@ -332,15 +345,16 @@ onUnmounted(() => {
 			<!-- Progress Bar -->
 			<div v-if="state !== TIMER_STATES.FINISHED" class="progress-bar">
 				<div
-					class="progress-fill"
-					:style="{ width: `${progress}%` }"
+						class="progress-fill"
+						:style="{ width: `${progress}%` }"
 				></div>
 			</div>
+
 			<!-- Countdown Display -->
 			<div class="countdown">
 				<div
-					class="countdown-number"
-					:style="{ color: countdownColor }"
+						class="countdown-number"
+						:style="{ color: countdownColor }"
 				>
 					{{ timeRemaining }}
 				</div>
@@ -350,9 +364,9 @@ onUnmounted(() => {
 				<div class="timer-controls">
 					<!-- Idle State -->
 					<button
-						v-if="state === TIMER_STATES.IDLE"
-						class="btn btn--primary btn--large"
-						@click="handleStart"
+							v-if="state === TIMER_STATES.IDLE"
+							class="btn btn--primary btn--large"
+							@click="handleStart"
 					>
 						{{ t('hawkGym.start') }}
 					</button>
@@ -360,31 +374,31 @@ onUnmounted(() => {
 					<!-- Running State -->
 					<template v-else-if="state !== TIMER_STATES.FINISHED">
 						<button
-							v-if="!isPaused"
-							class="btn btn--warning"
-							@click="handlePause"
+								v-if="!isPaused"
+								class="btn btn--warning"
+								@click="handlePause"
 						>
 							{{ t('hawkGym.pause') }}
 						</button>
 
 						<button
-							v-if="isPaused"
-							class="btn btn--success"
-							@click="handleResume"
+								v-if="isPaused"
+								class="btn btn--success"
+								@click="handleResume"
 						>
 							{{ t('hawkGym.resume') }}
 						</button>
 
 						<button
-							class="btn btn--ghost"
-							@click="handleSkip"
+								class="btn btn--ghost"
+								@click="handleSkip"
 						>
 							{{ t('hawkGym.skip') }}
 						</button>
 
 						<button
-							class="btn btn--danger"
-							@click="handleReset"
+								class="btn btn--danger"
+								@click="handleReset"
 						>
 							{{ t('hawkGym.reset') }}
 						</button>
@@ -392,16 +406,17 @@ onUnmounted(() => {
 
 					<!-- Finished State -->
 					<button
-						v-else
-						class="btn btn--success btn--large"
-						@click="handleFinish"
+							v-else
+							class="btn btn--success btn--large"
+							@click="handleFinish"
 					>
 						{{ t('common.finish') }}
 					</button>
 				</div>
+
 				<div v-if="currentExerciseName || state === TIMER_STATES.GET_READY" class="exercise-name">
 					<span class="exercise-number">{{ getCurrentExerciseNumber() }}</span>
-					<span>{{ currentExerciseName || t(plan.exercises[0]) }}</span>
+					<span>{{ currentExerciseName || getFirstExerciseName() }}</span>
 				</div>
 			</div>
 
@@ -410,7 +425,7 @@ onUnmounted(() => {
 				<!-- IDLE State: Show first exercise -->
 				<template v-if="state === TIMER_STATES.IDLE">
 					<span class="exercise-number">1</span>
-					<span>{{ t('hawkGym.next') }}: {{ t(plan.exercises[0]) }}</span>
+					<span>{{ t('hawkGym.next') }}: {{ getFirstExerciseName() }}</span>
 				</template>
 
 				<!-- Running State: Show next exercise if available -->
@@ -470,7 +485,6 @@ onUnmounted(() => {
 	font-weight: var(--font-weight-bold);
 }
 
-
 .exercise-name {
 	display: flex;
 	align-items: center;
@@ -524,16 +538,6 @@ onUnmounted(() => {
 	transition: width 0.3s ease;
 }
 
-.next-exercise {
-	text-align: center;
-	font-size: var(--font-size-base);
-	color: var(--text-secondary);
-	padding: var(--space-2);
-	background-color: var(--bg-secondary);
-	border-radius: var(--border-radius-md);
-	font-weight: var(--font-weight-bold);
-}
-
 .timer-controls {
 	display: flex;
 	gap: var(--space-2);
@@ -544,5 +548,4 @@ onUnmounted(() => {
 		flex: 1;
 	}
 }
-
 </style>

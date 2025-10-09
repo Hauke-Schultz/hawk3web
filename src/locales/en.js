@@ -1231,80 +1231,171 @@ export default {
     plans: {
       monday: {
         name: 'Legs & Glutes',
-        exercises: [
-          'Squats',
-          'Lunges',
-          'Calf Raises',
-          'Glute Bridge',
-          'Squats with Dumbbells',
-          'Stretching'
-        ]
       },
       tuesday: {
         name: 'Upper Body',
-        exercises: [
-          'Push-ups',
-          'Dumbbell Rows',
-          'Shoulder Press',
-          'Bicep Curls',
-          'Tricep Extensions',
-          'Stretching'
-        ]
       },
       wednesday: {
         name: 'Core & Abs',
-        exercises: [
-          'Sit-ups',
-          'Russian Twist',
-          'Plank',
-          'Leg Raises',
-          'Superman',
-          'Stretching'
-        ]
       },
       thursday: {
         name: 'Full Body Light',
-        exercises: [
-          'Squat + Shoulder Press',
-          'Push-up + Row',
-          'Glute Bridge + Leg Raises',
-          'Side Plank',
-          'Jumping Jacks',
-          'Stretching'
-        ]
       },
       friday: {
         name: 'Strength & Posture',
-        exercises: [
-          'Deadlifts',
-          'Bent Over Rows',
-          'Push-ups',
-          'Slow Squats',
-          'Plank + Shoulder Taps',
-          'Stretching'
-        ]
       },
       saturday: {
         name: 'Core + Cardio',
-        exercises: [
-          'Jumping Jacks',
-          'Sit-ups',
-          'Mountain Climbers',
-          'Superman Hold',
-          'Crunches with Twist',
-          'Stretching'
-        ]
       },
       sunday: {
         name: 'Rest Day',
-        exercises: [
-          'Light Walking',
-          'Stretching',
-          'Deep Breathing',
-          'Foam Rolling',
-          'Yoga',
-          'Meditation'
-        ]
+      }
+    },
+
+    // Exercise definitions
+    exercises: {
+      // Lower Body
+      squats: {
+        name: 'Squats',
+        description: 'Stand with feet shoulder-width apart, lower your hips back and down, keeping your chest up. Return to standing position.'
+      },
+      lunges: {
+        name: 'Lunges',
+        description: 'Step forward with one leg, lowering your hips until both knees are bent at 90 degrees. Push back to starting position and alternate legs.'
+      },
+      calf_raises: {
+        name: 'Calf Raises',
+        description: 'Stand with feet hip-width apart, raise your heels off the ground by pushing through the balls of your feet. Lower back down with control.'
+      },
+      glute_bridge: {
+        name: 'Glute Bridge',
+        description: 'Lie on your back with knees bent, lift your hips toward the ceiling, squeezing your glutes at the top. Lower back down slowly.'
+      },
+      squats_dumbbells: {
+        name: 'Squats with Dumbbells',
+        description: 'Hold dumbbells at your sides or shoulders, perform squats while maintaining proper form with the added weight.'
+      },
+      slow_squats: {
+        name: 'Slow Squats',
+        description: 'Perform squats with a slow, controlled tempo (3-4 seconds down, 3-4 seconds up) to increase time under tension.'
+      },
+
+      // Upper Body
+      push_ups: {
+        name: 'Push-ups',
+        description: 'Start in a plank position, lower your body until your chest nearly touches the floor, then push back up.'
+      },
+      dumbbell_rows: {
+        name: 'Dumbbell Rows',
+        description: 'Bend at the waist with a dumbbell in one hand, pull the weight up to your side, keeping your elbow close to your body.'
+      },
+      shoulder_press: {
+        name: 'Shoulder Press',
+        description: 'Hold dumbbells at shoulder height, press them overhead until arms are fully extended, then lower back down.'
+      },
+      bicep_curls: {
+        name: 'Bicep Curls',
+        description: 'Hold dumbbells at your sides, curl the weights up toward your shoulders, then lower back down with control.'
+      },
+      tricep_extensions: {
+        name: 'Tricep Extensions',
+        description: 'Hold a dumbbell overhead with both hands, lower it behind your head by bending your elbows, then extend back up.'
+      },
+      bent_over_rows: {
+        name: 'Bent Over Rows',
+        description: 'Bend forward at the hips with dumbbells, pull the weights up to your sides, squeezing your shoulder blades together.'
+      },
+      deadlifts: {
+        name: 'Deadlifts',
+        description: 'Stand with feet hip-width apart, hinge at the hips to lower weights down your legs, keeping back straight. Return to standing.'
+      },
+
+      // Core
+      sit_ups: {
+        name: 'Sit-ups',
+        description: 'Lie on your back with knees bent, use your core to lift your torso up toward your knees, then lower back down.'
+      },
+      russian_twist: {
+        name: 'Russian Twist',
+        description: 'Sit with knees bent, lean back slightly, rotate your torso from side to side, optionally holding a weight.'
+      },
+      plank: {
+        name: 'Plank',
+        description: 'Hold a push-up position with forearms on the ground, keeping your body in a straight line from head to heels.'
+      },
+      leg_raises: {
+        name: 'Leg Raises',
+        description: 'Lie on your back, lift your legs up to 90 degrees while keeping them straight, then lower them back down without touching the ground.'
+      },
+      superman: {
+        name: 'Superman',
+        description: 'Lie face down, simultaneously lift your arms and legs off the ground, hold briefly, then lower back down.'
+      },
+      side_plank: {
+        name: 'Side Plank',
+        description: 'Lie on your side, prop yourself up on one forearm, lift your hips to create a straight line from head to feet.'
+      },
+      plank_shoulder_taps: {
+        name: 'Plank + Shoulder Taps',
+        description: 'Hold a plank position, alternately tap each shoulder with the opposite hand while keeping your core stable.'
+      },
+      superman_hold: {
+        name: 'Superman Hold',
+        description: 'Like Superman exercise, but hold the lifted position for an extended time to build endurance.'
+      },
+      crunches_twist: {
+        name: 'Crunches with Twist',
+        description: 'Perform a crunch while rotating your torso, bringing your elbow toward the opposite knee.'
+      },
+
+      // Cardio
+      jumping_jacks: {
+        name: 'Jumping Jacks',
+        description: 'Jump while spreading your legs and raising your arms overhead, then return to starting position.'
+      },
+      mountain_climbers: {
+        name: 'Mountain Climbers',
+        description: 'Start in plank position, alternate bringing knees toward chest in a running motion.'
+      },
+
+      // Combination
+      squat_shoulder_press: {
+        name: 'Squat + Shoulder Press',
+        description: 'Perform a squat while holding dumbbells, then press the weights overhead as you stand up.'
+      },
+      push_up_row: {
+        name: 'Push-up + Row',
+        description: 'Perform a push-up holding dumbbells, at the top perform a row with each arm.'
+      },
+      glute_bridge_leg_raises: {
+        name: 'Glute Bridge + Leg Raises',
+        description: 'Hold a glute bridge position, alternately raise each leg while maintaining hip height.'
+      },
+
+      // Recovery
+      stretching: {
+        name: 'Stretching',
+        description: 'Gentle stretches for all major muscle groups, holding each stretch for 15-30 seconds.'
+      },
+      light_walking: {
+        name: 'Light Walking',
+        description: 'Easy-paced walking to promote blood flow and recovery without straining muscles.'
+      },
+      deep_breathing: {
+        name: 'Deep Breathing',
+        description: 'Practice slow, deep breathing exercises to promote relaxation and reduce stress.'
+      },
+      foam_rolling: {
+        name: 'Foam Rolling',
+        description: 'Use a foam roller to massage and release tension in muscles, promoting recovery.'
+      },
+      yoga: {
+        name: 'Yoga',
+        description: 'Gentle yoga poses focusing on flexibility, balance, and mindful movement.'
+      },
+      meditation: {
+        name: 'Meditation',
+        description: 'Quiet meditation practice to calm the mind and reduce stress.'
       }
     }
   },

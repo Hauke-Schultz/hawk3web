@@ -1232,80 +1232,171 @@ export default {
     plans: {
       monday: {
         name: 'Beine & Po',
-        exercises: [
-          'Kniebeugen',
-          'Ausfallschritte',
-          'Wadenheben',
-          'Glute Bridge',
-          'Kniebeuge mit Hanteln',
-          'Dehnung'
-        ]
       },
       tuesday: {
         name: 'Oberkörper',
-        exercises: [
-          'Liegestütze',
-          'Rudern mit Hanteln',
-          'Schulterdrücken',
-          'Bizepscurls',
-          'Trizepsstrecken',
-          'Dehnung'
-        ]
       },
       wednesday: {
         name: 'Rumpf & Bauch',
-        exercises: [
-          'Sit-ups',
-          'Russian Twist',
-          'Plank',
-          'Beinheben',
-          'Superman',
-          'Dehnung'
-        ]
       },
       thursday: {
         name: 'Ganzkörper Leicht',
-        exercises: [
-          'Kniebeuge + Schulterdrücken',
-          'Liegestütz + Rudern',
-          'Glute Bridge + Beinheben',
-          'Seitstütz',
-          'Hampelmänner',
-          'Dehnung'
-        ]
       },
       friday: {
         name: 'Kraft & Haltung',
-        exercises: [
-          'Kreuzheben',
-          'Rudern Vorgebeugt',
-          'Liegestütze',
-          'Kniebeugen Langsam',
-          'Plank + Schulter-Taps',
-          'Dehnung'
-        ]
       },
       saturday: {
         name: 'Core + Cardio',
-        exercises: [
-          'Jumping Jacks',
-          'Sit-ups',
-          'Mountain Climbers',
-          'Superman Hold',
-          'Crunches mit Drehung',
-          'Dehnung'
-        ]
       },
       sunday: {
         name: 'Ruhetag',
-        exercises: [
-          'Leichtes Gehen',
-          'Dehnung',
-          'Tiefes Atmen',
-          'Foam Rolling',
-          'Yoga',
-          'Meditation'
-        ]
+      }
+    },
+
+    // Exercise definitions
+    exercises: {
+      // Lower Body
+      squats: {
+        name: 'Kniebeugen',
+        description: 'Stehe schulterbreit, senke die Hüfte nach hinten und unten, halte die Brust hoch. Kehre in die Ausgangsposition zurück.'
+      },
+      lunges: {
+        name: 'Ausfallschritte',
+        description: 'Tritt mit einem Bein nach vorne, senke die Hüfte bis beide Knie 90 Grad gebeugt sind. Drücke dich zurück und wechsle die Seite.'
+      },
+      calf_raises: {
+        name: 'Wadenheben',
+        description: 'Stehe hüftbreit, hebe die Fersen vom Boden indem du dich auf die Fußballen drückst. Senke kontrolliert zurück.'
+      },
+      glute_bridge: {
+        name: 'Glute Bridge',
+        description: 'Liege auf dem Rücken mit angewinkelten Knien, hebe die Hüfte zur Decke und spanne die Gesäßmuskeln an. Senke langsam zurück.'
+      },
+      squats_dumbbells: {
+        name: 'Kniebeuge mit Hanteln',
+        description: 'Halte Hanteln an den Seiten oder Schultern, führe Kniebeugen mit korrekter Form und zusätzlichem Gewicht aus.'
+      },
+      slow_squats: {
+        name: 'Kniebeugen Langsam',
+        description: 'Führe Kniebeugen mit langsamen, kontrollierten Tempo aus (3-4 Sekunden runter, 3-4 Sekunden hoch).'
+      },
+
+      // Upper Body
+      push_ups: {
+        name: 'Liegestütze',
+        description: 'Starte in Plank-Position, senke den Körper bis die Brust fast den Boden berührt, drücke dich dann hoch.'
+      },
+      dumbbell_rows: {
+        name: 'Rudern mit Hanteln',
+        description: 'Beuge dich nach vorne mit einer Hantel in der Hand, ziehe das Gewicht zur Seite, halte den Ellenbogen nah am Körper.'
+      },
+      shoulder_press: {
+        name: 'Schulterdrücken',
+        description: 'Halte Hanteln auf Schulterhöhe, drücke sie nach oben bis die Arme gestreckt sind, senke dann zurück.'
+      },
+      bicep_curls: {
+        name: 'Bizepscurls',
+        description: 'Halte Hanteln an den Seiten, curl die Gewichte zu den Schultern, senke dann kontrolliert zurück.'
+      },
+      tricep_extensions: {
+        name: 'Trizepsstrecken',
+        description: 'Halte eine Hantel über dem Kopf mit beiden Händen, senke sie hinter den Kopf durch Beugen der Ellenbogen, strecke dann wieder.'
+      },
+      bent_over_rows: {
+        name: 'Rudern Vorgebeugt',
+        description: 'Beuge dich nach vorne mit Hanteln, ziehe die Gewichte zu den Seiten und drücke die Schulterblätter zusammen.'
+      },
+      deadlifts: {
+        name: 'Kreuzheben',
+        description: 'Stehe hüftbreit, senke Gewichte an den Beinen entlang durch Hüftbeugung, halte den Rücken gerade. Kehre in den Stand zurück.'
+      },
+
+      // Core
+      sit_ups: {
+        name: 'Sit-ups',
+        description: 'Liege auf dem Rücken mit angewinkelten Knien, nutze die Rumpfmuskulatur um den Oberkörper zu den Knien zu heben, senke dann zurück.'
+      },
+      russian_twist: {
+        name: 'Russian Twist',
+        description: 'Sitze mit angewinkelten Knien, lehne dich leicht zurück, rotiere den Oberkörper von Seite zu Seite, optional mit Gewicht.'
+      },
+      plank: {
+        name: 'Plank',
+        description: 'Halte eine Liegestütz-Position mit Unterarmen am Boden, halte den Körper in gerader Linie vom Kopf zu den Fersen.'
+      },
+      leg_raises: {
+        name: 'Beinheben',
+        description: 'Liege auf dem Rücken, hebe die Beine auf 90 Grad während sie gestreckt bleiben, senke sie zurück ohne den Boden zu berühren.'
+      },
+      superman: {
+        name: 'Superman',
+        description: 'Liege auf dem Bauch, hebe gleichzeitig Arme und Beine vom Boden, halte kurz, senke dann zurück.'
+      },
+      side_plank: {
+        name: 'Seitstütz',
+        description: 'Liege auf der Seite, stütze dich auf einen Unterarm, hebe die Hüfte um eine gerade Linie vom Kopf zu den Füßen zu bilden.'
+      },
+      plank_shoulder_taps: {
+        name: 'Plank + Schulter-Taps',
+        description: 'Halte eine Plank-Position, tippe abwechselnd jede Schulter mit der gegenüberliegenden Hand an, halte den Rumpf stabil.'
+      },
+      superman_hold: {
+        name: 'Superman Hold',
+        description: 'Wie Superman-Übung, aber halte die gehobene Position für eine längere Zeit um Ausdauer aufzubauen.'
+      },
+      crunches_twist: {
+        name: 'Crunches mit Drehung',
+        description: 'Führe einen Crunch aus während du den Oberkörper drehst und den Ellenbogen zum gegenüberliegenden Knie bringst.'
+      },
+
+      // Cardio
+      jumping_jacks: {
+        name: 'Hampelmänner',
+        description: 'Spring während du die Beine spreizt und die Arme über den Kopf hebst, kehre dann in die Ausgangsposition zurück.'
+      },
+      mountain_climbers: {
+        name: 'Mountain Climbers',
+        description: 'Starte in Plank-Position, bringe die Knie abwechselnd in einer Laufbewegung zur Brust.'
+      },
+
+      // Combination
+      squat_shoulder_press: {
+        name: 'Kniebeuge + Schulterdrücken',
+        description: 'Führe eine Kniebeuge mit Hanteln aus, drücke dann die Gewichte nach oben während du aufstehst.'
+      },
+      push_up_row: {
+        name: 'Liegestütz + Rudern',
+        description: 'Führe einen Liegestütz mit Hanteln aus, führe oben mit jedem Arm eine Ruderbewegung aus.'
+      },
+      glute_bridge_leg_raises: {
+        name: 'Glute Bridge + Beinheben',
+        description: 'Halte eine Glute Bridge Position, hebe abwechselnd jedes Bein während du die Hüfthöhe beibehältst.'
+      },
+
+      // Recovery
+      stretching: {
+        name: 'Dehnung',
+        description: 'Sanfte Dehnungen für alle großen Muskelgruppen, halte jede Dehnung für 15-30 Sekunden.'
+      },
+      light_walking: {
+        name: 'Leichtes Gehen',
+        description: 'Einfaches Gehen um die Durchblutung zu fördern und die Erholung ohne Muskelbelastung zu unterstützen.'
+      },
+      deep_breathing: {
+        name: 'Tiefes Atmen',
+        description: 'Übe langsame, tiefe Atemübungen zur Förderung der Entspannung und Stressreduktion.'
+      },
+      foam_rolling: {
+        name: 'Foam Rolling',
+        description: 'Nutze eine Faszienrolle um Muskeln zu massieren und Spannungen zu lösen, fördert die Erholung.'
+      },
+      yoga: {
+        name: 'Yoga',
+        description: 'Sanfte Yoga-Posen mit Fokus auf Flexibilität, Balance und achtsame Bewegung.'
+      },
+      meditation: {
+        name: 'Meditation',
+        description: 'Ruhige Meditationspraxis um den Geist zu beruhigen und Stress zu reduzieren.'
       }
     }
   },

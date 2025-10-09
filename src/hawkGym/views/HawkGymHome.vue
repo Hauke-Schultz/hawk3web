@@ -5,15 +5,28 @@ import Header from '../../gamingHub/components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import { useLocalStorage } from '../../gamingHub/composables/useLocalStorage.js'
 import { getTodaysWorkout } from '../config/workoutPlans.js'
-import {computed} from "vue";
+import { getExercise } from '../config/exercisesConfig.js'
+import { computed } from "vue"
 
 const router = useRouter()
 const { t } = useI18n()
 const { gameData } = useLocalStorage()
 const { dayKey, plan } = getTodaysWorkout()
 
+// Get exercise details with translations
 const exercisesList = computed(() => {
-	return plan.exercises.map(key => t(key))
+	return plan.exercises.map(exerciseId => {
+		const exercise = getExercise(exerciseId)
+		if (!exercise) return { name: exerciseId, description: '' }
+
+		return {
+			id: exercise.id,
+			name: t(exercise.nameKey),
+			description: t(exercise.descriptionKey),
+			category: exercise.category,
+			image: exercise.image
+		}
+	})
 })
 
 // Navigate to timer
@@ -25,6 +38,7 @@ const startWorkout = () => {
 const handleMenuClick = () => {
 	router.push('/')
 }
+
 // Get today's day name
 const getTodayName = () => {
 	const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
@@ -61,11 +75,14 @@ const todayKey = getTodayName()
 				<div class="exercise-list">
 					<div
 							v-for="(exercise, index) in exercisesList"
-							:key="index"
+							:key="exercise.id"
 							class="exercise-item"
 					>
 						<span class="exercise-number">{{ index + 1 }}</span>
-						<span class="exercise-name">{{ exercise }}</span>
+						<div class="exercise-details">
+							<span class="exercise-name">{{ exercise.name }}</span>
+							<span class="exercise-description">{{ exercise.description }}</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -135,31 +152,46 @@ const todayKey = getTodayName()
 
 .exercise-item {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-3);
-	padding: var(--space-2);
+	padding: var(--space-3);
 	background-color: var(--bg-secondary);
 	border-radius: var(--border-radius-md);
-	font-size: var(--font-size-sm);
+	text-align: left;
 }
 
 .exercise-number {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 24px;
-	height: 24px;
+	width: 28px;
+	height: 28px;
 	background-color: var(--primary-color);
 	color: var(--white);
 	border-radius: 50%;
 	font-weight: var(--font-weight-bold);
-	font-size: var(--font-size-xs);
+	font-size: var(--font-size-sm);
 	flex-shrink: 0;
+	margin-top: var(--space-1);
+}
+
+.exercise-details {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	flex: 1;
 }
 
 .exercise-name {
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-base);
+}
+
+.exercise-description {
+	color: var(--text-secondary);
+	font-size: var(--font-size-sm);
+	line-height: 1.4;
 }
 
 .action-section {
