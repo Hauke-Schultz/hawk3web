@@ -4,18 +4,69 @@ import { useI18n } from '../../composables/useI18n.js'
 import Header from '../../gamingHub/components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import { useLocalStorage } from '../../gamingHub/composables/useLocalStorage.js'
-import { getTodaysWorkout } from '../config/workoutPlans.js'
+import { useGymLocalStorage } from '../composables/useGymLocalStorage.js'
+import { WORKOUT_PLANS } from '../config/workoutPlans.js'
 import { getExercise } from '../config/exercisesConfig.js'
-import { computed } from "vue"
+import { computed, ref } from "vue"
 
 const router = useRouter()
 const { t } = useI18n()
 const { gameData } = useLocalStorage()
-const { dayKey, plan } = getTodaysWorkout()
+const { gymData, getCurrentWorkoutPlan, setSelectedPlan } = useGymLocalStorage()
+
+// Get today's day key
+const getTodayKey = () => {
+	const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+	const today = new Date().getDay()
+	return days[today]
+}
+
+const todayKey = getTodayKey()
+
+// Available days for selection
+const availableDays = [
+	{ key: 'monday', nameKey: 'hawkGym.days.monday' },
+	{ key: 'tuesday', nameKey: 'hawkGym.days.tuesday' },
+	{ key: 'wednesday', nameKey: 'hawkGym.days.wednesday' },
+	{ key: 'thursday', nameKey: 'hawkGym.days.thursday' },
+	{ key: 'friday', nameKey: 'hawkGym.days.friday' },
+	{ key: 'saturday', nameKey: 'hawkGym.days.saturday' },
+	{ key: 'sunday', nameKey: 'hawkGym.days.sunday' }
+]
+
+// Selected day - initialize with current selection or today
+const selectedDay = computed({
+	get: () => {
+		// If selectedPlan is 'default', use today
+		if (gymData.preferences.selectedPlan === 'default') {
+			return todayKey
+		}
+		// If it's a day key, use it
+		if (WORKOUT_PLANS[gymData.preferences.selectedPlan]) {
+			return gymData.preferences.selectedPlan
+		}
+		// Fallback to today
+		return todayKey
+	},
+	set: (value) => {
+		setSelectedPlan(value)
+	}
+})
+
+// Get current workout plan based on selected day
+const currentWorkout = computed(() => {
+	return {
+		type: 'default',
+		dayKey: selectedDay.value,
+		plan: WORKOUT_PLANS[selectedDay.value]
+	}
+})
+
+const workoutPlan = computed(() => currentWorkout.value.plan)
 
 // Get exercise details with translations
 const exercisesList = computed(() => {
-	return plan.exercises.map(exerciseId => {
+	return workoutPlan.value.exercises.map(exerciseId => {
 		const exercise = getExercise(exerciseId)
 		if (!exercise) return { name: exerciseId, description: '' }
 
@@ -34,19 +85,23 @@ const startWorkout = () => {
 	router.push('/hawk-gym/timer')
 }
 
+// Navigate to settings
+const openSettings = () => {
+	router.push('/hawk-gym/settings')
+}
+
 // Navigate back to home
 const handleMenuClick = () => {
 	router.push('/')
 }
 
-// Get today's day name
-const getTodayName = () => {
-	const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-	const today = new Date().getDay()
-	return days[today]
-}
+// Get workout title
+const workoutTitle = computed(() => {
+	return t(workoutPlan.value.nameKey)
+})
 
-const todayKey = getTodayName()
+// Check if selected day is today
+const isToday = computed(() => selectedDay.value === todayKey)
 </script>
 
 <template>
@@ -62,14 +117,45 @@ const todayKey = getTodayName()
 		<section class="gym-header">
 			<Icon name="dumbbell" size="48" />
 			<h1 class="gym-title">{{ t('hawkGym.title') }}</h1>
-			<p class="gym-subtitle">{{ t(`hawkGym.days.${todayKey}`) }}</p>
+
+			<!-- Day Selection Dropdown -->
+			<div class="day-selector">
+				<label for="day-select" class="visually-hidden">{{ t('hawkGym.select_day') }}</label>
+				<select
+						id="day-select"
+						v-model="selectedDay"
+						class="day-select"
+				>
+					<option
+							v-for="day in availableDays"
+							:key="day.key"
+							:value="day.key"
+					>
+						{{ t(day.nameKey) }}
+						<template v-if="day.key === todayKey"> ({{ t('hawkGym.today') }})</template>
+					</option>
+				</select>
+				<Icon name="chevron-down" size="16" class="select-icon" />
+			</div>
 		</section>
 
 		<section class="workout-info">
 			<div class="info-card">
-				<h2>{{ t(plan.nameKey) }}</h2>
+				<div class="card-header">
+					<h2>{{ workoutTitle }}</h2>
+					<button
+							class="btn btn--ghost btn--small"
+							@click="openSettings"
+							:aria-label="t('settings.title')"
+					>
+						<Icon name="settings" size="20" />
+					</button>
+				</div>
+
 				<p class="workout-duration">
-					2 {{ t('hawkGym.round') }}s • 6 {{ t('hawkGym.exercise_count') }}s • ~20 {{ t('time.minutes') }}
+					{{ gymData.timerSettings.rounds }} {{ t('hawkGym.round') }}s •
+					{{ exercisesList.length }} {{ t('hawkGym.exercise_count') }}s •
+					~{{ Math.ceil((exercisesList.length * (gymData.timerSettings.exerciseDuration + gymData.timerSettings.restDuration) * gymData.timerSettings.rounds) / 60) }} {{ t('time.minutes') }}
 				</p>
 
 				<div class="exercise-list">
@@ -113,10 +199,42 @@ const todayKey = getTodayName()
 	margin: 0;
 }
 
-.gym-subtitle {
-	font-size: var(--font-size-lg);
+.day-selector {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+}
+
+.day-select {
+	appearance: none;
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3);
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: var(--font-family-base);
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		border-color: var(--primary-color);
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+		box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+	}
+}
+
+.select-icon {
+	position: absolute;
+	right: var(--space-3);
+	pointer-events: none;
 	color: var(--text-secondary);
-	margin: 0;
 }
 
 .workout-info {
@@ -130,10 +248,18 @@ const todayKey = getTodayName()
 	padding: var(--space-4);
 	text-align: center;
 
-	h2 {
-		font-size: var(--font-size-xl);
-		color: var(--text-color);
-		margin: 0 0 var(--space-2) 0;
+	.card-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--space-2);
+
+		h2 {
+			font-size: var(--font-size-xl);
+			color: var(--text-color);
+			margin: 0;
+			flex: 1;
+		}
 	}
 }
 

@@ -1206,6 +1206,8 @@ export default {
       saturday: 'Saturday',
       sunday: 'Sunday'
     },
+    select_day: 'Select Day',
+    today: 'Today',
 
     // Timer states
     exercise: 'Exercise',

@@ -1207,6 +1207,8 @@ export default {
       saturday: 'Samstag',
       sunday: 'Sonntag'
     },
+    select_day: 'Tag auswählen',
+    today: 'Heute',
 
     // Timer-Zustände
     exercise: 'Übung',

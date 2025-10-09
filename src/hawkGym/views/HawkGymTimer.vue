@@ -5,15 +5,29 @@ import { useI18n } from '../../composables/useI18n.js'
 import Header from '../../gamingHub/components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import { useLocalStorage } from '../../gamingHub/composables/useLocalStorage.js'
+import { useGymLocalStorage } from '../composables/useGymLocalStorage.js'
 import { getTodaysWorkout, TIMER_CONFIG } from '../config/workoutPlans.js'
 import { getExercise } from '../config/exercisesConfig.js'
 
 const router = useRouter()
 const { t } = useI18n()
 const { gameData } = useLocalStorage()
+const { gymData, getCurrentWorkoutPlan, addWorkoutToHistory } = useGymLocalStorage()
 
-// Get today's workout
-const { dayKey, plan } = getTodaysWorkout()
+const { dayKey } = getTodaysWorkout()
+const currentPlan = getCurrentWorkoutPlan()
+const plan = currentPlan.plan
+
+// Timer configuration - uses gym settings with fallback to defaults
+const timerConfig = computed(() => {
+	return {
+		exerciseDuration: gymData.timerSettings?.exerciseDuration ?? TIMER_CONFIG.exerciseDuration,
+		restDuration: gymData.timerSettings?.restDuration ?? TIMER_CONFIG.restDuration,
+		breakDuration: gymData.timerSettings?.breakDuration ?? TIMER_CONFIG.breakDuration,
+		rounds: gymData.timerSettings?.rounds ?? TIMER_CONFIG.rounds,
+		getReadyDuration: gymData.timerSettings?.getReadyDuration ?? TIMER_CONFIG.getReadyDuration
+	}
+})
 
 // Timer states
 const TIMER_STATES = {
@@ -52,7 +66,7 @@ const nextExercise = computed(() => {
 		return exercise ? t(exercise.nameKey) : exerciseId
 	}
 	// If last exercise in round
-	if (currentRound.value < TIMER_CONFIG.rounds) {
+	if (currentRound.value < timerConfig.value.rounds) {
 		const exerciseId = plan.exercises[0]
 		const exercise = getExercise(exerciseId)
 		return exercise ? t(exercise.nameKey) : exerciseId
@@ -65,7 +79,7 @@ const isLastExerciseInRound = computed(() => {
 })
 
 const isLastRound = computed(() => {
-	return currentRound.value === TIMER_CONFIG.rounds
+	return currentRound.value === timerConfig.value.rounds
 })
 
 const progress = computed(() => {
@@ -122,37 +136,39 @@ const countdownColor = computed(() => {
 // Helper functions
 const getTotalDuration = () => {
 	const exercisesPerRound = plan.exercises.length
-	const exerciseTime = exercisesPerRound * TIMER_CONFIG.exerciseDuration
-	const restTime = (exercisesPerRound - 1) * TIMER_CONFIG.restDuration
+	const config = timerConfig.value
+	const exerciseTime = exercisesPerRound * config.exerciseDuration
+	const restTime = (exercisesPerRound - 1) * config.restDuration
 	const roundTime = exerciseTime + restTime
-	const totalTime = (roundTime * TIMER_CONFIG.rounds) +
-			((TIMER_CONFIG.rounds - 1) * TIMER_CONFIG.breakDuration) +
-			TIMER_CONFIG.getReadyDuration
+	const totalTime = (roundTime * config.rounds) +
+			((config.rounds - 1) * config.breakDuration) +
+			config.getReadyDuration
 	return totalTime
 }
 
 const getElapsedSeconds = () => {
+	const config = timerConfig.value
 	let elapsed = 0
 
 	// Add get ready time if past it
 	if (state.value !== TIMER_STATES.IDLE && state.value !== TIMER_STATES.GET_READY) {
-		elapsed += TIMER_CONFIG.getReadyDuration
+		elapsed += config.getReadyDuration
 	}
 
 	// Add completed rounds
 	if (currentRound.value > 1) {
 		const exercisesPerRound = plan.exercises.length
-		const exerciseTime = exercisesPerRound * TIMER_CONFIG.exerciseDuration
-		const restTime = (exercisesPerRound - 1) * TIMER_CONFIG.restDuration
+		const exerciseTime = exercisesPerRound * config.exerciseDuration
+		const restTime = (exercisesPerRound - 1) * config.restDuration
 		const roundTime = exerciseTime + restTime
 		elapsed += (currentRound.value - 1) * roundTime
-		elapsed += (currentRound.value - 1) * TIMER_CONFIG.breakDuration
+		elapsed += (currentRound.value - 1) * config.breakDuration
 	}
 
 	// Add completed exercises in current round
 	if (currentExerciseIndex.value > 0) {
-		elapsed += currentExerciseIndex.value * TIMER_CONFIG.exerciseDuration
-		elapsed += currentExerciseIndex.value * TIMER_CONFIG.restDuration
+		elapsed += currentExerciseIndex.value * config.exerciseDuration
+		elapsed += currentExerciseIndex.value * config.restDuration
 	}
 
 	// Add current phase progress
@@ -163,15 +179,16 @@ const getElapsedSeconds = () => {
 }
 
 const getMaxTimeForState = () => {
+	const config = timerConfig.value
 	switch (state.value) {
 		case TIMER_STATES.GET_READY:
-			return TIMER_CONFIG.getReadyDuration
+			return config.getReadyDuration
 		case TIMER_STATES.EXERCISE:
-			return TIMER_CONFIG.exerciseDuration
+			return config.exerciseDuration
 		case TIMER_STATES.REST:
-			return TIMER_CONFIG.restDuration
+			return config.restDuration
 		case TIMER_STATES.BREAK:
-			return TIMER_CONFIG.breakDuration
+			return config.breakDuration
 		default:
 			return 0
 	}
@@ -200,11 +217,13 @@ const stopTimer = () => {
 }
 
 const advance = () => {
+	const config = timerConfig.value
+
 	switch (state.value) {
 		case TIMER_STATES.GET_READY:
 			// Start first exercise
 			state.value = TIMER_STATES.EXERCISE
-			timeRemaining.value = TIMER_CONFIG.exerciseDuration
+			timeRemaining.value = config.exerciseDuration
 			break
 
 		case TIMER_STATES.EXERCISE:
@@ -218,14 +237,14 @@ const advance = () => {
 				} else {
 					// Break between rounds
 					state.value = TIMER_STATES.BREAK
-					timeRemaining.value = TIMER_CONFIG.breakDuration
+					timeRemaining.value = config.breakDuration
 					currentRound.value++
 					currentExerciseIndex.value = 0
 				}
 			} else {
 				// Rest between exercises
 				state.value = TIMER_STATES.REST
-				timeRemaining.value = TIMER_CONFIG.restDuration
+				timeRemaining.value = config.restDuration
 			}
 			break
 
@@ -233,13 +252,13 @@ const advance = () => {
 			// Move to next exercise
 			currentExerciseIndex.value++
 			state.value = TIMER_STATES.EXERCISE
-			timeRemaining.value = TIMER_CONFIG.exerciseDuration
+			timeRemaining.value = config.exerciseDuration
 			break
 
 		case TIMER_STATES.BREAK:
 			// Start next round
 			state.value = TIMER_STATES.EXERCISE
-			timeRemaining.value = TIMER_CONFIG.exerciseDuration
+			timeRemaining.value = config.exerciseDuration
 			break
 
 		default:
@@ -262,7 +281,7 @@ const getNextExerciseNumber = () => {
 		return nextIndex + 1 // Current round, next exercise
 	}
 	// If moving to next round
-	if (currentRound.value < TIMER_CONFIG.rounds) {
+	if (currentRound.value < timerConfig.value.rounds) {
 		return 1 // First exercise of next round
 	}
 	return null
@@ -270,8 +289,9 @@ const getNextExerciseNumber = () => {
 
 // Button handlers
 const handleStart = () => {
+	const config = timerConfig.value
 	state.value = TIMER_STATES.GET_READY
-	timeRemaining.value = TIMER_CONFIG.getReadyDuration
+	timeRemaining.value = config.getReadyDuration
 	currentRound.value = 1
 	currentExerciseIndex.value = 0
 	isPaused.value = false
@@ -301,6 +321,20 @@ const handleReset = () => {
 }
 
 const handleFinish = () => {
+	// Calculate workout data
+	const workoutDuration = getTotalDuration() - timeRemaining.value
+	const currentPlan = getCurrentWorkoutPlan()
+
+	// Add to history
+	addWorkoutToHistory({
+		planId: currentPlan.type === 'custom' ? currentPlan.plan.id : currentPlan.dayKey,
+		planName: currentPlan.type === 'custom' ? currentPlan.plan.name : t(currentPlan.plan.nameKey),
+		exercises: currentPlan.plan.exercises,
+		duration: workoutDuration,
+		rounds: currentRound.value,
+		skippedExercises: 0 // Could track this if you add skip functionality
+	})
+
 	stopTimer()
 	router.push('/hawk-gym')
 }
@@ -336,7 +370,7 @@ onUnmounted(() => {
 		<section class="timer-display">
 			<!-- Timer Info -->
 			<div v-if="state !== TIMER_STATES.FINISHED" class="timer-info">
-				<div class="round-indicator">{{ t('hawkGym.round') }} {{ currentRound }}/{{ TIMER_CONFIG.rounds }}</div>
+				<div class="round-indicator">{{ t('hawkGym.round') }} {{ currentRound }}/{{ timerConfig.rounds }}</div>
 				<div v-if="state === TIMER_STATES.EXERCISE || state === TIMER_STATES.REST" class="exercise-indicator">
 					{{ t('hawkGym.exercise_count') }} {{ currentExerciseIndex + 1 }}/{{ totalExercises }}
 				</div>
