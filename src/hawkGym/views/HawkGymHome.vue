@@ -73,7 +73,6 @@ const todayKey = getTodayName()
 
 		<section class="action-section">
 			<button class="btn btn--primary btn--large" @click="startWorkout">
-				<Icon name="play" size="20" />
 				{{ t('hawkGym.start') }}
 			</button>
 		</section>

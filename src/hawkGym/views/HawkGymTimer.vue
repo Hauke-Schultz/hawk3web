@@ -1,12 +1,11 @@
 <script setup>
-import { computed, watch,  onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from '../../composables/useI18n.js'
 import Header from '../../gamingHub/components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import { useLocalStorage } from '../../gamingHub/composables/useLocalStorage.js'
-import { getTodaysWorkout } from '../config/workoutPlans.js'
-import { useWorkoutTimer, TIMER_STATES } from '../composables/useWorkoutTimer.js'
+import { getTodaysWorkout, TIMER_CONFIG } from '../config/workoutPlans.js'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -15,13 +14,59 @@ const { gameData } = useLocalStorage()
 // Get today's workout
 const { dayKey, plan } = getTodaysWorkout()
 
-// Setup timer with exercises as translation keys
-const timer = useWorkoutTimer(plan.exercises)
+// Timer states
+const TIMER_STATES = {
+	IDLE: 'idle',
+	GET_READY: 'getReady',
+	EXERCISE: 'exercise',
+	REST: 'rest',
+	BREAK: 'break',
+	FINISHED: 'finished'
+}
+
+// Reactive state
+const state = ref(TIMER_STATES.IDLE)
+const currentRound = ref(1)
+const currentExerciseIndex = ref(0)
+const timeRemaining = ref(0)
+const isPaused = ref(false)
+
+// Timer interval reference
+let timerInterval = null
 
 // Computed properties
+const totalExercises = computed(() => plan.exercises.length)
+
+const currentExercise = computed(() => plan.exercises[currentExerciseIndex.value])
+
+const nextExercise = computed(() => {
+	const nextIndex = currentExerciseIndex.value + 1
+	if (nextIndex < plan.exercises.length) {
+		return plan.exercises[nextIndex]
+	}
+	// If last exercise in round
+	if (currentRound.value < TIMER_CONFIG.rounds) {
+		return plan.exercises[0] // First exercise of next round
+	}
+	return null // Workout finished
+})
+
+const isLastExerciseInRound = computed(() => {
+	return currentExerciseIndex.value === plan.exercises.length - 1
+})
+
+const isLastRound = computed(() => {
+	return currentRound.value === TIMER_CONFIG.rounds
+})
+
+const progress = computed(() => {
+	const totalSeconds = getTotalDuration()
+	const elapsed = getElapsedSeconds()
+	return Math.min(100, Math.round((elapsed / totalSeconds) * 100))
+})
+
 const stateLabel = computed(() => {
-	const currentState = timer.state.value || timer.state // Handle both
-	switch (currentState) {
+	switch (state.value) {
 		case TIMER_STATES.GET_READY:
 			return t('hawkGym.get_ready')
 		case TIMER_STATES.EXERCISE:
@@ -33,32 +78,26 @@ const stateLabel = computed(() => {
 		case TIMER_STATES.FINISHED:
 			return t('hawkGym.finished')
 		default:
-			return ''
+			return t('hawkGym.idle')
 	}
 })
 
 const currentExerciseName = computed(() => {
-	const currentState = timer.state.value || timer.state
-	const exercise = timer.currentExercise.value || timer.currentExercise
-
-	if (currentState === TIMER_STATES.EXERCISE ||
-			currentState === TIMER_STATES.REST) {
-		return t(exercise)
+	if (state.value === TIMER_STATES.EXERCISE || state.value === TIMER_STATES.REST) {
+		return t(currentExercise.value)
 	}
 	return ''
 })
 
 const nextExerciseName = computed(() => {
-	const nextEx = timer.nextExercise.value || timer.nextExercise
-	if (nextEx) {
-		return t(nextEx)
+	if (nextExercise.value) {
+		return t(nextExercise.value)
 	}
 	return ''
 })
 
 const countdownColor = computed(() => {
-	const currentState = timer.state.value || timer.state
-	switch (currentState) {
+	switch (state.value) {
 		case TIMER_STATES.GET_READY:
 			return 'var(--warning-color)'
 		case TIMER_STATES.EXERCISE:
@@ -74,48 +113,200 @@ const countdownColor = computed(() => {
 	}
 })
 
-// Methods
+// Helper functions
+const getTotalDuration = () => {
+	const exercisesPerRound = plan.exercises.length
+	const exerciseTime = exercisesPerRound * TIMER_CONFIG.exerciseDuration
+	const restTime = (exercisesPerRound - 1) * TIMER_CONFIG.restDuration
+	const roundTime = exerciseTime + restTime
+	const totalTime = (roundTime * TIMER_CONFIG.rounds) +
+			((TIMER_CONFIG.rounds - 1) * TIMER_CONFIG.breakDuration) +
+			TIMER_CONFIG.getReadyDuration
+	return totalTime
+}
+
+const getElapsedSeconds = () => {
+	let elapsed = 0
+
+	// Add get ready time if past it
+	if (state.value !== TIMER_STATES.IDLE && state.value !== TIMER_STATES.GET_READY) {
+		elapsed += TIMER_CONFIG.getReadyDuration
+	}
+
+	// Add completed rounds
+	if (currentRound.value > 1) {
+		const exercisesPerRound = plan.exercises.length
+		const exerciseTime = exercisesPerRound * TIMER_CONFIG.exerciseDuration
+		const restTime = (exercisesPerRound - 1) * TIMER_CONFIG.restDuration
+		const roundTime = exerciseTime + restTime
+		elapsed += (currentRound.value - 1) * roundTime
+		elapsed += (currentRound.value - 1) * TIMER_CONFIG.breakDuration
+	}
+
+	// Add completed exercises in current round
+	if (currentExerciseIndex.value > 0) {
+		elapsed += currentExerciseIndex.value * TIMER_CONFIG.exerciseDuration
+		elapsed += currentExerciseIndex.value * TIMER_CONFIG.restDuration
+	}
+
+	// Add current phase progress
+	const maxTime = getMaxTimeForState()
+	elapsed += (maxTime - timeRemaining.value)
+
+	return elapsed
+}
+
+const getMaxTimeForState = () => {
+	switch (state.value) {
+		case TIMER_STATES.GET_READY:
+			return TIMER_CONFIG.getReadyDuration
+		case TIMER_STATES.EXERCISE:
+			return TIMER_CONFIG.exerciseDuration
+		case TIMER_STATES.REST:
+			return TIMER_CONFIG.restDuration
+		case TIMER_STATES.BREAK:
+			return TIMER_CONFIG.breakDuration
+		default:
+			return 0
+	}
+}
+
+// Timer control functions
+const startTimer = () => {
+	if (timerInterval) return // Already running
+
+	timerInterval = setInterval(() => {
+		if (isPaused.value) return
+
+		if (timeRemaining.value > 0) {
+			timeRemaining.value--
+		} else {
+			advance()
+		}
+	}, 1000)
+}
+
+const stopTimer = () => {
+	if (timerInterval) {
+		clearInterval(timerInterval)
+		timerInterval = null
+	}
+}
+
+const advance = () => {
+	switch (state.value) {
+		case TIMER_STATES.GET_READY:
+			// Start first exercise
+			state.value = TIMER_STATES.EXERCISE
+			timeRemaining.value = TIMER_CONFIG.exerciseDuration
+			break
+
+		case TIMER_STATES.EXERCISE:
+			// After exercise, check if last in round
+			if (isLastExerciseInRound.value) {
+				// Check if last round
+				if (isLastRound.value) {
+					// Workout finished
+					state.value = TIMER_STATES.FINISHED
+					stopTimer()
+				} else {
+					// Break between rounds
+					state.value = TIMER_STATES.BREAK
+					timeRemaining.value = TIMER_CONFIG.breakDuration
+					currentRound.value++
+					currentExerciseIndex.value = 0
+				}
+			} else {
+				// Rest between exercises
+				state.value = TIMER_STATES.REST
+				timeRemaining.value = TIMER_CONFIG.restDuration
+			}
+			break
+
+		case TIMER_STATES.REST:
+			// Move to next exercise
+			currentExerciseIndex.value++
+			state.value = TIMER_STATES.EXERCISE
+			timeRemaining.value = TIMER_CONFIG.exerciseDuration
+			break
+
+		case TIMER_STATES.BREAK:
+			// Start next round
+			state.value = TIMER_STATES.EXERCISE
+			timeRemaining.value = TIMER_CONFIG.exerciseDuration
+			break
+
+		default:
+			break
+	}
+}
+
+// Get the display number for current exercise
+const getCurrentExerciseNumber = () => {
+	if (state.value === TIMER_STATES.GET_READY) {
+		return 1 // First exercise during get ready
+	}
+	return currentExerciseIndex.value + 1
+}
+
+// Get the display number for next exercise
+const getNextExerciseNumber = () => {
+	const nextIndex = currentExerciseIndex.value + 1
+	if (nextIndex < plan.exercises.length) {
+		return nextIndex + 1 // Current round, next exercise
+	}
+	// If moving to next round
+	if (currentRound.value < TIMER_CONFIG.rounds) {
+		return 1 // First exercise of next round
+	}
+	return null
+}
+
+// Button handlers
 const handleStart = () => {
-	timer.start()
+	state.value = TIMER_STATES.GET_READY
+	timeRemaining.value = TIMER_CONFIG.getReadyDuration
+	currentRound.value = 1
+	currentExerciseIndex.value = 0
+	isPaused.value = false
+	startTimer()
 }
 
 const handlePause = () => {
-	timer.pause()
+	isPaused.value = true
 }
 
 const handleResume = () => {
-	timer.resume()
+	isPaused.value = false
 }
 
 const handleSkip = () => {
-	timer.skip()
+	timeRemaining.value = 0
+	advance()
 }
 
 const handleReset = () => {
-	timer.reset()
+	stopTimer()
+	state.value = TIMER_STATES.IDLE
+	currentRound.value = 1
+	currentExerciseIndex.value = 0
+	timeRemaining.value = 0
+	isPaused.value = false
 }
 
 const handleFinish = () => {
+	stopTimer()
 	router.push('/hawk-gym')
 }
 
-// Navigate back
 const handleMenuClick = () => {
-	timer.cleanup()
+	stopTimer()
 	router.push('/hawk-gym')
 }
 
 // Cleanup on unmount
 onUnmounted(() => {
-	timer.cleanup()
-})
-
-watch(() => timer.state.value, (newState) => {
-	console.log('Timer state changed:', newState, 'Time:', timer.timeRemaining.value)
-})
-
-watch(() => timer.isPaused.value, (paused) => {
-	console.log('Timer paused:', paused)
+	stopTimer()
 })
 </script>
 
@@ -131,90 +322,102 @@ watch(() => timer.isPaused.value, (paused) => {
 	<main class="content timer-view">
 		<section class="timer-display">
 			<!-- Timer Info -->
-			<div v-if="timer.state !== timer.STATES.IDLE && timer.state !== timer.STATES.FINISHED" class="timer-info">
-				<p class="round-indicator">{{ t('hawkGym.round') }} {{ timer.currentRound }}/{{ timer.config.rounds }}</p>
-				<p v-if="timer.state === timer.STATES.EXERCISE || timer.state === timer.STATES.REST" class="exercise-indicator">
-					{{ t('hawkGym.exercise_count') }} {{ timer.currentExerciseIndex + 1 }}/{{ timer.totalExercises }}
-				</p>
-			</div>
-
-			<!-- Countdown Display -->
-			<div class="countdown">
-				<div
-						class="countdown-number"
-						:style="{ color: countdownColor }"
-				>
-					{{ timer.timeRemaining.value || timer.timeRemaining }}
+			<div v-if="state !== TIMER_STATES.FINISHED" class="timer-info">
+				<div class="round-indicator">{{ t('hawkGym.round') }} {{ currentRound }}/{{ TIMER_CONFIG.rounds }}</div>
+				<div v-if="state === TIMER_STATES.EXERCISE || state === TIMER_STATES.REST" class="exercise-indicator">
+					{{ t('hawkGym.exercise_count') }} {{ currentExerciseIndex + 1 }}/{{ totalExercises }}
 				</div>
-				<div class="countdown-label">{{ stateLabel }}</div>
-				<div v-if="currentExerciseName" class="exercise-name">{{ currentExerciseName }}</div>
 			</div>
 
 			<!-- Progress Bar -->
-			<div v-if="(timer.state.value || timer.state) !== TIMER_STATES.IDLE && (timer.state.value || timer.state) !== TIMER_STATES.FINISHED" class="progress-bar">
+			<div v-if="state !== TIMER_STATES.FINISHED" class="progress-bar">
 				<div
-						class="progress-fill"
-						:style="{ width: `${timer.progress.value || timer.progress}%` }"
+					class="progress-fill"
+					:style="{ width: `${progress}%` }"
 				></div>
 			</div>
+			<!-- Countdown Display -->
+			<div class="countdown">
+				<div
+					class="countdown-number"
+					:style="{ color: countdownColor }"
+				>
+					{{ timeRemaining }}
+				</div>
+				<div class="countdown-label">{{ stateLabel }}</div>
 
-			<!-- Next Exercise -->
-			<div v-if="nextExerciseName && (timer.state.value || timer.state) !== TIMER_STATES.FINISHED" class="next-exercise">
-				<span>{{ t('hawkGym.next') }}: {{ nextExerciseName }}</span>
-			</div>
-
-			<!-- Timer Controls -->
-			<div class="timer-controls">
-				<!-- Idle State -->
-				<button
-						v-if="(timer.state.value || timer.state) === TIMER_STATES.IDLE"
+				<!-- Timer Controls -->
+				<div class="timer-controls">
+					<!-- Idle State -->
+					<button
+						v-if="state === TIMER_STATES.IDLE"
 						class="btn btn--primary btn--large"
 						@click="handleStart"
-				>
-					<Icon name="play" size="20" />
-					{{ t('hawkGym.start') }}
-				</button>
-
-				<!-- Running State -->
-				<template v-else-if="(timer.state.value || timer.state) !== TIMER_STATES.FINISHED">
-					<button
-						class="btn btn--warning"
-						@click="handlePause"
 					>
-						{{ t('hawkGym.pause') }}
+						{{ t('hawkGym.start') }}
 					</button>
 
-					<button
-						class="btn btn--success"
-						@click="handleResume"
-					>
-						{{ t('hawkGym.resume') }}
-					</button>
+					<!-- Running State -->
+					<template v-else-if="state !== TIMER_STATES.FINISHED">
+						<button
+							v-if="!isPaused"
+							class="btn btn--warning"
+							@click="handlePause"
+						>
+							{{ t('hawkGym.pause') }}
+						</button>
 
-					<button
-						class="btn btn--ghost"
-						@click="handleSkip"
-					>
-						{{ t('hawkGym.skip') }}
-					</button>
+						<button
+							v-if="isPaused"
+							class="btn btn--success"
+							@click="handleResume"
+						>
+							{{ t('hawkGym.resume') }}
+						</button>
 
-					<button
-						class="btn btn--danger"
-						@click="handleReset"
-					>
-						{{ t('hawkGym.reset') }}
-					</button>
-				</template>
+						<button
+							class="btn btn--ghost"
+							@click="handleSkip"
+						>
+							{{ t('hawkGym.skip') }}
+						</button>
 
-				<!-- Finished State -->
-				<button
+						<button
+							class="btn btn--danger"
+							@click="handleReset"
+						>
+							{{ t('hawkGym.reset') }}
+						</button>
+					</template>
+
+					<!-- Finished State -->
+					<button
 						v-else
 						class="btn btn--success btn--large"
 						@click="handleFinish"
-				>
-					<Icon name="check" size="20" />
-					{{ t('common.finish') }}
-				</button>
+					>
+						{{ t('common.finish') }}
+					</button>
+				</div>
+				<div v-if="currentExerciseName || state === TIMER_STATES.GET_READY" class="exercise-name">
+					<span class="exercise-number">{{ getCurrentExerciseNumber() }}</span>
+					<span>{{ currentExerciseName || t(plan.exercises[0]) }}</span>
+				</div>
+			</div>
+
+			<!-- Next Exercise  -->
+			<div v-if="state !== TIMER_STATES.FINISHED" class="next-exercise">
+				<!-- IDLE State: Show first exercise -->
+				<template v-if="state === TIMER_STATES.IDLE">
+					<span class="exercise-number">1</span>
+					<span>{{ t('hawkGym.next') }}: {{ t(plan.exercises[0]) }}</span>
+				</template>
+
+				<!-- Running State: Show next exercise if available -->
+				<template v-else-if="nextExerciseName">
+					<span class="exercise-number">{{ getNextExerciseNumber() }}</span>
+					<span>{{ t('hawkGym.next') }}: {{ nextExerciseName }}</span>
+				</template>
 			</div>
 		</section>
 	</main>
@@ -224,15 +427,15 @@ watch(() => timer.isPaused.value, (paused) => {
 .timer-view {
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
+	justify-content: flex-start;
 	min-height: calc(100vh - 120px);
 }
 
 .timer-display {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-6);
-	padding: var(--space-4);
+	gap: var(--space-4);
+	padding: 0 var(--space-4);
 }
 
 .timer-info {
@@ -249,8 +452,7 @@ watch(() => timer.isPaused.value, (paused) => {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: var(--space-2);
-	padding: var(--space-8) 0;
+	gap: var(--space-4);
 }
 
 .countdown-number {
@@ -268,12 +470,44 @@ watch(() => timer.isPaused.value, (paused) => {
 	font-weight: var(--font-weight-bold);
 }
 
+
 .exercise-name {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-3);
 	font-size: var(--font-size-2xl);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
 	text-align: center;
-	margin-top: var(--space-2);
+}
+
+.next-exercise {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	text-align: center;
+	font-size: var(--font-size-base);
+	color: var(--text-secondary);
+	padding: var(--space-2);
+	background-color: var(--bg-secondary);
+	border-radius: var(--border-radius-md);
+	font-weight: var(--font-weight-bold);
+	justify-content: center;
+}
+
+.exercise-number {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	background-color: var(--primary-color);
+	color: var(--white);
+	border-radius: 50%;
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-sm);
+	flex-shrink: 0;
 }
 
 .progress-bar {
@@ -304,19 +538,11 @@ watch(() => timer.isPaused.value, (paused) => {
 	display: flex;
 	gap: var(--space-2);
 	justify-content: center;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 
 	.btn {
-		min-width: 80px;
 		flex: 1;
-		font-size: var(--font-size-sm);
-		padding: var(--space-2) var(--space-1);
-
-		&--large {
-			flex: 1 1 100%;
-			font-size: var(--font-size-base);
-			padding: var(--space-3) var(--space-4);
-		}
 	}
 }
+
 </style>

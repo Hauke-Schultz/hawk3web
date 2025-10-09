@@ -1226,6 +1226,7 @@ export default {
     exercise_count: 'Übung',
     next: 'Nächste',
     get_ready: 'Bereit Machen',
+    idle: 'Starte dein Training',
 
     // Trainingspläne
     plans: {
