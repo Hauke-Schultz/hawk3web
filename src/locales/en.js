@@ -44,6 +44,8 @@ export default {
 		best: 'Best',
 		new: 'New',
 		try_again: 'Try Again',
+    play_again: 'Play Again',
+    back_to_levels: 'Back',
 		mark_as_read: 'Mark as read',
 		please_wait: 'Please wait...',
     screenshot: 'Screenshot',

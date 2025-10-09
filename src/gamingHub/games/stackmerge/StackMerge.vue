@@ -9,7 +9,10 @@ import Header from '../../components/Header.vue'
 import Icon from '../../../components/Icon.vue'
 import ProgressOverview from '../../components/ProgressOverview.vue'
 import PerformanceStats from '../../components/PerformanceStats.vue'
+import GameCompletedModal from '../../components/GameCompletedModal.vue'
+import GameOverModal from '../../components/GameOverModal.vue'
 import GameCanvas from './GameCanvas.vue'
+import {calculateEndlessStars} from "./stackHelpers.js";
 
 // Props
 const props = defineProps({
@@ -53,6 +56,12 @@ const placedBlocks = ref([])
 const currentBlock = ref(null)
 const fallingPieces = ref([])
 const cameraOffset = ref(0)
+
+const showCompletedModal = ref(false)
+const showGameOverModal = ref(false)
+const earnedAchievements = ref([])
+const levelReward = ref(null)
+const rewardBreakdown = ref(null)
 
 // Computed
 const currentLevelConfig = computed(() => getLevelConfig(currentLevel.value))
@@ -263,6 +272,68 @@ const completeLevel = () => {
 	const previousStats = gameData.games.stackMerge.levels[currentLevel.value]
 	const isFirstTime = previousStats ? !previousStats.completed : true
 
+	// Calculate level reward
+	const baseLevelReward = currentLevel.value * 50 // 50 coins per level
+	const starMultiplier = stars * 0.5 // +50% per star
+	const perfectBonus = perfectPercent >= 80 ? 100 : 0
+
+	const totalCoins = Math.round(baseLevelReward * (1 + starMultiplier)) + perfectBonus
+	const totalDiamonds = stars >= 3 ? 3 : stars >= 2 ? 2 : 1
+
+	// Create reward breakdown
+	const breakdown = []
+
+	// Base completion
+	breakdown.push({
+		type: 'base',
+		source: t('rewards.breakdown.base_completion'),
+		coins: baseLevelReward,
+		diamonds: 0,
+		icon: 'completion',
+		style: 'default'
+	})
+
+	// Star performance
+	if (stars > 0) {
+		breakdown.push({
+			type: 'stars',
+			source: t('rewards.breakdown.star_performance', { stars }),
+			coins: Math.round(baseLevelReward * starMultiplier),
+			diamonds: totalDiamonds,
+			icon: 'star-filled',
+			style: 'performance'
+		})
+	}
+
+	// Perfect bonus
+	if (perfectBonus > 0) {
+		breakdown.push({
+			type: 'perfect',
+			source: t('rewards.breakdown.perfect_performance'),
+			coins: perfectBonus,
+			diamonds: 0,
+			icon: 'trophy',
+			style: 'perfect'
+		})
+	}
+
+	rewardBreakdown.value = {
+		items: breakdown,
+		total: {
+			coins: totalCoins,
+			diamonds: totalDiamonds
+		}
+	}
+
+	levelReward.value = {
+		coins: totalCoins,
+		diamonds: totalDiamonds
+	}
+
+	// Update player currency
+	gameData.player.coins = (gameData.player.coins || 0) + totalCoins
+	gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
+
 	// Update game stats
 	const gameStats = {
 		gamesPlayed: gameData.games.stackMerge.gamesPlayed + 1,
@@ -280,16 +351,19 @@ const completeLevel = () => {
 	updateGameStats('stackMerge', gameStats)
 	addScore(currentScore.value)
 
-	console.log('🏗️ Level completed!', {
+	// Show modal
+	showCompletedModal.value = true
+
+	console.log('🏗️ Level completed with modal!', {
 		height: currentHeight.value,
 		score: currentScore.value,
 		perfectPercent,
-		stars
+		stars,
+		reward: rewardBreakdown.value
 	})
 }
 
 // Game over handler
-
 const handleGameOver = () => {
 	if (gameState.value !== 'playing') return
 
@@ -303,8 +377,6 @@ const handleGameOver = () => {
 
 	// For endless mode
 	if (isEndlessMode.value) {
-		// GEÄNDERT: Use endless star calculation
-		const { calculateEndlessStars } = require('./stackHelpers.js')
 		const stars = calculateEndlessStars(currentHeight.value)
 		const perfectPercent = totalStacks.value > 0
 				? Math.round((perfectStacks.value / totalStacks.value) * 100)
@@ -321,20 +393,48 @@ const handleGameOver = () => {
 			combo: maxCombo.value
 		})
 
-		console.log('🏗️ Endless mode ended!', {
-			height: currentHeight.value,
-			score: currentScore.value,
-			stars: stars,
-			progress: Math.round((currentHeight.value / 100) * 100) + '%'
-		})
-	} else {
-		// Regular level game over (keine Änderung)
-		const perfectPercent = totalStacks.value > 0
-				? Math.round((perfectStacks.value / totalStacks.value) * 100)
-				: 0
+		// Calculate endless reward
+		const heightBonus = Math.floor(currentHeight.value / 10) * 50 // 50 coins per 10 blocks
+		const starReward = stars * 100 // 100 coins per star
+		const totalCoins = heightBonus + starReward
+		const totalDiamonds = stars
+
+		levelReward.value = {
+			coins: totalCoins,
+			diamonds: totalDiamonds
+		}
+
+		rewardBreakdown.value = {
+			items: [
+				{
+					type: 'height',
+					source: t('stackMerge.height') + ' Bonus',
+					coins: heightBonus,
+					diamonds: 0,
+					icon: 'arrow-up',
+					style: 'performance'
+				},
+				{
+					type: 'stars',
+					source: t('stats.score') + ' Stars',
+					coins: starReward,
+					diamonds: totalDiamonds,
+					icon: 'star-filled',
+					style: 'special'
+				}
+			],
+			total: {
+				coins: totalCoins,
+				diamonds: totalDiamonds
+			}
+		}
+
+		// Update player currency
+		gameData.player.coins = (gameData.player.coins || 0) + totalCoins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
 	}
 
-	// Update game stats (bleibt gleich)
+	// Update game stats
 	const gameStats = {
 		gamesPlayed: gameData.games.stackMerge.gamesPlayed + 1,
 		totalScore: gameData.games.stackMerge.totalScore + currentScore.value,
@@ -347,6 +447,13 @@ const handleGameOver = () => {
 
 	updateGameStats('stackMerge', gameStats)
 	addScore(currentScore.value)
+
+	// Show appropriate modal
+	if (isEndlessMode.value) {
+		showCompletedModal.value = true
+	} else {
+		showGameOverModal.value = true
+	}
 }
 
 // Navigation
@@ -358,6 +465,28 @@ const backToLevelSelection = () => {
 const handleMenuClick = () => {
 	stopUpdateLoop()
 	router.push('/')
+}
+
+const handleModalClose = () => {
+	showCompletedModal.value = false
+	showGameOverModal.value = false
+}
+
+const handleModalNextLevel = () => {
+	showCompletedModal.value = false
+	nextLevel()
+}
+
+const handleModalPlayAgain = () => {
+	showCompletedModal.value = false
+	showGameOverModal.value = false
+	handleTryAgain()
+}
+
+const handleModalBackToLevels = () => {
+	showCompletedModal.value = false
+	showGameOverModal.value = false
+	backToLevelSelection()
 }
 
 const handleTryAgain = () => {
@@ -531,85 +660,48 @@ watch(() => props.level, (newLevel) => {
 			</div>
 		</div>
 
-		<!-- Game Over Overlay -->
-		<div v-if="gameState === 'gameover'" class="gameover-overlay">
-			<h2>{{ isEndlessMode ? '🏗️ Tower Collapsed!' : t('stackMerge.gameOver') }}</h2>
-			<div class="gameover-stats">
-				<p>{{ t('stackMerge.finalHeight') }}: {{ currentHeight }}</p>
-				<p>{{ t('stackMerge.finalScore') }}: {{ currentScore }}</p>
-				<p>{{ t('stackMerge.perfectStacks') }}: {{ perfectStacks }}/{{ totalStacks }} ({{ perfectPercentage }}%)</p>
+		<!-- Game Completed Modal -->
+		<GameCompletedModal
+				:visible="showCompletedModal"
+				:level="currentLevel"
+				:game-title="t('stackMerge.title')"
+				:final-score="currentScore"
+				:time-elapsed="isEndlessMode ? sessionTime : 0"
+				:moves="currentHeight"
+				:matches="perfectStacks"
+				:total-pairs="totalStacks"
+				:stars-earned="isEndlessMode ? endlessCurrentStars : (perfectPercentage >= 80 ? 3 : perfectPercentage >= 60 ? 2 : 1)"
+				:show-stars="true"
+				:reward="levelReward"
+				:show-reward="true"
+				:reward-breakdown="rewardBreakdown"
+				:show-reward-breakdown="true"
+				:show-next-level="!isEndlessMode && currentLevel < 6"
+				:show-play-again="true"
+				:show-back-to-games="true"
+				:next-level-label="t('stackMerge.nextLevel')"
+				:play-again-label="t('common.play_again')"
+				:back-to-games-label="t('common.back_to_levels')"
+				@next-level="handleModalNextLevel"
+				@play-again="handleModalPlayAgain"
+				@back-to-games="handleModalBackToLevels"
+				@close="handleModalClose"
+		/>
 
-				<!-- Endless Mode: Show Star Progress -->
-				<div v-if="isEndlessMode" class="endless-final-stats">
-					<p class="progress-text">{{ t('stackMerge.progress') }}: {{ Math.round((currentHeight / 100) * 100) }}%</p>
-					<div class="stars-display">
-						<Icon
-							v-for="starIndex in 3"
-							:key="starIndex"
-							:name="starIndex <= endlessCurrentStars ? 'star-filled' : 'star'"
-							size="32"
-							:class="{
-								'star--earned': starIndex <= endlessCurrentStars
-							}"
-						/>
-					</div>
-					<p v-if="currentHeight < 100" class="next-milestone">
-						{{ endlessBlocksToNextStar }} blocks to next star!
-					</p>
-					<p v-else class="max-stars">
-						🎉 Maximum Stars Achieved!
-					</p>
-				</div>
-
-				<p v-if="isEndlessMode">
-					{{ t('stackMerge.timeElapsed') }}: {{ Math.floor(sessionTime / 60) }}:{{ String(sessionTime % 60).padStart(2, '0') }}
-				</p>
-			</div>
-			<button @click="handleTryAgain" class="btn btn--primary">
-				{{ t('common.retry') }}
-			</button>
-			<button @click="backToLevelSelection" class="btn btn--ghost">
-				{{ t('common.menu') }}
-			</button>
-		</div>
-
-		<!-- Completed Overlay -->
-		<div v-if="gameState === 'completed'" class="gameover-overlay">
-			<h2>🎉 {{ t('stackMerge.levelComplete') }}</h2>
-			<div class="gameover-stats">
-				<p>{{ t('stackMerge.finalHeight') }}: {{ currentHeight }}</p>
-				<p>{{ t('stackMerge.finalScore') }}: {{ currentScore }}</p>
-				<p>{{ t('stackMerge.perfectStacks') }}: {{ perfectStacks }}/{{ totalStacks }} ({{ perfectPercentage }}%)</p>
-				<div class="stars-display">
-					<Icon
-							v-for="starIndex in 3"
-							:key="starIndex"
-							:name="starIndex <= (perfectPercentage >= 80 ? 3 : perfectPercentage >= 60 ? 2 : 1) ? 'star-filled' : 'star'"
-							size="32"
-							:class="{
-              'star--earned': starIndex <= (perfectPercentage >= 80 ? 3 : perfectPercentage >= 60 ? 2 : 1)
-            }"
-					/>
-				</div>
-			</div>
-			<button v-if="!isEndlessMode && currentLevel < 6" @click="nextLevel" class="btn btn--primary">
-				{{ t('stackMerge.nextLevel') }}
-			</button>
-			<button @click="handleTryAgain" class="btn btn--primary">
-				{{ t('common.retry') }}
-			</button>
-			<button @click="backToLevelSelection" class="btn btn--ghost">
-				{{ t('common.menu') }}
-			</button>
-		</div>
-
-		<!-- Action Buttons -->
-		<div class="button-row">
-			<button class="btn btn--small btn--danger" @click="handleTryAgain">
-				<Icon name="refresh" size="16" class="icon--left" />
-				{{ t('stackMerge.restart') }}
-			</button>
-		</div>
+		<!-- Game Over Modal -->
+		<GameOverModal
+				v-if="!isEndlessMode"
+				:visible="showGameOverModal"
+				:level="currentLevel"
+				:game-title="t('stackMerge.title')"
+				:final-score="currentScore"
+				:game-over-icon="'💥'"
+				:try-again-label="t('common.try_again')"
+				:back-to-games-label="t('common.back_to_levels')"
+				@try-again="handleModalPlayAgain"
+				@back-to-games="handleModalBackToLevels"
+				@close="handleModalClose"
+		/>
 	</main>
 </template>
 
@@ -752,113 +844,6 @@ watch(() => props.level, (newLevel) => {
 	color: white;
 }
 
-// Overlays
-.gameover-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.95);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: var(--space-4);
-	z-index: 100;
-	padding: var(--space-4);
-
-	h2 {
-		font-size: var(--font-size-2xl);
-		margin-bottom: var(--space-2);
-		color: white;
-	}
-}
-
-.gameover-stats {
-	text-align: center;
-	font-size: var(--font-size-lg);
-	margin-bottom: var(--space-4);
-	color: white;
-
-	p {
-		margin: var(--space-2) 0;
-	}
-}
-
-.stars-display {
-	display: flex;
-	gap: var(--space-2);
-	justify-content: center;
-	margin-top: var(--space-3);
-}
-
-.star--earned {
-	color: var(--warning-color);
-	filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
-}
-
-// Buttons
-.button-row {
-	display: flex;
-	gap: var(--space-2);
-	justify-content: center;
-	margin-top: var(--space-2);
-}
-
-.btn {
-	padding: var(--space-3) var(--space-6);
-	border-radius: var(--border-radius-lg);
-	font-size: var(--font-size-base);
-	font-weight: 600;
-	cursor: pointer;
-	border: none;
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	transition: all 0.2s ease;
-
-	&--primary {
-		background: var(--primary-color);
-		color: white;
-
-		&:hover {
-			background: var(--primary-hover);
-			transform: translateY(-1px);
-		}
-	}
-
-	&--ghost {
-		background: transparent;
-		border: 2px solid rgba(255, 255, 255, 0.3);
-		color: white;
-
-		&:hover {
-			border-color: rgba(255, 255, 255, 0.5);
-			transform: translateY(-1px);
-		}
-	}
-
-	&--danger {
-		background: var(--danger-color);
-		color: white;
-
-		&:hover {
-			background: #dc2626;
-			transform: translateY(-1px);
-		}
-	}
-
-	&--small {
-		padding: var(--space-2) var(--space-4);
-		font-size: var(--font-size-sm);
-	}
-}
-
-.icon--left {
-	margin-right: var(--space-1);
-}
-
 
 .stats-preview {
 	display: flex;
@@ -915,35 +900,6 @@ watch(() => props.level, (newLevel) => {
 	50% {
 		opacity: 0.7;
 		transform: translate(-50%, -50%) scale(1.05);
-	}
-}
-
-.endless-final-stats {
-	margin-top: var(--space-4);
-	padding: var(--space-4);
-	background: rgba(239, 68, 68, 0.1);
-	border-radius: var(--border-radius-lg);
-	border: 2px solid var(--danger-color);
-
-	.progress-text {
-		font-size: var(--font-size-xl);
-		color: var(--warning-color);
-		font-weight: var(--font-weight-bold);
-		margin-bottom: var(--space-2);
-	}
-
-	.next-milestone {
-		font-size: var(--font-size-sm);
-		color: rgba(255, 255, 255, 0.7);
-		margin-top: var(--space-2);
-	}
-
-	.max-stars {
-		font-size: var(--font-size-lg);
-		color: var(--warning-color);
-		font-weight: var(--font-weight-bold);
-		margin-top: var(--space-2);
-		animation: pulse 2s ease-in-out infinite;
 	}
 }
 
