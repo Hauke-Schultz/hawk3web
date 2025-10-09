@@ -39,7 +39,7 @@ export default defineConfig({
       manifest: {
         name: 'Hawk3 Gaming Platform',
         short_name: 'Hawk3',
-        description: 'Mobile gaming platform with Memory, HawkFruit & NumMerge games. Play offline!',
+        description: 'Mobile gaming platform with Memory, HawkFruit & HawkDoubleUp games. Play offline!',
         theme_color: '#4F46E5',
         background_color: '#0F0F0F',
         display: 'standalone',
@@ -101,10 +101,10 @@ export default defineConfig({
             }]
           },
           {
-            name: 'Num Merge',
-            short_name: 'NumMerge',
+            name: 'Hawk Double Up',
+            short_name: 'HawkDoubleUp',
             description: 'Play the Number Merge game',
-            url: '/games/nummerge',
+            url: '/games/hawkdoubleup',
             icons: [{
               src: '/shortcut-numbers.svg',
               sizes: '96x96',

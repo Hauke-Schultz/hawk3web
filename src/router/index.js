@@ -56,19 +56,19 @@ const routes = [
     }
   },
   {
-    path: '/games/nummerge',
-    name: 'NumMergeLevels',
-    component: () => import('../gamingHub/games/nummerge/NumMergeLevels.vue')
+    path: '/games/hawkdoubleup',
+    name: 'HawkDoubleUpLevels',
+    component: () => import('../gamingHub/games/hawkdoubleup/HawkDoubleUpLevels.vue')
   },
   {
-    path: '/games/nummerge/:level',
-    name: 'NumMergeGame',
-    component: () => import('../gamingHub/games/nummerge/NumMergeGame.vue'),
+    path: '/games/hawkdoubleup/:level',
+    name: 'HawkDoubleUpGame',
+    component: () => import('../gamingHub/games/hawkdoubleup/HawkDoubleUpGame.vue'),
     props: route => ({ level: parseInt(route.params.level) || 1 }),
     beforeEnter: (to, from, next) => {
       const level = parseInt(to.params.level)
       if (isNaN(level) || level < 1 || level > 6) {
-        next('/games/nummerge')
+        next('/games/hawkdoubleup')
       } else {
         next()
       }

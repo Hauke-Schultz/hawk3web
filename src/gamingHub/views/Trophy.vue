@@ -22,7 +22,7 @@ const categoryStates = ref({
 	gaming: false,
 	memory: false,
 	hawkFruit: false,
-	numMerge: false,
+	hawkDoubleUp: false,
 	special: false
 })
 

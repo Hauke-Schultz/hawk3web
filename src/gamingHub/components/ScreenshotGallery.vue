@@ -209,7 +209,7 @@ const formatGameTitle = (gameId) => {
 										<span v-if="screenshot.moves" class="info-item">{{ screenshot.moves }} {{ t('stats.moves') }}</span>
 										<span v-if="screenshot.timeElapsed" class="info-item">{{ Math.floor(screenshot.timeElapsed / 60) }}:{{ String(screenshot.timeElapsed % 60).padStart(2, '0') }}</span>
 										<span v-if="screenshot.fruitsCount" class="info-item">{{ screenshot.fruitsCount }} {{ t('hawkFruit.fruits_on_board') }}</span>
-										<span v-if="screenshot.highestNumber" class="info-item">{{ t('numMerge.highest_number') }}: {{ screenshot.highestNumber }}</span>
+										<span v-if="screenshot.highestNumber" class="info-item">{{ t('hawkDoubleUp.highest_number') }}: {{ screenshot.highestNumber }}</span>
 									</div>
 								</div>
 

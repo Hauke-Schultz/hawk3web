@@ -450,7 +450,7 @@ export default {
       features: 'Features',
       technologies: 'Technologies',
       feature_list: {
-        three_games: '3 Games (Memory, Hawk Fruit, Num Merge)',
+        three_games: '3 Games (Memory, Hawk Fruit, Hawk Double Up)',
         achievement_system: 'Achievement System with Trophy Collection',
         shop_currency: 'In-Game Shop & Currency System (Coins & Diamonds)',
         daily_rewards: 'Daily Rewards with Mini-Games & Mystery Boxes',
@@ -503,7 +503,7 @@ export default {
       },
       games: {
         title: 'Game Rights & Originality',
-        description: 'The games (Memory, Hawk Fruit, Num Merge) are based on classic game principles and mechanics that are not subject to copyright protection. All visual assets, code implementations, graphics, and sounds are original creations. While the core game mechanics are inspired by traditional games, the specific implementation, design, and user experience are entirely our own work.'
+        description: 'The games (Memory, Hawk Fruit, Hawk Double Up) are based on classic game principles and mechanics that are not subject to copyright protection. All visual assets, code implementations, graphics, and sounds are original creations. While the core game mechanics are inspired by traditional games, the specific implementation, design, and user experience are entirely our own work.'
       },
       ai_development: {
         title: 'AI-Assisted Development',
@@ -759,9 +759,9 @@ export default {
 		}
 	},
 
-  // NumMerge Game
-  numMerge: {
-    title: 'Num Merge',
+  // HawkDoubleUp Game
+  hawkDoubleUp: {
+    title: 'Hawk Double Up',
     description: 'Merge numbers to reach the target score!',
     target: 'Target',
     level_title: 'Level {level}',
@@ -954,7 +954,7 @@ export default {
 			special: 'Special',
 			memory: 'Memory Game',
 			hawkFruit: 'Hawk Fruit Game',
-      numMerge: 'Num Merge Game',
+      hawkDoubleUp: 'Hawk Double Up Game',
       hawkTower: 'Hawk Tower Game'
 		},
 		rarities: {
@@ -1069,19 +1069,19 @@ export default {
 
       num_beginner: {
         name: 'Number Novice',
-        description: 'Completed first NumMerge level'
+        description: 'Completed first HawkDoubleUp level'
       },
       num_intermediate: {
         name: 'Number Apprentice',
-        description: 'Completed NumMerge Level 3'
+        description: 'Completed HawkDoubleUp Level 3'
       },
       num_expert: {
         name: 'Number Expert',
-        description: 'Completed NumMerge Level 5'
+        description: 'Completed HawkDoubleUp Level 5'
       },
       num_master: {
         name: 'Number Master',
-        description: 'Completed the ultimate NumMerge challenge'
+        description: 'Completed the ultimate HawkDoubleUp challenge'
       },
 
       reach_128: {
@@ -1180,9 +1180,9 @@ export default {
         name: 'Hawk Fruit Perfectionist',
         description: 'Complete all Hawk Fruit levels with 3 stars'
       },
-      numMerge_perfectionist: {
-        name: 'Num Merge Perfectionist',
-        description: 'Complete all Num Merge levels with 3 stars'
+      hawkDoubleUp_perfectionist: {
+        name: 'Hawk Double Up Perfectionist',
+        description: 'Complete all Hawk Double Up levels with 3 stars'
       },
 
       ultimate_perfectionist: {

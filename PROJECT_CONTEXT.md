@@ -22,7 +22,7 @@ src/
 │   ├── games/           # Individual games
 │   │   ├── memory/
 │   │   ├── hawkfruit/
-│   │   └── nummerge/
+│   │   └── hawkdoubleup/
 │   └── views/           # Main pages (Profile, Shop, Trophy, Settings)
 ├── locales/             # i18n translations (en.js, de.js)
 ├── router/              # Vue Router configuration
@@ -128,7 +128,7 @@ Handles purchases, refunds, and shop item management.
 - Gaming (cross-game achievements)
 - Memory Game specific
 - HawkFruit specific
-- NumMerge specific
+- HawkDoubleUp specific
 - Special achievements
 
 **Rarity Levels:**
@@ -203,7 +203,7 @@ Capture and share game moments.
 - Height-based game over
 - Screenshot integration
 
-### NumMerge
+### HawkDoubleUp
 - 5 levels + endless mode
 - 2048-style mechanics (2→4→8...→2048)
 - 4x4 grid with WASD/Arrow/Swipe controls
@@ -250,7 +250,7 @@ gameData = {
       saveState: { level, fruits, score, ... },
       screenshots: []
     },
-    numMerge: {
+    hawkDoubleUp: {
       levels: { 1: { completed, stars, bestScore, bestMoves } },
       highScore: number,
       totalStars: number,
@@ -358,7 +358,7 @@ gameData = {
 ### Game Files
 - `src/gamingHub/games/memory/` - Memory game implementation
 - `src/gamingHub/games/hawkfruit/` - HawkFruit with Matter.js
-- `src/gamingHub/games/nummerge/` - NumMerge implementation
+- `src/gamingHub/games/hawkdoubleup/` - HawkDoubleUp implementation
 
 ### Localization
 - `src/locales/en.js` - English translations

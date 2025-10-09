@@ -24,7 +24,7 @@ npm run preview
 - **Memory Game** - 6 levels with card matching and combo system
 - **HawkFruit** - Physics-based merge game (5 levels + endless mode)
     - Special fruits: Mold, Bomb, Rainbow, Next fruit preview
-- **NumMerge** - 2048-style number merging (5 levels + endless mode)
+- **HawkDoubleUp** - 2048-style number merging (5 levels + endless mode)
     - Special tile: 7-tile that decreases each move
 - **Mini-Games** - Three Shells, Slot Machine, Whack-a-Mole
 

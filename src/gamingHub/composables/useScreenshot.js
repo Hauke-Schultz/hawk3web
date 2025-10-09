@@ -133,7 +133,7 @@ export function useScreenshot() {
     const gameNames = {
       'Memory': 'Memory Game',
       'Hawk Fruit': 'Hawk Fruit',
-      'Num Merge': 'Num Merge'
+      'Hawk Double Up': 'Hawk Double Up'
     }
 
     return gameNames[gameTitle] || gameTitle
@@ -160,7 +160,7 @@ export function useScreenshot() {
 
         // Determine game type and render accordingly
         if (gameStateData.numbers) {
-          // Num Merge Game rendering
+          // Hawk Double Up Game rendering
           renderNumGameState(ctx, gameStateData)
 
           // Add common UI overlay for Num
@@ -508,7 +508,7 @@ export function useScreenshot() {
       // Add game-specific metadata
       if (gameId === 'hawkFruit') {
         screenshotData.fruitsCount = gameStateData.fruits.length
-      } else if (gameId === 'numMerge') {
+      } else if (gameId === 'hawkDoubleUp') {
         screenshotData.numbersCount = gameStateData.numbers.length
         screenshotData.highestNumber = Math.max(...gameStateData.numbers.map(n => n.number), 0)
       }

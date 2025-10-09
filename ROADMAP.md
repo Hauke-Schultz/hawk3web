@@ -53,7 +53,7 @@
 - **In-Game Shop Integration** - Direct item purchasing during gameplay (Hammer power-up)
 - **Save/Restore System** - Complete game state persistence across sessions for both games
 - **Auto-Save Functionality** - Automatic game state saving via header menu
-- **Num Merge Game Implementation** - Complete 2048-style number merge game
+- **Hawk Double Up Game Implementation** - Complete 2048-style number merge game
 - **Progressive Number System** - 2→4→8→16→32→64→128→256→512→1024→2048+ progression
 - **Level & Endless Modes** - 6 structured levels plus infinite progression mode
 - **Number-Specific Achievements** - Reach 128, 256, 512, 1024, 2048+ milestones

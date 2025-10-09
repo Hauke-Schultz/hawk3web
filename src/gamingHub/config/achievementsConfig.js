@@ -256,46 +256,46 @@ export const ACHIEVEMENTS = {
 		},
 
 
-    // Num Merge specific achievements
+    // Hawk Double Up specific achievements
     {
       id: 'num_beginner',
       name: 'Number Beginner',
       description: 'Completed first Num level',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'num-merge-game',
       rarity: 'common',
       rewards: { coins: 150, diamonds: 1 },
-      trigger: { type: 'level_complete', game: 'numMerge', level: 1 }
+      trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 1 }
     },
     {
       id: 'num_intermediate',
       name: 'Number Crusher',
       description: 'Completed Num Level 3',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'num-merge-game',
       rarity: 'uncommon',
       rewards: { coins: 500, diamonds: 2 },
-      trigger: { type: 'level_complete', game: 'numMerge', level: 3 }
+      trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 3 }
     },
     {
       id: 'num_expert',
       name: 'Number Expert',
       description: 'Completed Num Level 5',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'num-merge-game',
       rarity: 'epic',
       rewards: { coins: 1500, diamonds: 8 },
-      trigger: { type: 'level_complete', game: 'numMerge', level: 5 }
+      trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 5 }
     },
     {
       id: 'num_master',
       name: 'Number Master',
       description: 'Mastered all Num challenges',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'num-merge-game',
       rarity: 'legendary',
       rewards: { coins: 3000, diamonds: 15 },
-      trigger: { type: 'level_complete', game: 'numMerge', level: 6 }
+      trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 6 }
     },
 
     // Number milestone achievements
@@ -303,61 +303,61 @@ export const ACHIEVEMENTS = {
       id: 'reach_128',
       name: 'Triple Digit',
       description: 'Reached number 128',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'star',
       rarity: 'common',
       rewards: { coins: 300, diamonds: 1 },
-      trigger: { type: 'number_reach', game: 'numMerge', number: 128 }
+      trigger: { type: 'number_reach', game: 'hawkDoubleUp', number: 128 }
     },
     {
       id: 'reach_256',
       name: 'Power of Two',
       description: 'Reached number 256',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'star',
       rarity: 'uncommon',
       rewards: { coins: 600, diamonds: 3 },
-      trigger: { type: 'number_reach', game: 'numMerge', number: 256 }
+      trigger: { type: 'number_reach', game: 'hawkDoubleUp', number: 256 }
     },
     {
       id: 'reach_512',
       name: 'Half Thousand',
       description: 'Reached number 512',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'star-filled',
       rarity: 'uncommon',
       rewards: { coins: 1000, diamonds: 5 },
-      trigger: { type: 'number_reach', game: 'numMerge', number: 512 }
+      trigger: { type: 'number_reach', game: 'hawkDoubleUp', number: 512 }
     },
     {
       id: 'reach_1024',
       name: 'Kilobyte Master',
       description: 'Reached number 1024',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'star-filled',
       rarity: 'rare',
       rewards: { coins: 2000, diamonds: 8 },
-      trigger: { type: 'number_reach', game: 'numMerge', number: 1024 }
+      trigger: { type: 'number_reach', game: 'hawkDoubleUp', number: 1024 }
     },
     {
       id: 'reach_2048',
       name: 'The Ultimate Goal',
       description: 'Reached the legendary 2048!',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'trophy',
       rarity: 'epic',
       rewards: { coins: 4000, diamonds: 15 },
-      trigger: { type: 'number_reach', game: 'numMerge', number: 2048 }
+      trigger: { type: 'number_reach', game: 'hawkDoubleUp', number: 2048 }
     },
     {
       id: 'reach_4096',
       name: 'Beyond Limits',
       description: 'Reached number 4096 - Amazing!',
-      category: 'numMerge',
+      category: 'hawkDoubleUp',
       icon: 'trophy',
       rarity: 'legendary',
       rewards: { coins: 8000, diamonds: 25 },
-      trigger: { type: 'number_reach', game: 'numMerge', number: 4096 }
+      trigger: { type: 'number_reach', game: 'hawkDoubleUp', number: 4096 }
     },
 
     // Hawk Tower specific achievements
@@ -544,14 +544,14 @@ export const ACHIEVEMENTS = {
       trigger: { type: 'perfect_all_levels', game: 'hawkFruit' }
     },
     {
-      id: 'numMerge_perfectionist',
-      name: 'Num Merge Perfectionist',
-      description: 'Complete all Num Merge levels with 3 stars',
-      category: 'numMerge',
+      id: 'hawkDoubleUp_perfectionist',
+      name: 'Hawk Double Up Perfectionist',
+      description: 'Complete all Hawk Double Up levels with 3 stars',
+      category: 'hawkDoubleUp',
       icon: 'trophy',
       rarity: 'legendary',
       rewards: { coins: 2800, diamonds: 18 },
-      trigger: { type: 'perfect_all_levels', game: 'numMerge' }
+      trigger: { type: 'perfect_all_levels', game: 'hawkDoubleUp' }
     },
     {
       id: 'ultimate_perfectionist',
@@ -592,10 +592,10 @@ export const ACHIEVEMENTS = {
 			description: 'Achievements for the Hawk Fruit Game'
 		},
     {
-      id: 'numMerge',
-      name: 'Num Merge Game',
+      id: 'hawkDoubleUp',
+      name: 'Hawk Double Up Game',
       color: 'warning',
-      description: 'Achievements for the Num Merge Game'
+      description: 'Achievements for the Hawk Double Up Game'
     },
     {
       id: 'hawkTower',

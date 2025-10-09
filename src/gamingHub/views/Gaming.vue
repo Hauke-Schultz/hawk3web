@@ -5,7 +5,7 @@ import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
 import { memoryConfig } from '../games/memory/memoryConfig.js'
 import { hawkFruitConfig } from '../games/hawkfruit/hawkFruitConfig.js'
-import { numMergeConfig } from '../games/nummerge/numMergeConfig.js'
+import { hawkDoubleUpConfig } from '../games/hawkdoubleup/hawkDoubleUpConfig.js'
 import Icon from '../../components/Icon.vue'
 import Header from "../components/Header.vue";
 
@@ -21,8 +21,8 @@ const startGame = (gameId) => {
 		router.push('/games/memory')
 	} else if (gameId === 'hawkFruit') {
 		router.push('/games/hawkfruit')
-	} else if (gameId === 'numMerge') {
-		router.push('/games/nummerge')
+	} else if (gameId === 'hawkDoubleUp') {
+		router.push('/games/hawkdoubleup')
 	}
 }
 
@@ -52,10 +52,10 @@ const hawkFruitProgress = computed(() => {
 	}
 })
 
-const numMergeProgress = computed(() => {
-	const levels = gameData.games.numMerge.levels || {}
+const hawkDoubleUpProgress = computed(() => {
+	const levels = gameData.games.hawkDoubleUp.levels || {}
 	const completedLevels = Object.values(levels).filter(level => level.completed).length
-	const totalLevels = numMergeConfig.levels.length
+	const totalLevels = hawkDoubleUpConfig.levels.length
 	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
 
 	return {
@@ -160,14 +160,14 @@ const handleMenuClick = () => {
 			<div class="game-card">
 				<div class="game-header">
 					<div class="game-icon">
-						<Icon :name="numMergeConfig.gameIcon" size="32" />
+						<Icon :name="hawkDoubleUpConfig.gameIcon" size="32" />
 					</div>
-					<h3 class="game-title">{{ numMergeConfig.gameTitle }}</h3>
+					<h3 class="game-title">{{ hawkDoubleUpConfig.gameTitle }}</h3>
 				</div>
-				<p class="game-description">{{ numMergeConfig.gameDescription }}</p>
+				<p class="game-description">{{ hawkDoubleUpConfig.gameDescription }}</p>
 				<div class="game-stats">
 					<div class="stat-item">
-						<span class="stat-value">{{ gameData.games.numMerge.gamesPlayed }}</span>
+						<span class="stat-value">{{ gameData.games.hawkDoubleUp.gamesPlayed }}</span>
 						<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
 					</div>
 				</div>
@@ -176,13 +176,13 @@ const handleMenuClick = () => {
 					<div class="progress-bar">
 						<div
 							class="progress-fill"
-							:style="{ width: `${numMergeProgress.percentage}%` }"
+							:style="{ width: `${hawkDoubleUpProgress.percentage}%` }"
 						></div>
 					</div>
-					<span class="progress-text">{{ numMergeProgress.percentage }}%</span>
+					<span class="progress-text">{{ hawkDoubleUpProgress.percentage }}%</span>
 				</div>
 
-				<button class="btn btn--primary game-play-btn" @click="startGame('numMerge')">
+				<button class="btn btn--primary game-play-btn" @click="startGame('hawkDoubleUp')">
 					<Icon name="play" size="16" />
 					{{ t('common.play') }}
 				</button>

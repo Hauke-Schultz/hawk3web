@@ -5,7 +5,7 @@ import { useLocalStorage } from "../gamingHub/composables/useLocalStorage.js"
 import {computed, watch} from "vue"
 import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
 import { hawkFruitConfig } from "../gamingHub/games/hawkfruit/hawkFruitConfig.js"
-import { numMergeConfig } from "../gamingHub/games/nummerge/numMergeConfig.js"
+import { hawkDoubleUpConfig } from "../gamingHub/games/hawkdoubleup/hawkDoubleUpConfig.js"
 import { hawkTowerConfig } from "../gamingHub/games/hawktower/stackConfig.js"
 import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
@@ -39,10 +39,10 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'fruit-merge-game'
 	}))
 
-	const numMergeLevels = getRecentLevelsForGame('numMerge', 10).map(level => ({
+	const hawkDoubleUpLevels = getRecentLevelsForGame('hawkDoubleUp', 10).map(level => ({
 		...level,
-		gameId: 'numMerge',
-		gameTitle: t('numMerge.title'),
+		gameId: 'hawkDoubleUp',
+		gameTitle: t('hawkDoubleUp.title'),
 		gameIcon: 'num-merge-game'
 	}))
 
@@ -53,7 +53,7 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'stack'
 	}))
 
-	const combined = [...memoryLevels, ...hawkFruitLevels, ...numMergeLevels, ...hawkTowerLevels]
+	const combined = [...memoryLevels, ...hawkFruitLevels, ...hawkDoubleUpLevels, ...hawkTowerLevels]
 			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
 			.slice(0, 3)
 
@@ -85,7 +85,7 @@ const navigateToLevel = (gameId, level) => {
 	const gameRoutes = {
 		'hawkFruit': 'hawkfruit',
 		'memory': 'memory',
-		'numMerge': 'nummerge',
+		'hawkDoubleUp': 'hawkdoubleup',
 		'hawkTower': 'hawktower'
 	}
 
@@ -100,7 +100,7 @@ const navigateToGame = (gameId) => {
 	const routes = {
 		memory: '/games/memory',
 		hawkFruit: '/games/hawkfruit',
-		numMerge: '/games/nummerge',
+		hawkDoubleUp: '/games/hawkdoubleup',
 		hawkTower: '/games/hawktower'
 	}
 	if (routes[gameId]) {
@@ -134,12 +134,12 @@ const getGameProgress = (gameId, config) => {
 
 const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
 const hawkFruitProgress = computed(() => getGameProgress('hawkFruit', hawkFruitConfig))
-const numMergeProgress = computed(() => getGameProgress('numMerge', numMergeConfig))
+const hawkDoubleUpProgress = computed(() => getGameProgress('hawkDoubleUp', hawkDoubleUpConfig))
 const hawkTowerProgress = computed(() => getGameProgress('hawkTower', hawkTowerConfig))
 
 // Overall Progress
 const overallProgress = computed(() => {
-	const allGames = ['memory', 'hawkFruit', 'numMerge', 'hawkTower']
+	const allGames = ['memory', 'hawkFruit', 'hawkDoubleUp', 'hawkTower']
 	let totalCompleted = 0
 	let totalLevels = 0
 	let totalStars = 0
@@ -342,18 +342,18 @@ const handleMenuClick = () => {
 					</div>
 				</div>
 
-				<!-- Num Merge Game -->
-				<div class="game-card" @click="navigateToGame('numMerge')">
+				<!-- Hawk Double Up Game -->
+				<div class="game-card" @click="navigateToGame('hawkDoubleUp')">
 					<div class="game-header">
-						<Icon :name="numMergeConfig.gameIcon" size="28" />
+						<Icon :name="hawkDoubleUpConfig.gameIcon" size="28" />
 						<div class="game-info">
-							<h3 class="game-title">{{ numMergeConfig.gameTitle }}</h3>
+							<h3 class="game-title">{{ hawkDoubleUpConfig.gameTitle }}</h3>
 							<div class="game-progress">
-								<span class="progress-text">{{ numMergeProgress.completed }}/{{ numMergeProgress.total }}</span>
+								<span class="progress-text">{{ hawkDoubleUpProgress.completed }}/{{ hawkDoubleUpProgress.total }}</span>
 								<div class="mini-progress-bar">
 									<div
 											class="mini-progress-fill num"
-											:style="{ width: `${numMergeProgress.percentage}%` }"
+											:style="{ width: `${hawkDoubleUpProgress.percentage}%` }"
 									></div>
 								</div>
 							</div>
@@ -362,7 +362,7 @@ const handleMenuClick = () => {
 						<div class="game-stats">
 							<div class="game-stat">
 								<Icon name="star-filled" size="14" />
-								<span>{{ numMergeProgress.stars }}</span>
+								<span>{{ hawkDoubleUpProgress.stars }}</span>
 							</div>
 						</div>
 					</div>

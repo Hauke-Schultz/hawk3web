@@ -83,7 +83,7 @@ const getDefaultData = () => ({
 			stars: 0,
 			completedLevels: 0
 		},
-    numMerge: {
+    hawkDoubleUp: {
       highScore: 0,
       gamesPlayed: 0,
       totalScore: 0,
@@ -231,16 +231,16 @@ const validateGameData = (games) => {
 			completedLevels: typeof games?.hawkFruit?.completedLevels === 'number' ? games.hawkFruit.completedLevels : 0,
 			levels: typeof games?.hawkFruit?.levels === 'object' ? games.hawkFruit.levels : {}
 		},
-    numMerge: {
-      highScore: typeof games?.numMerge?.highScore === 'number' ? games.numMerge.highScore : defaultGames.numMerge.highScore,
-      totalScore: typeof games?.numMerge?.totalScore === 'number' ? games.numMerge.totalScore : defaultGames.numMerge.totalScore,
-      gamesPlayed: typeof games?.numMerge?.gamesPlayed === 'number' ? games.numMerge.gamesPlayed : defaultGames.numMerge.gamesPlayed,
-      maxLevel: typeof games?.numMerge?.maxLevel === 'number' ? games.numMerge.maxLevel : defaultGames.numMerge.maxLevel,
-      totalMerges: typeof games?.numMerge?.totalMerges === 'number' ? games.numMerge.totalMerges : defaultGames.numMerge.totalMerges,
-      maxCombo: typeof games?.numMerge?.maxCombo === 'number' ? games.numMerge.maxCombo : defaultGames.numMerge.maxCombo,
-      stars: typeof games?.numMerge?.stars === 'number' ? games.numMerge.stars : 0,
-      completedLevels: typeof games?.numMerge?.completedLevels === 'number' ? games.numMerge.completedLevels : 0,
-      levels: typeof games?.numMerge?.levels === 'object' ? games.numMerge.levels : {}
+    hawkDoubleUp: {
+      highScore: typeof games?.hawkDoubleUp?.highScore === 'number' ? games.hawkDoubleUp.highScore : defaultGames.hawkDoubleUp.highScore,
+      totalScore: typeof games?.hawkDoubleUp?.totalScore === 'number' ? games.hawkDoubleUp.totalScore : defaultGames.hawkDoubleUp.totalScore,
+      gamesPlayed: typeof games?.hawkDoubleUp?.gamesPlayed === 'number' ? games.hawkDoubleUp.gamesPlayed : defaultGames.hawkDoubleUp.gamesPlayed,
+      maxLevel: typeof games?.hawkDoubleUp?.maxLevel === 'number' ? games.hawkDoubleUp.maxLevel : defaultGames.hawkDoubleUp.maxLevel,
+      totalMerges: typeof games?.hawkDoubleUp?.totalMerges === 'number' ? games.hawkDoubleUp.totalMerges : defaultGames.hawkDoubleUp.totalMerges,
+      maxCombo: typeof games?.hawkDoubleUp?.maxCombo === 'number' ? games.hawkDoubleUp.maxCombo : defaultGames.hawkDoubleUp.maxCombo,
+      stars: typeof games?.hawkDoubleUp?.stars === 'number' ? games.hawkDoubleUp.stars : 0,
+      completedLevels: typeof games?.hawkDoubleUp?.completedLevels === 'number' ? games.hawkDoubleUp.completedLevels : 0,
+      levels: typeof games?.hawkDoubleUp?.levels === 'object' ? games.hawkDoubleUp.levels : {}
     },
     hawkTower: {
       highScore: typeof games?.hawkTower?.highScore === 'number' ? games.hawkTower.highScore : defaultGames.hawkTower.highScore,
@@ -1010,7 +1010,7 @@ export function useLocalStorage() {
     const achievements = []
 
     // Check individual game perfectionist achievements
-    const gameIds = ['memory', 'hawkFruit', 'numMerge']
+    const gameIds = ['memory', 'hawkFruit', 'hawkDoubleUp']
 
     gameIds.forEach(gameId => {
       const achievementId = `${gameId}_perfectionist`

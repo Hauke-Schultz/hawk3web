@@ -5,7 +5,7 @@ import {useLocalStorage} from "../../composables/useLocalStorage.js";
 import {useI18n} from "../../../composables/useI18n.js";
 import { useScreenshot } from '../../composables/useScreenshot.js'
 import Icon from "../../../components/Icon.vue";
-import {NUM_MERGE_LEVELS, NUMBER_TYPES, GRID_CONFIG, GRID_UTILS} from "./numMergeConfig.js";
+import {HAWK_DOUBLE_UP_LEVELS, NUMBER_TYPES, GRID_CONFIG, GRID_UTILS} from "./hawkDoubleUpConfig.js";
 import {useRouter} from "vue-router";
 import ProgressOverview from "../../components/ProgressOverview.vue";
 import PerformanceStats from "../../components/PerformanceStats.vue";
@@ -65,7 +65,7 @@ const score = ref(0)
 const moves = ref(0)
 const gameState = ref('playing') // 'playing', 'paused', 'completed', 'game-over'
 const currentLevel = ref(props.level || 1)
-const currentLevelConfig = computed(() => NUM_MERGE_LEVELS[currentLevel.value])
+const currentLevelConfig = computed(() => HAWK_DOUBLE_UP_LEVELS[currentLevel.value])
 
 // Grid State (4x4 grid)
 const grid = ref([
@@ -215,7 +215,7 @@ const getTargetNumber = () => {
 // Game initialization
 const initializeGame = () => {
 	// Check for saved state first
-	const savedState = loadLevelState('numMerge', currentLevel.value)
+	const savedState = loadLevelState('hawkDoubleUp', currentLevel.value)
 	hasSavedState.value = !!savedState
 
 	if (savedState && !isRestoringState.value) {
@@ -320,7 +320,7 @@ const screenshotHighscoreInfo = computed(() => {
 		return null
 	}
 
-	const levelScreenshots = getScreenshotsForLevel('numMerge', currentLevel.value)
+	const levelScreenshots = getScreenshotsForLevel('hawkDoubleUp', currentLevel.value)
 	// Sort screenshots by score (highest first)
 	let sortedScreenshots = [...levelScreenshots].sort((a, b) => b.score - a.score)
 	sortedScreenshots = sortedScreenshots.filter(screenshot => screenshot.score !== score.value)
@@ -417,7 +417,7 @@ const captureScreenshotData = () => {
 
 		// Metadata
 		capturedAt: new Date().toISOString(),
-		gameTitle: t('numMerge.title')
+		gameTitle: t('hawkDoubleUp.title')
 	}
 
 	return screenshotData
@@ -430,7 +430,7 @@ const handleSaveScreenshot = async (screenshotMetadata) => {
 	}
 
 	try {
-		const success = await saveGameScreenshot('numMerge', currentGameScreenshotData.value)
+		const success = await saveGameScreenshot('hawkDoubleUp', currentGameScreenshotData.value)
 
 		if (success) {
 			console.log('🖼️ Screenshot saved successfully!')
@@ -445,7 +445,7 @@ const handleSaveScreenshot = async (screenshotMetadata) => {
 
 const resetGame = () => {
 	// Clear saved state
-	clearLevelState('numMerge', currentLevel.value)
+	clearLevelState('hawkDoubleUp', currentLevel.value)
 
 	// Reset game state
 	score.value = 0
@@ -1061,7 +1061,7 @@ const handleAutoSave = () => {
 	try {
 		const currentState = captureCurrentState()
 		if (currentState) {
-			saveLevelState('numMerge', currentLevel.value, currentState)
+			saveLevelState('hawkDoubleUp', currentLevel.value, currentState)
 		}
 	} catch (error) {
 		console.error('Error auto-saving game state:', error)
@@ -1172,7 +1172,7 @@ const checkGameStatus = () => {
 const completeEndlessMode = () => {
 	if (gameState.value !== 'playing') return
 
-	clearLevelState('numMerge', currentLevel.value)
+	clearLevelState('hawkDoubleUp', currentLevel.value)
 	gameState.value = 'completed'
 
 	// Prepare screenshot data
@@ -1186,18 +1186,18 @@ const completeEndlessMode = () => {
 
 	// Update endless mode statistics
 	const endlessStats = {
-		gamesPlayed: gameData.games.numMerge.gamesPlayed + 1,
-		totalScore: gameData.games.numMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.numMerge.highScore, score.value),
-		stars: gameData.games.numMerge.stars + calculateCurrentStars(),
-		maxCombo: Math.max(gameData.games.numMerge.maxCombo || 0, comboSystem.comboCount.value),
-		totalMerges: (gameData.games.numMerge.totalMerges || 0) + totalMerges.value,
+		gamesPlayed: gameData.games.hawkDoubleUp.gamesPlayed + 1,
+		totalScore: gameData.games.hawkDoubleUp.totalScore + score.value,
+		highScore: Math.max(gameData.games.hawkDoubleUp.highScore, score.value),
+		stars: gameData.games.hawkDoubleUp.stars + calculateCurrentStars(),
+		maxCombo: Math.max(gameData.games.hawkDoubleUp.maxCombo || 0, comboSystem.comboCount.value),
+		totalMerges: (gameData.games.hawkDoubleUp.totalMerges || 0) + totalMerges.value,
 		// Endless specific stats
-		longestSession: Math.max(gameData.games.numMerge.longestSession || 0, sessionTime.value),
-		bestEndlessScore: Math.max(gameData.games.numMerge.bestEndlessScore || 0, score.value)
+		longestSession: Math.max(gameData.games.hawkDoubleUp.longestSession || 0, sessionTime.value),
+		bestEndlessScore: Math.max(gameData.games.hawkDoubleUp.bestEndlessScore || 0, score.value)
 	}
 
-	updateGameStats('numMerge', endlessStats)
+	updateGameStats('hawkDoubleUp', endlessStats)
 
 	// Check endless achievements
 	const achievementsBefore = [...gameData.achievements]
@@ -1345,7 +1345,7 @@ const completeLevel = () => {
 		return
 	}
 
-	clearLevelState('numMerge', currentLevel.value)
+	clearLevelState('hawkDoubleUp', currentLevel.value)
 	gameState.value = 'completed'
 
 	// Prepare screenshot data
@@ -1368,28 +1368,28 @@ const completeLevel = () => {
 	}
 
 	// Check if first time completion
-	const previousLevelStats = getLevelStats('numMerge', currentLevel.value)
+	const previousLevelStats = getLevelStats('hawkDoubleUp', currentLevel.value)
 	const isFirstTimeCompletion = !previousLevelStats?.completed
 
-	updateLevelStats('numMerge', currentLevel.value, levelResult)
+	updateLevelStats('hawkDoubleUp', currentLevel.value, levelResult)
 
 	// Update game statistics
 	const gameStats = {
-		gamesPlayed: gameData.games.numMerge.gamesPlayed + 1,
-		totalScore: gameData.games.numMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.numMerge.highScore, score.value),
-		stars: gameData.games.numMerge.stars + starsEarned,
-		completedLevels: gameData.games.numMerge.completedLevels + (isFirstTimeCompletion ? 1 : 0),
-		maxLevel: Math.max(gameData.games.numMerge.maxLevel, currentLevel.value),
-		maxCombo: Math.max(gameData.games.numMerge.maxCombo || 0, comboSystem.comboCount.value),
-		totalMerges: (gameData.games.numMerge.totalMerges || 0) + totalMerges.value
+		gamesPlayed: gameData.games.hawkDoubleUp.gamesPlayed + 1,
+		totalScore: gameData.games.hawkDoubleUp.totalScore + score.value,
+		highScore: Math.max(gameData.games.hawkDoubleUp.highScore, score.value),
+		stars: gameData.games.hawkDoubleUp.stars + starsEarned,
+		completedLevels: gameData.games.hawkDoubleUp.completedLevels + (isFirstTimeCompletion ? 1 : 0),
+		maxLevel: Math.max(gameData.games.hawkDoubleUp.maxLevel, currentLevel.value),
+		maxCombo: Math.max(gameData.games.hawkDoubleUp.maxCombo || 0, comboSystem.comboCount.value),
+		totalMerges: (gameData.games.hawkDoubleUp.totalMerges || 0) + totalMerges.value
 	}
 
-	updateGameStats('numMerge', gameStats)
+	updateGameStats('hawkDoubleUp', gameStats)
 
 	// Check achievements
 	const achievementsBefore = [...gameData.achievements]
-	checkGameLevelAchievements('numMerge', currentLevel.value)
+	checkGameLevelAchievements('hawkDoubleUp', currentLevel.value)
 
 	const numAchievements = checkNumAchievements(gameData, currentLevel.value, grid.value, {
 		maxCombo: comboSystem.comboCount.value,
@@ -1464,7 +1464,7 @@ const updateEndlessStats = () => {
 		stars: calculateCurrentStars()
 	}
 	console.log('updateEndlessStats', levelResult);
-	updateLevelStats('numMerge', currentLevel.value, levelResult)
+	updateLevelStats('hawkDoubleUp', currentLevel.value, levelResult)
 }
 
 const checkNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
@@ -1475,7 +1475,7 @@ const checkNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
 	const numberAchievements = ACHIEVEMENTS.definitions.filter(
 			achievement =>
 					achievement.trigger.type === 'number_reach' &&
-					achievement.trigger.game === 'numMerge' &&
+					achievement.trigger.game === 'hawkDoubleUp' &&
 					achievement.trigger.number <= highestNumber
 	)
 
@@ -1502,7 +1502,7 @@ const checkNumAchievements = (gameData, levelNumber, finalGrid, gameStats) => {
 	}
 
 	// Check for total merges across all games
-	const totalMerges = gameData.games.numMerge.totalMerges || 0
+	const totalMerges = gameData.games.hawkDoubleUp.totalMerges || 0
 	if (totalMerges >= 100) {
 		const mergeAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'num_merge_master')
 		if (mergeAchievement && !gameData.achievements.some(a => a.id === mergeAchievement.id && a.earned)) {
@@ -1527,7 +1527,7 @@ const getHighestNumberFromGrid = (grid) => {
 
 const gameOver = () => {
 	pauseGame()
-	clearLevelState('numMerge', currentLevel.value)
+	clearLevelState('hawkDoubleUp', currentLevel.value)
 
 	// For endless mode, complete instead of game over
 	if (isEndlessMode.value) {
@@ -1540,14 +1540,14 @@ const gameOver = () => {
 
 	// Update game statistics even for game over
 	const gameStats = {
-		gamesPlayed: gameData.games.numMerge.gamesPlayed + 1,
-		totalScore: gameData.games.numMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.numMerge.highScore, score.value),
-		maxCombo: Math.max(gameData.games.numMerge.maxCombo || 0, comboSystem.comboCount.value),
-		totalMerges: (gameData.games.numMerge.totalMerges || 0) + totalMerges.value
+		gamesPlayed: gameData.games.hawkDoubleUp.gamesPlayed + 1,
+		totalScore: gameData.games.hawkDoubleUp.totalScore + score.value,
+		highScore: Math.max(gameData.games.hawkDoubleUp.highScore, score.value),
+		maxCombo: Math.max(gameData.games.hawkDoubleUp.maxCombo || 0, comboSystem.comboCount.value),
+		totalMerges: (gameData.games.hawkDoubleUp.totalMerges || 0) + totalMerges.value
 	}
 
-	updateGameStats('numMerge', gameStats)
+	updateGameStats('hawkDoubleUp', gameStats)
 
 	// Check achievements for regular game over
 	const numAchievements = checkNumAchievements(gameData, currentLevel.value, grid.value, {
@@ -1593,7 +1593,7 @@ const stopSessionTimer = () => {
 // Reward calculation
 const calculateLevelReward = () => {
 	const levelNumber = currentLevel.value
-	const previousLevelStats = getLevelStats('numMerge', currentLevel.value)
+	const previousLevelStats = getLevelStats('hawkDoubleUp', currentLevel.value)
 	const isFirstTimeCompletion = !previousLevelStats?.completed
 	const starsEarned = calculateCurrentStars()
 
@@ -1840,7 +1840,7 @@ const handleMenuSaveGame = () => {
 	if (gameState.value === 'playing' && !isRestoringState.value) {
 		const currentState = captureCurrentState()
 		if (currentState) {
-			saveLevelState('numMerge', currentLevel.value, currentState)
+			saveLevelState('hawkDoubleUp', currentLevel.value, currentState)
 			console.log(`✅ Game manually saved via menu for level ${currentLevel.value}`)
 		}
 	}
@@ -1848,9 +1848,9 @@ const handleMenuSaveGame = () => {
 }
 
 const nextLevel = () => {
-	if (currentLevel.value < Object.keys(NUM_MERGE_LEVELS).length) {
+	if (currentLevel.value < Object.keys(HAWK_DOUBLE_UP_LEVELS).length) {
 		currentLevel.value++
-		router.push(`/games/nummerge/${currentLevel.value}`)
+		router.push(`/games/hawkdoubleup/${currentLevel.value}`)
 		initializeGame()
 	} else {
 		backToGaming()
@@ -1863,7 +1863,7 @@ const handleTryAgain = () => {
 }
 
 const backToGaming = () => {
-	router.push('/games/nummerge')
+	router.push('/games/hawkdoubleup')
 }
 
 // Lifecycle
@@ -1906,9 +1906,9 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 		<!-- Game Header -->
 		<div class="game-header">
 			<div class="game-info">
-				<h2 class="game-title">{{ t('numMerge.title') }}</h2>
+				<h2 class="game-title">{{ t('hawkDoubleUp.title') }}</h2>
 				<div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
-					{{ isEndlessMode ? t('numMerge.endless_mode') : t('numMerge.level_title', { level: currentLevel }) }}
+					{{ isEndlessMode ? t('hawkDoubleUp.endless_mode') : t('hawkDoubleUp.level_title', { level: currentLevel }) }}
 				</div>
 			</div>
 
@@ -1923,7 +1923,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 						:levels-label="getTargetNumber().toString()"
 						:show-stars="false"
 						:show-percentage="false"
-						:complete-label="t('numMerge.target')"
+						:complete-label="t('hawkDoubleUp.target')"
 				/>
 
 				<!-- Game Performance Stats -->
@@ -1935,7 +1935,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 						:total-pairs="0"
 						:combo-count="comboSystem.comboLevel.value"
 						:combo-multiplier="comboSystem.comboMultiplier.value"
-						:max-combo="gameData.games.numMerge.maxCombo || 0"
+						:max-combo="gameData.games.hawkDoubleUp.maxCombo || 0"
 						:combo-time-remaining="comboSystem.timeRemaining.value"
 						:combo-time-max="comboSystem.config.comboTimeout"
 						:is-combo-active="comboSystem.isComboActive.value"
@@ -1960,7 +1960,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 			        'btn--success': canUndo,
 			      }"
 						@click="undoRemaining > 0 ? performUndo() : handleBuyUndoClick()"
-						:title="canUndo ? t('numMerge.undo_move') : t('numMerge.no_undos')"
+						:title="canUndo ? t('hawkDoubleUp.undo_move') : t('hawkDoubleUp.no_undos')"
 					>
 						<span class="undo-icon">↩️</span>
 						<span v-if="undoRemaining > 0" class="notification-badge">{{ undoRemaining }}</span>
@@ -2036,9 +2036,9 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 		<!-- Game Completed Modal -->
 		<GameCompletedModal
 				:visible="gameState === 'completed'"
-				game-name="numMerge"
+				game-name="hawkDoubleUp"
 				:level="currentLevel"
-				:game-title="t('numMerge.title')"
+				:game-title="t('hawkDoubleUp.title')"
 				:final-score="score"
 				:time-elapsed="isEndlessMode ? sessionTime : 0"
 				:moves="moves"
@@ -2053,9 +2053,9 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 				:show-completion-phases="true"
 				:enable-phase-transition="true"
 				:show-next-level="!isEndlessMode"
-				:next-level-label="isEndlessMode ? t('numMerge.play_again') : t('numMerge.next_level')"
-				:play-again-label="t('numMerge.play_again')"
-				:back-to-games-label="t('numMerge.back_to_levels')"
+				:next-level-label="isEndlessMode ? t('hawkDoubleUp.play_again') : t('hawkDoubleUp.next_level')"
+				:play-again-label="t('hawkDoubleUp.play_again')"
+				:back-to-games-label="t('hawkDoubleUp.back_to_levels')"
 				:game-state="currentGameScreenshotData"
 				:high-score-info="screenshotHighscoreInfo"
 				:show-reward-breakdown="true"
@@ -2074,11 +2074,11 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 				v-if="!isEndlessMode"
 				:visible="gameState === 'game-over'"
 				:level="currentLevel"
-				:game-title="t('numMerge.title')"
+				:game-title="t('hawkDoubleUp.title')"
 				:final-score="score"
 				:game-over-icon="'🎯'"
-				:try-again-label="t('numMerge.try_again')"
-				:back-to-games-label="t('numMerge.back_to_levels')"
+				:try-again-label="t('hawkDoubleUp.try_again')"
+				:back-to-games-label="t('hawkDoubleUp.back_to_levels')"
 				@try-again="handleTryAgain"
 				@back-to-games="backToGaming"
 				@close="backToGaming"
@@ -2100,7 +2100,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 				@click="handleTryAgain()"
 			>
 				<Icon name="refresh" size="16" class="icon--left" />
-				{{ t('numMerge.try_again') }}
+				{{ t('hawkDoubleUp.try_again') }}
 			</button>
 		</div>
 	</main>
