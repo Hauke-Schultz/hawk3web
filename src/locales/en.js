@@ -1399,7 +1399,42 @@ export default {
         name: 'Meditation',
         description: 'Quiet meditation practice to calm the mind and reduce stress.'
       }
-    }
+    },
+
+    categories: {
+      lower_body: 'Lower Body',
+      upper_body: 'Upper Body',
+      core: 'Core',
+      cardio: 'Cardio',
+      combination: 'Combination',
+      recovery: 'Recovery'
+    },
+
+    settings: {
+      title: 'Workout Settings',
+      subtitle: 'Customize your workout timer',
+      timer_settings: 'Timer Settings',
+      exercise_duration: 'Exercise Duration',
+      rest_duration: 'Rest Duration',
+      break_duration: 'Break Between Rounds',
+      rounds: 'Rounds',
+      get_ready_duration: 'Get Ready Duration',
+      reset_defaults: 'Reset to Defaults',
+      estimated_time: 'Estimated Workout Time',
+      based_on_6_exercises: 'based on 6 exercises per round',
+      saved: 'Settings saved successfully!',
+
+      workout_plan: 'Workout Plan',
+      editing_plan: 'Editing Plan',
+      plan_note: 'Customize exercises for this day. Changes will be saved as a custom plan.',
+      add_exercise: 'Add Exercise',
+      select_exercise: 'Select Exercise',
+      move_up: 'Move Up',
+      move_down: 'Move Down',
+      remove: 'Remove',
+      reset: 'Reset',
+      save_changes: 'Save Changes'
+    },
   },
 
 	// Game Controls

@@ -80,6 +80,13 @@ const exercisesList = computed(() => {
 	})
 })
 
+// Calculate estimated workout time
+const estimatedTime = computed(() => {
+	const exerciseCount = exercisesList.value.length
+	const { exerciseDuration, restDuration, rounds, breakDuration } = gymData.timerSettings
+	return Math.ceil(((exerciseCount * (exerciseDuration + restDuration) * rounds) + (breakDuration * (rounds - 1))) / 60) // in minutes
+})
+
 // Navigate to timer
 const startWorkout = () => {
 	router.push('/hawk-gym/timer')
@@ -155,7 +162,7 @@ const isToday = computed(() => selectedDay.value === todayKey)
 				<p class="workout-duration">
 					{{ gymData.timerSettings.rounds }} {{ t('hawkGym.round') }}s •
 					{{ exercisesList.length }} {{ t('hawkGym.exercise_count') }}s •
-					~{{ Math.ceil((exercisesList.length * (gymData.timerSettings.exerciseDuration + gymData.timerSettings.restDuration) * gymData.timerSettings.rounds) / 60) }} {{ t('time.minutes') }}
+					~{{ estimatedTime }} {{ t('time.minutes') }}
 				</p>
 
 				<div class="exercise-list">

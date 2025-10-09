@@ -12,6 +12,7 @@ import Settings from '../gamingHub/views/Settings.vue'
 import About from '../views/About.vue'
 import HawkGymHome from '../hawkGym/views/HawkGymHome.vue'
 import HawkGymTimer from '../hawkGym/views/HawkGymTimer.vue'
+import HawkGymSettings from "../hawkGym/views/HawkGymSettings.vue";
 
 const routes = [
   {
@@ -138,6 +139,14 @@ const routes = [
     path: '/hawk-gym/timer',
     name: 'HawkGymTimer',
     component: HawkGymTimer
+  },
+  {
+    path: '/hawk-gym/settings',
+    name: 'HawkGymSettings',
+    component: HawkGymSettings,
+    meta: {
+      title: 'Hawk Gym Settings'
+    }
   },
   {
     path: '/:pathMatch(.*)*',

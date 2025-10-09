@@ -1400,7 +1400,42 @@ export default {
         name: 'Meditation',
         description: 'Ruhige Meditationspraxis um den Geist zu beruhigen und Stress zu reduzieren.'
       }
-    }
+    },
+
+    categories: {
+      lower_body: 'Unterkörper',
+      upper_body: 'Oberkörper',
+      core: 'Rumpf',
+      cardio: 'Cardio',
+      combination: 'Kombiniert',
+      recovery: 'Erholung'
+    },
+
+    settings: {
+      title: 'Workout Einstellungen',
+      subtitle: 'Passe deinen Workout-Timer an',
+      timer_settings: 'Timer Einstellungen',
+      exercise_duration: 'Übungsdauer',
+      rest_duration: 'Pausendauer',
+      break_duration: 'Pause zwischen Durchgängen',
+      rounds: 'Durchgänge',
+      get_ready_duration: 'Bereit-Mach-Dauer',
+      reset_defaults: 'Zurücksetzen',
+      estimated_time: 'Geschätzte Workout-Zeit',
+      based_on_6_exercises: 'basierend auf 6 Übungen pro Durchgang',
+      saved: 'Einstellungen erfolgreich gespeichert!',
+
+      workout_plan: 'Trainingsplan',
+      editing_plan: 'Plan bearbeiten',
+      plan_note: 'Passe die Übungen für diesen Tag an. Änderungen werden als eigener Plan gespeichert.',
+      add_exercise: 'Übung hinzufügen',
+      select_exercise: 'Übung auswählen',
+      move_up: 'Nach oben',
+      move_down: 'Nach unten',
+      remove: 'Entfernen',
+      reset: 'Zurücksetzen',
+      save_changes: 'Änderungen speichern'
+    },
   },
 
 	// Spielsteuerung
