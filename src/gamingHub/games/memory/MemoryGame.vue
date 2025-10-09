@@ -486,28 +486,6 @@ const handleMenuSaveGame = () => {
 	}
 }
 
-const handleManualSave = async () => {
-	if (gameState.value !== 'playing' || isSaving.value) return
-
-	isSaving.value = true
-
-	try {
-		const currentState = captureCurrentState()
-		if (currentState) {
-			saveLevelState('memory', currentLevel.value, currentState)
-			console.log(`✅ Memory game manually saved for level ${currentLevel.value}`)
-
-			// Kurzes visuelles Feedback
-			setTimeout(() => {
-				isSaving.value = false
-			}, 800)
-		}
-	} catch (error) {
-		console.error('Error saving memory game state:', error)
-		isSaving.value = false
-	}
-}
-
 const captureCurrentState = () => {
 	if (gameState.value !== 'playing') return null
 
@@ -647,16 +625,6 @@ onUnmounted(() => {
 			<div class="game-info">
 				<h2 class="game-title">{{ t('memory.title') }}</h2>
 				<div class="level-indicator">{{ t('memory.level_title', { level: currentLevel }) }}</div>
-				<div v-if="gameState === 'playing'" class="manual-save">
-					<button
-							class="btn btn--small"
-							@click="handleManualSave"
-							:disabled="isSaving"
-							:title="t('memory.save_game')"
-					>
-						<Icon :name="isSaving ? 'loading' : 'save'" size="22" />
-					</button>
-				</div>
 			</div>
 
 			<div class="game-stats-container">
@@ -902,11 +870,5 @@ onUnmounted(() => {
 		color: white;
 		border-color: var(--success-color);
 	}
-}
-
-.manual-save {
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 </style>

@@ -14,6 +14,7 @@ import GameCompletedModal from '../../components/GameCompletedModal.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
 import GameCanvas from './GameCanvas.vue'
 import {calculateEndlessStars} from "./stackHelpers.js";
+import {ACHIEVEMENTS} from "../../config/achievementsConfig.js";
 
 // Props
 const props = defineProps({
@@ -30,7 +31,10 @@ const {
 	gameData,
 	updateStackMergeLevel,
 	updateGameStats,
-	addScore
+	addScore,
+	checkGameLevelAchievements,
+	checkAutoAchievements,
+	addAchievement
 } = useLocalStorage()
 
 // Component refs
@@ -176,9 +180,40 @@ const screenshotHighscoreInfo = computed(() => {
 	}
 })
 
+// Check StackMerge specific achievements
+const checkStackMergeAchievements = () => {
+	const achievements = []
+
+	// Check perfect combo achievement
+	if (maxCombo.value >= 10) {
+		const comboAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'perfect_combo_10')
+		if (comboAchievement && !gameData.achievements.some(a => a.id === 'perfect_combo_10' && a.earned)) {
+			achievements.push(comboAchievement)
+		}
+	}
+
+	// Check endless height achievement (only in endless mode)
+	if (isEndlessMode.value && currentHeight.value >= 90) {
+		const heightAchievement = ACHIEVEMENTS.definitions.find(a => a.id === 'endless_height_90')
+		if (heightAchievement && !gameData.achievements.some(a => a.id === 'endless_height_90' && a.earned)) {
+			achievements.push(heightAchievement)
+		}
+	}
+
+	// Unlock achievements
+	achievements.forEach(achievement => {
+		const wasAdded = addAchievement(achievement)
+		if (wasAdded) {
+			console.log(`🏆 StackMerge Achievement unlocked: ${achievement.name}`)
+			earnedAchievements.value.push(achievement)
+		}
+	})
+}
+
 // Game functions
 const startGame = () => {
 	gameState.value = 'playing'
+	earnedAchievements.value = []
 
 	// Create engine
 	engine.value = new StackEngine(currentLevelConfig.value)
@@ -342,6 +377,15 @@ const completeLevel = () => {
 		combo: maxCombo.value
 	})
 
+	// Check level completion achievements
+	checkGameLevelAchievements('stackMerge', currentLevel.value)
+
+	// Check StackMerge specific achievements
+	checkStackMergeAchievements()
+
+	// Check auto achievements (for total stacks)
+	checkAutoAchievements()
+
 	// Check if first time completion
 	const previousStats = gameData.games.stackMerge.levels[currentLevel.value]
 	const isFirstTime = previousStats ? !previousStats.completed : true
@@ -391,22 +435,57 @@ const completeLevel = () => {
 		})
 	}
 
-	rewardBreakdown.value = {
-		items: breakdown,
-		total: {
+	// Add achievement rewards to breakdown
+	if (earnedAchievements.value.length > 0) {
+		earnedAchievements.value.forEach(achievement => {
+			breakdown.push({
+				type: 'achievement',
+				source: t('rewards.breakdown.achievement_reward', { name: t(`achievements.definitions.${achievement.id}.name`) }),
+				coins: achievement.rewards.coins,
+				diamonds: achievement.rewards.diamonds,
+				icon: 'trophy',
+				style: 'achievement'
+			})
+		})
+
+		// Add achievement rewards to totals
+		const achievementCoins = earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0)
+		const achievementDiamonds = earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
+
+		rewardBreakdown.value = {
+			items: breakdown,
+			total: {
+				coins: totalCoins + achievementCoins,
+				diamonds: totalDiamonds + achievementDiamonds
+			}
+		}
+
+		levelReward.value = {
+			coins: totalCoins + achievementCoins,
+			diamonds: totalDiamonds + achievementDiamonds
+		}
+
+		// Update player currency with achievements
+		gameData.player.coins = (gameData.player.coins || 0) + totalCoins + achievementCoins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds + achievementDiamonds
+	} else {
+		rewardBreakdown.value = {
+			items: breakdown,
+			total: {
+				coins: totalCoins,
+				diamonds: totalDiamonds
+			}
+		}
+
+		levelReward.value = {
 			coins: totalCoins,
 			diamonds: totalDiamonds
 		}
-	}
 
-	levelReward.value = {
-		coins: totalCoins,
-		diamonds: totalDiamonds
+		// Update player currency
+		gameData.player.coins = (gameData.player.coins || 0) + totalCoins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
 	}
-
-	// Update player currency
-	gameData.player.coins = (gameData.player.coins || 0) + totalCoins
-	gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
 
 	// Update game stats
 	const gameStats = {
@@ -428,11 +507,12 @@ const completeLevel = () => {
 	// Show modal
 	showCompletedModal.value = true
 
-	console.log('🏗️ Level completed with modal!', {
+	console.log('🏗️ Level completed with achievements!', {
 		height: currentHeight.value,
 		score: currentScore.value,
 		perfectPercent,
 		stars,
+		achievements: earnedAchievements.value.length,
 		reward: rewardBreakdown.value
 	})
 }
@@ -538,6 +618,10 @@ const completeEndlessMode = () => {
 		combo: maxCombo.value
 	})
 
+	// Check achievements for endless mode
+	checkStackMergeAchievements()
+	checkAutoAchievements()
+
 	// Calculate endless rewards
 	const heightBonus = Math.floor(currentHeight.value / 10) * 50 // 50 coins per 10 blocks
 	const scoreBonus = Math.floor(currentScore.value / 100) * 10 // 10 coins per 100 points
@@ -602,17 +686,49 @@ const completeEndlessMode = () => {
 		})
 	}
 
-	rewardBreakdown.value = {
-		items: rewardItems,
-		total: {
-			coins: totalCoins,
-			diamonds: totalDiamonds
-		}
-	}
+	// Add achievement rewards
+	if (earnedAchievements.value.length > 0) {
+		earnedAchievements.value.forEach(achievement => {
+			rewardItems.push({
+				type: 'achievement',
+				source: t('rewards.breakdown.achievement_reward', { name: t(`achievements.definitions.${achievement.id}.name`) }),
+				coins: achievement.rewards.coins,
+				diamonds: achievement.rewards.diamonds,
+				icon: 'trophy',
+				style: 'achievement'
+			})
+		})
 
-	// Update player currency
-	gameData.player.coins = (gameData.player.coins || 0) + totalCoins
-	gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
+		const achievementCoins = earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0)
+		const achievementDiamonds = earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
+
+		rewardBreakdown.value = {
+			items: rewardItems,
+			total: {
+				coins: totalCoins + achievementCoins,
+				diamonds: totalDiamonds + achievementDiamonds
+			}
+		}
+
+		levelReward.value = {
+			coins: totalCoins + achievementCoins,
+			diamonds: totalDiamonds + achievementDiamonds
+		}
+
+		gameData.player.coins = (gameData.player.coins || 0) + totalCoins + achievementCoins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds + achievementDiamonds
+	} else {
+		rewardBreakdown.value = {
+			items: rewardItems,
+			total: {
+				coins: totalCoins,
+				diamonds: totalDiamonds
+			}
+		}
+
+		gameData.player.coins = (gameData.player.coins || 0) + totalCoins
+		gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
+	}
 
 	// Update game stats
 	const gameStats = {
@@ -648,6 +764,10 @@ const handleGameOver = () => {
 	if (engine.value) {
 		engine.value.stop()
 	}
+
+	// Check achievements even on game over
+	checkStackMergeAchievements()
+	checkAutoAchievements()
 
 	// Update game stats
 	const gameStats = {

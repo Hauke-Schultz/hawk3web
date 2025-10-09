@@ -360,6 +360,116 @@ export const ACHIEVEMENTS = {
       trigger: { type: 'number_reach', game: 'numMerge', number: 4096 }
     },
 
+    // StackMerge specific achievements
+    {
+      id: 'stackMerge_beginner',
+      name: 'Stack Beginner',
+      description: 'Completed first StackMerge level',
+      category: 'stackMerge',
+      icon: 'stack',
+      rarity: 'common',
+      rewards: { coins: 150, diamonds: 1 },
+      trigger: { type: 'level_complete', game: 'stackMerge', level: 1 }
+    },
+    {
+      id: 'stackMerge_intermediate',
+      name: 'Stack Builder',
+      description: 'Completed StackMerge Level 3',
+      category: 'stackMerge',
+      icon: 'stack',
+      rarity: 'uncommon',
+      rewards: { coins: 500, diamonds: 2 },
+      trigger: { type: 'level_complete', game: 'stackMerge', level: 3 }
+    },
+    {
+      id: 'stackMerge_expert',
+      name: 'Stack Expert',
+      description: 'Completed StackMerge Level 5',
+      category: 'stackMerge',
+      icon: 'stack',
+      rarity: 'epic',
+      rewards: { coins: 1500, diamonds: 8 },
+      trigger: { type: 'level_complete', game: 'stackMerge', level: 5 }
+    },
+    {
+      id: 'stackMerge_master',
+      name: 'Stack Master',
+      description: 'Completed the ultimate StackMerge challenge',
+      category: 'stackMerge',
+      icon: 'stack',
+      rarity: 'legendary',
+      rewards: { coins: 3000, diamonds: 15 },
+      trigger: { type: 'level_complete', game: 'stackMerge', level: 6 }
+    },
+
+    // Total stacks achievements
+    {
+      id: 'total_stacks_20',
+      name: 'Stack Collector',
+      description: 'Stacked 20 blocks in total',
+      category: 'stackMerge',
+      icon: 'arrow-up',
+      rarity: 'common',
+      rewards: { coins: 200, diamonds: 1 },
+      trigger: { type: 'auto', condition: 'totalStacks >= 20' }
+    },
+    {
+      id: 'total_stacks_50',
+      name: 'Stack Enthusiast',
+      description: 'Stacked 50 blocks in total',
+      category: 'stackMerge',
+      icon: 'arrow-up',
+      rarity: 'uncommon',
+      rewards: { coins: 500, diamonds: 3 },
+      trigger: { type: 'auto', condition: 'totalStacks >= 50' }
+    },
+    {
+      id: 'total_stacks_80',
+      name: 'Stack Champion',
+      description: 'Stacked 80 blocks in total',
+      category: 'stackMerge',
+      icon: 'trophy',
+      rarity: 'rare',
+      rewards: { coins: 1000, diamonds: 5 },
+      trigger: { type: 'auto', condition: 'totalStacks >= 80' }
+    },
+
+    // Perfect stacks combo achievement
+    {
+      id: 'perfect_combo_10',
+      name: 'Precision Master',
+      description: 'Get 10 perfect stacks in a row',
+      category: 'stackMerge',
+      icon: 'star-filled',
+      rarity: 'epic',
+      rewards: { coins: 2000, diamonds: 10 },
+      trigger: { type: 'combo', combo: 10 }
+    },
+
+    // Endless mode achievement
+    {
+      id: 'endless_height_90',
+      name: 'Sky Scraper',
+      description: 'Reach height 90 in endless mode',
+      category: 'stackMerge',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 5000, diamonds: 20 },
+      trigger: { type: 'endless_height', height: 90 }
+    },
+
+    // Perfectionist achievement
+    {
+      id: 'stackMerge_perfectionist',
+      name: 'Stack Perfectionist',
+      description: 'Complete all StackMerge levels with 3 stars',
+      category: 'stackMerge',
+      icon: 'trophy',
+      rarity: 'legendary',
+      rewards: { coins: 3500, diamonds: 25 },
+      trigger: { type: 'perfect_all_levels', game: 'stackMerge' }
+    },
+
     // Mystery Box Achievements
     {
       id: 'mystery_box_first',
@@ -486,6 +596,12 @@ export const ACHIEVEMENTS = {
       name: 'Num Merge Game',
       color: 'warning',
       description: 'Achievements for the Num Merge Game'
+    },
+    {
+      id: 'stackMerge',
+      name: 'Stack Merge Game',
+      color: 'danger',
+      description: 'Achievements for the Stack Merge Game'
     },
 		{
 			id: 'special',

@@ -955,6 +955,7 @@ export default {
 			memory: 'Memory Game',
 			fruitMerge: 'Fruit Merge Game',
       numMerge: 'Num Merge Game',
+      stackMerge: 'Stack Merge Game'
 		},
 		rarities: {
 			common: 'Common',
@@ -1106,6 +1107,48 @@ export default {
       reach_4096: {
         name: '4096 Achiever',
         description: 'Created the number 4096'
+      },
+
+      // StackMerge achievements
+      stackMerge_beginner: {
+        name: 'Stack Beginner',
+        description: 'Completed first StackMerge level'
+      },
+      stackMerge_intermediate: {
+        name: 'Stack Builder',
+        description: 'Completed StackMerge Level 3'
+      },
+      stackMerge_expert: {
+        name: 'Stack Expert',
+        description: 'Completed StackMerge Level 5'
+      },
+      stackMerge_master: {
+        name: 'Stack Master',
+        description: 'Completed the ultimate StackMerge challenge'
+      },
+      total_stacks_20: {
+        name: 'Stack Collector',
+        description: 'Stacked 20 blocks in total'
+      },
+      total_stacks_50: {
+        name: 'Stack Enthusiast',
+        description: 'Stacked 50 blocks in total'
+      },
+      total_stacks_80: {
+        name: 'Stack Champion',
+        description: 'Stacked 80 blocks in total'
+      },
+      perfect_combo_10: {
+        name: 'Precision Master',
+        description: 'Get 10 perfect stacks in a row'
+      },
+      endless_height_90: {
+        name: 'Sky Scraper',
+        description: 'Reach height 90 in endless mode'
+      },
+      stackMerge_perfectionist: {
+        name: 'Stack Perfectionist',
+        description: 'Complete all StackMerge levels with 3 stars'
       },
 
       mystery_box_first: {

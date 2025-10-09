@@ -956,6 +956,7 @@ export default {
 			memory: 'Memory-Spiel',
 			fruitMerge: 'Fruit Merge-Spiel',
       numMerge: 'Num Merge-Spiel',
+      stackMerge: 'Stack Merge Spiel',
 		},
 		rarities: {
 			common: 'Häufig',
@@ -1107,6 +1108,48 @@ export default {
       reach_4096: {
         name: 'Nummer 4096',
         description: 'Erreiche Nummer 4096'
+      },
+
+      // StackMerge achievements
+      stackMerge_beginner: {
+        name: 'Stapel-Anfänger',
+        description: 'Erstes StackMerge Level abgeschlossen'
+      },
+      stackMerge_intermediate: {
+        name: 'Stapel-Bauer',
+        description: 'StackMerge Level 3 abgeschlossen'
+      },
+      stackMerge_expert: {
+        name: 'Stapel-Experte',
+        description: 'StackMerge Level 5 abgeschlossen'
+      },
+      stackMerge_master: {
+        name: 'Stapel-Meister',
+        description: 'Die ultimative StackMerge Herausforderung abgeschlossen'
+      },
+      total_stacks_20: {
+        name: 'Stapel-Sammler',
+        description: '20 Blöcke insgesamt gestapelt'
+      },
+      total_stacks_50: {
+        name: 'Stapel-Enthusiast',
+        description: '50 Blöcke insgesamt gestapelt'
+      },
+      total_stacks_80: {
+        name: 'Stapel-Champion',
+        description: '80 Blöcke insgesamt gestapelt'
+      },
+      perfect_combo_10: {
+        name: 'Präzisions-Meister',
+        description: '10 perfekte Stapel hintereinander'
+      },
+      endless_height_90: {
+        name: 'Wolkenkratzer',
+        description: 'Höhe 90 im Endlos-Modus erreicht'
+      },
+      stackMerge_perfectionist: {
+        name: 'Stapel-Perfektionist',
+        description: 'Alle StackMerge-Level mit 3 Sternen abgeschlossen'
       },
 
       // Mystery Box Achievements

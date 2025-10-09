@@ -6,6 +6,7 @@ import {computed, watch} from "vue"
 import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
 import { fruitMergeConfig } from "../gamingHub/games/fruitmerge/fruitMergeConfig.js"
 import { numMergeConfig } from "../gamingHub/games/nummerge/numMergeConfig.js"
+import { stackMergeConfig } from "../gamingHub/games/stackmerge/stackConfig.js"
 import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
 import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
@@ -45,7 +46,14 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'num-merge-game'
 	}))
 
-	const combined = [...memoryLevels, ...fruitMergeLevels, ...numMergeLevels]
+	const stackMergeLevels = getRecentLevelsForGame('stackMerge', 10).map(level => ({
+		...level,
+		gameId: 'stackMerge',
+		gameTitle: t('stackMerge.title'),
+		gameIcon: 'stack'
+	}))
+
+	const combined = [...memoryLevels, ...fruitMergeLevels, ...numMergeLevels, ...stackMergeLevels]
 			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
 			.slice(0, 3)
 
@@ -77,7 +85,8 @@ const navigateToLevel = (gameId, level) => {
 	const gameRoutes = {
 		'fruitMerge': 'fruitmerge',
 		'memory': 'memory',
-		'numMerge': 'nummerge'
+		'numMerge': 'nummerge',
+		'stackMerge': 'stackmerge'
 	}
 
 	const routeName = gameRoutes[gameId]
@@ -91,7 +100,8 @@ const navigateToGame = (gameId) => {
 	const routes = {
 		memory: '/games/memory',
 		fruitMerge: '/games/fruitmerge',
-		numMerge: '/games/nummerge'
+		numMerge: '/games/nummerge',
+		stackMerge: '/games/stackmerge'
 	}
 	if (routes[gameId]) {
 		router.push(routes[gameId])
@@ -125,10 +135,11 @@ const getGameProgress = (gameId, config) => {
 const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
 const fruitMergeProgress = computed(() => getGameProgress('fruitMerge', fruitMergeConfig))
 const numMergeProgress = computed(() => getGameProgress('numMerge', numMergeConfig))
+const stackMergeProgress = computed(() => getGameProgress('stackMerge', stackMergeConfig))
 
 // Overall Progress
 const overallProgress = computed(() => {
-	const allGames = ['memory', 'fruitMerge', 'numMerge']
+	const allGames = ['memory', 'fruitMerge', 'numMerge', 'stackMerge']
 	let totalCompleted = 0
 	let totalLevels = 0
 	let totalStars = 0
@@ -289,8 +300,8 @@ const handleMenuClick = () => {
 								<span class="progress-text">{{ memoryProgress.completed }}/{{ memoryProgress.total }}</span>
 								<div class="mini-progress-bar">
 									<div
-										class="mini-progress-fill memory"
-										:style="{ width: `${memoryProgress.percentage}%` }"
+											class="mini-progress-fill memory"
+											:style="{ width: `${memoryProgress.percentage}%` }"
 									></div>
 								</div>
 							</div>
@@ -352,6 +363,32 @@ const handleMenuClick = () => {
 							<div class="game-stat">
 								<Icon name="star-filled" size="14" />
 								<span>{{ numMergeProgress.stars }}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Stack Merge Game -->
+				<div class="game-card" @click="navigateToGame('stackMerge')">
+					<div class="game-header">
+						<Icon :name="stackMergeConfig.gameIcon" size="28" />
+						<div class="game-info">
+							<h3 class="game-title">{{ stackMergeConfig.gameTitle }}</h3>
+							<div class="game-progress">
+								<span class="progress-text">{{ stackMergeProgress.completed }}/{{ stackMergeProgress.total }}</span>
+								<div class="mini-progress-bar">
+									<div
+											class="mini-progress-fill stackmerge"
+											:style="{ width: `${stackMergeProgress.percentage}%` }"
+									></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="game-stats">
+							<div class="game-stat">
+								<Icon name="star-filled" size="14" />
+								<span>{{ stackMergeProgress.stars }}</span>
 							</div>
 						</div>
 					</div>
