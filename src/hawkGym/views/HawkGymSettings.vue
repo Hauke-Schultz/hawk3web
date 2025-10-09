@@ -278,6 +278,131 @@ const getCategoryName = (category) => {
 			</div>
 		</transition>
 
+		<!-- Workout Plan Editor -->
+		<section class="settings-section">
+			<div class="section-header">
+				<h2 class="section-title">
+					<Icon name="list" size="24" />
+					{{ t('hawkGym.settings.workout_plan') }}
+				</h2>
+				<button
+						v-if="hasExerciseChanges"
+						class="btn btn--ghost btn--small"
+						@click="resetExercises"
+				>
+					<Icon name="refresh" size="16" />
+					{{ t('hawkGym.settings.reset') }}
+				</button>
+			</div>
+
+			<div class="plan-info">
+				<p class="plan-day">
+					{{ t('hawkGym.settings.editing_plan') }}:
+					<strong>{{ t(`hawkGym.days.${selectedDay}`) }}</strong>
+				</p>
+				<p class="plan-note">{{ t('hawkGym.settings.plan_note') }}</p>
+			</div>
+
+			<!-- Exercise List -->
+			<div class="exercise-editor-list">
+				<div
+						v-for="(exerciseId, index) in editedExercises"
+						:key="`${exerciseId}-${index}`"
+						class="exercise-editor-item"
+				>
+					<div class="exercise-info">
+						<span class="exercise-number">{{ index + 1 }}</span>
+						<div class="exercise-text">
+							<span class="exercise-name">{{ getExerciseDetails(exerciseId).name }}</span>
+							<span class="exercise-category">{{ getCategoryName(getExerciseDetails(exerciseId).category) }}</span>
+						</div>
+					</div>
+
+					<div class="exercise-actions">
+						<button
+								class="btn-icon"
+								:disabled="index === 0"
+								@click="moveExerciseUp(index)"
+								:aria-label="t('hawkGym.settings.move_up')"
+						>
+							<Icon name="chevron-up" size="20" />
+						</button>
+						<button
+								class="btn-icon"
+								:disabled="index === editedExercises.length - 1"
+								@click="moveExerciseDown(index)"
+								:aria-label="t('hawkGym.settings.move_down')"
+						>
+							<Icon name="chevron-down" size="20" />
+						</button>
+						<button
+								class="btn-icon btn-icon--danger"
+								@click="removeExercise(index)"
+								:aria-label="t('hawkGym.settings.remove')"
+						>
+							<Icon name="trash" size="20" />
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Add Exercise Button -->
+			<button
+					class="btn btn--secondary"
+					@click="showExercisePicker = true"
+			>
+				<Icon name="plus" size="20" />
+				{{ t('hawkGym.settings.add_exercise') }}
+			</button>
+
+			<!-- Save Exercise Changes -->
+			<button
+					v-if="hasExerciseChanges"
+					class="btn btn--primary"
+					@click="saveExerciseChanges"
+			>
+				<Icon name="check" size="20" />
+				{{ t('hawkGym.settings.save_changes') }}
+			</button>
+		</section>
+
+		<!-- Exercise Picker Modal -->
+		<div v-if="showExercisePicker" class="modal-overlay" @click="showExercisePicker = false">
+			<div class="modal-content" @click.stop>
+				<div class="modal-header">
+					<h3 class="modal-title">{{ t('hawkGym.settings.select_exercise') }}</h3>
+					<button
+							class="btn-icon"
+							@click="showExercisePicker = false"
+							:aria-label="t('common.close')"
+					>
+						<Icon name="close" size="24" />
+					</button>
+				</div>
+
+				<div class="modal-body">
+					<div
+							v-for="(exercises, category) in exercisesByCategory"
+							:key="category"
+							class="exercise-category"
+					>
+						<h4 class="category-title">{{ getCategoryName(category) }}</h4>
+						<div class="category-exercises">
+							<button
+									v-for="exercise in exercises"
+									:key="exercise.id"
+									class="exercise-option"
+									@click="addExercise(exercise.id)"
+							>
+								<span class="exercise-option-name">{{ t(exercise.nameKey) }}</span>
+								<Icon name="plus" size="16" />
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<!-- Timer Settings -->
 		<section class="settings-section">
 			<div class="section-header">
@@ -405,130 +530,6 @@ const getCategoryName = (category) => {
 					</div>
 				</div>
 			</div>
-			<!-- Workout Plan Editor -->
-			<section class="settings-section">
-				<div class="section-header">
-					<h2 class="section-title">
-						<Icon name="list" size="24" />
-						{{ t('hawkGym.settings.workout_plan') }}
-					</h2>
-					<button
-							v-if="hasExerciseChanges"
-							class="btn btn--ghost btn--small"
-							@click="resetExercises"
-					>
-						<Icon name="refresh" size="16" />
-						{{ t('hawkGym.settings.reset') }}
-					</button>
-				</div>
-
-				<div class="plan-info">
-					<p class="plan-day">
-						{{ t('hawkGym.settings.editing_plan') }}:
-						<strong>{{ t(`hawkGym.days.${selectedDay}`) }}</strong>
-					</p>
-					<p class="plan-note">{{ t('hawkGym.settings.plan_note') }}</p>
-				</div>
-
-				<!-- Exercise List -->
-				<div class="exercise-editor-list">
-					<div
-							v-for="(exerciseId, index) in editedExercises"
-							:key="`${exerciseId}-${index}`"
-							class="exercise-editor-item"
-					>
-						<div class="exercise-info">
-							<span class="exercise-number">{{ index + 1 }}</span>
-							<div class="exercise-text">
-								<span class="exercise-name">{{ getExerciseDetails(exerciseId).name }}</span>
-								<span class="exercise-category">{{ getCategoryName(getExerciseDetails(exerciseId).category) }}</span>
-							</div>
-						</div>
-
-						<div class="exercise-actions">
-							<button
-									class="btn-icon"
-									:disabled="index === 0"
-									@click="moveExerciseUp(index)"
-									:aria-label="t('hawkGym.settings.move_up')"
-							>
-								<Icon name="chevron-up" size="20" />
-							</button>
-							<button
-									class="btn-icon"
-									:disabled="index === editedExercises.length - 1"
-									@click="moveExerciseDown(index)"
-									:aria-label="t('hawkGym.settings.move_down')"
-							>
-								<Icon name="chevron-down" size="20" />
-							</button>
-							<button
-									class="btn-icon btn-icon--danger"
-									@click="removeExercise(index)"
-									:aria-label="t('hawkGym.settings.remove')"
-							>
-								<Icon name="trash" size="20" />
-							</button>
-						</div>
-					</div>
-				</div>
-
-				<!-- Add Exercise Button -->
-				<button
-						class="btn btn--secondary"
-						@click="showExercisePicker = true"
-				>
-					<Icon name="plus" size="20" />
-					{{ t('hawkGym.settings.add_exercise') }}
-				</button>
-
-				<!-- Save Exercise Changes -->
-				<button
-						v-if="hasExerciseChanges"
-						class="btn btn--primary"
-						@click="saveExerciseChanges"
-				>
-					<Icon name="check" size="20" />
-					{{ t('hawkGym.settings.save_changes') }}
-				</button>
-			</section>
-
-			<!-- Exercise Picker Modal -->
-			<div v-if="showExercisePicker" class="modal-overlay" @click="showExercisePicker = false">
-				<div class="modal-content" @click.stop>
-					<div class="modal-header">
-						<h3 class="modal-title">{{ t('hawkGym.settings.select_exercise') }}</h3>
-						<button
-								class="btn-icon"
-								@click="showExercisePicker = false"
-								:aria-label="t('common.close')"
-						>
-							<Icon name="x" size="24" />
-						</button>
-					</div>
-
-					<div class="modal-body">
-						<div
-								v-for="(exercises, category) in exercisesByCategory"
-								:key="category"
-								class="exercise-category"
-						>
-							<h4 class="category-title">{{ getCategoryName(category) }}</h4>
-							<div class="category-exercises">
-								<button
-										v-for="exercise in exercises"
-										:key="exercise.id"
-										class="exercise-option"
-										@click="addExercise(exercise.id)"
-								>
-									<span class="exercise-option-name">{{ t(exercise.nameKey) }}</span>
-									<Icon name="plus" size="16" />
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
 
 			<!-- Estimated Time Info -->
 			<div class="info-box">
@@ -540,8 +541,6 @@ const getCategoryName = (category) => {
 				</div>
 			</div>
 		</section>
-
-
 
 		<!-- Action Buttons -->
 		<section class="actions-section">
