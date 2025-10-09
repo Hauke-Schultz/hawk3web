@@ -258,6 +258,10 @@ const displayStats = computed(() => {
     background: linear-gradient(90deg, var(--warning-color), var(--warning-hover));
   }
 
+	&--danger {
+		background: linear-gradient(90deg, var(--danger-color), var(--danger-hover));
+	}
+
   &--info {
     background: linear-gradient(90deg, var(--info-color), var(--info-hover));
   }

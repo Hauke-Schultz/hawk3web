@@ -187,6 +187,13 @@ export function useScreenshot() {
                 resolve(dataUrl)
               })
               .catch(reject)
+        } else if (gameStateData.blocks) {
+            // StackMerge Game rendering
+            renderStackMergeGameState(ctx, gameStateData)
+            addGameUIOverlay(ctx, gameStateData)
+            addWatermarksToCanvas(ctx, gameStateData, gameStateData.boardConfig.width, gameStateData.boardConfig.height)
+            const dataUrl = canvas.toDataURL('image/png', 0.9)
+            resolve(dataUrl)
         } else {
           reject(new Error('Unknown game type - no fruits or numbers found'))
         }
@@ -195,6 +202,66 @@ export function useScreenshot() {
         reject(error)
       }
     })
+  }
+
+  const renderStackMergeGameState = (ctx, gameStateData) => {
+    const { boardConfig } = gameStateData
+    const yOffset = 75
+
+    // Set background
+    ctx.fillStyle = '#0F0F0F'
+    ctx.fillRect(0, 0, boardConfig.width, boardConfig.height)
+
+    // Add border
+    ctx.strokeStyle = '#3A3A3A'
+    ctx.lineWidth = 2
+    ctx.strokeRect(1, 1, boardConfig.width - 2, boardConfig.height - 2)
+
+    const maxBlocks = 10
+    const totalBlocks = gameStateData.blocks.length
+    const blocksToShow = gameStateData.blocks.slice(Math.max(0, totalBlocks - maxBlocks))
+    const startIndex = Math.max(0, totalBlocks - maxBlocks)
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
+    ctx.font = 'bold 14px Arial'
+    ctx.textAlign = 'right'
+    ctx.fillText(`Height: ${totalBlocks}`, boardConfig.width - 10, yOffset + 10)
+
+    const blockHeight = 40
+    const startY = yOffset + 40
+
+    blocksToShow.reverse().forEach((block, idx) => {
+      const y = startY + (idx * blockHeight)
+      const blockNum = totalBlocks - idx // Höchste Nummer oben
+
+      // Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
+      ctx.fillRect(block.x + 2, y + 2, block.width, block.height)
+
+      // Block
+      ctx.fillStyle = block.color
+      ctx.fillRect(block.x, y, block.width, block.height)
+
+      // Border
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'
+      ctx.lineWidth = 2
+      ctx.strokeRect(block.x, y, block.width, block.height)
+
+      // Number
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
+      ctx.font = 'bold 12px Arial'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(blockNum.toString(), block.x + block.width / 2, y + block.height / 2)
+    })
+
+    if (totalBlocks > maxBlocks) {
+      const indicatorY = startY + (blocksToShow.length * blockHeight) + 15
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+      ctx.font = 'bold 14px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText(`+${totalBlocks - maxBlocks} blocks below`, boardConfig.width / 2, indicatorY)
+    }
   }
 
   // Common UI overlay function for both games

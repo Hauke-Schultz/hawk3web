@@ -409,6 +409,20 @@ const handleViewScreenshots = (event) => {
     }
   }
 
+	&--danger {
+		.level-tile__level-number {
+			background-color: var(--danger-color);
+		}
+
+		.play-button {
+			background-color: var(--danger-color);
+
+			&:hover {
+				background-color: var(--danger-hover);
+			}
+		}
+	}
+
   &--info {
     .level-tile__level-number {
       background-color: var(--info-color);

@@ -92,19 +92,11 @@
 - **Num Game 7 Tile** - New tile that decreases every slide until it reaches 4
 - **Gift System** - Send and receive gifts with friends
 - **New Game StackMerge** - New stacking game
-
+- **StackMerge Level System** - 6 levels with increasing difficulty and endless mode
 
 ---
 
 ## 🚀 Version 0.3.4 - StackMerge
-
-#### **Modal Integration**
-- [ ] GameOverModal with stats and retry option
-- [ ] GameCompletedModal with detailed results and rewards
-
-#### **ScreenshotGallery Integration**
-- [ ] View saved screenshots on level overview page
-- [ ] View saved screenshots in GameCompletedModal
 
 #### **Achievements Integration**
 **Tasks:**

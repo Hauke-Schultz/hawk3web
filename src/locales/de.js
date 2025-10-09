@@ -119,6 +119,8 @@ export default {
 			endless_session: 'Endlos-Session',
 			time_bonus: 'Zeit-Bonus ({minutes} Minuten)',
 			merge_bonus: 'Merge-Bonus ({merges} Zusammenfügungen)',
+      height_bonus: 'Höhen-Bonus ({height} Blöcke)',
+      score_bonus: 'Punkte-Bonus ({score} Punkte)',
 		}
 	},
 

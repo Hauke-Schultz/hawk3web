@@ -120,6 +120,8 @@ export default {
 			endless_session: 'Endless Session',
 			time_bonus: 'Time Bonus ({minutes} minutes)',
 			merge_bonus: 'Merge Bonus ({merges} merges)',
+      height_bonus: 'Height Bonus ({height} blocks)',
+      score_bonus: 'Score Bonus ({score} points)',
 		}
 	},
 

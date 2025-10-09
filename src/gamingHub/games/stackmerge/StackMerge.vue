@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useI18n } from '../../../composables/useI18n.js'
 import { getLevelConfig, getColorForHeight, STACK_CONFIG } from './stackConfig'
+import { useScreenshot } from '../../composables/useScreenshot.js'
 import { StackEngine } from './StackEngine.js'
 import Header from '../../components/Header.vue'
 import Icon from '../../../components/Icon.vue'
@@ -24,6 +25,7 @@ const props = defineProps({
 
 const router = useRouter()
 const { t } = useI18n()
+const { saveGameScreenshot, getScreenshotsForLevel } = useScreenshot()
 const {
 	gameData,
 	updateStackMergeLevel,
@@ -62,6 +64,8 @@ const showGameOverModal = ref(false)
 const earnedAchievements = ref([])
 const levelReward = ref(null)
 const rewardBreakdown = ref(null)
+const enableScreenshotCapture = ref(false)
+const currentGameScreenshotData = ref(null)
 
 // Computed
 const currentLevelConfig = computed(() => getLevelConfig(currentLevel.value))
@@ -105,6 +109,71 @@ const endlessCurrentStars = computed(() => {
 const endlessBlocksToNextStar = computed(() => {
 	if (!endlessStats.value) return 0
 	return endlessStats.value.blocksToNextStar
+})
+
+const screenshotHighscoreInfo = computed(() => {
+	if (gameState.value !== 'completed' && gameState.value !== 'gameover') {
+		return {
+			isNewHighScore: false,
+			rank: null,
+			totalScreenshots: 0,
+			beatScore: null,
+			isTopList: false,
+			isFirstEver: false,
+			previousBest: 0,
+			worstInTop5: 0
+		}
+	}
+
+
+	if (!enableScreenshotCapture.value) {
+		return {
+			isNewHighScore: false,
+			rank: null,
+			totalScreenshots: 0,
+			beatScore: null,
+			isTopList: false,
+			isFirstEver: false,
+			previousBest: 0,
+			worstInTop5: 0
+		}
+	}
+
+	const levelScreenshots = getScreenshotsForLevel('stackMerge', currentLevel.value)
+	let sortedScreenshots = [...levelScreenshots].sort((a, b) => b.score - a.score)
+
+	const scoreValue = currentScore.value ?? 0
+	sortedScreenshots = sortedScreenshots.filter(screenshot => screenshot.score !== scoreValue)
+
+	let rank = 1
+	let beatScore = null
+
+	for (const screenshot of sortedScreenshots) {
+		if (scoreValue > screenshot.score) {
+			beatScore = screenshot.score
+			break
+		}
+		rank++
+	}
+
+	if (rank > sortedScreenshots.length && sortedScreenshots.length < 5) {
+		rank = sortedScreenshots.length + 1
+		beatScore = null
+	}
+
+	const isNewHighScore = rank <= 5
+	const isTopList = rank <= Math.min(5, sortedScreenshots.length + 1)
+
+	return {
+		isNewHighScore,
+		rank: isNewHighScore ? rank : null,
+		totalScreenshots: sortedScreenshots.length,
+		beatScore,
+		isTopList,
+		isFirstEver: sortedScreenshots.length === 0,
+		previousBest: sortedScreenshots[0]?.score || 0,
+		worstInTop5: sortedScreenshots[Math.min(4, sortedScreenshots.length - 1)]?.score || 0
+	}
 })
 
 // Game functions
@@ -241,6 +310,11 @@ const completeLevel = () => {
 	if (gameState.value !== 'playing') return
 
 	gameState.value = 'completed'
+
+	// Prepare screenshot data
+	currentGameScreenshotData.value = captureScreenshotData()
+	enableScreenshotCapture.value = true
+
 	stopSessionTimer()
 	stopUpdateLoop()
 
@@ -363,11 +437,83 @@ const completeLevel = () => {
 	})
 }
 
-// Game over handler
-const handleGameOver = () => {
-	if (gameState.value !== 'playing') return
+const captureScreenshotData = () => {
+	if (gameState.value !== 'completed') return null
 
-	gameState.value = 'gameover'
+	const screenshotData = {
+		// Game State
+		player: {
+			name: gameData.player.name,
+			avatar: gameData.player.avatar
+		},
+		level: currentLevel.value,
+		score: currentScore.value,
+		moves: currentHeight.value,
+		timeElapsed: isEndlessMode.value ? sessionTime.value : 0,
+		starsEarned: isEndlessMode.value ? endlessCurrentStars.value : calculateStars(),
+
+		// Blocks state
+		blocks: placedBlocks.value.map(block => ({
+			x: block.x,
+			y: block.y,
+			width: block.width,
+			height: block.height,
+			color: block.color
+		})),
+
+		// Board configuration
+		boardConfig: {
+			width: 375,
+			height: 400,
+			blockHeight: 40
+		},
+
+		// Game mode
+		isEndless: isEndlessMode.value,
+		gameMode: isEndlessMode.value ? 'endless' : 'level',
+
+		// Metadata
+		capturedAt: new Date().toISOString(),
+		gameTitle: t('stackMerge.title')
+	}
+
+	return screenshotData
+}
+
+const calculateStars = () => {
+	if (totalStacks.value === 0) return 0
+	const perfectPercent = Math.round((perfectStacks.value / totalStacks.value) * 100)
+	return perfectPercent >= 80 ? 3 : perfectPercent >= 60 ? 2 : 1
+}
+
+const handleSaveScreenshot = async (screenshotMetadata) => {
+	if (!currentGameScreenshotData.value) {
+		console.warn('No screenshot data available')
+		return
+	}
+
+	try {
+		const success = await saveGameScreenshot('stackMerge', currentGameScreenshotData.value)
+
+		if (success) {
+			console.log('🖼️ Screenshot saved successfully!')
+		} else {
+			console.error('Failed to save screenshot')
+		}
+	} catch (error) {
+		console.error('Error saving screenshot:', error)
+	}
+}
+
+const completeEndlessMode = () => {
+	if (gameState.value !== 'playing' || !isEndlessMode.value) return
+
+	gameState.value = 'completed'
+
+	// Prepare screenshot data
+	currentGameScreenshotData.value = captureScreenshotData()
+	enableScreenshotCapture.value = true
+
 	stopSessionTimer()
 	stopUpdateLoop()
 
@@ -375,63 +521,132 @@ const handleGameOver = () => {
 		engine.value.stop()
 	}
 
-	// For endless mode
-	if (isEndlessMode.value) {
-		const stars = calculateEndlessStars(currentHeight.value)
-		const perfectPercent = totalStacks.value > 0
-				? Math.round((perfectStacks.value / totalStacks.value) * 100)
-				: 0
+	showCompletedModal.value = true
+	const stars = calculateEndlessStars(currentHeight.value)
+	const perfectPercent = totalStacks.value > 0
+			? Math.round((perfectStacks.value / totalStacks.value) * 100)
+			: 0
 
-		updateStackMergeLevel(currentLevel.value, {
-			completed: true,
-			stars: stars,
-			height: currentHeight.value,
-			score: currentScore.value,
-			perfectPercent: perfectPercent,
-			totalStacks: totalStacks.value,
-			perfectStacks: perfectStacks.value,
-			combo: maxCombo.value
+	updateStackMergeLevel(currentLevel.value, {
+		completed: true,
+		stars: stars,
+		height: currentHeight.value,
+		score: currentScore.value,
+		perfectPercent: perfectPercent,
+		totalStacks: totalStacks.value,
+		perfectStacks: perfectStacks.value,
+		combo: maxCombo.value
+	})
+
+	// Calculate endless rewards
+	const heightBonus = Math.floor(currentHeight.value / 10) * 50 // 50 coins per 10 blocks
+	const scoreBonus = Math.floor(currentScore.value / 100) * 10 // 10 coins per 100 points
+	const perfectBonus = perfectPercent >= 80 ? 200 : perfectPercent >= 60 ? 100 : 0
+	const starReward = stars * 100 // 100 coins per star
+
+	const totalCoins = heightBonus + scoreBonus + perfectBonus + starReward
+	const totalDiamonds = stars + (perfectPercent >= 80 ? 2 : 0)
+
+	levelReward.value = {
+		coins: totalCoins,
+		diamonds: totalDiamonds
+	}
+
+	const rewardItems = []
+
+	// Height bonus
+	if (heightBonus > 0) {
+		rewardItems.push({
+			type: 'height',
+			source: t('rewards.breakdown.height_bonus', { height: currentHeight.value }),
+			coins: heightBonus,
+			diamonds: 0,
+			icon: 'arrow-up',
+			style: 'performance'
 		})
+	}
 
-		// Calculate endless reward
-		const heightBonus = Math.floor(currentHeight.value / 10) * 50 // 50 coins per 10 blocks
-		const starReward = stars * 100 // 100 coins per star
-		const totalCoins = heightBonus + starReward
-		const totalDiamonds = stars
+	// Score bonus
+	if (scoreBonus > 0) {
+		rewardItems.push({
+			type: 'score',
+			source: t('rewards.breakdown.score_bonus', { score: currentScore.value }),
+			coins: scoreBonus,
+			diamonds: 0,
+			icon: 'star',
+			style: 'performance'
+		})
+	}
 
-		levelReward.value = {
+	// Perfect bonus
+	if (perfectBonus > 0) {
+		rewardItems.push({
+			type: 'perfect',
+			source: t('rewards.breakdown.perfect_performance'),
+			coins: perfectBonus,
+			diamonds: 0,
+			icon: 'trophy',
+			style: 'perfect'
+		})
+	}
+
+	// Star reward
+	if (stars > 0) {
+		rewardItems.push({
+			type: 'stars',
+			source: t('rewards.breakdown.star_performance', { stars }),
+			coins: starReward,
+			diamonds: totalDiamonds,
+			icon: 'star-filled',
+			style: 'special'
+		})
+	}
+
+	rewardBreakdown.value = {
+		items: rewardItems,
+		total: {
 			coins: totalCoins,
 			diamonds: totalDiamonds
 		}
+	}
 
-		rewardBreakdown.value = {
-			items: [
-				{
-					type: 'height',
-					source: t('stackMerge.height') + ' Bonus',
-					coins: heightBonus,
-					diamonds: 0,
-					icon: 'arrow-up',
-					style: 'performance'
-				},
-				{
-					type: 'stars',
-					source: t('stats.score') + ' Stars',
-					coins: starReward,
-					diamonds: totalDiamonds,
-					icon: 'star-filled',
-					style: 'special'
-				}
-			],
-			total: {
-				coins: totalCoins,
-				diamonds: totalDiamonds
-			}
-		}
+	// Update player currency
+	gameData.player.coins = (gameData.player.coins || 0) + totalCoins
+	gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
 
-		// Update player currency
-		gameData.player.coins = (gameData.player.coins || 0) + totalCoins
-		gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
+	// Update game stats
+	const gameStats = {
+		gamesPlayed: gameData.games.stackMerge.gamesPlayed + 1,
+		totalScore: gameData.games.stackMerge.totalScore + currentScore.value,
+		highScore: Math.max(gameData.games.stackMerge.highScore, currentScore.value),
+		totalStacks: gameData.games.stackMerge.totalStacks + totalStacks.value,
+		totalPerfectStacks: gameData.games.stackMerge.totalPerfectStacks + perfectStacks.value,
+		bestCombo: Math.max(gameData.games.stackMerge.bestCombo, maxCombo.value),
+		maxCombo: Math.max(gameData.games.stackMerge.maxCombo, maxCombo.value)
+	}
+
+	updateGameStats('stackMerge', gameStats)
+	addScore(currentScore.value)
+	showCompletedModal.value = true
+}
+
+// Game over handler
+const handleGameOver = () => {
+	if (gameState.value !== 'playing') return
+
+	// For endless mode, complete instead of game over
+	if (isEndlessMode.value) {
+		completeEndlessMode()
+		return
+	}
+
+	gameState.value = 'gameover'
+
+	stopSessionTimer()
+	stopUpdateLoop()
+
+	if (engine.value) {
+		engine.value.stop()
 	}
 
 	// Update game stats
@@ -448,12 +663,7 @@ const handleGameOver = () => {
 	updateGameStats('stackMerge', gameStats)
 	addScore(currentScore.value)
 
-	// Show appropriate modal
-	if (isEndlessMode.value) {
-		showCompletedModal.value = true
-	} else {
-		showGameOverModal.value = true
-	}
+	showGameOverModal.value = true
 }
 
 // Navigation
@@ -465,11 +675,6 @@ const backToLevelSelection = () => {
 const handleMenuClick = () => {
 	stopUpdateLoop()
 	router.push('/')
-}
-
-const handleModalClose = () => {
-	showCompletedModal.value = false
-	showGameOverModal.value = false
 }
 
 const handleModalNextLevel = () => {
@@ -672,6 +877,7 @@ watch(() => props.level, (newLevel) => {
 				:total-pairs="totalStacks"
 				:stars-earned="isEndlessMode ? endlessCurrentStars : (perfectPercentage >= 80 ? 3 : perfectPercentage >= 60 ? 2 : 1)"
 				:show-stars="true"
+				:show-completion-phases="true"
 				:reward="levelReward"
 				:show-reward="true"
 				:reward-breakdown="rewardBreakdown"
@@ -682,10 +888,16 @@ watch(() => props.level, (newLevel) => {
 				:next-level-label="t('stackMerge.nextLevel')"
 				:play-again-label="t('common.play_again')"
 				:back-to-games-label="t('common.back_to_levels')"
+				:game-state="currentGameScreenshotData"
+				:high-score-info="screenshotHighscoreInfo"
+				:enable-screenshot="enableScreenshotCapture"
+				:auto-save-screenshot="true"
+				game-name="stackMerge"
+				@save-screenshot="handleSaveScreenshot"
 				@next-level="handleModalNextLevel"
 				@play-again="handleModalPlayAgain"
 				@back-to-games="handleModalBackToLevels"
-				@close="handleModalClose"
+				@close="handleModalBackToLevels"
 		/>
 
 		<!-- Game Over Modal -->
@@ -700,7 +912,7 @@ watch(() => props.level, (newLevel) => {
 				:back-to-games-label="t('common.back_to_levels')"
 				@try-again="handleModalPlayAgain"
 				@back-to-games="handleModalBackToLevels"
-				@close="handleModalClose"
+				@close="handleModalBackToLevels"
 		/>
 	</main>
 </template>
