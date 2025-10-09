@@ -93,10 +93,25 @@
 - **Gift System** - Send and receive gifts with friends
 - **New Game Hawk Tower** - New stacking game
 - **Hawk Tower Level System** - 6 levels with increasing difficulty and endless mode
+- **Hawk Gym Timer** - Basic workout timer with exercise/rest intervals
+- **Hawk Gym Basic Plan** - Predefined weekly workout plan with fixed exercises
 
 ---
 
-## 🚀 Version 0.3.4 - Hawk Tower
+## 🚀 Version 0.3.5 - Hawk Gym
+
+### **📋 Phase 2: Settings**
+**Features for future implementation:**
+- Edit exercises per day
+- Adjust timer durations (exercise, rest, break)
+- Change number of rounds
+- Reorder exercises
+- Change workout days
+- Add/remove exercises
+- Sound effects
+
+
+## 🚀 Version 0.3.6 - Hawk Tower
 
 #### **Achievements Integration**
 **Tasks:**
@@ -111,7 +126,7 @@
 
 ---
 
-## 🚀 Version 0.3.5 - Enhancements
+## 🚀 Version 0.3.7 - Enhancements
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges

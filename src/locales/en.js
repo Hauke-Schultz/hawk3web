@@ -1192,6 +1192,122 @@ export default {
 		}
 	},
 
+  hawkGym: {
+    title: 'Hawk Gym',
+    projectDescription: 'Daily workout timer with exercise routines. Stay fit with guided workouts.',
+
+    // Days of week
+    days: {
+      monday: 'Monday',
+      tuesday: 'Tuesday',
+      wednesday: 'Wednesday',
+      thursday: 'Thursday',
+      friday: 'Friday',
+      saturday: 'Saturday',
+      sunday: 'Sunday'
+    },
+
+    // Timer states
+    exercise: 'Exercise',
+    rest: 'Rest',
+    break: 'Break',
+    finished: 'Workout Complete!',
+
+    // Controls
+    start: 'Start Workout',
+    pause: 'Pause',
+    resume: 'Resume',
+    skip: 'Skip',
+    reset: 'Reset',
+
+    // Progress
+    round: 'Round',
+    exercise_count: 'Exercise',
+    next: 'Next',
+    get_ready: 'Get Ready',
+
+    // Workout plans
+    plans: {
+      monday: {
+        name: 'Legs & Glutes',
+        exercises: [
+          'Squats',
+          'Lunges',
+          'Calf Raises',
+          'Glute Bridge',
+          'Squats with Dumbbells',
+          'Stretching'
+        ]
+      },
+      tuesday: {
+        name: 'Upper Body',
+        exercises: [
+          'Push-ups',
+          'Dumbbell Rows',
+          'Shoulder Press',
+          'Bicep Curls',
+          'Tricep Extensions',
+          'Stretching'
+        ]
+      },
+      wednesday: {
+        name: 'Core & Abs',
+        exercises: [
+          'Sit-ups',
+          'Russian Twist',
+          'Plank',
+          'Leg Raises',
+          'Superman',
+          'Stretching'
+        ]
+      },
+      thursday: {
+        name: 'Full Body Light',
+        exercises: [
+          'Squat + Shoulder Press',
+          'Push-up + Row',
+          'Glute Bridge + Leg Raises',
+          'Side Plank',
+          'Jumping Jacks',
+          'Stretching'
+        ]
+      },
+      friday: {
+        name: 'Strength & Posture',
+        exercises: [
+          'Deadlifts',
+          'Bent Over Rows',
+          'Push-ups',
+          'Slow Squats',
+          'Plank + Shoulder Taps',
+          'Stretching'
+        ]
+      },
+      saturday: {
+        name: 'Core + Cardio',
+        exercises: [
+          'Jumping Jacks',
+          'Sit-ups',
+          'Mountain Climbers',
+          'Superman Hold',
+          'Crunches with Twist',
+          'Stretching'
+        ]
+      },
+      sunday: {
+        name: 'Rest Day',
+        exercises: [
+          'Light Walking',
+          'Stretching',
+          'Deep Breathing',
+          'Foam Rolling',
+          'Yoga',
+          'Meditation'
+        ]
+      }
+    }
+  },
+
 	// Game Controls
 	controls: {
 		pause: 'Pause',

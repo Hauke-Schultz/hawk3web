@@ -201,6 +201,16 @@ const handleMysteryBoxClaim = (reward) => {
 const handleMenuClick = () => {
 	router.push('/')
 }
+
+const navigateToGym = () => {
+	router.push('/hawk-gym')
+}
+
+const getTodayName = () => {
+	const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+	const today = new Date().getDay()
+	return days[today]
+}
 </script>
 
 <template>
@@ -400,6 +410,23 @@ const handleMenuClick = () => {
 		<section class="hero">
 			<div class="hero-title"><h1>{{ t('portfolio.title') }}</h1></div>
 			<p class="hero-subtitle">{{ t('portfolio.subtitle') }}</p>
+		</section>
+
+		<!-- Hawk Gym Project Card -->
+		<section class="gym-project-section">
+			<div class="project-card project-card--gym" @click="navigateToGym()">
+				<div class="project-icon">
+					<Icon name="dumbbell" size="48" />
+				</div>
+				<div class="project-content">
+					<h2 class="project-title">{{ t('hawkGym.title') }}</h2>
+					<p class="project-description">{{ t('hawkGym.projectDescription') }}</p>
+					<div class="project-meta">
+						<span class="project-tag">{{ t(`hawkGym.days.${getTodayName()}`) }}</span>
+						<span class="project-duration">~20 min</span>
+					</div>
+				</div>
+			</div>
 		</section>
 
 		<!-- Coming Soon Projekte -->
@@ -720,6 +747,59 @@ const handleMenuClick = () => {
 		font-weight: var(--font-weight-bold);
 		line-height: 1;
 	}
+}
+
+// Add new gym-project-section styles
+.gym-project-section {
+	margin-bottom: var(--space-4);
+}
+
+.project-card--gym {
+	opacity: 1;
+	cursor: pointer;
+	border-left: 4px solid var(--primary-color);
+	transition: all 0.2s ease;
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: var(--card-shadow-hover);
+		border-left-color: var(--success-color);
+	}
+
+	.project-icon {
+		color: var(--primary-color);
+	}
+}
+
+.project-meta {
+	display: flex;
+	gap: var(--space-3);
+	margin-top: var(--space-2);
+	flex-wrap: wrap;
+}
+
+.project-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--primary-color);
+	color: var(--white);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+}
+
+.project-duration {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--bg-secondary);
+	color: var(--text-secondary);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
 }
 
 // H1 Animation (from original)

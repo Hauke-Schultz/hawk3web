@@ -1193,6 +1193,122 @@ export default {
 		}
 	},
 
+  hawkGym: {
+    title: 'Hawk Gym',
+    projectDescription: 'Täglicher Trainings-Timer mit Übungsroutinen. Bleib fit mit geführten Workouts.',
+
+    // Wochentage
+    days: {
+      monday: 'Montag',
+      tuesday: 'Dienstag',
+      wednesday: 'Mittwoch',
+      thursday: 'Donnerstag',
+      friday: 'Freitag',
+      saturday: 'Samstag',
+      sunday: 'Sonntag'
+    },
+
+    // Timer-Zustände
+    exercise: 'Übung',
+    rest: 'Pause',
+    break: 'Erholung',
+    finished: 'Training Abgeschlossen!',
+
+    // Steuerung
+    start: 'Training Starten',
+    pause: 'Pausieren',
+    resume: 'Fortsetzen',
+    skip: 'Überspringen',
+    reset: 'Zurücksetzen',
+
+    // Fortschritt
+    round: 'Durchgang',
+    exercise_count: 'Übung',
+    next: 'Nächste',
+    get_ready: 'Bereit Machen',
+
+    // Trainingspläne
+    plans: {
+      monday: {
+        name: 'Beine & Po',
+        exercises: [
+          'Kniebeugen',
+          'Ausfallschritte',
+          'Wadenheben',
+          'Glute Bridge',
+          'Kniebeuge mit Hanteln',
+          'Dehnung'
+        ]
+      },
+      tuesday: {
+        name: 'Oberkörper',
+        exercises: [
+          'Liegestütze',
+          'Rudern mit Hanteln',
+          'Schulterdrücken',
+          'Bizepscurls',
+          'Trizepsstrecken',
+          'Dehnung'
+        ]
+      },
+      wednesday: {
+        name: 'Rumpf & Bauch',
+        exercises: [
+          'Sit-ups',
+          'Russian Twist',
+          'Plank',
+          'Beinheben',
+          'Superman',
+          'Dehnung'
+        ]
+      },
+      thursday: {
+        name: 'Ganzkörper Leicht',
+        exercises: [
+          'Kniebeuge + Schulterdrücken',
+          'Liegestütz + Rudern',
+          'Glute Bridge + Beinheben',
+          'Seitstütz',
+          'Hampelmänner',
+          'Dehnung'
+        ]
+      },
+      friday: {
+        name: 'Kraft & Haltung',
+        exercises: [
+          'Kreuzheben',
+          'Rudern Vorgebeugt',
+          'Liegestütze',
+          'Kniebeugen Langsam',
+          'Plank + Schulter-Taps',
+          'Dehnung'
+        ]
+      },
+      saturday: {
+        name: 'Core + Cardio',
+        exercises: [
+          'Jumping Jacks',
+          'Sit-ups',
+          'Mountain Climbers',
+          'Superman Hold',
+          'Crunches mit Drehung',
+          'Dehnung'
+        ]
+      },
+      sunday: {
+        name: 'Ruhetag',
+        exercises: [
+          'Leichtes Gehen',
+          'Dehnung',
+          'Tiefes Atmen',
+          'Foam Rolling',
+          'Yoga',
+          'Meditation'
+        ]
+      }
+    }
+  },
+
 	// Spielsteuerung
 	controls: {
 		pause: 'Pausieren',
