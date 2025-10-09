@@ -42,25 +42,25 @@ export const STACK_CONFIG = {
     },
     2: {
       name: 'Level 2',
-      targetHeight: 15,
+      targetHeight: 20,
       speedMultiplier: 1.2,
       difficulty: 'easy'
     },
     3: {
       name: 'Level 3',
-      targetHeight: 20,
+      targetHeight: 30,
       speedMultiplier: 1.4,
       difficulty: 'medium'
     },
     4: {
       name: 'Level 4',
-      targetHeight: 25,
+      targetHeight: 40,
       speedMultiplier: 1.6,
       difficulty: 'medium'
     },
     5: {
       name: 'Level 5',
-      targetHeight: 30,
+      targetHeight: 50,
       speedMultiplier: 1.8,
       difficulty: 'hard'
     },

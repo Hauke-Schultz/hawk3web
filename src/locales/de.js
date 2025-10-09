@@ -862,19 +862,19 @@ export default {
       },
       2: {
         title: 'Fortgeschritten',
-        description: 'Baue einen Turm von 15 Blöcken'
+        description: 'Baue einen Turm von 20 Blöcken'
       },
       3: {
         title: 'Profi',
-        description: 'Baue einen Turm von 20 Blöcken'
+        description: 'Baue einen Turm von 30 Blöcken'
       },
       4: {
         title: 'Experte',
-        description: 'Baue einen Turm von 25 Blöcken'
+        description: 'Baue einen Turm von 40 Blöcken'
       },
       5: {
         title: 'Meister',
-        description: 'Baue einen Turm von 30 Blöcken'
+        description: 'Baue einen Turm von 50 Blöcken'
       },
       6: {
         title: 'Endlos-Modus',

@@ -863,19 +863,19 @@ export default {
       },
       2: {
         title: 'Rising Stack',
-        description: 'Build a tower of 15 blocks'
+        description: 'Build a tower of 20 blocks'
       },
       3: {
         title: 'Sky Builder',
-        description: 'Build a tower of 20 blocks'
+        description: 'Build a tower of 30 blocks'
       },
       4: {
         title: 'High Rise',
-        description: 'Build a tower of 25 blocks'
+        description: 'Build a tower of 40 blocks'
       },
       5: {
         title: 'Skyscraper',
-        description: 'Build a tower of 30 blocks'
+        description: 'Build a tower of 50 blocks'
       },
       6: {
         title: 'Endless Tower',

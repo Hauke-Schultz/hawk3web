@@ -91,17 +91,35 @@
 - **Whack A Mole Minigame** - New minigame to win coins and diamonds
 - **Num Game 7 Tile** - New tile that decreases every slide until it reaches 4
 - **Gift System** - Send and receive gifts with friends
+- **New Game StackMerge** - New stacking game
+
 
 ---
 
-## 🚀 Version 0.3.4 - Enhancements
+## 🚀 Version 0.3.4 - StackMerge
 
-- 
+#### **Modal Integration**
+- [ ] GameOverModal with stats and retry option
+- [ ] GameCompletedModal with detailed results and rewards
+
+#### **ScreenshotGallery Integration**
+- [ ] View saved screenshots on level overview page
+- [ ] View saved screenshots in GameCompletedModal
+
+#### **Achievements Integration**
+**Tasks:**
+- [ ] Stack 20, 50, 80 blocks total
+- [ ] Get 10 perfect stacks in a row
+- [ ] Complete all levels with 3 stars
+- [ ] Reach height 90 in endless mode
+
+#### **Animations & Visual Feedback**
+- [ ] Perfect stack flash/glow effect
+- [ ] Combo counter pop animation
 
 ---
 
 ## 🚀 Version 0.3.5 - Enhancements
-
 
 ### **📳 Screen Shake**
 - Screen vibrates during large merges

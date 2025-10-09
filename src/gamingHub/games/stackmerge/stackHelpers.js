@@ -166,9 +166,9 @@ export const calculateEndlessStars = (height) => {
   const progress = Math.min((height / maxHeight) * 100, 100) // Cap at 100%
 
   // Progressive star system
-  if (progress >= 100) return 3 // 100 blocks = 3 stars
-  if (progress >= 67) return 2   // 67 blocks = 2 stars
-  if (progress >= 34) return 1   // 34 blocks = 1 star
+  if (progress >= 80) return 3
+  if (progress >= 60) return 2
+  if (progress >= 40) return 1
   return 0
 }
 
@@ -184,9 +184,9 @@ export const getEndlessStarProgress = (height) => {
 
   // Calculate blocks needed for next star
   let nextStarAt = 0
-  if (currentStars === 0) nextStarAt = 34
-  else if (currentStars === 1) nextStarAt = 67
-  else if (currentStars === 2) nextStarAt = 100
+  if (currentStars === 0) nextStarAt = 40
+  else if (currentStars === 1) nextStarAt = 60
+  else if (currentStars === 2) nextStarAt = 80
 
   const blocksToNextStar = Math.max(0, nextStarAt - height)
 
