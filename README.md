@@ -22,7 +22,7 @@ npm run preview
 
 ### Games
 - **Memory Game** - 6 levels with card matching and combo system
-- **FruitMerge** - Physics-based merge game (5 levels + endless mode)
+- **HawkFruit** - Physics-based merge game (5 levels + endless mode)
     - Special fruits: Mold, Bomb, Rainbow, Next fruit preview
 - **NumMerge** - 2048-style number merging (5 levels + endless mode)
     - Special tile: 7-tile that decreases each move
@@ -49,7 +49,7 @@ npm run preview
 - **Vue 3** - Composition API with `<script setup>`
 - **Vite** - Fast development and optimized builds
 - **SCSS** - BEM methodology for styling
-- **Matter.js** - Physics engine for FruitMerge
+- **Matter.js** - Physics engine for HawkFruit
 - **Vue Router** - Client-side navigation
 - **PWA** - Progressive Web App with service worker
 

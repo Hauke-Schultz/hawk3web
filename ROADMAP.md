@@ -27,17 +27,17 @@
 - **Internationalization & Language Support** - Complete English/German translation system
 - **About Page Implementation** - Comprehensive About/Über uns page with platform and developer information
 - **Extended Icon Library** - Additional SVG icons for enhanced UI (info, mail, document, shield, heart, code, globe, memory)
-- **FruitMerge Physics Foundation** - Complete Matter.js physics engine with drop mechanics
-- **FruitMerge Core Merge Logic** - Collision detection, fruit merging, and level completion system
+- **HawkFruit Physics Foundation** - Complete Matter.js physics engine with drop mechanics
+- **HawkFruit Core Merge Logic** - Collision detection, fruit merging, and level completion system
 - **Visual Merge Effects** - Enhanced animations for fruit merging and level completion
 - **Merge Animation Polish** - Particle effects, smooth transitions, and visual feedback improvements
 - **Enhanced LocalStorage Stats** - Improved level statistics with best score/time/moves tracking
 - **Game Over Detection** - Height-based game over when fruits reach warning zone
-- **FruitMerge Achievements** - Game-specific achievements integration
+- **HawkFruit Achievements** - Game-specific achievements integration
 - **Achievement Rewards Integration** - Automatic coin rewards for achievements
 - **Daily Reward Card** - Interactive daily reward claiming with checkbox functionality
 - **Enhanced Currency System** - Expanded coin and diamond economy with transaction tracking
-- **FruitMerge Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
+- **HawkFruit Endless Mode** - Level 6 endless gameplay with milestone rewards and star system
 - **Endless Mode Statistics** - Time-based play tracking, merge counting, and score milestones
 - **Enhanced Reward System** - Detailed reward breakdown with difficulty multipliers and achievement integration
 - **Shop System Implementation** - Complete shop page with category navigation and item display
@@ -75,7 +75,7 @@
 - **Daily Reward System Improvements** - Add minigames for reward
 - **Three Shells Minigame** - Interactive game to win daily rewards with cups and diamond/coin prizes
 - **Slot Machine Minigame** - Spin to win coins, diamonds, or power-ups with animated reels
-- **Screenshot System for FruitMerge** - Save and view game state screenshots with metadata
+- **Screenshot System for HawkFruit** - Save and view game state screenshots with metadata
 - **Screenshot gallery** - View saved screenshots on level overview page and in GameCompletedModal
 - **Multi-Game Support** - Screenshot functionality for Num Game
 - **Rainbow Fruit** - don't merge with giant fruits
@@ -190,7 +190,7 @@
 
 **Games & Gameplay:**
 - ✅ Memory Game (6 levels) - Vollständig implementiert mit Save/Restore
-- ✅ FruitMerge Game (6 levels inkl. Endless) - Vollständig implementiert mit Physics Engine
+- ✅ HawkFruit Game (6 levels inkl. Endless) - Vollständig implementiert mit Physics Engine
 - ✅ Save/Restore System - Funktioniert für beide Spiele
 - ✅ Achievement System - 20+ Achievements mit Rewards
 - ✅ Shop System - Vollständig funktionsfähig mit Inventory

@@ -168,8 +168,8 @@ const formatGameTitle = (gameId) => {
 					<!-- Empty State -->
 					<div v-if="screenshots.length === 0" class="gallery-empty">
 						<Icon name="camera" size="48" />
-						<p class="empty-message">{{ t('fruitMerge.no_screenshots') }}</p>
-						<p class="empty-description">{{ t('fruitMerge.play_level_for_screenshots') }}</p>
+						<p class="empty-message">{{ t('hawkFruit.no_screenshots') }}</p>
+						<p class="empty-description">{{ t('hawkFruit.play_level_for_screenshots') }}</p>
 					</div>
 
 					<!-- Screenshots List -->
@@ -194,7 +194,7 @@ const formatGameTitle = (gameId) => {
 								<div class="screenshot-thumbnail">
 									<img
 											:src="screenshot.imageData"
-											:alt="t('fruitMerge.screenshot_alt', { score: screenshot.score })"
+											:alt="t('hawkFruit.screenshot_alt', { score: screenshot.score })"
 											class="thumbnail-image"
 									/>
 								</div>
@@ -208,7 +208,7 @@ const formatGameTitle = (gameId) => {
 									<div v-if="showMetadata" class="screenshot-secondary-info">
 										<span v-if="screenshot.moves" class="info-item">{{ screenshot.moves }} {{ t('stats.moves') }}</span>
 										<span v-if="screenshot.timeElapsed" class="info-item">{{ Math.floor(screenshot.timeElapsed / 60) }}:{{ String(screenshot.timeElapsed % 60).padStart(2, '0') }}</span>
-										<span v-if="screenshot.fruitsCount" class="info-item">{{ screenshot.fruitsCount }} {{ t('fruitMerge.fruits_on_board') }}</span>
+										<span v-if="screenshot.fruitsCount" class="info-item">{{ screenshot.fruitsCount }} {{ t('hawkFruit.fruits_on_board') }}</span>
 										<span v-if="screenshot.highestNumber" class="info-item">{{ t('numMerge.highest_number') }}: {{ screenshot.highestNumber }}</span>
 									</div>
 								</div>
@@ -228,7 +228,7 @@ const formatGameTitle = (gameId) => {
 									<div class="expanded-image-container">
 										<img
 												:src="screenshot.imageData"
-												:alt="t('fruitMerge.screenshot_alt', { score: screenshot.score })"
+												:alt="t('hawkFruit.screenshot_alt', { score: screenshot.score })"
 												class="expanded-image"
 										/>
 									</div>
@@ -239,7 +239,7 @@ const formatGameTitle = (gameId) => {
 											<button
 													class="btn btn--small btn--info"
 													@click.stop="downloadScreenshot(screenshot)"
-													:title="t('fruitMerge.download_screenshot')"
+													:title="t('hawkFruit.download_screenshot')"
 											>
 												<Icon name="download" size="14" />
 												{{ t('common.download') }}
@@ -253,14 +253,14 @@ const formatGameTitle = (gameId) => {
 									        'btn--info': isScreenshotCopied(screenshot.id)
 									      }"
 												@click.stop="copyScreenshot(screenshot)"
-												:title="isScreenshotCopied(screenshot.id) ? t('fruitMerge.copied_to_clipboard') : t('fruitMerge.copy_and_share')"
+												:title="isScreenshotCopied(screenshot.id) ? t('hawkFruit.copied_to_clipboard') : t('hawkFruit.copy_and_share')"
 												:disabled="isScreenshotCopied(screenshot.id)"
 											>
 												<Icon
 													:name="isScreenshotCopied(screenshot.id) ? 'check' : 'share'"
 													size="14"
 												/>
-												{{ isScreenshotCopied(screenshot.id) ? t('fruitMerge.copied_to_clipboard') : t('fruitMerge.copy_and_share') }}
+												{{ isScreenshotCopied(screenshot.id) ? t('hawkFruit.copied_to_clipboard') : t('hawkFruit.copy_and_share') }}
 											</button>
 										</div>
 									</div>

@@ -72,7 +72,7 @@ const getDefaultData = () => ({
       stars: 0,
 			levels: {}
 		},
-		fruitMerge: {
+		hawkFruit: {
 			highScore: 0,
 			gamesPlayed: 0,
 			totalScore: 0,
@@ -220,16 +220,16 @@ const validateGameData = (games) => {
       stars: typeof games?.memory?.stars === 'number' ? games.memory.stars : 0,
 			levels: typeof games?.memory?.levels === 'object' ? games.memory.levels : {}
 		},
-		fruitMerge: {
-			highScore: typeof games?.fruitMerge?.highScore === 'number' ? games.fruitMerge.highScore : defaultGames.fruitMerge.highScore,
-			totalScore: typeof games?.fruitMerge?.totalScore === 'number' ? games.fruitMerge.totalScore : defaultGames.fruitMerge.totalScore,
-			gamesPlayed: typeof games?.fruitMerge?.gamesPlayed === 'number' ? games.fruitMerge.gamesPlayed : defaultGames.fruitMerge.gamesPlayed,
-			maxLevel: typeof games?.fruitMerge?.maxLevel === 'number' ? games.fruitMerge.maxLevel : defaultGames.fruitMerge.maxLevel,
-			totalMerges: typeof games?.fruitMerge?.totalMerges === 'number' ? games.fruitMerge.totalMerges : defaultGames.fruitMerge.totalMerges,
-			maxCombo: typeof games?.fruitMerge?.maxCombo === 'number' ? games.fruitMerge.maxCombo : defaultGames.fruitMerge.maxCombo,
-			stars: typeof games?.fruitMerge?.stars === 'number' ? games.fruitMerge.stars : 0,
-			completedLevels: typeof games?.fruitMerge?.completedLevels === 'number' ? games.fruitMerge.completedLevels : 0,
-			levels: typeof games?.fruitMerge?.levels === 'object' ? games.fruitMerge.levels : {}
+		hawkFruit: {
+			highScore: typeof games?.hawkFruit?.highScore === 'number' ? games.hawkFruit.highScore : defaultGames.hawkFruit.highScore,
+			totalScore: typeof games?.hawkFruit?.totalScore === 'number' ? games.hawkFruit.totalScore : defaultGames.hawkFruit.totalScore,
+			gamesPlayed: typeof games?.hawkFruit?.gamesPlayed === 'number' ? games.hawkFruit.gamesPlayed : defaultGames.hawkFruit.gamesPlayed,
+			maxLevel: typeof games?.hawkFruit?.maxLevel === 'number' ? games.hawkFruit.maxLevel : defaultGames.hawkFruit.maxLevel,
+			totalMerges: typeof games?.hawkFruit?.totalMerges === 'number' ? games.hawkFruit.totalMerges : defaultGames.hawkFruit.totalMerges,
+			maxCombo: typeof games?.hawkFruit?.maxCombo === 'number' ? games.hawkFruit.maxCombo : defaultGames.hawkFruit.maxCombo,
+			stars: typeof games?.hawkFruit?.stars === 'number' ? games.hawkFruit.stars : 0,
+			completedLevels: typeof games?.hawkFruit?.completedLevels === 'number' ? games.hawkFruit.completedLevels : 0,
+			levels: typeof games?.hawkFruit?.levels === 'object' ? games.hawkFruit.levels : {}
 		},
     numMerge: {
       highScore: typeof games?.numMerge?.highScore === 'number' ? games.numMerge.highScore : defaultGames.numMerge.highScore,
@@ -1010,7 +1010,7 @@ export function useLocalStorage() {
     const achievements = []
 
     // Check individual game perfectionist achievements
-    const gameIds = ['memory', 'fruitMerge', 'numMerge']
+    const gameIds = ['memory', 'hawkFruit', 'numMerge']
 
     gameIds.forEach(gameId => {
       const achievementId = `${gameId}_perfectionist`
@@ -1317,7 +1317,7 @@ export function useLocalStorage() {
 
 	const getMostRecentGameActivity = () => {
 		try {
-			const games = ['memory', 'fruitMerge']
+			const games = ['memory', 'hawkFruit']
 			let mostRecentActivity = null
 
 			games.forEach(gameId => {
@@ -1398,7 +1398,7 @@ export function useLocalStorage() {
 
 	const getAllRecentLevels = (limit = 10) => {
 		try {
-			const games = ['memory', 'fruitMerge']
+			const games = ['memory', 'hawkFruit']
 			let allLevels = []
 
 			games.forEach(gameId => {

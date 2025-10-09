@@ -37,7 +37,7 @@ const playerSummary = computed(() => ({
 
 // Overall Progress (similar to Home.vue)
 const overallProgress = computed(() => {
-	const allGames = ['memory', 'fruitMerge', 'numMerge']
+	const allGames = ['memory', 'hawkFruit', 'numMerge']
 	let totalCompleted = 0
 	let totalLevels = 0
 	let totalStars = 0

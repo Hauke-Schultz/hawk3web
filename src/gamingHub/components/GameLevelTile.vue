@@ -179,9 +179,9 @@ const getScreenshotTooltip = computed(() => {
 
 	const count = props.screenshotCount
 	if (count === 1) {
-		return t('fruitMerge.screenshot_tooltip_single')
+		return t('hawkFruit.screenshot_tooltip_single')
 	} else {
-		return t('fruitMerge.screenshot_tooltip_multiple', { count })
+		return t('hawkFruit.screenshot_tooltip_multiple', { count })
 	}
 })
 
@@ -236,7 +236,7 @@ const handleViewScreenshots = (event) => {
 			  <div v-if="hasSavedState" class="level-tile__saved-badge" :title="savedStateTooltip">
 				  <Icon name="save" size="18" />
 			  </div>
-			  <div v-if="hasScreenshots" class="level-tile__screenshot-badge" @click="handleViewScreenshots" :title="t('fruitMerge.view_screenshots_tooltip', { count: screenshotCount })">
+			  <div v-if="hasScreenshots" class="level-tile__screenshot-badge" @click="handleViewScreenshots" :title="t('hawkFruit.view_screenshots_tooltip', { count: screenshotCount })">
 				  <Icon name="camera" size="18" />
 				  <span class="screenshot-count">{{ screenshotCount }}</span>
 			  </div>

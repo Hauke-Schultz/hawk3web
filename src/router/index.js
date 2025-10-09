@@ -3,8 +3,8 @@ import Home from '../views/Home.vue'
 import Gaming from '../gamingHub/views/Gaming.vue'
 import MemoryLevels from '../gamingHub/games/memory/MemoryLevels.vue'
 import MemoryGame from '../gamingHub/games/memory/MemoryGame.vue'
-import FruitMergeLevels from '../gamingHub/games/fruitmerge/FruitMergeLevels.vue'
-import FruitMergeGame from '../gamingHub/games/fruitmerge/FruitMergeGame.vue'
+import HawkFruitLevels from '../gamingHub/games/hawkfruit/HawkFruitLevels.vue'
+import HawkFruitGame from '../gamingHub/games/hawkfruit/HawkFruitGame.vue'
 import Shop from '../gamingHub/views/Shop.vue'
 import Profile from '../gamingHub/views/Profile.vue'
 import Trophy from '../gamingHub/views/Trophy.vue'
@@ -37,19 +37,19 @@ const routes = [
     }
   },
   {
-    path: '/games/fruitmerge',
-    name: 'FruitMergeLevels',
-    component: FruitMergeLevels
+    path: '/games/hawkfruit',
+    name: 'HawkFruitLevels',
+    component: HawkFruitLevels
   },
   {
-    path: '/games/fruitmerge/:level',
-    name: 'FruitMergeGame',
-    component: FruitMergeGame,
+    path: '/games/hawkfruit/:level',
+    name: 'HawkFruitGame',
+    component: HawkFruitGame,
     props: route => ({ level: parseInt(route.params.level) || 1 }),
     beforeEnter: (to, from, next) => {
       const level = parseInt(to.params.level)
       if (isNaN(level) || level < 1 || level > 6) {
-        next('/games/fruitmerge')
+        next('/games/hawkfruit')
       } else {
         next()
       }

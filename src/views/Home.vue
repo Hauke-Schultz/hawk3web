@@ -4,7 +4,7 @@ import { useI18n } from '../composables/useI18n.js'
 import { useLocalStorage } from "../gamingHub/composables/useLocalStorage.js"
 import {computed, watch} from "vue"
 import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
-import { fruitMergeConfig } from "../gamingHub/games/fruitmerge/fruitMergeConfig.js"
+import { hawkFruitConfig } from "../gamingHub/games/hawkfruit/hawkFruitConfig.js"
 import { numMergeConfig } from "../gamingHub/games/nummerge/numMergeConfig.js"
 import { stackMergeConfig } from "../gamingHub/games/stackmerge/stackConfig.js"
 import Header from '../gamingHub/components/Header.vue'
@@ -32,10 +32,10 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'brain'
 	}))
 
-	const fruitMergeLevels = getRecentLevelsForGame('fruitMerge', 10).map(level => ({
+	const hawkFruitLevels = getRecentLevelsForGame('hawkFruit', 10).map(level => ({
 		...level,
-		gameId: 'fruitMerge',
-		gameTitle: t('fruitMerge.title'),
+		gameId: 'hawkFruit',
+		gameTitle: t('hawkFruit.title'),
 		gameIcon: 'fruit-merge-game'
 	}))
 
@@ -53,7 +53,7 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'stack'
 	}))
 
-	const combined = [...memoryLevels, ...fruitMergeLevels, ...numMergeLevels, ...stackMergeLevels]
+	const combined = [...memoryLevels, ...hawkFruitLevels, ...numMergeLevels, ...stackMergeLevels]
 			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
 			.slice(0, 3)
 
@@ -83,7 +83,7 @@ const formatRelativeTime = (dateString) => {
 // Navigation to level function
 const navigateToLevel = (gameId, level) => {
 	const gameRoutes = {
-		'fruitMerge': 'fruitmerge',
+		'hawkFruit': 'hawkfruit',
 		'memory': 'memory',
 		'numMerge': 'nummerge',
 		'stackMerge': 'stackmerge'
@@ -99,7 +99,7 @@ const navigateToLevel = (gameId, level) => {
 const navigateToGame = (gameId) => {
 	const routes = {
 		memory: '/games/memory',
-		fruitMerge: '/games/fruitmerge',
+		hawkFruit: '/games/hawkfruit',
 		numMerge: '/games/nummerge',
 		stackMerge: '/games/stackmerge'
 	}
@@ -133,13 +133,13 @@ const getGameProgress = (gameId, config) => {
 }
 
 const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
-const fruitMergeProgress = computed(() => getGameProgress('fruitMerge', fruitMergeConfig))
+const hawkFruitProgress = computed(() => getGameProgress('hawkFruit', hawkFruitConfig))
 const numMergeProgress = computed(() => getGameProgress('numMerge', numMergeConfig))
 const stackMergeProgress = computed(() => getGameProgress('stackMerge', stackMergeConfig))
 
 // Overall Progress
 const overallProgress = computed(() => {
-	const allGames = ['memory', 'fruitMerge', 'numMerge', 'stackMerge']
+	const allGames = ['memory', 'hawkFruit', 'numMerge', 'stackMerge']
 	let totalCompleted = 0
 	let totalLevels = 0
 	let totalStars = 0
@@ -316,18 +316,18 @@ const handleMenuClick = () => {
 					</div>
 				</div>
 
-				<!-- Fruit Merge Game -->
-				<div class="game-card" @click="navigateToGame('fruitMerge')">
+				<!-- Hawk Fruit Game -->
+				<div class="game-card" @click="navigateToGame('hawkFruit')">
 					<div class="game-header">
-						<Icon :name="fruitMergeConfig.gameIcon" size="28" />
+						<Icon :name="hawkFruitConfig.gameIcon" size="28" />
 						<div class="game-info">
-							<h3 class="game-title">{{ fruitMergeConfig.gameTitle }}</h3>
+							<h3 class="game-title">{{ hawkFruitConfig.gameTitle }}</h3>
 							<div class="game-progress">
-								<span class="progress-text">{{ fruitMergeProgress.completed }}/{{ fruitMergeProgress.total }}</span>
+								<span class="progress-text">{{ hawkFruitProgress.completed }}/{{ hawkFruitProgress.total }}</span>
 								<div class="mini-progress-bar">
 									<div
-											class="mini-progress-fill fruitmerge"
-											:style="{ width: `${fruitMergeProgress.percentage}%` }"
+											class="mini-progress-fill hawkfruit"
+											:style="{ width: `${hawkFruitProgress.percentage}%` }"
 									></div>
 								</div>
 							</div>
@@ -336,7 +336,7 @@ const handleMenuClick = () => {
 						<div class="game-stats">
 							<div class="game-stat">
 								<Icon name="star-filled" size="14" />
-								<span>{{ fruitMergeProgress.stars }}</span>
+								<span>{{ hawkFruitProgress.stars }}</span>
 							</div>
 						</div>
 					</div>

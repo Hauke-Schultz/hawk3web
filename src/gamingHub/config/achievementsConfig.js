@@ -103,62 +103,62 @@ export const ACHIEVEMENTS = {
 			trigger: { type: 'level_complete', game: 'memory', level: 6 }
 		},
 
-		// FruitMerge specific achievements
+		// HawkFruit specific achievements
 		{
-			id: 'fruitMerge_beginner',
+			id: 'hawkFruit_beginner',
 			name: 'Fruit Beginner',
-			description: 'Completed first fruitMerge level',
-			category: 'fruitMerge',
+			description: 'Completed first hawkFruit level',
+			category: 'hawkFruit',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
 			rewards: { coins: 100, diamonds: 1 },
-			trigger: { type: 'level_complete', game: 'fruitMerge', level: 1 }
+			trigger: { type: 'level_complete', game: 'hawkFruit', level: 1 }
 		},
 		{
-			id: 'fruitMerge_intermediate',
-			name: 'Fruit Merger',
-			description: 'Completed FruitMerge Level 3',
-			category: 'fruitMerge',
+			id: 'hawkFruit_intermediate',
+			name: 'Hawk Fruitr',
+			description: 'Completed HawkFruit Level 3',
+			category: 'hawkFruit',
 			icon: 'fruit-merge-game',
 			rarity: 'uncommon',
 			rewards: { coins: 200, diamonds: 2 },
-			trigger: { type: 'level_complete', game: 'fruitMerge', level: 3 }
+			trigger: { type: 'level_complete', game: 'hawkFruit', level: 3 }
 		},
 		{
-			id: 'fruitMerge_expert',
+			id: 'hawkFruit_expert',
 			name: 'Merge Expert',
-			description: 'Completed FruitMerge Level 5',
-			category: 'fruitMerge',
+			description: 'Completed HawkFruit Level 5',
+			category: 'hawkFruit',
 			icon: 'fruit-merge-game',
 			rarity: 'epic',
 			rewards: { coins: 2000, diamonds: 10 },
-			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
+			trigger: { type: 'level_complete', game: 'hawkFruit', level: 5 }
 		},
 		{
-			id: 'fruitMerge_master',
+			id: 'hawkFruit_master',
 			name: 'Merge Master',
-			description: 'Completed the ultimate FruitMerge challenge',
-			category: 'fruitMerge',
+			description: 'Completed the ultimate HawkFruit challenge',
+			category: 'hawkFruit',
 			icon: 'fruit-merge-game',
 			rarity: 'legendary',
 			rewards: { coins: 5000, diamonds: 20 },
-			trigger: { type: 'level_complete', game: 'fruitMerge', level: 5 }
+			trigger: { type: 'level_complete', game: 'hawkFruit', level: 5 }
 		},
 		{
 			id: 'endless_first_play',
 			name: 'Endless Explorer',
 			description: 'Played your first endless game',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'fruit-merge-game',
 			rarity: 'common',
 			rewards: { coins: 1000, diamonds: 10 },
-			trigger: { type: 'level_complete', game: 'fruitMerge', level: 6 }
+			trigger: { type: 'level_complete', game: 'hawkFruit', level: 6 }
 		},
 		{
 			id: 'endless_bronze',
 			name: 'Bronze Merger',
 			description: 'Earned 1 star in endless mode',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'star',
 			rarity: 'uncommon',
 			rewards: { coins: 200, diamonds: 2 },
@@ -168,7 +168,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_silver',
 			name: 'Silver Merger',
 			description: 'Earned 2 stars in endless mode',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'star-filled',
 			rarity: 'rare',
 			rewards: { coins: 500, diamonds: 5 },
@@ -178,7 +178,7 @@ export const ACHIEVEMENTS = {
 			id: 'endless_gold',
 			name: 'Gold Merger',
 			description: 'Earned 3 stars in endless mode',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'trophy',
 			rarity: 'epic',
 			rewards: { coins: 1000, diamonds: 10 },
@@ -188,7 +188,7 @@ export const ACHIEVEMENTS = {
 			id: 'score_2000',
 			name: 'Score Beginner',
 			description: 'Reached 2,000 points in a single game',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'star',
 			rarity: 'common',
 			rewards: { coins: 200, diamonds: 1 },
@@ -198,7 +198,7 @@ export const ACHIEVEMENTS = {
 			id: 'score_5000',
 			name: 'Score Achiever',
 			description: 'Reached 5,000 points in a single game',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'star',
 			rarity: 'common',
 			rewards: { coins: 1000, diamonds: 5 },
@@ -208,7 +208,7 @@ export const ACHIEVEMENTS = {
 			id: 'score_15000',
 			name: 'Score Expert',
 			description: 'Reached 15,000 points in a single game',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'star-filled',
 			rarity: 'uncommon',
 			rewards: { coins: 3000, diamonds: 10 },
@@ -218,7 +218,7 @@ export const ACHIEVEMENTS = {
 			id: 'score_35000',
 			name: 'Score Master',
 			description: 'Reached 35,000 points in a single game',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'trophy',
 			rarity: 'rare',
 			rewards: { coins: 7500, diamonds: 17 },
@@ -228,7 +228,7 @@ export const ACHIEVEMENTS = {
 			id: 'time_300',
 			name: 'Time Master',
 			description: 'Played for 5 minutes',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'clock',
 			rarity: 'common',
 			rewards: { coins: 500, diamonds: 5 },
@@ -238,7 +238,7 @@ export const ACHIEVEMENTS = {
 			id: 'time_600',
 			name: 'Time Expert',
 			description: 'Played for 10 minutes',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'clock',
 			rarity: 'uncommon',
 			rewards: { coins: 1000, diamonds: 10 },
@@ -248,7 +248,7 @@ export const ACHIEVEMENTS = {
 			id: 'time_1200',
 			name: 'Time Champion',
 			description: 'Played for 20 minutes',
-			category: 'fruitMerge',
+			category: 'hawkFruit',
 			icon: 'clock',
 			rarity: 'rare',
 			rewards: { coins: 2000, diamonds: 20 },
@@ -534,14 +534,14 @@ export const ACHIEVEMENTS = {
       trigger: { type: 'perfect_all_levels', game: 'memory' }
     },
     {
-      id: 'fruitMerge_perfectionist',
-      name: 'Fruit Merge Perfectionist',
-      description: 'Complete all Fruit Merge levels with 3 stars',
-      category: 'fruitMerge',
+      id: 'hawkFruit_perfectionist',
+      name: 'Hawk Fruit Perfectionist',
+      description: 'Complete all Hawk Fruit levels with 3 stars',
+      category: 'hawkFruit',
       icon: 'trophy',
       rarity: 'legendary',
       rewards: { coins: 3000, diamonds: 20 },
-      trigger: { type: 'perfect_all_levels', game: 'fruitMerge' }
+      trigger: { type: 'perfect_all_levels', game: 'hawkFruit' }
     },
     {
       id: 'numMerge_perfectionist',
@@ -586,10 +586,10 @@ export const ACHIEVEMENTS = {
 			description: 'Achievements for the Memory Game'
 		},
 		{
-			id: 'fruitMerge',
-			name: 'Fruit Merge Game',
+			id: 'hawkFruit',
+			name: 'Hawk Fruit Game',
 			color: 'orange',
-			description: 'Achievements for the Fruit Merge Game'
+			description: 'Achievements for the Hawk Fruit Game'
 		},
     {
       id: 'numMerge',

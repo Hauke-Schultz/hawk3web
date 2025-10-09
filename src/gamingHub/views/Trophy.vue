@@ -21,7 +21,7 @@ const categoryStates = ref({
 	general: false,
 	gaming: false,
 	memory: false,
-	fruitMerge: false,
+	hawkFruit: false,
 	numMerge: false,
 	special: false
 })

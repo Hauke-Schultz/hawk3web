@@ -132,7 +132,7 @@ export function useScreenshot() {
   const getGameDisplayName = (gameTitle) => {
     const gameNames = {
       'Memory': 'Memory Game',
-      'Fruit Merge': 'Fruit Merge',
+      'Hawk Fruit': 'Hawk Fruit',
       'Num Merge': 'Num Merge'
     }
 
@@ -174,8 +174,8 @@ export function useScreenshot() {
           resolve(dataUrl)
 
         } else if (gameStateData.fruits) {
-          // FruitMerge Game rendering (async because of SVG loading)
-          renderFruitMergeGameState(ctx, gameStateData)
+          // HawkFruit Game rendering (async because of SVG loading)
+          renderHawkFruitGameState(ctx, gameStateData)
               .then(() => {
                 addGameUIOverlay(ctx, gameStateData)
 
@@ -350,7 +350,7 @@ export function useScreenshot() {
     })
   }
 
-  const renderFruitMergeGameState = (ctx, gameStateData) => {
+  const renderHawkFruitGameState = (ctx, gameStateData) => {
     const { boardConfig } = gameStateData
 
     // Set background
@@ -506,7 +506,7 @@ export function useScreenshot() {
       }
 
       // Add game-specific metadata
-      if (gameId === 'fruitMerge') {
+      if (gameId === 'hawkFruit') {
         screenshotData.fruitsCount = gameStateData.fruits.length
       } else if (gameId === 'numMerge') {
         screenshotData.numbersCount = gameStateData.numbers.length

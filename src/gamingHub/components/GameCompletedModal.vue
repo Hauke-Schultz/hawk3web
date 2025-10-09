@@ -137,7 +137,7 @@ const props = defineProps({
   },
 	gameName: {
 		type: String,
-		default: 'fruitMerge'
+		default: 'hawkFruit'
 	}
 })
 

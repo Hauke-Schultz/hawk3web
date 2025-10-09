@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useI18n } from '../../../composables/useI18n.js'
 import { useScreenshot } from '../../composables/useScreenshot.js'
-import { fruitMergeConfig } from './fruitMergeConfig.js'
+import { hawkFruitConfig } from './hawkFruitConfig.js'
 import GameLevelTile from '../../components/GameLevelTile.vue'
 import ProgressOverview from "../../components/ProgressOverview.vue";
 import { getLevelTitle, getLevelDescription } from "../../config/levelUtils.js"
@@ -22,26 +22,26 @@ const selectedLevel = ref(null)
 
 // Computed game data
 const gameStats = computed(() => {
-	return gameData.games.fruitMerge || {}
+	return gameData.games.hawkFruit || {}
 })
 
 // Compute level data with completion status
 const levelData = computed(() => {
-	return fruitMergeConfig.levels.map((level, index) => {
+	return hawkFruitConfig.levels.map((level, index) => {
 		const levelNumber = index + 1
 		const levelStats = gameStats.value.levels?.[levelNumber] || {}
 
 		const isUnlocked = levelNumber === 1 || level.isEndless ||
 				(gameStats.value.levels?.[levelNumber - 1]?.completed || false)
 
-		const title = getLevelTitle(levelNumber, 'fruitMerge', t)
-		const description = getLevelDescription(levelNumber, 'fruitMerge', t)
+		const title = getLevelTitle(levelNumber, 'hawkFruit', t)
+		const description = getLevelDescription(levelNumber, 'hawkFruit', t)
 
 		// Check for saved state
-		const savedState = loadLevelState('fruitMerge', levelNumber)
+		const savedState = loadLevelState('hawkFruit', levelNumber)
 		const hasSaved = !!savedState
 		const savedTimestamp = savedState?.savedAt || null
-		const screenshotCount = getScreenshotCount('fruitMerge', levelNumber)
+		const screenshotCount = getScreenshotCount('hawkFruit', levelNumber)
 		const hasScreenshots = screenshotCount > 0
 
 		return {
@@ -83,7 +83,7 @@ const completionStats = computed(() => {
 
 // Event handlers using router
 const handlePlayLevel = (levelNumber) => {
-	router.push(`/games/fruitmerge/${levelNumber}`)
+	router.push(`/games/hawkfruit/${levelNumber}`)
 }
 
 const handleViewScreenshots = (levelNumber) => {
@@ -118,7 +118,7 @@ const handleMenuClick = () => {
 		<!-- Header Section -->
 		<div class="level-header">
 			<div class="level-title-section">
-				<h2 class="level-title">{{ fruitMergeConfig.gameTitle }}</h2>
+				<h2 class="level-title">{{ hawkFruitConfig.gameTitle }}</h2>
 				<p class="level-subtitle">{{ t('gaming.choose_level') }}</p>
 			</div>
 		</div>
@@ -149,7 +149,7 @@ const handleMenuClick = () => {
 				:high-score="level.highScore"
 				:best-time="level.bestTime"
 				theme="warning"
-				game-type="fruitMerge"
+				game-type="hawkFruit"
 				:has-saved-state="level.hasSavedState"
 				:saved-state-timestamp="level.savedStateTimestamp"
 				:screenshot-count="level.screenshotCount"
@@ -163,9 +163,9 @@ const handleMenuClick = () => {
 	<ScreenshotGallery
 			v-if="selectedLevel"
 			:visible="showScreenshotGallery"
-			:game-id="'fruitMerge'"
+			:game-id="'hawkFruit'"
 			:level="selectedLevel"
-			:game-title="fruitMergeConfig.gameTitle"
+			:game-title="hawkFruitConfig.gameTitle"
 			:show-download="true"
 			:show-metadata="true"
 			:max-width="'400px'"

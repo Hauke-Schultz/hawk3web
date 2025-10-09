@@ -418,7 +418,7 @@ User implements → Tests → Confirms
 
 // Add to checkAutoAchievements (line 450):
 const checkPerfectScoreAll = () => {
-  const allGames = ['memory', 'fruitMerge', 'numMerge']
+  const allGames = ['memory', 'hawkFruit', 'numMerge']
   const allPerfect = allGames.every(game => 
     gameData.games[game].totalStars === 18
   )

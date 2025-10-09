@@ -255,7 +255,7 @@ export default {
 			features: 'Features',
 			technologies: 'Technologien',
       feature_list: {
-        three_games: '3 Spiele (Memory, Fruit Merge, Num Merge)',
+        three_games: '3 Spiele (Memory, Hawk Fruit, Num Merge)',
         achievement_system: 'Erfolgssystem mit Trophäensammlung',
         shop_currency: 'In-Game Shop & Währungssystem (Münzen & Diamanten)',
         daily_rewards: 'Tägliche Belohnungen mit Mini-Spielen & Geheimnisvollen Boxen',
@@ -306,7 +306,7 @@ export default {
 			},
       games: {
         title: 'Spielerechte & Originalität',
-        description: 'Die Spiele (Memory, Fruit Merge, Num Merge) basieren auf klassischen Spielprinzipien und -mechaniken, die nicht dem Urheberrecht unterliegen. Alle visuellen Assets, Code-Implementierungen, Grafiken und Sounds sind Eigenentwicklungen. Während die grundlegenden Spielmechaniken von traditionellen Spielen inspiriert sind, sind die spezifische Umsetzung, das Design und die Benutzererfahrung vollständig unsere eigene Arbeit.'
+        description: 'Die Spiele (Memory, Hawk Fruit, Num Merge) basieren auf klassischen Spielprinzipien und -mechaniken, die nicht dem Urheberrecht unterliegen. Alle visuellen Assets, Code-Implementierungen, Grafiken und Sounds sind Eigenentwicklungen. Während die grundlegenden Spielmechaniken von traditionellen Spielen inspiriert sind, sind die spezifische Umsetzung, das Design und die Benutzererfahrung vollständig unsere eigene Arbeit.'
       },
       ai_development: {
         title: 'KI-unterstützte Entwicklung',
@@ -630,9 +630,9 @@ export default {
 		}
 	},
 
-	// FruitMerge-Spiel
-	fruitMerge: {
-		title: 'Fruit Merge',
+	// HawkFruit-Spiel
+	hawkFruit: {
+		title: 'Hawk Fruit',
 		description: 'Füge Früchte zusammen und erstelle neue Kombinationen',
 		target: 'Ziel',
 		level_title: 'Level {level}',
@@ -954,7 +954,7 @@ export default {
 			progress: 'Fortschritt',
 			special: 'Besonders',
 			memory: 'Memory-Spiel',
-			fruitMerge: 'Fruit Merge-Spiel',
+			hawkFruit: 'Hawk Fruit-Spiel',
       numMerge: 'Num Merge-Spiel',
       stackMerge: 'Stack Merge Spiel',
 		},
@@ -1003,21 +1003,21 @@ export default {
 				description: 'Das schwerste Level abgeschlossen'
 			},
 
-			fruitMerge_beginner: {
+			hawkFruit_beginner: {
 				name: 'Frucht-Anfänger',
-				description: 'Erstes FruitMerge Level abgeschlossen'
+				description: 'Erstes HawkFruit Level abgeschlossen'
 			},
-			fruitMerge_intermediate: {
+			hawkFruit_intermediate: {
 				name: 'Frucht-Zusammenfüger',
-				description: 'FruitMerge Level 3 abgeschlossen'
+				description: 'HawkFruit Level 3 abgeschlossen'
 			},
-			fruitMerge_expert: {
+			hawkFruit_expert: {
 				name: 'Zusammenfüge-Experte',
-				description: 'FruitMerge Level 5 abgeschlossen'
+				description: 'HawkFruit Level 5 abgeschlossen'
 			},
-			fruitMerge_master: {
+			hawkFruit_master: {
 				name: 'Zusammenfüge-Meister',
-				description: 'Die ultimative FruitMerge Herausforderung abgeschlossen'
+				description: 'Die ultimative HawkFruit Herausforderung abgeschlossen'
 			},
 			endless_first_play: {
 				name: 'Endlos-Entdecker',
@@ -1178,9 +1178,9 @@ export default {
         name: 'Memory Perfektionist',
         description: 'Alle Memory-Level mit 3 Sternen abgeschlossen'
       },
-      fruitMerge_perfectionist: {
-        name: 'Fruit Merge Perfektionist',
-        description: 'Alle Fruit Merge-Level mit 3 Sternen abgeschlossen'
+      hawkFruit_perfectionist: {
+        name: 'Hawk Fruit Perfektionist',
+        description: 'Alle Hawk Fruit-Level mit 3 Sternen abgeschlossen'
       },
       numMerge_perfectionist: {
         name: 'Num Merge Perfektionist',

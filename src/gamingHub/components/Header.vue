@@ -112,7 +112,7 @@ const currentRoute = computed(() => {
 	return {
 		isHome: route.path === '/',
 		isShop: route.path === '/shop',
-		isFruitMergeGame: route.path.includes('/games/fruitmerge/'),
+		isHawkFruitGame: route.path.includes('/games/hawkfruit/'),
 		isMemoryGame: route.path.includes('/games/memory/'),
 		currentLevel: getCurrentLevelFromRoute()
 	}
@@ -189,7 +189,7 @@ const allNotificationItems = computed(() => {
 })
 
 function getCurrentLevelFromRoute() {
-	const matches = route.path.match(/\/games\/(fruitmerge|memory)\/(\d+)/)
+	const matches = route.path.match(/\/games\/(hawkfruit|memory)\/(\d+)/)
 	return matches ? parseInt(matches[2]) : null
 }
 
@@ -243,7 +243,7 @@ const toggleMenu = async (event) => {
 
 const openMenuWithAutoSave = async () => {
 	// Auto-save
-	if (currentRoute.value.isFruitMergeGame || currentRoute.value.isMemoryGame) {
+	if (currentRoute.value.isHawkFruitGame || currentRoute.value.isMemoryGame) {
 		isSaving.value = true
 
 		try {

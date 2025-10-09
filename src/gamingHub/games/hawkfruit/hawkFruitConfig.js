@@ -1126,7 +1126,7 @@ export const POINTS_CONFIG = {
 }
 
 // Level Goal Configuration
-export const FRUIT_MERGE_LEVELS = {
+export const HAWK_FRUIT_LEVELS = {
 	1: {
 		targetFruit: 'APPLE',
 		title: 'Easy',
@@ -1195,12 +1195,12 @@ export const FRUIT_MERGE_LEVELS = {
 	},
 }
 
-export const fruitMergeConfig = {
-	gameId: 'fruitMerge',
-	gameTitle: 'Fruit Merge',
+export const hawkFruitConfig = {
+	gameId: 'hawkFruit',
+	gameTitle: 'Hawk Fruit',
 	gameDescription: 'Merge fruits to create new combinations',
 	gameIcon: 'fruit-merge-game',
-	levels: Object.values(FRUIT_MERGE_LEVELS).map((level, index) => ({
+	levels: Object.values(HAWK_FRUIT_LEVELS).map((level, index) => ({
 		level: index + 1,
 		...level
 	}))

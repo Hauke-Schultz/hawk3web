@@ -2,14 +2,14 @@
 import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import * as Matter from 'matter-js'
 import {
-	FRUIT_MERGE_LEVELS,
+	HAWK_FRUIT_LEVELS,
 	FRUIT_TYPES,
 	PHYSICS_CONFIG,
 	POINTS_CONFIG,
 	RAINBOW_FRUIT_CONFIG,
 	MOLD_FRUIT_CONFIG,
 	BOMB_FRUIT_CONFIG
-} from './fruitMergeConfig.js'
+} from './hawkFruitConfig.js'
 import { useRouter } from 'vue-router'
 import PerformanceStats from "../../components/PerformanceStats.vue";
 import {calculateLevelStars} from "../../config/levelUtils.js";
@@ -78,7 +78,7 @@ const score = ref(0)
 const moves = ref(0)
 const nextFruitId = ref(0)
 
-const currentLevelConfig = computed(() => FRUIT_MERGE_LEVELS[currentLevel.value])
+const currentLevelConfig = computed(() => HAWK_FRUIT_LEVELS[currentLevel.value])
 
 // Physics engine references
 let engine = null
@@ -149,7 +149,7 @@ const screenshotHighscoreInfo = computed(() => {
 		return null
 	}
 
-	const levelScreenshots = getScreenshotsForLevel('fruitMerge', currentLevel.value)
+	const levelScreenshots = getScreenshotsForLevel('hawkFruit', currentLevel.value)
 	// Sort screenshots by score (highest first)
 	let sortedScreenshots = [...levelScreenshots].sort((a, b) => b.score - a.score)
 	sortedScreenshots = sortedScreenshots.filter(screenshot => screenshot.score !== score.value)
@@ -316,7 +316,7 @@ const autoSave = () => {
 	try {
 		const currentState = captureCurrentState()
 		if (currentState) {
-			saveLevelState('fruitMerge', currentLevel.value, currentState)
+			saveLevelState('hawkFruit', currentLevel.value, currentState)
 			console.log('🔄 Auto-saved game state')
 		}
 	} catch (error) {
@@ -1116,7 +1116,7 @@ const canDropFruit = computed(() => {
 const initPhysics = () => {
 	console.log('Initializing physics engine...')
 
-	// Create engine with optimized settings like in OldFruitMergeGame
+	// Create engine with optimized settings like in OldHawkFruitGame
 	engine = Matter.Engine.create({
 		gravity: { x: 0, y: 0.5, scale: 0.001 }
 	})
@@ -1720,7 +1720,7 @@ const initGame = async () => {
 	await nextTick()
 
 	// Check for saved state first
-	const savedState = loadLevelState('fruitMerge', currentLevel.value)
+	const savedState = loadLevelState('hawkFruit', currentLevel.value)
 	hasSavedState.value = !!savedState
 
 	if (savedState && !isRestoringState.value) {
@@ -1757,7 +1757,7 @@ const completeLevel = () => {
 	if (gameState.value !== 'playing') return
 
 	// Clear saved state on completion
-	clearLevelState('fruitMerge', currentLevel.value)
+	clearLevelState('hawkFruit', currentLevel.value)
 	console.log(`Cleared saved state for completed level ${currentLevel.value}`)
 
 	gameState.value = 'completed'
@@ -1782,27 +1782,27 @@ const completeLevel = () => {
 	}
 
 	// Check if this is first time completion
-	const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
+	const previousLevelStats = getLevelStats('hawkFruit', currentLevel.value)
 	const isFirstTimeCompletion = !previousLevelStats?.completed
 
-	updateLevelStats('fruitMerge', currentLevel.value, levelResult)
+	updateLevelStats('hawkFruit', currentLevel.value, levelResult)
 
 	// Update game statistics
 	const gameStats = {
-		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
-		totalScore: gameData.games.fruitMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
-		starsEarned: gameData.games.fruitMerge.starsEarned + starsEarned,
-		completedLevels: gameData.games.fruitMerge.completedLevels + (isFirstTimeCompletion ? 1 : 0),
-		maxLevel: Math.max(gameData.games.fruitMerge.maxLevel, currentLevel.value),
+		gamesPlayed: gameData.games.hawkFruit.gamesPlayed + 1,
+		totalScore: gameData.games.hawkFruit.totalScore + score.value,
+		highScore: Math.max(gameData.games.hawkFruit.highScore, score.value),
+		starsEarned: gameData.games.hawkFruit.starsEarned + starsEarned,
+		completedLevels: gameData.games.hawkFruit.completedLevels + (isFirstTimeCompletion ? 1 : 0),
+		maxLevel: Math.max(gameData.games.hawkFruit.maxLevel, currentLevel.value),
 		maxCombo: Math.max(
-				gameData.games.fruitMerge.maxCombo || 0,
+				gameData.games.hawkFruit.maxCombo || 0,
 				comboSystem.comboCount.value
 		)
 	}
 
 	console.log('gameStats', gameStats)
-	updateGameStats('fruitMerge', gameStats)
+	updateGameStats('hawkFruit', gameStats)
 
 	// Add currency rewards to player
 	if (levelReward.value.coins > 0 || levelReward.value.diamonds > 0) {
@@ -1812,7 +1812,7 @@ const completeLevel = () => {
 
 	// Check for achievements and track new ones
 	const achievementsBefore = [...gameData.achievements]
-	checkGameLevelAchievements('fruitMerge', currentLevel.value)
+	checkGameLevelAchievements('hawkFruit', currentLevel.value)
 	checkAutoAchievements()
 	const achievementsAfter = [...gameData.achievements]
 
@@ -1940,7 +1940,7 @@ const calculateLevelReward = () => {
 
 		const levelConfig = currentLevelConfig.value
 		const levelNumber = currentLevel.value
-		const previousLevelStats = getLevelStats('fruitMerge', currentLevel.value)
+		const previousLevelStats = getLevelStats('hawkFruit', currentLevel.value)
 		const isFirstTimeCompletion = !previousLevelStats?.completed
 		const starsEarned = calculateCurrentStars()
 
@@ -2146,10 +2146,10 @@ const calculateCurrentStars = () => {
 }
 
 const nextLevel = () => {
-	if (currentLevel.value < Object.keys(FRUIT_MERGE_LEVELS).length) {
+	if (currentLevel.value < Object.keys(HAWK_FRUIT_LEVELS).length) {
 		currentLevel.value++
 		startLevel(currentLevel.value)
-		router.push(`/games/fruitmerge/${currentLevel.value}`)
+		router.push(`/games/hawkfruit/${currentLevel.value}`)
 	} else {
 		backToGaming()
 	}
@@ -2215,7 +2215,7 @@ const handleMenuSaveGame = () => {
 	if (gameState.value === 'playing' && !isRestoringState.value) {
 		const currentState = captureCurrentState()
 		if (currentState) {
-			saveLevelState('fruitMerge', currentLevel.value, currentState)
+			saveLevelState('hawkFruit', currentLevel.value, currentState)
 		}
 	}
 }
@@ -2263,7 +2263,7 @@ const handleSaveScreenshot = async (screenshotMetadata) => {
 	}
 
 	try {
-		const success = await saveGameScreenshot('fruitMerge', currentGameScreenshotData.value)
+		const success = await saveGameScreenshot('hawkFruit', currentGameScreenshotData.value)
 
 		if (success) {
 			console.log('🖼️ Screenshot saved successfully!')
@@ -2282,7 +2282,7 @@ const closeShopModal = () => {
 }
 
 const backToGaming = () => {
-	router.push('/games/fruitmerge');
+	router.push('/games/hawkfruit');
 }
 
 const gameOver = () => {
@@ -2290,7 +2290,7 @@ const gameOver = () => {
 	stopAllFruits()
 	stopGameOverChecking()
 	comboSystem.cleanup()
-	clearLevelState('fruitMerge', currentLevel.value)
+	clearLevelState('hawkFruit', currentLevel.value)
 
 	console.log('Game Over! Fruits reached the danger zone.')
 
@@ -2308,7 +2308,7 @@ const gameOver = () => {
 
 		// Check for achievements and track new ones
 		const achievementsBefore = [...gameData.achievements]
-		checkGameLevelAchievements('fruitMerge', currentLevel.value)
+		checkGameLevelAchievements('hawkFruit', currentLevel.value)
 		checkAutoAchievements()
 		const achievementsAfter = [...gameData.achievements]
 
@@ -2355,13 +2355,13 @@ const gameOver = () => {
 	}
 
 	const gameStats = {
-		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
-		totalScore: gameData.games.fruitMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
-		stars: Math.max(gameData.games.fruitMerge.stars, calculateCurrentStars()),
+		gamesPlayed: gameData.games.hawkFruit.gamesPlayed + 1,
+		totalScore: gameData.games.hawkFruit.totalScore + score.value,
+		highScore: Math.max(gameData.games.hawkFruit.highScore, score.value),
+		stars: Math.max(gameData.games.hawkFruit.stars, calculateCurrentStars()),
 	}
 
-	updateGameStats('fruitMerge', gameStats)
+	updateGameStats('hawkFruit', gameStats)
 	addScore(score.value)
 }
 
@@ -2376,22 +2376,22 @@ const updateEndlessStats = () => {
 	}
 
 	// Update level statistics für Endlos-Modus
-	updateLevelStats('fruitMerge', currentLevel.value, levelResult)
+	updateLevelStats('hawkFruit', currentLevel.value, levelResult)
 
 	// Update overall game statistics mit Endlos-spezifischen Daten
 	const gameStats = {
-		gamesPlayed: gameData.games.fruitMerge.gamesPlayed + 1,
-		totalScore: gameData.games.fruitMerge.totalScore + score.value,
-		highScore: Math.max(gameData.games.fruitMerge.highScore, score.value),
-		starsEarned: gameData.games.fruitMerge.starsEarned + calculateCurrentStars(),
-		totalMerges: (gameData.games.fruitMerge.totalMerges || 0) + totalMerges.value,
+		gamesPlayed: gameData.games.hawkFruit.gamesPlayed + 1,
+		totalScore: gameData.games.hawkFruit.totalScore + score.value,
+		highScore: Math.max(gameData.games.hawkFruit.highScore, score.value),
+		starsEarned: gameData.games.hawkFruit.starsEarned + calculateCurrentStars(),
+		totalMerges: (gameData.games.hawkFruit.totalMerges || 0) + totalMerges.value,
 		maxCombo: Math.max(
-				gameData.games.fruitMerge.maxCombo || 0,
+				gameData.games.hawkFruit.maxCombo || 0,
 				comboSystem.comboCount.value
 		)
 	}
 
-	updateGameStats('fruitMerge', gameStats)
+	updateGameStats('hawkFruit', gameStats)
 
 	emit('game-complete', {
 		level: currentLevel.value,
@@ -2548,7 +2548,7 @@ const captureScreenshotData = () => {
 
 		// Metadata
 		capturedAt: new Date().toISOString(),
-		gameTitle: t('fruitMerge.title')
+		gameTitle: t('hawkFruit.title')
 	}
 
 	return screenshotData
@@ -2791,12 +2791,12 @@ const getMilestoneText = (milestone) => {
 
 	switch (type) {
 		case 'score':
-			return t('fruitMerge.endless.milestone_score', { score: value })
+			return t('hawkFruit.endless.milestone_score', { score: value })
 		case 'time':
 			const minutes = Math.floor(parseInt(value) / 60)
-			return t('fruitMerge.endless.milestone_time', { minutes })
+			return t('hawkFruit.endless.milestone_time', { minutes })
 		case 'combo':
-			return t('fruitMerge.endless.milestone_combo', { combo: value })
+			return t('hawkFruit.endless.milestone_combo', { combo: value })
 		default:
 			return milestone
 	}
@@ -2979,9 +2979,9 @@ const shouldShowTimer = (fruit) => {
 
 const getHammerTooltip = () => {
 	if (hammerRemaining.value > 0) {
-		return hammerMode.value ? t('fruitMerge.deactivate_hammer') : t('fruitMerge.activate_hammer')
+		return hammerMode.value ? t('hawkFruit.deactivate_hammer') : t('hawkFruit.activate_hammer')
 	} else {
-		return t('fruitMerge.buy_hammer')
+		return t('hawkFruit.buy_hammer')
 	}
 }
 
@@ -3104,15 +3104,15 @@ onUnmounted(() => {
 		<!-- Game Header -->
 		<div class="game-header">
 			<div class="game-info">
-				<h2 class="game-title">{{ t('fruitMerge.title') }}</h2>
+				<h2 class="game-title">{{ t('hawkFruit.title') }}</h2>
 				<div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
-					{{ isEndlessMode ? t('fruitMerge.endless_mode') : t('fruitMerge.level_title', { level: currentLevel }) }}
+					{{ isEndlessMode ? t('hawkFruit.endless_mode') : t('hawkFruit.level_title', { level: currentLevel }) }}
 				</div>
 			</div>
 
 			<div class="game-stats-container">
 				<div class="next-next-fruit-preview">
-					<div class="preview-label">{{ t('fruitMerge.next_fruit') }}</div>
+					<div class="preview-label">{{ t('hawkFruit.next_fruit') }}</div>
 					<div
 						v-if="nextNextFruit && showNextFruit"
 						class="next-next-fruit"
@@ -3127,7 +3127,7 @@ onUnmounted(() => {
 
 				<div v-if="!isEndlessMode" class="goal-fruit-display">
 					<div class="goal-label">
-						{{ t('fruitMerge.target') }}
+						{{ t('hawkFruit.target') }}
 						<div class="goal-progress">
 							{{ gameProgress.completed }}/{{ gameProgress.total }}
 						</div>
@@ -3152,7 +3152,7 @@ onUnmounted(() => {
 					:total-pairs="fruits.length"
 					:combo-count="comboSystem.comboLevel.value"
 					:combo-multiplier="comboSystem.comboMultiplier.value"
-					:max-combo="gameData.games.fruitMerge.maxCombo || 0"
+					:max-combo="gameData.games.hawkFruit.maxCombo || 0"
 					:combo-time-remaining="comboSystem.timeRemaining.value"
 					:combo-time-max="comboSystem.config.comboTimeout"
 					:is-combo-active="comboSystem.isComboActive.value"
@@ -3190,7 +3190,7 @@ onUnmounted(() => {
 					<button
 						class="btn btn--small btn--circle control-btn"
 						@click="openFruitSelector"
-						:title="t('fruitMerge.select_next_fruit')"
+						:title="t('hawkFruit.select_next_fruit')"
 					>
 						<span class="control-icon">🎯</span>
 					</button>
@@ -3459,7 +3459,7 @@ onUnmounted(() => {
 		<GameCompletedModal
 				:visible="gameState === 'completed'"
 				:level="currentLevel"
-				:game-title="t('fruitMerge.title')"
+				:game-title="t('hawkFruit.title')"
 				:final-score="score"
 				:time-elapsed="isEndlessMode ? sessionTime : 0"
 				:moves="moves"
@@ -3476,9 +3476,9 @@ onUnmounted(() => {
 				:show-completion-phases="true"
 				:enable-phase-transition="true"
 				:show-next-level="!isEndlessMode"
-				:next-level-label="isEndlessMode ? t('fruitMerge.play_again') : t('fruitMerge.next_level')"
-				:play-again-label="t('fruitMerge.play_again')"
-				:back-to-games-label="t('fruitMerge.back_to_levels')"
+				:next-level-label="isEndlessMode ? t('hawkFruit.play_again') : t('hawkFruit.next_level')"
+				:play-again-label="t('hawkFruit.play_again')"
+				:back-to-games-label="t('hawkFruit.back_to_levels')"
 				:enable-screenshot="enableScreenshotCapture"
 				:game-state="currentGameScreenshotData"
 				:high-score-info="screenshotHighscoreInfo"
@@ -3494,11 +3494,11 @@ onUnmounted(() => {
 				v-if="!isEndlessMode"
 				:visible="gameState === 'gameOver'"
 				:level="currentLevel"
-				:game-title="t('fruitMerge.title')"
+				:game-title="t('hawkFruit.title')"
 				:final-score="score"
 				:game-over-icon="'💥'"
-				:try-again-label="t('fruitMerge.try_again')"
-				:back-to-games-label="t('fruitMerge.back_to_levels')"
+				:try-again-label="t('hawkFruit.try_again')"
+				:back-to-games-label="t('hawkFruit.back_to_levels')"
 				@try-again="handleTryAgain"
 				@back-to-games="backToGaming"
 				@close="backToGaming"
@@ -3525,11 +3525,11 @@ onUnmounted(() => {
 					@click.stop
 					role="dialog"
 					aria-modal="true"
-					:aria-labelledby="t('fruitMerge.select_fruit')"
+					:aria-labelledby="t('hawkFruit.select_fruit')"
 				>
 					<!-- Modal Header -->
 					<div class="fruit-selector-header">
-						<h3 class="fruit-selector-title">{{ t('fruitMerge.select_next_fruit') }}</h3>
+						<h3 class="fruit-selector-title">{{ t('hawkFruit.select_next_fruit') }}</h3>
 						<button
 							class="btn btn--circle-ghost"
 							@click="closeFruitSelector"
@@ -3555,7 +3555,7 @@ onUnmounted(() => {
 									@click="selectFruit(fruit)"
 								>
 									<div class="fruit-option-icon" v-html="fruit.svg" :style="`width:${fruit.size}px;`"></div>
-									<div class="fruit-option-name" v-if="fruit.type">{{ t(`fruitMerge.fruits.${fruit.type.toLowerCase()}`) }}</div>
+									<div class="fruit-option-name" v-if="fruit.type">{{ t(`hawkFruit.fruits.${fruit.type.toLowerCase()}`) }}</div>
 									<div class="fruit-option-cost">
 										<CurrencyDisplay
 											:diamonds="fruit.cost.diamonds"

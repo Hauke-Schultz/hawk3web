@@ -21,7 +21,7 @@ src/
 │   │   └── comboConfig.js
 │   ├── games/           # Individual games
 │   │   ├── memory/
-│   │   ├── fruitmerge/
+│   │   ├── hawkfruit/
 │   │   └── nummerge/
 │   └── views/           # Main pages (Profile, Shop, Trophy, Settings)
 ├── locales/             # i18n translations (en.js, de.js)
@@ -35,7 +35,7 @@ src/
 - **Vue 3** - Composition API with `<script setup>` syntax
 - **Vite** - Build tool and dev server
 - **SCSS** - CSS preprocessor with BEM methodology
-- **Matter.js** - Physics engine for FruitMerge game
+- **Matter.js** - Physics engine for HawkFruit game
 - **Vue Router** - Client-side routing
 - **LocalStorage** - Data persistence layer
 - **PWA** - Service worker with custom caching strategy
@@ -127,7 +127,7 @@ Handles purchases, refunds, and shop item management.
 - General (profile, daily activities)
 - Gaming (cross-game achievements)
 - Memory Game specific
-- FruitMerge specific
+- HawkFruit specific
 - NumMerge specific
 - Special achievements
 
@@ -194,7 +194,7 @@ Capture and share game moments.
 - Star rating (time-based)
 - Save/restore game states
 
-### FruitMerge
+### HawkFruit
 - 5 levels + endless mode
 - Matter.js physics engine
 - Special fruits: Mold, Bomb, Rainbow
@@ -243,7 +243,7 @@ gameData = {
       totalStars: number,
       saveState: { level, cards, ... }
     },
-    fruitMerge: {
+    hawkFruit: {
       levels: { 1: { completed, stars, bestScore, bestTime } },
       highScore: number,
       totalStars: number,
@@ -357,7 +357,7 @@ gameData = {
 
 ### Game Files
 - `src/gamingHub/games/memory/` - Memory game implementation
-- `src/gamingHub/games/fruitmerge/` - FruitMerge with Matter.js
+- `src/gamingHub/games/hawkfruit/` - HawkFruit with Matter.js
 - `src/gamingHub/games/nummerge/` - NumMerge implementation
 
 ### Localization
