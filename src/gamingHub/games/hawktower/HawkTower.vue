@@ -29,7 +29,7 @@ const { t } = useI18n()
 const { saveGameScreenshot, getScreenshotsForLevel } = useScreenshot()
 const {
 	gameData,
-	updateStackMergeLevel,
+	updateHawkTowerLevel,
 	updateGameStats,
 	addScore,
 	checkGameLevelAchievements,
@@ -143,7 +143,7 @@ const screenshotHighscoreInfo = computed(() => {
 		}
 	}
 
-	const levelScreenshots = getScreenshotsForLevel('stackMerge', currentLevel.value)
+	const levelScreenshots = getScreenshotsForLevel('hawkTower', currentLevel.value)
 	let sortedScreenshots = [...levelScreenshots].sort((a, b) => b.score - a.score)
 
 	const scoreValue = currentScore.value ?? 0
@@ -180,8 +180,8 @@ const screenshotHighscoreInfo = computed(() => {
 	}
 })
 
-// Check StackMerge specific achievements
-const checkStackMergeAchievements = () => {
+// Check Hawk Tower specific achievements
+const checkHawkTowerAchievements = () => {
 	const achievements = []
 
 	// Check perfect combo achievement
@@ -204,7 +204,7 @@ const checkStackMergeAchievements = () => {
 	achievements.forEach(achievement => {
 		const wasAdded = addAchievement(achievement)
 		if (wasAdded) {
-			console.log(`🏆 StackMerge Achievement unlocked: ${achievement.name}`)
+			console.log(`🏆 Hawk Tower Achievement unlocked: ${achievement.name}`)
 			earnedAchievements.value.push(achievement)
 		}
 	})
@@ -366,7 +366,7 @@ const completeLevel = () => {
 	const stars = perfectPercent >= 80 ? 3 : perfectPercent >= 60 ? 2 : 1
 
 	// Update level statistics
-	updateStackMergeLevel(currentLevel.value, {
+	updateHawkTowerLevel(currentLevel.value, {
 		completed: true,
 		stars: stars,
 		height: currentHeight.value,
@@ -378,16 +378,16 @@ const completeLevel = () => {
 	})
 
 	// Check level completion achievements
-	checkGameLevelAchievements('stackMerge', currentLevel.value)
+	checkGameLevelAchievements('hawkTower', currentLevel.value)
 
-	// Check StackMerge specific achievements
-	checkStackMergeAchievements()
+	// Check Hawk Tower specific achievements
+	checkHawkTowerAchievements()
 
 	// Check auto achievements (for total stacks)
 	checkAutoAchievements()
 
 	// Check if first time completion
-	const previousStats = gameData.games.stackMerge.levels[currentLevel.value]
+	const previousStats = gameData.games.hawkTower.levels[currentLevel.value]
 	const isFirstTime = previousStats ? !previousStats.completed : true
 
 	// Calculate level reward
@@ -489,19 +489,19 @@ const completeLevel = () => {
 
 	// Update game stats
 	const gameStats = {
-		gamesPlayed: gameData.games.stackMerge.gamesPlayed + 1,
-		totalScore: gameData.games.stackMerge.totalScore + currentScore.value,
-		highScore: Math.max(gameData.games.stackMerge.highScore, currentScore.value),
-		maxLevel: Math.max(gameData.games.stackMerge.maxLevel, currentLevel.value),
-		totalStacks: gameData.games.stackMerge.totalStacks + totalStacks.value,
-		totalPerfectStacks: gameData.games.stackMerge.totalPerfectStacks + perfectStacks.value,
-		bestCombo: Math.max(gameData.games.stackMerge.bestCombo, maxCombo.value),
-		maxCombo: Math.max(gameData.games.stackMerge.maxCombo, maxCombo.value),
-		stars: gameData.games.stackMerge.stars + stars,
-		completedLevels: gameData.games.stackMerge.completedLevels + (isFirstTime ? 1 : 0)
+		gamesPlayed: gameData.games.hawkTower.gamesPlayed + 1,
+		totalScore: gameData.games.hawkTower.totalScore + currentScore.value,
+		highScore: Math.max(gameData.games.hawkTower.highScore, currentScore.value),
+		maxLevel: Math.max(gameData.games.hawkTower.maxLevel, currentLevel.value),
+		totalStacks: gameData.games.hawkTower.totalStacks + totalStacks.value,
+		totalPerfectStacks: gameData.games.hawkTower.totalPerfectStacks + perfectStacks.value,
+		bestCombo: Math.max(gameData.games.hawkTower.bestCombo, maxCombo.value),
+		maxCombo: Math.max(gameData.games.hawkTower.maxCombo, maxCombo.value),
+		stars: gameData.games.hawkTower.stars + stars,
+		completedLevels: gameData.games.hawkTower.completedLevels + (isFirstTime ? 1 : 0)
 	}
 
-	updateGameStats('stackMerge', gameStats)
+	updateGameStats('hawkTower', gameStats)
 	addScore(currentScore.value)
 
 	// Show modal
@@ -554,7 +554,7 @@ const captureScreenshotData = () => {
 
 		// Metadata
 		capturedAt: new Date().toISOString(),
-		gameTitle: t('stackMerge.title')
+		gameTitle: t('hawkTower.title')
 	}
 
 	return screenshotData
@@ -573,7 +573,7 @@ const handleSaveScreenshot = async (screenshotMetadata) => {
 	}
 
 	try {
-		const success = await saveGameScreenshot('stackMerge', currentGameScreenshotData.value)
+		const success = await saveGameScreenshot('hawkTower', currentGameScreenshotData.value)
 
 		if (success) {
 			console.log('🖼️ Screenshot saved successfully!')
@@ -607,7 +607,7 @@ const completeEndlessMode = () => {
 			? Math.round((perfectStacks.value / totalStacks.value) * 100)
 			: 0
 
-	updateStackMergeLevel(currentLevel.value, {
+	updateHawkTowerLevel(currentLevel.value, {
 		completed: true,
 		stars: stars,
 		height: currentHeight.value,
@@ -619,7 +619,7 @@ const completeEndlessMode = () => {
 	})
 
 	// Check achievements for endless mode
-	checkStackMergeAchievements()
+	checkHawkTowerAchievements()
 	checkAutoAchievements()
 
 	// Calculate endless rewards
@@ -732,16 +732,16 @@ const completeEndlessMode = () => {
 
 	// Update game stats
 	const gameStats = {
-		gamesPlayed: gameData.games.stackMerge.gamesPlayed + 1,
-		totalScore: gameData.games.stackMerge.totalScore + currentScore.value,
-		highScore: Math.max(gameData.games.stackMerge.highScore, currentScore.value),
-		totalStacks: gameData.games.stackMerge.totalStacks + totalStacks.value,
-		totalPerfectStacks: gameData.games.stackMerge.totalPerfectStacks + perfectStacks.value,
-		bestCombo: Math.max(gameData.games.stackMerge.bestCombo, maxCombo.value),
-		maxCombo: Math.max(gameData.games.stackMerge.maxCombo, maxCombo.value)
+		gamesPlayed: gameData.games.hawkTower.gamesPlayed + 1,
+		totalScore: gameData.games.hawkTower.totalScore + currentScore.value,
+		highScore: Math.max(gameData.games.hawkTower.highScore, currentScore.value),
+		totalStacks: gameData.games.hawkTower.totalStacks + totalStacks.value,
+		totalPerfectStacks: gameData.games.hawkTower.totalPerfectStacks + perfectStacks.value,
+		bestCombo: Math.max(gameData.games.hawkTower.bestCombo, maxCombo.value),
+		maxCombo: Math.max(gameData.games.hawkTower.maxCombo, maxCombo.value)
 	}
 
-	updateGameStats('stackMerge', gameStats)
+	updateGameStats('hawkTower', gameStats)
 	addScore(currentScore.value)
 	showCompletedModal.value = true
 }
@@ -766,21 +766,21 @@ const handleGameOver = () => {
 	}
 
 	// Check achievements even on game over
-	checkStackMergeAchievements()
+	checkHawkTowerAchievements()
 	checkAutoAchievements()
 
 	// Update game stats
 	const gameStats = {
-		gamesPlayed: gameData.games.stackMerge.gamesPlayed + 1,
-		totalScore: gameData.games.stackMerge.totalScore + currentScore.value,
-		highScore: Math.max(gameData.games.stackMerge.highScore, currentScore.value),
-		totalStacks: gameData.games.stackMerge.totalStacks + totalStacks.value,
-		totalPerfectStacks: gameData.games.stackMerge.totalPerfectStacks + perfectStacks.value,
-		bestCombo: Math.max(gameData.games.stackMerge.bestCombo, maxCombo.value),
-		maxCombo: Math.max(gameData.games.stackMerge.maxCombo, maxCombo.value)
+		gamesPlayed: gameData.games.hawkTower.gamesPlayed + 1,
+		totalScore: gameData.games.hawkTower.totalScore + currentScore.value,
+		highScore: Math.max(gameData.games.hawkTower.highScore, currentScore.value),
+		totalStacks: gameData.games.hawkTower.totalStacks + totalStacks.value,
+		totalPerfectStacks: gameData.games.hawkTower.totalPerfectStacks + perfectStacks.value,
+		bestCombo: Math.max(gameData.games.hawkTower.bestCombo, maxCombo.value),
+		maxCombo: Math.max(gameData.games.hawkTower.maxCombo, maxCombo.value)
 	}
 
-	updateGameStats('stackMerge', gameStats)
+	updateGameStats('hawkTower', gameStats)
 	addScore(currentScore.value)
 
 	showGameOverModal.value = true
@@ -789,7 +789,7 @@ const handleGameOver = () => {
 // Navigation
 const backToLevelSelection = () => {
 	stopUpdateLoop()
-	router.push('/games/stackmerge')
+	router.push('/games/hawktower')
 }
 
 const handleMenuClick = () => {
@@ -822,7 +822,7 @@ const handleTryAgain = () => {
 const nextLevel = () => {
 	if (currentLevel.value < 6) {
 		currentLevel.value++
-		router.push(`/games/stackmerge/${currentLevel.value}`)
+		router.push(`/games/hawktower/${currentLevel.value}`)
 		stopUpdateLoop()
 		startGame()
 	} else {
@@ -881,9 +881,9 @@ watch(() => props.level, (newLevel) => {
 		<!-- Game Header -->
 		<div class="game-header">
 			<div class="game-info">
-				<h2 class="game-title">{{ t('stackMerge.title') }}</h2>
+				<h2 class="game-title">{{ t('hawkTower.title') }}</h2>
 				<div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
-					{{ isEndlessMode ? t('stackMerge.endless_mode') : t('stackMerge.level_title', { level: currentLevel }) }}
+					{{ isEndlessMode ? t('hawkTower.endless_mode') : t('hawkTower.level_title', { level: currentLevel }) }}
 				</div>
 			</div>
 
@@ -898,7 +898,7 @@ watch(() => props.level, (newLevel) => {
 						:levels-label="currentLevelConfig.targetHeight.toString()"
 						:show-stars="false"
 						:show-percentage="false"
-						:complete-label="t('stackMerge.target')"
+						:complete-label="t('hawkTower.target')"
 				/>
 
 				<!-- Performance Stats -->
@@ -924,7 +924,7 @@ watch(() => props.level, (newLevel) => {
 						:show-combo="true"
 						:score-label="t('stats.score')"
 						:time-label="t('stats.time')"
-						:moves-label="t('stackMerge.height')"
+						:moves-label="t('hawkTower.height')"
 						:combo-label="t('stats.combo')"
 				/>
 			</div>
@@ -971,7 +971,7 @@ watch(() => props.level, (newLevel) => {
 
 				<!-- Tap Instruction -->
 				<div v-if="gameState === 'playing' && totalStacks === 0" class="tap-instruction">
-					<p>{{ t('stackMerge.tapToStack') }}</p>
+					<p>{{ t('hawkTower.tapToStack') }}</p>
 				</div>
 
 				<!-- Game Canvas Component -->
@@ -989,7 +989,7 @@ watch(() => props.level, (newLevel) => {
 		<GameCompletedModal
 				:visible="showCompletedModal"
 				:level="currentLevel"
-				:game-title="t('stackMerge.title')"
+				:game-title="t('hawkTower.title')"
 				:final-score="currentScore"
 				:time-elapsed="isEndlessMode ? sessionTime : 0"
 				:moves="currentHeight"
@@ -1005,14 +1005,14 @@ watch(() => props.level, (newLevel) => {
 				:show-next-level="!isEndlessMode && currentLevel < 6"
 				:show-play-again="true"
 				:show-back-to-games="true"
-				:next-level-label="t('stackMerge.nextLevel')"
+				:next-level-label="t('hawkTower.nextLevel')"
 				:play-again-label="t('common.play_again')"
 				:back-to-games-label="t('common.back_to_levels')"
 				:game-state="currentGameScreenshotData"
 				:high-score-info="screenshotHighscoreInfo"
 				:enable-screenshot="enableScreenshotCapture"
 				:auto-save-screenshot="true"
-				game-name="stackMerge"
+				game-name="hawkTower"
 				@save-screenshot="handleSaveScreenshot"
 				@next-level="handleModalNextLevel"
 				@play-again="handleModalPlayAgain"
@@ -1025,7 +1025,7 @@ watch(() => props.level, (newLevel) => {
 				v-if="!isEndlessMode"
 				:visible="showGameOverModal"
 				:level="currentLevel"
-				:game-title="t('stackMerge.title')"
+				:game-title="t('hawkTower.title')"
 				:final-score="currentScore"
 				:game-over-icon="'💥'"
 				:try-again-label="t('common.try_again')"

@@ -188,8 +188,8 @@ export function useScreenshot() {
               })
               .catch(reject)
         } else if (gameStateData.blocks) {
-            // StackMerge Game rendering
-            renderStackMergeGameState(ctx, gameStateData)
+            // Hawk Tower Game rendering
+            renderHawkTowerGameState(ctx, gameStateData)
             addGameUIOverlay(ctx, gameStateData)
             addWatermarksToCanvas(ctx, gameStateData, gameStateData.boardConfig.width, gameStateData.boardConfig.height)
             const dataUrl = canvas.toDataURL('image/png', 0.9)
@@ -204,7 +204,7 @@ export function useScreenshot() {
     })
   }
 
-  const renderStackMergeGameState = (ctx, gameStateData) => {
+  const renderHawkTowerGameState = (ctx, gameStateData) => {
     const { boardConfig } = gameStateData
     const yOffset = 75
 

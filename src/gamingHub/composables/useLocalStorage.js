@@ -94,7 +94,7 @@ const getDefaultData = () => ({
       stars: 0,
       completedLevels: 0
     },
-    stackMerge: {
+    hawkTower: {
       highScore: 0,
       gamesPlayed: 0,
       totalScore: 0,
@@ -242,18 +242,18 @@ const validateGameData = (games) => {
       completedLevels: typeof games?.numMerge?.completedLevels === 'number' ? games.numMerge.completedLevels : 0,
       levels: typeof games?.numMerge?.levels === 'object' ? games.numMerge.levels : {}
     },
-    stackMerge: {
-      highScore: typeof games?.stackMerge?.highScore === 'number' ? games.stackMerge.highScore : defaultGames.stackMerge.highScore,
-      totalScore: typeof games?.stackMerge?.totalScore === 'number' ? games.stackMerge.totalScore : defaultGames.stackMerge.totalScore,
-      gamesPlayed: typeof games?.stackMerge?.gamesPlayed === 'number' ? games.stackMerge.gamesPlayed : defaultGames.stackMerge.gamesPlayed,
-      maxLevel: typeof games?.stackMerge?.maxLevel === 'number' ? games.stackMerge.maxLevel : defaultGames.stackMerge.maxLevel,
-      totalStacks: typeof games?.stackMerge?.totalStacks === 'number' ? games.stackMerge.totalStacks : defaultGames.stackMerge.totalStacks,
-      totalPerfectStacks: typeof games?.stackMerge?.totalPerfectStacks === 'number' ? games.stackMerge.totalPerfectStacks : defaultGames.stackMerge.totalPerfectStacks,
-      bestCombo: typeof games?.stackMerge?.bestCombo === 'number' ? games.stackMerge.bestCombo : defaultGames.stackMerge.bestCombo,
-      maxCombo: typeof games?.stackMerge?.maxCombo === 'number' ? games.stackMerge.maxCombo : defaultGames.stackMerge.maxCombo,
-      stars: typeof games?.stackMerge?.stars === 'number' ? games.stackMerge.stars : 0,
-      completedLevels: typeof games?.stackMerge?.completedLevels === 'number' ? games.stackMerge.completedLevels : 0,
-      levels: typeof games?.stackMerge?.levels === 'object' ? games.stackMerge.levels : {}
+    hawkTower: {
+      highScore: typeof games?.hawkTower?.highScore === 'number' ? games.hawkTower.highScore : defaultGames.hawkTower.highScore,
+      totalScore: typeof games?.hawkTower?.totalScore === 'number' ? games.hawkTower.totalScore : defaultGames.hawkTower.totalScore,
+      gamesPlayed: typeof games?.hawkTower?.gamesPlayed === 'number' ? games.hawkTower.gamesPlayed : defaultGames.hawkTower.gamesPlayed,
+      maxLevel: typeof games?.hawkTower?.maxLevel === 'number' ? games.hawkTower.maxLevel : defaultGames.hawkTower.maxLevel,
+      totalStacks: typeof games?.hawkTower?.totalStacks === 'number' ? games.hawkTower.totalStacks : defaultGames.hawkTower.totalStacks,
+      totalPerfectStacks: typeof games?.hawkTower?.totalPerfectStacks === 'number' ? games.hawkTower.totalPerfectStacks : defaultGames.hawkTower.totalPerfectStacks,
+      bestCombo: typeof games?.hawkTower?.bestCombo === 'number' ? games.hawkTower.bestCombo : defaultGames.hawkTower.bestCombo,
+      maxCombo: typeof games?.hawkTower?.maxCombo === 'number' ? games.hawkTower.maxCombo : defaultGames.hawkTower.maxCombo,
+      stars: typeof games?.hawkTower?.stars === 'number' ? games.hawkTower.stars : 0,
+      completedLevels: typeof games?.hawkTower?.completedLevels === 'number' ? games.hawkTower.completedLevels : 0,
+      levels: typeof games?.hawkTower?.levels === 'object' ? games.hawkTower.levels : {}
     }
 	}
 }
@@ -353,10 +353,10 @@ const migrateData = (data) => {
       }
     }
 
-    // Add stackMerge if missing
-    if (!data.games?.stackMerge) {
+    // Add hawkTower if missing
+    if (!data.games?.hawkTower) {
       if (!data.games) data.games = {}
-      data.games.stackMerge = {
+      data.games.hawkTower = {
         highScore: 0,
         gamesPlayed: 0,
         totalScore: 0,
@@ -369,7 +369,7 @@ const migrateData = (data) => {
         stars: 0,
         completedLevels: 0
       }
-      console.log('🏗️ StackMerge game data structure added')
+      console.log('🏗️ Hawk Tower game data structure added')
     }
 
     // Add pendingMysteryBox if missing
@@ -2094,10 +2094,10 @@ export function useLocalStorage() {
     }
   }
 
-  // Update StackMerge level statistics
-  const updateStackMergeLevel = (levelNumber, stats) => {
-    if (!gameData.games.stackMerge.levels[levelNumber]) {
-      gameData.games.stackMerge.levels[levelNumber] = {
+  // Update Hawk Tower level statistics
+  const updateHawkTowerLevel = (levelNumber, stats) => {
+    if (!gameData.games.hawkTower.levels[levelNumber]) {
+      gameData.games.hawkTower.levels[levelNumber] = {
         completed: false,
         stars: 0,
         bestHeight: 0,
@@ -2106,7 +2106,7 @@ export function useLocalStorage() {
       }
     }
 
-    const level = gameData.games.stackMerge.levels[levelNumber]
+    const level = gameData.games.hawkTower.levels[levelNumber]
     const wasCompleted = level.completed
 
     // Update level statistics
@@ -2125,17 +2125,17 @@ export function useLocalStorage() {
     }
 
     // Calculate total stars
-    gameData.games.stackMerge.totalStars = Object.values(gameData.games.stackMerge.levels)
+    gameData.games.hawkTower.totalStars = Object.values(gameData.games.hawkTower.levels)
         .reduce((sum, lvl) => sum + (lvl.stars || 0), 0)
 
     // Update global stats
-    if (stats.totalStacks) gameData.games.stackMerge.totalStacks += stats.totalStacks
-    if (stats.perfectStacks) gameData.games.stackMerge.totalPerfectStacks += stats.perfectStacks
-    if (stats.combo && stats.combo > gameData.games.stackMerge.bestCombo) {
-      gameData.games.stackMerge.bestCombo = stats.combo
+    if (stats.totalStacks) gameData.games.hawkTower.totalStacks += stats.totalStacks
+    if (stats.perfectStacks) gameData.games.hawkTower.totalPerfectStacks += stats.perfectStacks
+    if (stats.combo && stats.combo > gameData.games.hawkTower.bestCombo) {
+      gameData.games.hawkTower.bestCombo = stats.combo
     }
-    if (stats.score && stats.score > gameData.games.stackMerge.highScore) {
-      gameData.games.stackMerge.highScore = stats.score
+    if (stats.score && stats.score > gameData.games.hawkTower.highScore) {
+      gameData.games.hawkTower.highScore = stats.score
     }
 
     // Check for first completion achievement
@@ -2144,14 +2144,14 @@ export function useLocalStorage() {
     }
   }
 
-  // Save StackMerge game state
-  const saveStackMergeState = (state) => {
-    gameData.games.stackMerge.saveState = state
+  // Save Hawk Tower game state
+  const saveHawkTowerState = (state) => {
+    gameData.games.hawkTower.saveState = state
   }
 
-  // Clear StackMerge save state
-  const clearStackMergeState = () => {
-    gameData.games.stackMerge.saveState = null
+  // Clear Hawk Tower save state
+  const clearHawkTowerState = () => {
+    gameData.games.hawkTower.saveState = null
   }
 
 	// Return all reactive data and methods
@@ -2249,9 +2249,9 @@ export function useLocalStorage() {
     markGiftAsReceived,
     unmarkGiftAsReceived,
 
-    updateStackMergeLevel,
-    saveStackMergeState,
-    clearStackMergeState,
+    updateHawkTowerLevel,
+    saveHawkTowerState,
+    clearHawkTowerState,
 
 		// Data management
 		saveData,

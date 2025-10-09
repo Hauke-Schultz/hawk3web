@@ -155,9 +155,9 @@ export const getStarRating = (perfectPercent) => {
   return 1
 }
 
-export const stackMergeConfig = {
-  gameId: 'stackMerge',
-  gameTitle: 'StackMerge',
+export const hawkTowerConfig = {
+  gameId: 'hawkTower',
+  gameTitle: 'Hawk Tower',
   gameDescription: 'Stack blocks to build the tallest tower!',
   gameIcon: 'stack',
   levels: Object.entries(STACK_CONFIG.levels).map(([levelNumber, level]) => ({

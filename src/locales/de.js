@@ -853,8 +853,8 @@ export default {
     }
   },
 
-  stackMerge: {
-    title: 'StackMerge',
+  hawkTower: {
+    title: 'Hawk Tower',
     description: 'Stapel Blöcke und baue den höchsten Turm!',
 
     // Level names
@@ -956,7 +956,7 @@ export default {
 			memory: 'Memory-Spiel',
 			hawkFruit: 'Hawk Fruit-Spiel',
       numMerge: 'Num Merge-Spiel',
-      stackMerge: 'Stack Merge Spiel',
+      hawkTower: 'Hawk Tower Spiel',
 		},
 		rarities: {
 			common: 'Häufig',
@@ -1110,22 +1110,22 @@ export default {
         description: 'Erreiche Nummer 4096'
       },
 
-      // StackMerge achievements
-      stackMerge_beginner: {
+      // Hawk Tower achievements
+      hawkTower_beginner: {
         name: 'Stapel-Anfänger',
-        description: 'Erstes StackMerge Level abgeschlossen'
+        description: 'Erstes Hawk Tower Level abgeschlossen'
       },
-      stackMerge_intermediate: {
+      hawkTower_intermediate: {
         name: 'Stapel-Bauer',
-        description: 'StackMerge Level 3 abgeschlossen'
+        description: 'Hawk Tower Level 3 abgeschlossen'
       },
-      stackMerge_expert: {
+      hawkTower_expert: {
         name: 'Stapel-Experte',
-        description: 'StackMerge Level 5 abgeschlossen'
+        description: 'Hawk Tower Level 5 abgeschlossen'
       },
-      stackMerge_master: {
+      hawkTower_master: {
         name: 'Stapel-Meister',
-        description: 'Die ultimative StackMerge Herausforderung abgeschlossen'
+        description: 'Die ultimative Hawk Tower Herausforderung abgeschlossen'
       },
       total_stacks_20: {
         name: 'Stapel-Sammler',
@@ -1147,9 +1147,9 @@ export default {
         name: 'Wolkenkratzer',
         description: 'Höhe 90 im Endlos-Modus erreicht'
       },
-      stackMerge_perfectionist: {
+      hawkTower_perfectionist: {
         name: 'Stapel-Perfektionist',
-        description: 'Alle StackMerge-Level mit 3 Sternen abgeschlossen'
+        description: 'Alle Hawk Tower-Level mit 3 Sternen abgeschlossen'
       },
 
       // Mystery Box Achievements

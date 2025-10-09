@@ -855,8 +855,8 @@ export default {
     }
   },
 
-  stackMerge: {
-    title: 'StackMerge',
+  hawkTower: {
+    title: 'Hawk Tower',
     description: 'Stack blocks to build the tallest tower!',
 
     // Level names
@@ -955,7 +955,7 @@ export default {
 			memory: 'Memory Game',
 			hawkFruit: 'Hawk Fruit Game',
       numMerge: 'Num Merge Game',
-      stackMerge: 'Stack Merge Game'
+      hawkTower: 'Hawk Tower Game'
 		},
 		rarities: {
 			common: 'Common',
@@ -1109,22 +1109,22 @@ export default {
         description: 'Created the number 4096'
       },
 
-      // StackMerge achievements
-      stackMerge_beginner: {
+      // Hawk Tower achievements
+      hawkTower_beginner: {
         name: 'Stack Beginner',
-        description: 'Completed first StackMerge level'
+        description: 'Completed first Hawk Tower level'
       },
-      stackMerge_intermediate: {
+      hawkTower_intermediate: {
         name: 'Stack Builder',
-        description: 'Completed StackMerge Level 3'
+        description: 'Completed Hawk Tower Level 3'
       },
-      stackMerge_expert: {
+      hawkTower_expert: {
         name: 'Stack Expert',
-        description: 'Completed StackMerge Level 5'
+        description: 'Completed Hawk Tower Level 5'
       },
-      stackMerge_master: {
+      hawkTower_master: {
         name: 'Stack Master',
-        description: 'Completed the ultimate StackMerge challenge'
+        description: 'Completed the ultimate Hawk Tower challenge'
       },
       total_stacks_20: {
         name: 'Stack Collector',
@@ -1146,9 +1146,9 @@ export default {
         name: 'Sky Scraper',
         description: 'Reach height 90 in endless mode'
       },
-      stackMerge_perfectionist: {
+      hawkTower_perfectionist: {
         name: 'Stack Perfectionist',
-        description: 'Complete all StackMerge levels with 3 stars'
+        description: 'Complete all Hawk Tower levels with 3 stars'
       },
 
       mystery_box_first: {

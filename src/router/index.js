@@ -75,20 +75,20 @@ const routes = [
     }
   },
   {
-    path: '/games/stackmerge',
-    name: 'StackMerge',
-    component: () => import('../gamingHub/games/stackmerge/StackMergeLevels.vue'),
+    path: '/games/hawktower',
+    name: 'Hawk Tower',
+    component: () => import('../gamingHub/games/hawktower/HawkTowerLevels.vue'),
     meta: { requiresAuth: false }
   },
   {
-    path: '/games/stackmerge/:level',
-    name: 'StackMergeLevels',
-    component: () => import('../gamingHub/games/stackmerge/StackMerge.vue'),
+    path: '/games/hawktower/:level',
+    name: 'Hawk TowerLevels',
+    component: () => import('../gamingHub/games/hawktower/HawkTower.vue'),
     props: route => ({ level: parseInt(route.params.level) || 1 }),
     beforeEnter: (to, from, next) => {
       const level = parseInt(to.params.level)
       if (isNaN(level) || level < 1 || level > 6) {
-        next('/games/stackmerge')
+        next('/games/hawktower')
       } else {
         next()
       }

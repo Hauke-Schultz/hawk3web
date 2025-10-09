@@ -3,7 +3,7 @@ import { calculateOverlap, calculateStackScore, calculateEndlessStars, getEndles
 import { STACK_CONFIG, getColorForHeight, calculateSpeed } from './stackConfig.js'
 
 /**
- * StackEngine - Core game logic for StackMerge
+ * StackEngine - Core game logic for Hawk Tower
  */
 export class StackEngine {
   constructor(levelConfig) {

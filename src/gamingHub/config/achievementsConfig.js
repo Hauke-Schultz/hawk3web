@@ -360,46 +360,46 @@ export const ACHIEVEMENTS = {
       trigger: { type: 'number_reach', game: 'numMerge', number: 4096 }
     },
 
-    // StackMerge specific achievements
+    // Hawk Tower specific achievements
     {
-      id: 'stackMerge_beginner',
+      id: 'hawkTower_beginner',
       name: 'Stack Beginner',
-      description: 'Completed first StackMerge level',
-      category: 'stackMerge',
+      description: 'Completed first Hawk Tower level',
+      category: 'hawkTower',
       icon: 'stack',
       rarity: 'common',
       rewards: { coins: 150, diamonds: 1 },
-      trigger: { type: 'level_complete', game: 'stackMerge', level: 1 }
+      trigger: { type: 'level_complete', game: 'hawkTower', level: 1 }
     },
     {
-      id: 'stackMerge_intermediate',
+      id: 'hawkTower_intermediate',
       name: 'Stack Builder',
-      description: 'Completed StackMerge Level 3',
-      category: 'stackMerge',
+      description: 'Completed Hawk Tower Level 3',
+      category: 'hawkTower',
       icon: 'stack',
       rarity: 'uncommon',
       rewards: { coins: 500, diamonds: 2 },
-      trigger: { type: 'level_complete', game: 'stackMerge', level: 3 }
+      trigger: { type: 'level_complete', game: 'hawkTower', level: 3 }
     },
     {
-      id: 'stackMerge_expert',
+      id: 'hawkTower_expert',
       name: 'Stack Expert',
-      description: 'Completed StackMerge Level 5',
-      category: 'stackMerge',
+      description: 'Completed Hawk Tower Level 5',
+      category: 'hawkTower',
       icon: 'stack',
       rarity: 'epic',
       rewards: { coins: 1500, diamonds: 8 },
-      trigger: { type: 'level_complete', game: 'stackMerge', level: 5 }
+      trigger: { type: 'level_complete', game: 'hawkTower', level: 5 }
     },
     {
-      id: 'stackMerge_master',
+      id: 'hawkTower_master',
       name: 'Stack Master',
-      description: 'Completed the ultimate StackMerge challenge',
-      category: 'stackMerge',
+      description: 'Completed the ultimate Hawk Tower challenge',
+      category: 'hawkTower',
       icon: 'stack',
       rarity: 'legendary',
       rewards: { coins: 3000, diamonds: 15 },
-      trigger: { type: 'level_complete', game: 'stackMerge', level: 6 }
+      trigger: { type: 'level_complete', game: 'hawkTower', level: 6 }
     },
 
     // Total stacks achievements
@@ -407,7 +407,7 @@ export const ACHIEVEMENTS = {
       id: 'total_stacks_20',
       name: 'Stack Collector',
       description: 'Stacked 20 blocks in total',
-      category: 'stackMerge',
+      category: 'hawkTower',
       icon: 'arrow-up',
       rarity: 'common',
       rewards: { coins: 200, diamonds: 1 },
@@ -417,7 +417,7 @@ export const ACHIEVEMENTS = {
       id: 'total_stacks_50',
       name: 'Stack Enthusiast',
       description: 'Stacked 50 blocks in total',
-      category: 'stackMerge',
+      category: 'hawkTower',
       icon: 'arrow-up',
       rarity: 'uncommon',
       rewards: { coins: 500, diamonds: 3 },
@@ -427,7 +427,7 @@ export const ACHIEVEMENTS = {
       id: 'total_stacks_80',
       name: 'Stack Champion',
       description: 'Stacked 80 blocks in total',
-      category: 'stackMerge',
+      category: 'hawkTower',
       icon: 'trophy',
       rarity: 'rare',
       rewards: { coins: 1000, diamonds: 5 },
@@ -439,7 +439,7 @@ export const ACHIEVEMENTS = {
       id: 'perfect_combo_10',
       name: 'Precision Master',
       description: 'Get 10 perfect stacks in a row',
-      category: 'stackMerge',
+      category: 'hawkTower',
       icon: 'star-filled',
       rarity: 'epic',
       rewards: { coins: 2000, diamonds: 10 },
@@ -451,7 +451,7 @@ export const ACHIEVEMENTS = {
       id: 'endless_height_90',
       name: 'Sky Scraper',
       description: 'Reach height 90 in endless mode',
-      category: 'stackMerge',
+      category: 'hawkTower',
       icon: 'trophy',
       rarity: 'legendary',
       rewards: { coins: 5000, diamonds: 20 },
@@ -460,14 +460,14 @@ export const ACHIEVEMENTS = {
 
     // Perfectionist achievement
     {
-      id: 'stackMerge_perfectionist',
+      id: 'hawkTower_perfectionist',
       name: 'Stack Perfectionist',
-      description: 'Complete all StackMerge levels with 3 stars',
-      category: 'stackMerge',
+      description: 'Complete all Hawk Tower levels with 3 stars',
+      category: 'hawkTower',
       icon: 'trophy',
       rarity: 'legendary',
       rewards: { coins: 3500, diamonds: 25 },
-      trigger: { type: 'perfect_all_levels', game: 'stackMerge' }
+      trigger: { type: 'perfect_all_levels', game: 'hawkTower' }
     },
 
     // Mystery Box Achievements
@@ -598,10 +598,10 @@ export const ACHIEVEMENTS = {
       description: 'Achievements for the Num Merge Game'
     },
     {
-      id: 'stackMerge',
-      name: 'Stack Merge Game',
+      id: 'hawkTower',
+      name: 'Hawk Tower Game',
       color: 'danger',
-      description: 'Achievements for the Stack Merge Game'
+      description: 'Achievements for the Hawk Tower Game'
     },
 		{
 			id: 'special',

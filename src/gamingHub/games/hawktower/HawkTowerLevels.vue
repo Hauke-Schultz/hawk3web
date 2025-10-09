@@ -22,7 +22,7 @@ const selectedLevel = ref(null)
 
 // Computed game data
 const gameStats = computed(() => {
-	return gameData.games.stackMerge || {}
+	return gameData.games.hawkTower || {}
 })
 
 // Compute level data with completion status
@@ -34,16 +34,16 @@ const levelData = computed(() => {
 		const isUnlocked = levelNum === 1 || level.difficulty === 'endless' ||
 				(gameStats.value.levels?.[levelNum - 1]?.completed || false)
 
-		const title = getLevelTitle(levelNum, 'stackMerge', t)
-		const description = getLevelDescription(levelNum, 'stackMerge', t)
+		const title = getLevelTitle(levelNum, 'hawkTower', t)
+		const description = getLevelDescription(levelNum, 'hawkTower', t)
 
 		// Check for saved state
-		const savedState = loadLevelState('stackMerge', levelNum)
+		const savedState = loadLevelState('hawkTower', levelNum)
 		const hasSaved = !!savedState
 		const savedTimestamp = savedState?.savedAt || null
 
 		// Screenshot data
-		const screenshotCount = getScreenshotCount('stackMerge', levelNum)
+		const screenshotCount = getScreenshotCount('hawkTower', levelNum)
 		const hasScreenshots = screenshotCount > 0
 
 		return {
@@ -85,7 +85,7 @@ const completionStats = computed(() => {
 
 // Event handlers using router
 const handlePlayLevel = (levelNumber) => {
-	router.push(`/games/stackmerge/${levelNumber}`)
+	router.push(`/games/hawktower/${levelNumber}`)
 }
 
 const handleViewScreenshots = (levelNumber) => {
@@ -120,7 +120,7 @@ const handleMenuClick = () => {
 		<!-- Header Section -->
 		<div class="level-header">
 			<div class="level-title-section">
-				<h2 class="level-title">{{ t('stackMerge.title') }}</h2>
+				<h2 class="level-title">{{ t('hawkTower.title') }}</h2>
 				<p class="level-subtitle">{{ t('gaming.choose_level') }}</p>
 			</div>
 		</div>
@@ -151,7 +151,7 @@ const handleMenuClick = () => {
 					:high-score="level.bestScore"
 					:best-time="null"
 					theme="danger"
-					game-type="stackMerge"
+					game-type="hawkTower"
 					:has-saved-state="level.hasSavedState"
 					:saved-state-timestamp="level.savedStateTimestamp"
 					:screenshot-count="level.screenshotCount"
@@ -164,12 +164,12 @@ const handleMenuClick = () => {
 					<div class="level-tile__custom-stats">
 						<div class="custom-stat">
 							<span class="custom-stat__icon">🏗️</span>
-							<span class="custom-stat__label">{{ t('stackMerge.bestHeight') }}</span>
+							<span class="custom-stat__label">{{ t('hawkTower.bestHeight') }}</span>
 							<span class="custom-stat__value">{{ level.bestHeight }}</span>
 						</div>
 						<div class="custom-stat" v-if="level.perfectPercent > 0">
 							<span class="custom-stat__icon">⭐</span>
-							<span class="custom-stat__label">{{ t('stackMerge.perfect') }}</span>
+							<span class="custom-stat__label">{{ t('hawkTower.perfect') }}</span>
 							<span class="custom-stat__value">{{ level.perfectPercent }}%</span>
 						</div>
 					</div>
@@ -182,9 +182,9 @@ const handleMenuClick = () => {
 	<ScreenshotGallery
 			v-if="selectedLevel"
 			:visible="showScreenshotGallery"
-			:game-id="'stackMerge'"
+			:game-id="'hawkTower'"
 			:level="selectedLevel"
-			:game-title="t('stackMerge.title')"
+			:game-title="t('hawkTower.title')"
 			:show-download="true"
 			:show-metadata="true"
 			:max-width="'400px'"

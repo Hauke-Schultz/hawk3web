@@ -6,7 +6,7 @@ import {computed, watch} from "vue"
 import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
 import { hawkFruitConfig } from "../gamingHub/games/hawkfruit/hawkFruitConfig.js"
 import { numMergeConfig } from "../gamingHub/games/nummerge/numMergeConfig.js"
-import { stackMergeConfig } from "../gamingHub/games/stackmerge/stackConfig.js"
+import { hawkTowerConfig } from "../gamingHub/games/hawktower/stackConfig.js"
 import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
 import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
@@ -46,14 +46,14 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'num-merge-game'
 	}))
 
-	const stackMergeLevels = getRecentLevelsForGame('stackMerge', 10).map(level => ({
+	const hawkTowerLevels = getRecentLevelsForGame('hawkTower', 10).map(level => ({
 		...level,
-		gameId: 'stackMerge',
-		gameTitle: t('stackMerge.title'),
+		gameId: 'hawkTower',
+		gameTitle: t('hawkTower.title'),
 		gameIcon: 'stack'
 	}))
 
-	const combined = [...memoryLevels, ...hawkFruitLevels, ...numMergeLevels, ...stackMergeLevels]
+	const combined = [...memoryLevels, ...hawkFruitLevels, ...numMergeLevels, ...hawkTowerLevels]
 			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
 			.slice(0, 3)
 
@@ -86,7 +86,7 @@ const navigateToLevel = (gameId, level) => {
 		'hawkFruit': 'hawkfruit',
 		'memory': 'memory',
 		'numMerge': 'nummerge',
-		'stackMerge': 'stackmerge'
+		'hawkTower': 'hawktower'
 	}
 
 	const routeName = gameRoutes[gameId]
@@ -101,7 +101,7 @@ const navigateToGame = (gameId) => {
 		memory: '/games/memory',
 		hawkFruit: '/games/hawkfruit',
 		numMerge: '/games/nummerge',
-		stackMerge: '/games/stackmerge'
+		hawkTower: '/games/hawktower'
 	}
 	if (routes[gameId]) {
 		router.push(routes[gameId])
@@ -135,11 +135,11 @@ const getGameProgress = (gameId, config) => {
 const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
 const hawkFruitProgress = computed(() => getGameProgress('hawkFruit', hawkFruitConfig))
 const numMergeProgress = computed(() => getGameProgress('numMerge', numMergeConfig))
-const stackMergeProgress = computed(() => getGameProgress('stackMerge', stackMergeConfig))
+const hawkTowerProgress = computed(() => getGameProgress('hawkTower', hawkTowerConfig))
 
 // Overall Progress
 const overallProgress = computed(() => {
-	const allGames = ['memory', 'hawkFruit', 'numMerge', 'stackMerge']
+	const allGames = ['memory', 'hawkFruit', 'numMerge', 'hawkTower']
 	let totalCompleted = 0
 	let totalLevels = 0
 	let totalStars = 0
@@ -368,18 +368,18 @@ const handleMenuClick = () => {
 					</div>
 				</div>
 
-				<!-- Stack Merge Game -->
-				<div class="game-card" @click="navigateToGame('stackMerge')">
+				<!-- Hawk Tower Game -->
+				<div class="game-card" @click="navigateToGame('hawkTower')">
 					<div class="game-header">
-						<Icon :name="stackMergeConfig.gameIcon" size="28" />
+						<Icon :name="hawkTowerConfig.gameIcon" size="28" />
 						<div class="game-info">
-							<h3 class="game-title">{{ stackMergeConfig.gameTitle }}</h3>
+							<h3 class="game-title">{{ hawkTowerConfig.gameTitle }}</h3>
 							<div class="game-progress">
-								<span class="progress-text">{{ stackMergeProgress.completed }}/{{ stackMergeProgress.total }}</span>
+								<span class="progress-text">{{ hawkTowerProgress.completed }}/{{ hawkTowerProgress.total }}</span>
 								<div class="mini-progress-bar">
 									<div
-											class="mini-progress-fill stackmerge"
-											:style="{ width: `${stackMergeProgress.percentage}%` }"
+											class="mini-progress-fill hawktower"
+											:style="{ width: `${hawkTowerProgress.percentage}%` }"
 									></div>
 								</div>
 							</div>
@@ -388,7 +388,7 @@ const handleMenuClick = () => {
 						<div class="game-stats">
 							<div class="game-stat">
 								<Icon name="star-filled" size="14" />
-								<span>{{ stackMergeProgress.stars }}</span>
+								<span>{{ hawkTowerProgress.stars }}</span>
 							</div>
 						</div>
 					</div>

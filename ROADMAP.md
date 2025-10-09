@@ -91,12 +91,12 @@
 - **Whack A Mole Minigame** - New minigame to win coins and diamonds
 - **Num Game 7 Tile** - New tile that decreases every slide until it reaches 4
 - **Gift System** - Send and receive gifts with friends
-- **New Game StackMerge** - New stacking game
-- **StackMerge Level System** - 6 levels with increasing difficulty and endless mode
+- **New Game Hawk Tower** - New stacking game
+- **Hawk Tower Level System** - 6 levels with increasing difficulty and endless mode
 
 ---
 
-## 🚀 Version 0.3.4 - StackMerge
+## 🚀 Version 0.3.4 - Hawk Tower
 
 #### **Achievements Integration**
 **Tasks:**
