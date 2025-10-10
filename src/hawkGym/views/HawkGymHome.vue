@@ -12,7 +12,7 @@ import { computed, ref } from "vue"
 const router = useRouter()
 const { t } = useI18n()
 const { gameData } = useLocalStorage()
-const { gymData, getCurrentWorkoutPlan, setSelectedPlan } = useGymLocalStorage()
+const { gymData, getCurrentWorkoutPlan, setSelectedPlan, getCustomPlanForDay } = useGymLocalStorage()
 
 // Get today's day key
 const getTodayKey = () => {
@@ -56,6 +56,21 @@ const selectedDay = computed({
 
 // Get current workout plan based on selected day
 const currentWorkout = computed(() => {
+	// Check if there's a custom plan for the selected day
+	const customPlan = getCustomPlanForDay(selectedDay.value)
+
+	if (customPlan) {
+		return {
+			type: 'custom',
+			dayKey: selectedDay.value,
+			plan: {
+				nameKey: customPlan.name, // Use the custom name directly
+				exercises: customPlan.exercises
+			}
+		}
+	}
+
+	// Return default plan
 	return {
 		type: 'default',
 		dayKey: selectedDay.value,
@@ -117,6 +132,12 @@ const handleMenuClick = () => {
 
 // Get workout title
 const workoutTitle = computed(() => {
+	// If custom plan, the nameKey is already the full name
+	if (currentWorkout.value.type === 'custom') {
+		return currentWorkout.value.plan.nameKey
+	}
+
+	// For default plans, translate the nameKey
 	return t(workoutPlan.value.nameKey)
 })
 
@@ -163,6 +184,9 @@ const isToday = computed(() => selectedDay.value === todayKey)
 			<div class="info-card">
 				<div class="card-header">
 					<h2>{{ workoutTitle }}</h2>
+					<span v-if="currentWorkout.type === 'custom'" class="custom-badge">
+					  {{ t('hawkGym.settings.custom') }}
+					</span>
 					<button
 							class="btn btn--ghost btn--small"
 							@click="openSettings"
@@ -422,5 +446,18 @@ const isToday = computed(() => selectedDay.value === todayKey)
 		width: 100%;
 		max-width: 300px;
 	}
+}
+
+.custom-badge {
+	display: inline-block;
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--primary-color);
+	color: var(--white);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-left: var(--space-2);
 }
 </style>

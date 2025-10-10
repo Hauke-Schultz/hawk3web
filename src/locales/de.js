@@ -1443,6 +1443,9 @@ export default {
       custom_plan_created: 'Eigener Plan erstellt!',
       update_custom_plan: 'Eigenen Plan aktualisieren',
       select_day_to_edit: 'Tag zum Bearbeiten auswählen',
+      plan_name: 'Plan Name',
+      plan_name_placeholder: 'Eigenen Plan-Namen eingeben',
+      characters: 'Zeichen',
     },
   },
 

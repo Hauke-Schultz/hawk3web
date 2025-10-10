@@ -1442,6 +1442,9 @@ export default {
       custom_plan_created: 'Custom plan created!',
       update_custom_plan: 'Update Custom Plan',
       select_day_to_edit: 'Select Day to Edit',
+      plan_name: 'Plan Name',
+      plan_name_placeholder: 'Enter custom plan name',
+      characters: 'characters',
     },
   },
 

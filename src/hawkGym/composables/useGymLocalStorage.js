@@ -104,14 +104,18 @@ export function useGymLocalStorage() {
   /**
    * Create a new custom workout plan
    */
-  const createCustomPlan = (planId, planData) => {
-    if (!planId || !planData) {
+  const createCustomPlan = (dayKey, planData) => {
+    if (!dayKey || !planData) {
       console.error('Invalid plan data')
       return false
     }
 
+    // Fixed ID per day: custom_monday, custom_tuesday, etc.
+    const planId = `custom_${dayKey}`
+
     gymData.customPlans[planId] = {
       id: planId,
+      dayKey: dayKey, // Store which day this is for
       name: planData.name || 'Custom Plan',
       exercises: planData.exercises || [],
       createdAt: new Date().toISOString(),
@@ -119,6 +123,14 @@ export function useGymLocalStorage() {
     }
 
     return true
+  }
+
+  /**
+   * Get custom plan for a specific day
+   */
+  const getCustomPlanForDay = (dayKey) => {
+    const planId = `custom_${dayKey}`
+    return gymData.customPlans[planId] || null
   }
 
   /**
@@ -411,6 +423,7 @@ export function useGymLocalStorage() {
     deleteCustomPlan,
     getCustomPlan,
     getAllCustomPlans,
+    getCustomPlanForDay,
 
     // Timer Settings
     updateTimerSettings,
