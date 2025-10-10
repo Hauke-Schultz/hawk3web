@@ -1442,6 +1442,7 @@ export default {
       reset_to_default: 'Auf Standard zurücksetzen',
       custom_plan_created: 'Eigener Plan erstellt!',
       update_custom_plan: 'Eigenen Plan aktualisieren',
+      select_day_to_edit: 'Tag zum Bearbeiten auswählen',
     },
   },
 

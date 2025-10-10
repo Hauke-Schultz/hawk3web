@@ -30,6 +30,16 @@ const editedSettings = ref({
 	getReadyDuration: gymData.timerSettings.getReadyDuration
 })
 
+const availableDays = [
+	{ key: 'monday', nameKey: 'hawkGym.days.monday' },
+	{ key: 'tuesday', nameKey: 'hawkGym.days.tuesday' },
+	{ key: 'wednesday', nameKey: 'hawkGym.days.wednesday' },
+	{ key: 'thursday', nameKey: 'hawkGym.days.thursday' },
+	{ key: 'friday', nameKey: 'hawkGym.days.friday' },
+	{ key: 'saturday', nameKey: 'hawkGym.days.saturday' },
+	{ key: 'sunday', nameKey: 'hawkGym.days.sunday' }
+]
+
 // Track if settings have been changed
 const hasChanges = computed(() => {
 	return (
@@ -144,46 +154,57 @@ const selectedDay = computed(() => {
 	return days[today]
 })
 
+// Selected day for editing - independent from active workout
+const selectedEditDay = ref(selectedDay.value)
+
 const isEditingCustomPlan = computed(() => {
-	const selected = gymData.preferences.selectedPlan
-	return selected !== 'default' &&
-			!WORKOUT_PLANS[selected] &&
-			gymData.customPlans[selected]
+	// Check if there's a custom plan for the currently selected edit day
+	const customPlanForDay = Object.values(gymData.customPlans).find(
+			plan => plan.basedOn === selectedEditDay.value
+	)
+	return !!customPlanForDay
 })
 
 const currentPlanName = computed(() => {
-	if (isEditingCustomPlan.value) {
-		const plan = gymData.customPlans[gymData.preferences.selectedPlan]
-		return plan ? plan.name : t(`hawkGym.plans.${selectedDay.value}.name`)
+	// Check if there's a custom plan for the selected edit day
+	const customPlanForDay = Object.values(gymData.customPlans).find(
+			plan => plan.basedOn === selectedEditDay.value
+	)
+
+	if (customPlanForDay) {
+		return customPlanForDay.name
 	}
-	return t(`hawkGym.plans.${selectedDay.value}.name`)
+
+	return t(`hawkGym.plans.${selectedEditDay.value}.name`)
 })
 
 const initializeExercises = () => {
-	const selected = gymData.preferences.selectedPlan
+	// Check if there's a custom plan for the selected edit day
+	const customPlanForDay = Object.values(gymData.customPlans).find(
+			plan => plan.basedOn === selectedEditDay.value
+	)
 
-	// Check if we're editing a custom plan
-	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
+	if (customPlanForDay) {
 		// Load exercises from custom plan
-		editedExercises.value = [...gymData.customPlans[selected].exercises]
+		editedExercises.value = [...customPlanForDay.exercises]
 	} else {
 		// Load exercises from default day plan
-		editedExercises.value = [...WORKOUT_PLANS[selectedDay.value].exercises]
+		editedExercises.value = [...WORKOUT_PLANS[selectedEditDay.value].exercises]
 	}
 }
 
 // Track if exercises have been changed
 const hasExerciseChanges = computed(() => {
-	const selected = gymData.preferences.selectedPlan
-	let originalExercises
+	// Get original exercises based on current edit day
+	const customPlanForDay = Object.values(gymData.customPlans).find(
+			plan => plan.basedOn === selectedEditDay.value
+	)
 
-	// Get original exercises based on current plan type
-	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
-		// Compare with custom plan
-		originalExercises = gymData.customPlans[selected].exercises
+	let originalExercises
+	if (customPlanForDay) {
+		originalExercises = customPlanForDay.exercises
 	} else {
-		// Compare with default day plan
-		originalExercises = WORKOUT_PLANS[selectedDay.value].exercises
+		originalExercises = WORKOUT_PLANS[selectedEditDay.value].exercises
 	}
 
 	// Check length
@@ -240,26 +261,29 @@ const moveExerciseDown = (index) => {
 
 // Reset exercises to original
 const resetExercises = () => {
-	const selected = gymData.preferences.selectedPlan
+	const customPlanForDay = Object.values(gymData.customPlans).find(
+			plan => plan.basedOn === selectedEditDay.value
+	)
 
-	// Reset based on current plan type
-	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
+	if (customPlanForDay) {
 		// Reset to custom plan exercises
-		editedExercises.value = [...gymData.customPlans[selected].exercises]
+		editedExercises.value = [...customPlanForDay.exercises]
 	} else {
 		// Reset to default day plan exercises
-		editedExercises.value = [...WORKOUT_PLANS[selectedDay.value].exercises]
+		editedExercises.value = [...WORKOUT_PLANS[selectedEditDay.value].exercises]
 	}
 }
 
 // Save exercise changes
 const saveExerciseChanges = () => {
-	const selected = gymData.preferences.selectedPlan
+	// Check if there's already a custom plan for this day
+	const existingCustomPlan = Object.values(gymData.customPlans).find(
+			plan => plan.basedOn === selectedEditDay.value
+	)
 
-	// Check if we're updating an existing custom plan
-	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
+	if (existingCustomPlan) {
 		// Update existing custom plan
-		const success = updateCustomPlan(selected, {
+		const success = updateCustomPlan(existingCustomPlan.id, {
 			exercises: [...editedExercises.value]
 		})
 
@@ -268,24 +292,17 @@ const saveExerciseChanges = () => {
 		}
 	} else {
 		// Create new custom plan
-		const customPlanId = `custom_${selectedDay.value}_${Date.now()}`
-
-		// Get the current plan name
-		const planName = t(`hawkGym.plans.${selectedDay.value}.name`)
+		const customPlanId = `custom_${selectedEditDay.value}_${Date.now()}`
+		const planName = t(`hawkGym.plans.${selectedEditDay.value}.name`)
 		const customPlanName = `${planName} (${t('hawkGym.settings.custom')})`
 
-		// Create the custom plan
 		const success = createCustomPlan(customPlanId, {
 			name: customPlanName,
 			exercises: [...editedExercises.value],
-			basedOn: selectedDay.value
+			basedOn: selectedEditDay.value
 		})
 
 		if (success) {
-			// Set this custom plan as the selected plan
-			setSelectedPlan(customPlanId)
-
-			// Show success message
 			showSuccessMessage.value = true
 		} else {
 			console.error('Failed to create custom plan')
@@ -294,14 +311,22 @@ const saveExerciseChanges = () => {
 }
 
 const resetToDefaultPlan = () => {
-	// Reset to the default day plan
-	setSelectedPlan(selectedDay.value)
+	// Find and delete the custom plan for this day
+	const customPlanForDay = Object.values(gymData.customPlans).find(
+			plan => plan.basedOn === selectedEditDay.value
+	)
 
-	// Reset exercises to original
-	editedExercises.value = [...WORKOUT_PLANS[selectedDay.value].exercises]
+	if (customPlanForDay) {
+		// Delete the custom plan
+		const { deleteCustomPlan } = useGymLocalStorage()
+		deleteCustomPlan(customPlanForDay.id)
 
-	// Show success message
-	showSuccessMessage.value = true
+		// Reset exercises to default
+		editedExercises.value = [...WORKOUT_PLANS[selectedEditDay.value].exercises]
+
+		// Show success message
+		showSuccessMessage.value = true
+	}
 }
 
 // Get exercise details for display
@@ -351,6 +376,25 @@ watch(
 			}
 		}
 )
+
+watch(
+		selectedEditDay,
+		(newDay) => {
+			// Load exercises for the newly selected day
+			const selected = gymData.preferences.selectedPlan
+
+			// Check if editing a custom plan for this day
+			const customPlanForDay = Object.values(gymData.customPlans).find(
+					plan => plan.basedOn === newDay
+			)
+
+			if (customPlanForDay) {
+				editedExercises.value = [...customPlanForDay.exercises]
+			} else {
+				editedExercises.value = [...WORKOUT_PLANS[newDay].exercises]
+			}
+		}
+)
 </script>
 
 <template>
@@ -382,6 +426,27 @@ watch(
 			</div>
 
 			<div class="plan-info">
+				<div class="day-selector">
+					<label for="edit-day-select" class="day-selector-label">
+						{{ t('hawkGym.settings.select_day_to_edit') }}
+					</label>
+					<div class="day-select-wrapper">
+						<select
+								id="edit-day-select"
+								v-model="selectedEditDay"
+								class="day-select"
+						>
+							<option
+									v-for="day in availableDays"
+									:key="day.key"
+									:value="day.key"
+							>
+								{{ t(day.nameKey) }}
+							</option>
+						</select>
+						<Icon name="chevron-down" size="16" class="select-icon" />
+					</div>
+				</div>
 				<p class="plan-day">
 					{{ t('hawkGym.settings.editing_plan') }}:
 					<strong>{{ currentPlanName }}</strong>
@@ -389,7 +454,6 @@ watch(
 				<p v-if="isEditingCustomPlan" class="plan-custom-badge">
 					{{ t('hawkGym.settings.custom_plan') }}
 				</p>
-				<p class="plan-note">{{ t('hawkGym.settings.plan_note') }}</p>
 			</div>
 
 			<!-- Exercise List -->
@@ -480,7 +544,7 @@ watch(
 				</button>
 
 				<!-- Success Message -->
-				<div v-if="showSuccessMessage && !hasExerciseChanges" class="success-message">
+				<div v-if="showSuccessMessage" class="success-message">
 					<Icon name="check" size="20" />
 					{{ t('hawkGym.settings.saved') }}
 				</div>
@@ -845,6 +909,9 @@ watch(
 }
 
 .plan-info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
 	margin-bottom: var(--space-4);
 	padding: var(--space-3);
 	background-color: var(--bg-secondary);
@@ -1075,5 +1142,56 @@ watch(
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	margin: var(--space-2) 0;
+}
+
+.day-selector {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.day-selector-label {
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+}
+
+.day-select-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.day-select {
+	appearance: none;
+	background-color: var(--bg-secondary);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	padding: var(--space-3) var(--space-8) var(--space-3) var(--space-3);
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: var(--font-family-base);
+	width: 100%;
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		border-color: var(--primary-color);
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+		box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+	}
+}
+
+.select-icon {
+	position: absolute;
+	right: var(--space-3);
+	pointer-events: none;
+	color: var(--text-secondary);
 }
 </style>

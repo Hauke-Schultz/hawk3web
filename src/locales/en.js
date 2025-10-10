@@ -1441,6 +1441,7 @@ export default {
       reset_to_default: 'Reset to Default Plan',
       custom_plan_created: 'Custom plan created!',
       update_custom_plan: 'Update Custom Plan',
+      select_day_to_edit: 'Select Day to Edit',
     },
   },
 
