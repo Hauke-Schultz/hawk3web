@@ -1,13 +1,14 @@
 <script setup>
-import { useRouter } from 'vue-router'
-import { useI18n } from '../../composables/useI18n.js'
+import { computed, ref } from "vue"
 import Header from '../../gamingHub/components/Header.vue'
 import Icon from '../../components/Icon.vue'
+import ExerciseList from '../components/ExerciseList.vue'
 import { useLocalStorage } from '../../gamingHub/composables/useLocalStorage.js'
 import { useGymLocalStorage } from '../composables/useGymLocalStorage.js'
 import { WORKOUT_PLANS } from '../config/workoutPlans.js'
 import { getExercise } from '../config/exercisesConfig.js'
-import { computed, ref } from "vue"
+import { useRouter } from 'vue-router'
+import { useI18n } from '../../composables/useI18n.js'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -95,18 +96,6 @@ const exercisesList = computed(() => {
 		}
 	})
 })
-
-const toggleExercise = (exerciseId) => {
-	if (expandedExercises.value.has(exerciseId)) {
-		expandedExercises.value.delete(exerciseId)
-	} else {
-		expandedExercises.value.add(exerciseId)
-	}
-}
-
-const isExerciseExpanded = (exerciseId) => {
-	return expandedExercises.value.has(exerciseId)
-}
 
 // Calculate estimated workout time
 const estimatedTime = computed(() => {
@@ -202,39 +191,10 @@ const isToday = computed(() => selectedDay.value === todayKey)
 					~{{ estimatedTime }} {{ t('time.minutes') }}
 				</p>
 
-				<div class="exercise-list">
-					<div
-							v-for="(exercise, index) in exercisesList"
-							:key="exercise.id"
-							class="exercise-item"
-							:class="{ 'exercise-item--expanded': isExerciseExpanded(exercise.id) }"
-					>
-						<button
-								class="exercise-header"
-								@click="toggleExercise(exercise.id)"
-								:aria-expanded="isExerciseExpanded(exercise.id)"
-								:aria-controls="`exercise-${exercise.id}`"
-						>
-							<span class="exercise-number">{{ index + 1 }}</span>
-							<span class="exercise-name">{{ exercise.name }}</span>
-							<Icon
-									name="chevron-down"
-									size="20"
-									class="exercise-toggle-icon"
-							/>
-						</button>
-
-						<transition name="accordion">
-							<div
-									v-if="isExerciseExpanded(exercise.id)"
-									:id="`exercise-${exercise.id}`"
-									class="exercise-content"
-							>
-								<p class="exercise-description">{{ exercise.description }}</p>
-							</div>
-						</transition>
-					</div>
-				</div>
+				<ExerciseList
+						:exercises="workoutPlan.exercises"
+						mode="preview"
+				/>
 			</div>
 		</section>
 
@@ -306,17 +266,21 @@ const isToday = computed(() => selectedDay.value === todayKey)
 }
 
 .info-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 	background-color: var(--card-bg);
 	border: 1px solid var(--card-border);
 	border-radius: var(--border-radius-xl);
-	padding: var(--space-4);
+	padding: var(--space-3);
+	gap: var(--space-3);
 	text-align: center;
 
 	.card-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: var(--space-2);
+		gap: var(--space-3);
 
 		h2 {
 			font-size: var(--font-size-xl);
@@ -333,121 +297,6 @@ const isToday = computed(() => selectedDay.value === todayKey)
 	margin: 0;
 }
 
-.exercise-list {
-	margin-top: var(--space-4);
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-2);
-}
-
-.exercise-item {
-	background-color: var(--bg-secondary);
-	border-radius: var(--border-radius-md);
-	overflow: hidden;
-	transition: all 0.3s ease;
-
-	&--expanded {
-		background-color: var(--card-bg);
-		border: 1px solid var(--card-border);
-	}
-}
-
-.exercise-header {
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
-	padding: var(--space-3);
-	width: 100%;
-	background: none;
-	border: none;
-	cursor: pointer;
-	text-align: left;
-	color: var(--text-color);
-	font-family: var(--font-family-base);
-	transition: background-color 0.2s ease;
-
-	&:hover {
-		background-color: rgba(79, 70, 229, 0.05);
-	}
-
-	&:active {
-		background-color: rgba(79, 70, 229, 0.1);
-	}
-}
-
-.exercise-number {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	background-color: var(--primary-color);
-	color: var(--white);
-	border-radius: 50%;
-	font-weight: var(--font-weight-bold);
-	font-size: var(--font-size-sm);
-	flex-shrink: 0;
-}
-
-.exercise-name {
-	flex: 1;
-	color: var(--text-color);
-	font-weight: var(--font-weight-bold);
-	font-size: var(--font-size-base);
-}
-
-.exercise-toggle-icon {
-	color: var(--text-secondary);
-	transition: transform 0.3s ease;
-	flex-shrink: 0;
-
-	.exercise-item--expanded & {
-		transform: rotate(180deg);
-	}
-}
-
-.exercise-content {
-	padding: 0 var(--space-3) var(--space-3);
-	text-align: left;
-}
-
-.exercise-description {
-	color: var(--text-secondary);
-	font-size: var(--font-size-sm);
-	line-height: 1.5;
-	margin: 0;
-}
-
-// Accordion animation
-.accordion-enter-active,
-.accordion-leave-active {
-	transition: all 0.3s ease;
-	max-height: 200px;
-	overflow: hidden;
-}
-
-.accordion-enter-from,
-.accordion-leave-to {
-	max-height: 0;
-	opacity: 0;
-}
-
-.accordion-enter-to,
-.accordion-leave-from {
-	max-height: 200px;
-	opacity: 1;
-}
-
-.action-section {
-	display: flex;
-	justify-content: center;
-
-	.btn {
-		width: 100%;
-		max-width: 300px;
-	}
-}
-
 .custom-badge {
 	display: inline-block;
 	padding: var(--space-1) var(--space-2);
@@ -458,6 +307,5 @@ const isToday = computed(() => selectedDay.value === todayKey)
 	font-weight: var(--font-weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	margin-left: var(--space-2);
 }
 </style>

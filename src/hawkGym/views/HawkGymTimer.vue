@@ -7,6 +7,7 @@ import { useLocalStorage } from '../../gamingHub/composables/useLocalStorage.js'
 import { useGymLocalStorage } from '../composables/useGymLocalStorage.js'
 import { getTodaysWorkout, TIMER_CONFIG } from '../config/workoutPlans.js'
 import { getExercise } from '../config/exercisesConfig.js'
+import ExerciseList from '../components/ExerciseList.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -14,6 +15,7 @@ const { gameData } = useLocalStorage()
 const { gymData, getCurrentWorkoutPlan, addWorkoutToHistory } = useGymLocalStorage()
 
 const { dayKey } = getTodaysWorkout()
+const exercisesArray = computed(() => plan.exercises)
 const currentPlan = getCurrentWorkoutPlan()
 const plan = currentPlan.plan
 
@@ -51,28 +53,6 @@ let timerInterval = null
 // Computed properties
 const totalExercises = computed(() => plan.exercises.length)
 
-const currentExercise = computed(() => {
-	const exerciseId = plan.exercises[currentExerciseIndex.value]
-	const exercise = getExercise(exerciseId)
-	return exercise ? t(exercise.nameKey) : exerciseId
-})
-
-const nextExercise = computed(() => {
-	const nextIndex = currentExerciseIndex.value + 1
-	if (nextIndex < plan.exercises.length) {
-		const exerciseId = plan.exercises[nextIndex]
-		const exercise = getExercise(exerciseId)
-		return exercise ? t(exercise.nameKey) : exerciseId
-	}
-	// If last exercise in round
-	if (currentRound.value < timerConfig.value.rounds) {
-		const exerciseId = plan.exercises[0]
-		const exercise = getExercise(exerciseId)
-		return exercise ? t(exercise.nameKey) : exerciseId
-	}
-	return null // Workout finished
-})
-
 const isLastExerciseInRound = computed(() => {
 	return currentExerciseIndex.value === plan.exercises.length - 1
 })
@@ -102,17 +82,6 @@ const stateLabel = computed(() => {
 		default:
 			return t('hawkGym.idle')
 	}
-})
-
-const currentExerciseName = computed(() => {
-	if (state.value === TIMER_STATES.EXERCISE || state.value === TIMER_STATES.REST) {
-		return currentExercise.value
-	}
-	return ''
-})
-
-const nextExerciseName = computed(() => {
-	return nextExercise.value || ''
 })
 
 const countdownColor = computed(() => {
@@ -265,27 +234,6 @@ const advance = () => {
 	}
 }
 
-// Get the display number for current exercise
-const getCurrentExerciseNumber = () => {
-	if (state.value === TIMER_STATES.GET_READY) {
-		return 1 // First exercise during get ready
-	}
-	return currentExerciseIndex.value + 1
-}
-
-// Get the display number for next exercise
-const getNextExerciseNumber = () => {
-	const nextIndex = currentExerciseIndex.value + 1
-	if (nextIndex < plan.exercises.length) {
-		return nextIndex + 1 // Current round, next exercise
-	}
-	// If moving to next round
-	if (currentRound.value < timerConfig.value.rounds) {
-		return 1 // First exercise of next round
-	}
-	return null
-}
-
 // Button handlers
 const handleStart = () => {
 	const config = timerConfig.value
@@ -343,13 +291,6 @@ const handleMenuClick = () => {
 	router.push('/hawk-gym')
 }
 
-// Get first exercise name for idle state
-const getFirstExerciseName = () => {
-	const exerciseId = plan.exercises[0]
-	const exercise = getExercise(exerciseId)
-	return exercise ? t(exercise.nameKey) : exerciseId
-}
-
 // Cleanup on unmount
 onUnmounted(() => {
 	stopTimer()
@@ -366,106 +307,73 @@ onUnmounted(() => {
 	/>
 
 	<main class="content timer-view">
-		<section class="timer-display">
-			<!-- Timer Info -->
-			<div v-if="state !== TIMER_STATES.FINISHED" class="timer-info">
-				<div class="round-indicator">{{ t('hawkGym.round') }} {{ currentRound }}/{{ timerConfig.rounds }}</div>
-				<div v-if="state === TIMER_STATES.EXERCISE || state === TIMER_STATES.REST" class="exercise-indicator">
-					{{ t('hawkGym.exercise_count') }} {{ currentExerciseIndex + 1 }}/{{ totalExercises }}
+		<section class="timer-container">
+			<!-- Top Info Bar -->
+			<div v-if="state !== TIMER_STATES.FINISHED" class="timer-info-bar">
+				<div class="info-item">
+					<span class="info-label">{{ t('hawkGym.round') }}</span>
+					<span class="info-value">{{ currentRound }}/{{ timerConfig.rounds }}</span>
+				</div>
+				<div class="info-item">
+					<span class="info-label">{{ t('hawkGym.exercise_count') }}</span>
+					<span class="info-value">{{ currentExerciseIndex + 1 }}/{{ totalExercises }}</span>
 				</div>
 			</div>
 
 			<!-- Progress Bar -->
 			<div v-if="state !== TIMER_STATES.FINISHED" class="progress-bar">
 				<div
-						class="progress-fill"
-						:style="{ width: `${progress}%` }"
+					class="progress-fill"
+					:style="{ width: `${progress}%` }"
 				></div>
 			</div>
 
-			<!-- Countdown Display -->
-			<div class="countdown">
-				<div
-						class="countdown-number"
-						:style="{ color: countdownColor }"
+			<!-- Start Button (IDLE State) -->
+			<div v-if="state === TIMER_STATES.IDLE" class="start-section">
+				<button
+						class="btn btn--primary btn--large"
+						@click="handleStart"
 				>
-					{{ timeRemaining }}
-				</div>
-				<div class="countdown-label">{{ stateLabel }}</div>
-
-				<!-- Timer Controls -->
-				<div class="timer-controls">
-					<!-- Idle State -->
-					<button
-							v-if="state === TIMER_STATES.IDLE"
-							class="btn btn--primary btn--large"
-							@click="handleStart"
-					>
-						{{ t('hawkGym.start') }}
-					</button>
-
-					<!-- Running State -->
-					<template v-else-if="state !== TIMER_STATES.FINISHED">
-						<button
-								v-if="!isPaused"
-								class="btn btn--warning"
-								@click="handlePause"
-						>
-							{{ t('hawkGym.pause') }}
-						</button>
-
-						<button
-								v-if="isPaused"
-								class="btn btn--success"
-								@click="handleResume"
-						>
-							{{ t('hawkGym.resume') }}
-						</button>
-
-						<button
-								class="btn btn--ghost"
-								@click="handleSkip"
-						>
-							{{ t('hawkGym.skip') }}
-						</button>
-
-						<button
-								class="btn btn--danger"
-								@click="handleReset"
-						>
-							{{ t('hawkGym.reset') }}
-						</button>
-					</template>
-
-					<!-- Finished State -->
-					<button
-							v-else
-							class="btn btn--success btn--large"
-							@click="handleFinish"
-					>
-						{{ t('common.finish') }}
-					</button>
-				</div>
-
-				<div v-if="currentExerciseName || state === TIMER_STATES.GET_READY" class="exercise-name">
-					<span class="exercise-number">{{ getCurrentExerciseNumber() }}</span>
-					<span>{{ currentExerciseName || getFirstExerciseName() }}</span>
-				</div>
+					{{ t('hawkGym.start') }}
+				</button>
 			</div>
 
-			<!-- Next Exercise  -->
-			<div v-if="state !== TIMER_STATES.FINISHED" class="next-exercise">
-				<!-- IDLE State: Show first exercise -->
-				<template v-if="state === TIMER_STATES.IDLE">
-					<span class="exercise-number">1</span>
-					<span>{{ t('hawkGym.next') }}: {{ getFirstExerciseName() }}</span>
-				</template>
+			<!-- Exercise List with integrated Timer -->
+			<div v-if="state !== TIMER_STATES.FINISHED" class="timer-exercise-list">
+				<ExerciseList
+					:exercises="exercisesArray"
+					mode="active"
+					:current-exercise-index="currentExerciseIndex"
+					:current-round="currentRound"
+					:total-rounds="timerConfig.rounds"
+					:timer-state="state"
+					:time-remaining="timeRemaining"
+					:state-label="stateLabel"
+					:countdown-color="countdownColor"
+					@pause="handlePause"
+					@resume="handleResume"
+					@skip="handleSkip"
+					@reset="handleReset"
+				/>
+			</div>
 
-				<!-- Running State: Show next exercise if available -->
-				<template v-else-if="nextExerciseName">
-					<span class="exercise-number">{{ getNextExerciseNumber() }}</span>
-					<span>{{ t('hawkGym.next') }}: {{ nextExerciseName }}</span>
-				</template>
+			<!-- Finished State -->
+			<div v-else class="finished-section">
+				<div class="countdown">
+					<div class="countdown-number" style="color: var(--success-color)">
+						✓
+					</div>
+					<div class="countdown-label">{{ t('hawkGym.finished') }}</div>
+
+					<div class="timer-controls">
+						<button
+								class="btn btn--success btn--large"
+								@click="handleFinish"
+						>
+							{{ t('common.finish') }}
+						</button>
+					</div>
+				</div>
 			</div>
 		</section>
 	</main>
@@ -479,82 +387,42 @@ onUnmounted(() => {
 	min-height: calc(100vh - 120px);
 }
 
-.timer-display {
+.timer-container {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-4);
 	padding: 0 var(--space-4);
+	padding-bottom: var(--space-8);
 }
 
-.timer-info {
+.timer-info-bar {
 	display: flex;
-	justify-content: space-between;
-	font-size: var(--font-size-sm);
-	color: var(--text-secondary);
-	font-weight: var(--font-weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 1px;
+	justify-content: space-around;
+	padding: var(--space-3);
+	background-color: var(--card-bg);
+	border-radius: var(--border-radius-md);
+	border: 1px solid var(--card-border);
 }
 
-.countdown {
+.info-item {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: var(--space-4);
+	gap: var(--space-1);
 }
 
-.countdown-number {
-	font-size: 120px;
-	font-weight: var(--font-weight-bold);
-	line-height: 1;
-	transition: color 0.3s ease;
-}
-
-.countdown-label {
-	font-size: var(--font-size-lg);
+.info-label {
+	font-size: var(--font-size-xs);
 	color: var(--text-secondary);
 	text-transform: uppercase;
-	letter-spacing: 2px;
+	letter-spacing: 1px;
 	font-weight: var(--font-weight-bold);
 }
 
-.exercise-name {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--space-3);
-	font-size: var(--font-size-2xl);
-	font-weight: var(--font-weight-bold);
+.info-value {
+	font-size: var(--font-size-xl);
 	color: var(--text-color);
-	text-align: center;
-}
-
-.next-exercise {
-	display: flex;
-	align-items: center;
-	gap: var(--space-3);
-	text-align: center;
-	font-size: var(--font-size-base);
-	color: var(--text-secondary);
-	padding: var(--space-2);
-	background-color: var(--bg-secondary);
-	border-radius: var(--border-radius-md);
 	font-weight: var(--font-weight-bold);
-	justify-content: center;
-}
-
-.exercise-number {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	background-color: var(--primary-color);
-	color: var(--white);
-	border-radius: 50%;
-	font-weight: var(--font-weight-bold);
-	font-size: var(--font-size-sm);
-	flex-shrink: 0;
 }
 
 .progress-bar {
@@ -569,6 +437,37 @@ onUnmounted(() => {
 	background: linear-gradient(90deg, var(--primary-color), var(--success-color));
 	border-radius: var(--border-radius-md);
 	transition: width 0.3s ease;
+}
+
+.timer-exercise-list {
+	width: 100%;
+}
+
+.finished-section,
+.start-section {
+	display: flex;
+	justify-content: center;
+}
+
+.countdown {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-4);
+}
+
+.countdown-number {
+	font-size: 120px;
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+}
+
+.countdown-label {
+	font-size: var(--font-size-lg);
+	color: var(--text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	font-weight: var(--font-weight-bold);
 }
 
 .timer-controls {
