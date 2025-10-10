@@ -302,7 +302,7 @@ body {
   font-size: var(--font-size-base);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease, transform 0.1s ease, opacity 0.3s ease, color 0.3s ease, border 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;

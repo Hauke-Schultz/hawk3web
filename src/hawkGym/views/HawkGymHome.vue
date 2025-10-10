@@ -21,6 +21,7 @@ const getTodayKey = () => {
 	return days[today]
 }
 
+const expandedExercises = ref(new Set())
 const todayKey = getTodayKey()
 
 // Available days for selection
@@ -79,6 +80,18 @@ const exercisesList = computed(() => {
 		}
 	})
 })
+
+const toggleExercise = (exerciseId) => {
+	if (expandedExercises.value.has(exerciseId)) {
+		expandedExercises.value.delete(exerciseId)
+	} else {
+		expandedExercises.value.add(exerciseId)
+	}
+}
+
+const isExerciseExpanded = (exerciseId) => {
+	return expandedExercises.value.has(exerciseId)
+}
 
 // Calculate estimated workout time
 const estimatedTime = computed(() => {
@@ -170,12 +183,32 @@ const isToday = computed(() => selectedDay.value === todayKey)
 							v-for="(exercise, index) in exercisesList"
 							:key="exercise.id"
 							class="exercise-item"
+							:class="{ 'exercise-item--expanded': isExerciseExpanded(exercise.id) }"
 					>
-						<span class="exercise-number">{{ index + 1 }}</span>
-						<div class="exercise-details">
+						<button
+								class="exercise-header"
+								@click="toggleExercise(exercise.id)"
+								:aria-expanded="isExerciseExpanded(exercise.id)"
+								:aria-controls="`exercise-${exercise.id}`"
+						>
+							<span class="exercise-number">{{ index + 1 }}</span>
 							<span class="exercise-name">{{ exercise.name }}</span>
-							<span class="exercise-description">{{ exercise.description }}</span>
-						</div>
+							<Icon
+									name="chevron-down"
+									size="20"
+									class="exercise-toggle-icon"
+							/>
+						</button>
+
+						<transition name="accordion">
+							<div
+									v-if="isExerciseExpanded(exercise.id)"
+									:id="`exercise-${exercise.id}`"
+									class="exercise-content"
+							>
+								<p class="exercise-description">{{ exercise.description }}</p>
+							</div>
+						</transition>
 					</div>
 				</div>
 			</div>
@@ -284,13 +317,38 @@ const isToday = computed(() => selectedDay.value === todayKey)
 }
 
 .exercise-item {
-	display: flex;
-	align-items: flex-start;
-	gap: var(--space-3);
-	padding: var(--space-3);
 	background-color: var(--bg-secondary);
 	border-radius: var(--border-radius-md);
+	overflow: hidden;
+	transition: all 0.3s ease;
+
+	&--expanded {
+		background-color: var(--card-bg);
+		border: 1px solid var(--card-border);
+	}
+}
+
+.exercise-header {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-3);
+	width: 100%;
+	background: none;
+	border: none;
+	cursor: pointer;
 	text-align: left;
+	color: var(--text-color);
+	font-family: var(--font-family-base);
+	transition: background-color 0.2s ease;
+
+	&:hover {
+		background-color: rgba(79, 70, 229, 0.05);
+	}
+
+	&:active {
+		background-color: rgba(79, 70, 229, 0.1);
+	}
 }
 
 .exercise-number {
@@ -305,26 +363,55 @@ const isToday = computed(() => selectedDay.value === todayKey)
 	font-weight: var(--font-weight-bold);
 	font-size: var(--font-size-sm);
 	flex-shrink: 0;
-	margin-top: var(--space-1);
-}
-
-.exercise-details {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-1);
-	flex: 1;
 }
 
 .exercise-name {
+	flex: 1;
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
 	font-size: var(--font-size-base);
 }
 
+.exercise-toggle-icon {
+	color: var(--text-secondary);
+	transition: transform 0.3s ease;
+	flex-shrink: 0;
+
+	.exercise-item--expanded & {
+		transform: rotate(180deg);
+	}
+}
+
+.exercise-content {
+	padding: 0 var(--space-3) var(--space-3);
+	text-align: left;
+}
+
 .exercise-description {
 	color: var(--text-secondary);
 	font-size: var(--font-size-sm);
-	line-height: 1.4;
+	line-height: 1.5;
+	margin: 0;
+}
+
+// Accordion animation
+.accordion-enter-active,
+.accordion-leave-active {
+	transition: all 0.3s ease;
+	max-height: 200px;
+	overflow: hidden;
+}
+
+.accordion-enter-from,
+.accordion-leave-to {
+	max-height: 0;
+	opacity: 0;
+}
+
+.accordion-enter-to,
+.accordion-leave-from {
+	max-height: 200px;
+	opacity: 1;
 }
 
 .action-section {

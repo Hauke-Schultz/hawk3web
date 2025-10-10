@@ -1427,6 +1427,8 @@ export default {
 
       workout_plan: 'Trainingsplan',
       editing_plan: 'Plan bearbeiten',
+      custom_plan: 'Eigener Plan',
+      custom: 'Eigener',
       plan_note: 'Passe die Übungen für diesen Tag an. Änderungen werden als eigener Plan gespeichert.',
       add_exercise: 'Übung hinzufügen',
       select_exercise: 'Übung auswählen',
@@ -1434,7 +1436,12 @@ export default {
       move_down: 'Nach unten',
       remove: 'Entfernen',
       reset: 'Zurücksetzen',
-      save_changes: 'Änderungen speichern'
+      save_changes: 'Änderungen speichern',
+      save_as_custom: 'Als eigenen Plan speichern',
+      discard_changes: 'Änderungen verwerfen',
+      reset_to_default: 'Auf Standard zurücksetzen',
+      custom_plan_created: 'Eigener Plan erstellt!',
+      update_custom_plan: 'Eigenen Plan aktualisieren',
     },
   },
 

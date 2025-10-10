@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import {ref, computed, onMounted, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from '../../composables/useI18n.js'
 import Header from '../../gamingHub/components/Header.vue'
@@ -12,7 +12,14 @@ import { EXERCISES, getExercise } from '../config/exercisesConfig.js'
 const router = useRouter()
 const { t } = useI18n()
 const { gameData } = useLocalStorage()
-const { gymData, updateTimerSettings, resetTimerSettings } = useGymLocalStorage()
+const { gymData, updateTimerSettings, resetTimerSettings, createCustomPlan, setSelectedPlan, updateCustomPlan } = useGymLocalStorage()
+
+// Success message state
+const showSuccessMessage = ref(false)
+// Current plan exercises
+const editedExercises = ref([])
+// Show/hide exercise picker
+const showExercisePicker = ref(false)
 
 // Local state for editing
 const editedSettings = ref({
@@ -77,9 +84,6 @@ const saveSettings = () => {
 
 	// Show success feedback
 	showSuccessMessage.value = true
-	setTimeout(() => {
-		showSuccessMessage.value = false
-	}, 2000)
 }
 
 // Reset to defaults
@@ -96,9 +100,6 @@ const resetToDefaults = () => {
 
 	// Show success feedback
 	showSuccessMessage.value = true
-	setTimeout(() => {
-		showSuccessMessage.value = false
-	}, 2000)
 }
 
 // Cancel and go back
@@ -110,9 +111,6 @@ const cancel = () => {
 const handleMenuClick = () => {
 	router.push('/hawk-gym')
 }
-
-// Success message state
-const showSuccessMessage = ref(false)
 
 // Calculate estimated workout time
 const estimatedTime = computed(() => {
@@ -146,20 +144,55 @@ const selectedDay = computed(() => {
 	return days[today]
 })
 
-// Current plan exercises (editable)
-const editedExercises = ref([...WORKOUT_PLANS[selectedDay.value].exercises])
+const isEditingCustomPlan = computed(() => {
+	const selected = gymData.preferences.selectedPlan
+	return selected !== 'default' &&
+			!WORKOUT_PLANS[selected] &&
+			gymData.customPlans[selected]
+})
+
+const currentPlanName = computed(() => {
+	if (isEditingCustomPlan.value) {
+		const plan = gymData.customPlans[gymData.preferences.selectedPlan]
+		return plan ? plan.name : t(`hawkGym.plans.${selectedDay.value}.name`)
+	}
+	return t(`hawkGym.plans.${selectedDay.value}.name`)
+})
+
+const initializeExercises = () => {
+	const selected = gymData.preferences.selectedPlan
+
+	// Check if we're editing a custom plan
+	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
+		// Load exercises from custom plan
+		editedExercises.value = [...gymData.customPlans[selected].exercises]
+	} else {
+		// Load exercises from default day plan
+		editedExercises.value = [...WORKOUT_PLANS[selectedDay.value].exercises]
+	}
+}
 
 // Track if exercises have been changed
 const hasExerciseChanges = computed(() => {
-	const original = WORKOUT_PLANS[selectedDay.value].exercises
+	const selected = gymData.preferences.selectedPlan
+	let originalExercises
+
+	// Get original exercises based on current plan type
+	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
+		// Compare with custom plan
+		originalExercises = gymData.customPlans[selected].exercises
+	} else {
+		// Compare with default day plan
+		originalExercises = WORKOUT_PLANS[selectedDay.value].exercises
+	}
 
 	// Check length
-	if (editedExercises.value.length !== original.length) {
+	if (editedExercises.value.length !== originalExercises.length) {
 		return true
 	}
 
 	// Check each exercise
-	return editedExercises.value.some((ex, index) => ex !== original[index])
+	return editedExercises.value.some((ex, index) => ex !== originalExercises[index])
 })
 
 // Available exercises grouped by category
@@ -175,9 +208,6 @@ const exercisesByCategory = computed(() => {
 
 	return categories
 })
-
-// Show/hide exercise picker
-const showExercisePicker = ref(false)
 
 // Add exercise to plan
 const addExercise = (exerciseId) => {
@@ -210,18 +240,68 @@ const moveExerciseDown = (index) => {
 
 // Reset exercises to original
 const resetExercises = () => {
-	editedExercises.value = [...WORKOUT_PLANS[selectedDay.value].exercises]
+	const selected = gymData.preferences.selectedPlan
+
+	// Reset based on current plan type
+	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
+		// Reset to custom plan exercises
+		editedExercises.value = [...gymData.customPlans[selected].exercises]
+	} else {
+		// Reset to default day plan exercises
+		editedExercises.value = [...WORKOUT_PLANS[selectedDay.value].exercises]
+	}
 }
 
-// Save exercise changes (for now, just show in console - will implement custom plans later)
+// Save exercise changes
 const saveExerciseChanges = () => {
-	console.log('Saving exercise changes:', editedExercises.value)
-	// TODO: Implement custom plan creation/update
-	// For now, just show success message
+	const selected = gymData.preferences.selectedPlan
+
+	// Check if we're updating an existing custom plan
+	if (selected !== 'default' && !WORKOUT_PLANS[selected] && gymData.customPlans[selected]) {
+		// Update existing custom plan
+		const success = updateCustomPlan(selected, {
+			exercises: [...editedExercises.value]
+		})
+
+		if (success) {
+			showSuccessMessage.value = true
+		}
+	} else {
+		// Create new custom plan
+		const customPlanId = `custom_${selectedDay.value}_${Date.now()}`
+
+		// Get the current plan name
+		const planName = t(`hawkGym.plans.${selectedDay.value}.name`)
+		const customPlanName = `${planName} (${t('hawkGym.settings.custom')})`
+
+		// Create the custom plan
+		const success = createCustomPlan(customPlanId, {
+			name: customPlanName,
+			exercises: [...editedExercises.value],
+			basedOn: selectedDay.value
+		})
+
+		if (success) {
+			// Set this custom plan as the selected plan
+			setSelectedPlan(customPlanId)
+
+			// Show success message
+			showSuccessMessage.value = true
+		} else {
+			console.error('Failed to create custom plan')
+		}
+	}
+}
+
+const resetToDefaultPlan = () => {
+	// Reset to the default day plan
+	setSelectedPlan(selectedDay.value)
+
+	// Reset exercises to original
+	editedExercises.value = [...WORKOUT_PLANS[selectedDay.value].exercises]
+
+	// Show success message
 	showSuccessMessage.value = true
-	setTimeout(() => {
-		showSuccessMessage.value = false
-	}, 2000)
 }
 
 // Get exercise details for display
@@ -249,6 +329,28 @@ const getCategoryName = (category) => {
 	}
 	return categoryNames[category] || category
 }
+
+onMounted(() => {
+	initializeExercises()
+})
+
+// Watch for plan changes and reload exercises
+watch(
+		() => gymData.preferences.selectedPlan,
+		() => {
+			initializeExercises()
+		}
+)
+
+// Watch for day changes (when user switches days in the dropdown)
+watch(
+		selectedDay,
+		(newDay, oldDay) => {
+			if (newDay !== oldDay) {
+				initializeExercises()
+			}
+		}
+)
 </script>
 
 <template>
@@ -270,14 +372,6 @@ const getCategoryName = (category) => {
 			<p class="settings-subtitle">{{ t('hawkGym.settings.subtitle') }}</p>
 		</section>
 
-		<!-- Success Message -->
-		<transition name="fade">
-			<div v-if="showSuccessMessage" class="success-message">
-				<Icon name="check" size="20" />
-				{{ t('hawkGym.settings.saved') }}
-			</div>
-		</transition>
-
 		<!-- Workout Plan Editor -->
 		<section class="settings-section">
 			<div class="section-header">
@@ -285,20 +379,15 @@ const getCategoryName = (category) => {
 					<Icon name="list" size="24" />
 					{{ t('hawkGym.settings.workout_plan') }}
 				</h2>
-				<button
-						v-if="hasExerciseChanges"
-						class="btn btn--ghost btn--small"
-						@click="resetExercises"
-				>
-					<Icon name="refresh" size="16" />
-					{{ t('hawkGym.settings.reset') }}
-				</button>
 			</div>
 
 			<div class="plan-info">
 				<p class="plan-day">
 					{{ t('hawkGym.settings.editing_plan') }}:
-					<strong>{{ t(`hawkGym.days.${selectedDay}`) }}</strong>
+					<strong>{{ currentPlanName }}</strong>
+				</p>
+				<p v-if="isEditingCustomPlan" class="plan-custom-badge">
+					{{ t('hawkGym.settings.custom_plan') }}
 				</p>
 				<p class="plan-note">{{ t('hawkGym.settings.plan_note') }}</p>
 			</div>
@@ -346,24 +435,57 @@ const getCategoryName = (category) => {
 				</div>
 			</div>
 
-			<!-- Add Exercise Button -->
-			<button
-					class="btn btn--secondary"
-					@click="showExercisePicker = true"
-			>
-				<Icon name="plus" size="20" />
-				{{ t('hawkGym.settings.add_exercise') }}
-			</button>
+			<div class="exercise-actions">
 
-			<!-- Save Exercise Changes -->
-			<button
-					v-if="hasExerciseChanges"
-					class="btn btn--primary"
-					@click="saveExerciseChanges"
-			>
-				<Icon name="check" size="20" />
-				{{ t('hawkGym.settings.save_changes') }}
-			</button>
+				<!-- Add Exercise Button -->
+				<button
+					class="btn btn--secondary btn--full-width"
+					@click="showExercisePicker = true"
+				>
+					<Icon name="plus" size="20" />
+					{{ t('hawkGym.settings.add_exercise') }}
+				</button>
+
+				<!-- Save Exercise Changes -->
+				<template v-if="hasExerciseChanges">
+					<button
+							class="btn btn--ghost"
+							@click="resetExercises"
+					>
+						<Icon name="refresh" size="20" />
+						{{ t('hawkGym.settings.discard_changes') }}
+					</button>
+
+					<button
+							class="btn btn--primary"
+							@click="saveExerciseChanges"
+					>
+						<Icon name="check" size="20" />
+						{{ isEditingCustomPlan
+							? t('hawkGym.settings.update_custom_plan')
+							: t('hawkGym.settings.save_as_custom')
+						}}
+					</button>
+				</template>
+
+
+				<!-- Reset to Default (only show for custom plans) -->
+				<button
+						v-if="isEditingCustomPlan && !hasExerciseChanges"
+						class="btn btn--ghost btn--full-width"
+						@click="resetToDefaultPlan"
+				>
+					<Icon name="refresh" size="20" />
+					{{ t('hawkGym.settings.reset_to_default') }}
+				</button>
+
+				<!-- Success Message -->
+				<div v-if="showSuccessMessage && !hasExerciseChanges" class="success-message">
+					<Icon name="check" size="20" />
+					{{ t('hawkGym.settings.saved') }}
+				</div>
+			</div>
+
 		</section>
 
 		<!-- Exercise Picker Modal -->
@@ -598,18 +720,7 @@ const getCategoryName = (category) => {
 	background-color: var(--success-color);
 	color: var(--white);
 	border-radius: var(--border-radius-md);
-	margin-bottom: var(--space-4);
 	font-weight: var(--font-weight-bold);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-	transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-	opacity: 0;
 }
 
 .settings-section {
@@ -733,7 +844,6 @@ const getCategoryName = (category) => {
 	}
 }
 
-
 .plan-info {
 	margin-bottom: var(--space-4);
 	padding: var(--space-3);
@@ -813,11 +923,6 @@ const getCategoryName = (category) => {
 	color: var(--text-secondary);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-}
-
-.exercise-actions {
-	display: flex;
-	gap: var(--space-1);
 }
 
 .btn-icon {
@@ -946,5 +1051,29 @@ const getCategoryName = (category) => {
 
 .exercise-option-name {
 	font-weight: var(--font-weight-bold);
+}
+
+.exercise-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+	margin-top: var(--space-4);
+
+	.btn--full-width {
+		width: 100%;
+	}
+}
+
+.plan-custom-badge {
+	display: inline-block;
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--primary-color);
+	color: var(--white);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin: var(--space-2) 0;
 }
 </style>

@@ -1426,6 +1426,8 @@ export default {
 
       workout_plan: 'Workout Plan',
       editing_plan: 'Editing Plan',
+      custom_plan: 'Custom Plan',
+      custom: 'Custom',
       plan_note: 'Customize exercises for this day. Changes will be saved as a custom plan.',
       add_exercise: 'Add Exercise',
       select_exercise: 'Select Exercise',
@@ -1433,7 +1435,12 @@ export default {
       move_down: 'Move Down',
       remove: 'Remove',
       reset: 'Reset',
-      save_changes: 'Save Changes'
+      save_changes: 'Save Changes',
+      save_as_custom: 'Save as Custom Plan',
+      discard_changes: 'Discard Changes',
+      reset_to_default: 'Reset to Default Plan',
+      custom_plan_created: 'Custom plan created!',
+      update_custom_plan: 'Update Custom Plan',
     },
   },
 
