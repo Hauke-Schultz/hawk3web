@@ -99,28 +99,24 @@ const isExerciseExpanded = (exerciseId) => {
 	return expandedExercises.value.has(exerciseId)
 }
 
-// Auto-expand current exercise in active mode
-watch(() => props.currentExerciseIndex, (newIndex) => {
-	if (props.mode === 'active' && newIndex >= 0 && newIndex < props.exercises.length) {
-		const exerciseId = props.exercises[newIndex]
-		expandedExercises.value.add(exerciseId)
-
-		// Scroll to current exercise
-		nextTick(() => {
-			scrollToCurrentExercise(newIndex)
-		})
-	}
-}, { immediate: true })
-
 // Scroll to current exercise
 const scrollToCurrentExercise = (index) => {
 	if (!listRef.value) return
 
 	const exerciseElement = listRef.value.querySelector(`[data-exercise-index="${index}"]`)
 	if (exerciseElement) {
-		exerciseElement.scrollIntoView({
-			behavior: 'smooth',
-			block: 'center'
+		// Calculate offset to position timer at top of viewport
+		const headerHeight = 80 // Approximate header height
+		const offset = headerHeight + 16 // Header + small padding
+
+		const elementTop = exerciseElement.getBoundingClientRect().top
+		const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+		const targetPosition = elementTop + scrollTop - offset
+
+		// Smooth scroll to position
+		window.scrollTo({
+			top: targetPosition,
+			behavior: 'smooth'
 		})
 	}
 }
@@ -147,6 +143,26 @@ const showTimerInExercise = computed(() => {
 const isTimerPaused = computed(() => {
 	return props.timerState === 'paused' // We'll need to pass this state
 })
+
+watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
+	if (props.mode === 'active' && newIndex >= 0 && newIndex < props.exercises.length) {
+		const newExerciseId = props.exercises[newIndex]
+
+		// Collapse previous exercise if it exists
+		if (oldIndex >= 0 && oldIndex < props.exercises.length) {
+			const oldExerciseId = props.exercises[oldIndex]
+			expandedExercises.value.delete(oldExerciseId)
+		}
+
+		// Expand current exercise
+		expandedExercises.value.add(newExerciseId)
+
+		// Wait for DOM update before scrolling
+		nextTick(() => {
+			scrollToCurrentExercise(newIndex)
+		})
+	}
+}, { immediate: true })
 </script>
 
 <template>
