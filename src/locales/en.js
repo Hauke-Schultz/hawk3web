@@ -1228,6 +1228,7 @@ export default {
     next: 'Next',
     get_ready: 'Get Ready',
     idle: 'Start your workout!',
+    swipe_to_skip: 'Swipe to skip',
 
     // Workout plans
     plans: {

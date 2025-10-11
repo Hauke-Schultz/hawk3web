@@ -45,6 +45,8 @@ const props = defineProps({
 	}
 })
 
+const handleStart = () => emit('start')
+
 const { t } = useI18n()
 const emit = defineEmits(['pause', 'resume', 'skip', 'reset'])
 const expandedExercises = ref(new Set())
@@ -131,7 +133,9 @@ const getExerciseStateClass = (index) => {
 // Timer control handlers
 const handlePause = () => emit('pause')
 const handleResume = () => emit('resume')
-const handleSkip = () => emit('skip')
+const handleSkip = () => {
+	emit('skip')
+}
 const handleReset = () => emit('reset')
 
 // Check if we should show timer in exercise content
@@ -200,50 +204,57 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 				>
 					<!-- Timer Display (only for current exercise in active mode) -->
 					<div
-						v-if="showTimerInExercise && isExerciseCurrent(index)"
-						class="exercise-timer-section"
+							v-if="showTimerInExercise && isExerciseCurrent(index)"
+							class="exercise-timer-section"
 					>
 						<!-- Large Timer Display -->
 						<div class="timer-display">
 							<div
-								class="timer-countdown"
-								:style="{ color: countdownColor }"
+									class="timer-countdown"
+									:style="{ color: countdownColor }"
 							>
 								{{ timeRemaining }}
 							</div>
 							<div class="timer-label">{{ stateLabel }}</div>
 						</div>
 
-						<!-- Timer Controls -->
-						<div class="timer-controls">
+						<!-- Main Controls -->
+						<div class="timer-main-controls">
+							<!-- Play/Pause Button (Large, Central) -->
 							<button
-								class="btn btn--warning"
-								@click="handlePause"
+									class="btn-timer btn-timer--primary"
+									@click="handleResume"
+									:aria-label="t('hawkGym.resume')"
 							>
-								{{ t('hawkGym.pause') }}
+								<Icon name="play" size="32" />
+							</button>
+							<button
+									class="btn-timer btn-timer--primary"
+									@click="handlePause"
+									:aria-label="t('hawkGym.pause')"
+							>
+								<Icon name="pause" size="32" />
 							</button>
 
+							<!-- Skip Button -->
 							<button
-								class="btn btn--success"
-								@click="handleResume"
+									class="btn-timer btn-timer--secondary"
+									@click="handleSkip"
+									:aria-label="t('hawkGym.skip')"
 							>
-								{{ t('hawkGym.resume') }}
-							</button>
-
-							<button
-								class="btn btn--ghost"
-								@click="handleSkip"
-							>
-								{{ t('hawkGym.skip') }}
-							</button>
-
-							<button
-								class="btn btn--danger"
-								@click="handleReset"
-							>
-								{{ t('hawkGym.reset') }}
+								<Icon name="skip" size="24" />
 							</button>
 						</div>
+
+						<!-- Reset Button -->
+						<button
+								v-if="timerState !== 'idle'"
+								class="btn-reset"
+								@click="handleReset"
+						>
+							<Icon name="reset" size="20" />
+							{{ t('hawkGym.reset') }}
+						</button>
 					</div>
 
 					<!-- Exercise Description -->
@@ -441,15 +452,16 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 	opacity: 1;
 }
 
-// Timer section in exercise content
 .exercise-timer-section {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	gap: var(--space-4);
-	padding: var(--space-4);
+	padding: var(--space-6) var(--space-4);
 	background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.1));
 	border-radius: var(--border-radius-md);
 	margin-bottom: var(--space-4);
+	position: relative;
 }
 
 .timer-display {
@@ -457,13 +469,15 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 	flex-direction: column;
 	align-items: center;
 	gap: var(--space-2);
+	width: 100%;
 }
 
 .timer-countdown {
-	font-size: 80px;
+	font-size: 96px;
 	font-weight: var(--font-weight-bold);
 	line-height: 1;
 	transition: color 0.3s ease;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .timer-label {
@@ -474,15 +488,80 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 	font-weight: var(--font-weight-bold);
 }
 
-.timer-controls {
+// Main timer controls
+.timer-main-controls {
 	display: flex;
-	gap: var(--space-2);
+	align-items: center;
 	justify-content: center;
-	flex-wrap: wrap;
+	gap: var(--space-4);
+	width: 100%;
+}
 
-	.btn {
-		flex: 1;
-		min-width: 80px;
+.btn-timer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+	&:active {
+		transform: scale(0.95);
+	}
+
+	&--primary {
+		width: 88px;
+		height: 88px;
+		background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+		color: var(--white);
+
+		&:hover {
+			box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+			transform: scale(1.05);
+		}
+	}
+
+	&--secondary {
+		width: 64px;
+		height: 64px;
+		background-color: var(--card-bg);
+		border: 2px solid var(--card-border);
+		color: var(--text-color);
+
+		&:hover {
+			background-color: var(--card-bg-hover);
+			border-color: var(--primary-color);
+			color: var(--primary-color);
+		}
+	}
+}
+
+// Reset button
+.btn-reset {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	padding: var(--space-2) var(--space-4);
+	background-color: transparent;
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: var(--font-size-sm);
+	font-family: var(--font-family-base);
+
+	&:hover {
+		background-color: var(--card-bg-hover);
+		border-color: var(--warning-color);
+		color: var(--warning-color);
+	}
+
+	&:active {
+		transform: scale(0.98);
 	}
 }
 </style>

@@ -1229,6 +1229,7 @@ export default {
     next: 'Nächste',
     get_ready: 'Bereit Machen',
     idle: 'Starte dein Training',
+    swipe_to_skip: 'Wischen zum Überspringen',
 
     // Trainingspläne
     plans: {

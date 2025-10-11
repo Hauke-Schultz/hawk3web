@@ -19,6 +19,8 @@ const exercisesArray = computed(() => plan.exercises)
 const currentPlan = getCurrentWorkoutPlan()
 const plan = currentPlan.plan
 
+const emit = defineEmits(['pause', 'resume', 'skip', 'reset', 'start'])
+
 // Timer configuration - uses gym settings with fallback to defaults
 const timerConfig = computed(() => {
 	return {
