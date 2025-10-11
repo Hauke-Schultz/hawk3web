@@ -330,16 +330,6 @@ onUnmounted(() => {
 				></div>
 			</div>
 
-			<!-- Start Button (IDLE State) -->
-			<div v-if="state === TIMER_STATES.IDLE" class="start-section">
-				<button
-						class="btn btn--primary btn--large"
-						@click="handleStart"
-				>
-					{{ t('hawkGym.start') }}
-				</button>
-			</div>
-
 			<!-- Exercise List with integrated Timer -->
 			<div v-if="state !== TIMER_STATES.FINISHED" class="timer-exercise-list">
 				<ExerciseList
@@ -352,6 +342,8 @@ onUnmounted(() => {
 					:time-remaining="timeRemaining"
 					:state-label="stateLabel"
 					:countdown-color="countdownColor"
+					:is-paused="isPaused"
+					@start="handleStart"
 					@pause="handlePause"
 					@resume="handleResume"
 					@skip="handleSkip"

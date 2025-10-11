@@ -39,18 +39,21 @@ const props = defineProps({
 		type: String,
 		default: ''
 	},
+	isPaused: {
+		type: Boolean,
+		default: false
+	},
 	countdownColor: {
 		type: String,
 		default: 'var(--primary-color)'
 	}
 })
 
-const handleStart = () => emit('start')
-
 const { t } = useI18n()
 const emit = defineEmits(['pause', 'resume', 'skip', 'reset'])
 const expandedExercises = ref(new Set())
 const listRef = ref(null)
+const isTimerPaused = computed(() => props.isPaused)
 
 // Get exercise details with translations
 const exercisesList = computed(() => {
@@ -108,7 +111,7 @@ const scrollToCurrentExercise = (index) => {
 	const exerciseElement = listRef.value.querySelector(`[data-exercise-index="${index}"]`)
 	if (exerciseElement) {
 		// Calculate offset to position timer at top of viewport
-		const headerHeight = 80 // Approximate header height
+		const headerHeight = 0 // Approximate header height
 		const offset = headerHeight + 16 // Header + small padding
 
 		const elementTop = exerciseElement.getBoundingClientRect().top
@@ -131,8 +134,14 @@ const getExerciseStateClass = (index) => {
 	return ''
 }
 // Timer control handlers
-const handlePause = () => emit('pause')
-const handleResume = () => emit('resume')
+const handleStart = () => emit('start')
+
+const handlePause = () => {
+	emit('pause')
+}
+const handleResume = () => {
+	emit('resume')
+}
 const handleSkip = () => {
 	emit('skip')
 }
@@ -141,11 +150,6 @@ const handleReset = () => emit('reset')
 // Check if we should show timer in exercise content
 const showTimerInExercise = computed(() => {
 	return props.mode === 'active' && props.timerState !== null
-})
-
-// Check if timer is paused
-const isTimerPaused = computed(() => {
-	return props.timerState === 'paused' // We'll need to pass this state
 })
 
 watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
@@ -160,11 +164,9 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 
 		// Expand current exercise
 		expandedExercises.value.add(newExerciseId)
-
-		// Wait for DOM update before scrolling
-		nextTick(() => {
+		setTimeout(() => {
 			scrollToCurrentExercise(newIndex)
-		})
+		}, 310)
 	}
 }, { immediate: true })
 </script>
@@ -210,8 +212,8 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 						<!-- Large Timer Display -->
 						<div class="timer-display">
 							<div
-									class="timer-countdown"
-									:style="{ color: countdownColor }"
+								class="timer-countdown"
+								:style="{ color: countdownColor }"
 							>
 								{{ timeRemaining }}
 							</div>
@@ -220,15 +222,32 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 
 						<!-- Main Controls -->
 						<div class="timer-main-controls">
-							<!-- Play/Pause Button (Large, Central) -->
+
 							<button
-									class="btn-timer btn-timer--primary"
-									@click="handleResume"
-									:aria-label="t('hawkGym.resume')"
+									class="btn-timer btn-timer--secondary"
+									:disabled="timerState === 'idle'"
+									@click="handleReset"
+							>
+								<Icon name="reset" size="20" />
+							</button>
+							<button
+								v-if="timerState === 'idle'"
+								class="btn-timer btn-timer--primary"
+								@click="handleStart"
+								:aria-label="t('hawkGym.resume')"
 							>
 								<Icon name="play" size="32" />
 							</button>
 							<button
+								v-else-if="isTimerPaused"
+								class="btn-timer btn-timer--primary"
+								@click="handleResume"
+								:aria-label="t('hawkGym.resume')"
+							>
+								<Icon name="play" size="32" />
+							</button>
+							<button
+									v-else
 									class="btn-timer btn-timer--primary"
 									@click="handlePause"
 									:aria-label="t('hawkGym.pause')"
@@ -245,16 +264,6 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 								<Icon name="skip" size="24" />
 							</button>
 						</div>
-
-						<!-- Reset Button -->
-						<button
-								v-if="timerState !== 'idle'"
-								class="btn-reset"
-								@click="handleReset"
-						>
-							<Icon name="reset" size="20" />
-							{{ t('hawkGym.reset') }}
-						</button>
 					</div>
 
 					<!-- Exercise Description -->
