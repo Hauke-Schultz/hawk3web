@@ -131,7 +131,62 @@ export const MYSTERY_ITEMS = [
     type: 'cosmetic',
     tier: 3,
     mysteryBoxNumber: 10
-  }
+  },
+  {
+    id: 'phoenix_tear',
+    name: 'Phoenix Tear',
+    description: 'A crystallized tear with the power of rebirth',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '💧',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 11
+  },
+  {
+    id: 'void_orb',
+    name: 'Void Orb',
+    description: 'An orb containing the mysteries of the void',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '🌑',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 12
+  },
+  {
+    id: 'eternal_flame',
+    name: 'Eternal Flame',
+    description: 'A flame that never dies, burning with eternal energy',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '🔥',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 13
+  },
+  {
+    id: 'galaxy_heart',
+    name: 'Galaxy Heart',
+    description: 'A heart-shaped nebula containing entire galaxies',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '💜',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 14
+  },
+  {
+    id: 'divine_halo',
+    name: 'Divine Halo',
+    description: 'A radiant halo blessed by celestial beings',
+    category: 'profile',
+    rarity: 'legendary',
+    icon: '😇',
+    type: 'cosmetic',
+    tier: 3,
+    mysteryBoxNumber: 15
+  },
 ]
 
 // Helper function to get mystery item for specific box number

@@ -209,30 +209,25 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 							v-if="showTimerInExercise && isExerciseCurrent(index)"
 							class="exercise-timer-section"
 					>
-						<!-- Large Timer Display -->
-						<div class="timer-display">
-							<div
-								class="timer-countdown"
-								:style="{ color: countdownColor }"
-							>
-								{{ timeRemaining }}
-							</div>
-							<div class="timer-label">{{ stateLabel }}</div>
-						</div>
+						<!-- Timer Label -->
+						<div class="timer-label">{{ stateLabel }}</div>
 
-						<!-- Main Controls -->
+						<!-- Main Controls with integrated countdown -->
 						<div class="timer-main-controls">
-
+							<!-- Reset Button -->
 							<button
 									class="btn-timer btn-timer--secondary"
 									:disabled="timerState === 'idle'"
 									@click="handleReset"
+									:aria-label="t('hawkGym.reset')"
 							>
 								<Icon name="reset" size="20" />
 							</button>
+
+							<!-- Play/Pause Button with Countdown -->
 							<button
 								v-if="timerState === 'idle'"
-								class="btn-timer btn-timer--primary"
+								class="btn-timer btn-timer--primary btn-timer--with-countdown"
 								@click="handleStart"
 								:aria-label="t('hawkGym.resume')"
 							>
@@ -240,19 +235,27 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 							</button>
 							<button
 								v-else-if="isTimerPaused"
-								class="btn-timer btn-timer--primary"
+								class="btn-timer btn-timer--primary btn-timer--with-countdown"
 								@click="handleResume"
+								:style="{ background: countdownColor }"
 								:aria-label="t('hawkGym.resume')"
 							>
-								<Icon name="play" size="32" />
+								<div class="timer-countdown">
+									{{ timeRemaining }}
+								</div>
+								<Icon name="play" size="24" class="play-icon-overlay" />
 							</button>
 							<button
 									v-else
-									class="btn-timer btn-timer--primary"
+									class="btn-timer btn-timer--primary btn-timer--with-countdown"
 									@click="handlePause"
+									:style="{ background: countdownColor }"
 									:aria-label="t('hawkGym.pause')"
 							>
-								<Icon name="pause" size="32" />
+								<div class="timer-countdown">
+									{{ timeRemaining }}
+								</div>
+								<Icon name="pause" size="24" class="pause-icon-overlay" />
 							</button>
 
 							<!-- Skip Button -->
@@ -465,24 +468,16 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: var(--space-4);
-	padding: var(--space-6) var(--space-4);
+	gap: var(--space-3);
+	padding: var(--space-4);
 	background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.1));
 	border-radius: var(--border-radius-md);
 	margin-bottom: var(--space-4);
 	position: relative;
 }
 
-.timer-display {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--space-2);
-	width: 100%;
-}
-
 .timer-countdown {
-	font-size: 96px;
+	font-size: 48px;
 	font-weight: var(--font-weight-bold);
 	line-height: 1;
 	transition: color 0.3s ease;
@@ -490,11 +485,12 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 }
 
 .timer-label {
-	font-size: var(--font-size-lg);
+	font-size: var(--font-size-base);
 	color: var(--text-secondary);
 	text-transform: uppercase;
-	letter-spacing: 2px;
+	letter-spacing: 1px;
 	font-weight: var(--font-weight-bold);
+	text-align: center;
 }
 
 // Main timer controls
@@ -530,6 +526,12 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 			box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
 			transform: scale(1.05);
 		}
+
+		&.btn-timer--with-countdown {
+			width: 120px;
+			height: 120px;
+			position: relative;
+		}
 	}
 
 	&--secondary {
@@ -544,7 +546,30 @@ watch(() => props.currentExerciseIndex, (newIndex, oldIndex) => {
 			border-color: var(--primary-color);
 			color: var(--primary-color);
 		}
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+
+			&:hover {
+				background-color: var(--card-bg);
+				border-color: var(--card-border);
+				color: var(--text-color);
+				transform: none;
+			}
+		}
 	}
+}
+
+.play-icon-overlay,
+.pause-icon-overlay {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	background-color: rgba(0, 0, 0, 0.3);
+	border-radius: 50%;
+	padding: 4px;
+	backdrop-filter: blur(4px);
 }
 
 // Reset button

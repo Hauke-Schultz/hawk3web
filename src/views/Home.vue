@@ -693,7 +693,7 @@ const getTodayName = () => {
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
-	width: 95px;
+	width: 130px;
 }
 
 .recent-game-level {
@@ -708,9 +708,9 @@ const getTodayName = () => {
 	font-size: var(--font-size-xs);
 	color: var(--text-muted);
 	font-style: italic;
-	flex-grow: 2;
 	text-align: right;
 	line-height: 1;
+	max-width: 80px;
 }
 
 .nav-icons-grid {
