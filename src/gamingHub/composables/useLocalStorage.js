@@ -106,6 +106,19 @@ const getDefaultData = () => ({
       maxCombo: 0,
       stars: 0,
       completedLevels: 0
+    },
+    hawkDungeon: {
+      highScore: 0,
+      gamesPlayed: 0,
+      totalScore: 0,
+      maxLevel: 1,
+      totalKills: 0,
+      totalCoins: 0,
+      bestSurvivalTime: 0,
+      levels: {},
+      maxCombo: 0,
+      stars: 0,
+      completedLevels: 0
     }
 	},
 	currency: {

@@ -923,6 +923,70 @@ export default {
     nextLevel: 'Nächstes Level'
   },
 
+  hawkDungeon: {
+    title: 'Hawk Dungeon',
+    description: 'Kämpfe dich durch Dungeon-Level als tapferer Ritter',
+
+    // Level names
+    levels: {
+      1: {
+        title: 'Erste Schritte',
+        description: 'Erste Schritte in den Dungeon'
+      },
+      2: {
+        title: 'Tiefere Dunkelheit',
+        description: 'Tiefer in die Dunkelheit'
+      },
+      3: {
+        title: 'Goblin-Horde',
+        description: 'Stelle dich der Goblin-Horde'
+      },
+      4: {
+        title: 'Boss-Kampf',
+        description: 'Stelle dich dem Ork-Krieger'
+      },
+      5: {
+        title: 'Veteranen-Herausforderung',
+        description: 'Die Veteranen-Herausforderung wartet'
+      },
+      6: {
+        title: 'Endloses Überleben',
+        description: 'Überlebe so lange wie möglich'
+      }
+    },
+
+    // UI labels
+    kills: 'Kills',
+    score: 'Punkte',
+    health: 'Leben',
+    bestKills: 'Beste Kills',
+    bestScore: 'Beste Punkte',
+    killGoal: 'Kill-Ziel',
+    finalKills: 'End-Kills',
+    finalScore: 'Endpunkte',
+
+    // Instructions
+    tapToAttack: 'Tippe zum Angreifen!',
+    gameOver: 'Spiel Vorbei!',
+
+    // Messages
+    criticalHit: 'Kritischer Treffer!',
+    bossDefeated: 'Boss besiegt!',
+    levelComplete: 'Level Geschafft!',
+
+    endless_mode: 'Endlos-Modus',
+    level_title: 'Level {level}',
+    target: 'Ziel',
+    restart: 'Neustart',
+    timeElapsed: 'Zeit',
+
+    // Stats display
+    stats: {
+      kills: 'Kills',
+      score: 'Punkte'
+    }
+  },
+
 	// Leistungsstatistiken
 	stats: {
 		score: 'Punkte',

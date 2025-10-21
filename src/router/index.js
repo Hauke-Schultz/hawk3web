@@ -5,6 +5,8 @@ import MemoryLevels from '../gamingHub/games/memory/MemoryLevels.vue'
 import MemoryGame from '../gamingHub/games/memory/MemoryGame.vue'
 import HawkFruitLevels from '../gamingHub/games/hawkfruit/HawkFruitLevels.vue'
 import HawkFruitGame from '../gamingHub/games/hawkfruit/HawkFruitGame.vue'
+import HawkDungeonLevels from '../gamingHub/games/hawkdungeon/HawkDungeonLevels.vue'
+import HawkDungeon from '../gamingHub/games/hawkdungeon/HawkDungeon.vue'
 import Shop from '../gamingHub/views/Shop.vue'
 import Profile from '../gamingHub/views/Profile.vue'
 import Trophy from '../gamingHub/views/Trophy.vue'
@@ -72,6 +74,25 @@ const routes = [
       const level = parseInt(to.params.level)
       if (isNaN(level) || level < 1 || level > 6) {
         next('/games/hawkdoubleup')
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/games/hawkdungeon',
+    name: 'HawkDungeonLevels',
+    component: HawkDungeonLevels
+  },
+  {
+    path: '/games/hawkdungeon/:level',
+    name: 'HawkDungeon',
+    component: HawkDungeon,
+    props: route => ({ level: parseInt(route.params.level) || 1 }),
+    beforeEnter: (to, from, next) => {
+      const level = parseInt(to.params.level)
+      if (isNaN(level) || level < 1 || level > 6) {
+        next('/games/hawkdungeon')
       } else {
         next()
       }

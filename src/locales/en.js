@@ -923,6 +923,70 @@ export default {
     nextLevel: 'Next Level'
   },
 
+  hawkDungeon: {
+    title: 'Hawk Dungeon',
+    description: 'Fight through dungeon levels as a brave knight',
+
+    // Level names
+    levels: {
+      1: {
+        title: 'First Steps',
+        description: 'First steps into the dungeon'
+      },
+      2: {
+        title: 'Deeper Darkness',
+        description: 'Deeper into darkness'
+      },
+      3: {
+        title: 'Goblin Horde',
+        description: 'Face the goblin horde'
+      },
+      4: {
+        title: 'Boss Fight',
+        description: 'Face the Orc Warrior'
+      },
+      5: {
+        title: 'Veteran Challenge',
+        description: 'Veteran challenge awaits'
+      },
+      6: {
+        title: 'Endless Survival',
+        description: 'Survive as long as you can'
+      }
+    },
+
+    // UI labels
+    kills: 'Kills',
+    score: 'Score',
+    health: 'Health',
+    bestKills: 'Best Kills',
+    bestScore: 'Best Score',
+    killGoal: 'Kill Goal',
+    finalKills: 'Final Kills',
+    finalScore: 'Final Score',
+
+    // Instructions
+    tapToAttack: 'Tap to Attack!',
+    gameOver: 'Game Over!',
+
+    // Messages
+    criticalHit: 'Critical Hit!',
+    bossDefeated: 'Boss Defeated!',
+    levelComplete: 'Level Complete!',
+
+    endless_mode: 'Endless Mode',
+    level_title: 'Level {level}',
+    target: 'Target',
+    restart: 'Restart',
+    timeElapsed: 'Time',
+
+    // Stats display
+    stats: {
+      kills: 'Kills',
+      score: 'Score'
+    }
+  },
+
 	// Performance Stats
 	stats: {
 		score: 'Score',

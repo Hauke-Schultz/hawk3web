@@ -6,6 +6,7 @@ import { useI18n } from '../../composables/useI18n.js'
 import { memoryConfig } from '../games/memory/memoryConfig.js'
 import { hawkFruitConfig } from '../games/hawkfruit/hawkFruitConfig.js'
 import { hawkDoubleUpConfig } from '../games/hawkdoubleup/hawkDoubleUpConfig.js'
+import { hawkDungeonConfig } from '../games/hawkdungeon/hawkDungeonConfig.js'
 import Icon from '../../components/Icon.vue'
 import Header from "../components/Header.vue";
 
@@ -23,6 +24,8 @@ const startGame = (gameId) => {
 		router.push('/games/hawkfruit')
 	} else if (gameId === 'hawkDoubleUp') {
 		router.push('/games/hawkdoubleup')
+	} else if (gameId === 'hawkDungeon') {
+		router.push('/games/hawkdungeon')
 	}
 }
 
@@ -56,6 +59,19 @@ const hawkDoubleUpProgress = computed(() => {
 	const levels = gameData.games.hawkDoubleUp.levels || {}
 	const completedLevels = Object.values(levels).filter(level => level.completed).length
 	const totalLevels = hawkDoubleUpConfig.levels.length
+	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
+
+	return {
+		completed: completedLevels,
+		total: totalLevels,
+		percentage: percentage
+	}
+})
+
+const hawkDungeonProgress = computed(() => {
+	const levels = gameData.games.hawkDungeon?.levels || {}
+	const completedLevels = Object.values(levels).filter(level => level.completed).length
+	const totalLevels = hawkDungeonConfig.levels.length
 	const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0
 
 	return {
@@ -183,6 +199,38 @@ const handleMenuClick = () => {
 				</div>
 
 				<button class="btn btn--primary game-play-btn" @click="startGame('hawkDoubleUp')">
+					<Icon name="play" size="16" />
+					{{ t('common.play') }}
+				</button>
+			</div>
+
+			<!-- Hawk Dungeon Game Card -->
+			<div class="game-card">
+				<div class="game-header">
+					<div class="game-icon">
+						<Icon :name="hawkDungeonConfig.gameIcon" size="32" />
+					</div>
+					<h3 class="game-title">{{ hawkDungeonConfig.gameTitle }}</h3>
+				</div>
+				<p class="game-description">{{ hawkDungeonConfig.gameDescription }}</p>
+				<div class="game-stats">
+					<div class="stat-item">
+						<span class="stat-value">{{ gameData.games.hawkDungeon?.gamesPlayed || 0 }}</span>
+						<span class="stat-label">{{ t('gaming.stats.games_played') }}</span>
+					</div>
+				</div>
+				<!-- Progress Indicator -->
+				<div class="game-progress">
+					<div class="progress-bar">
+						<div
+							class="progress-fill"
+							:style="{ width: `${hawkDungeonProgress.percentage}%` }"
+						></div>
+					</div>
+					<span class="progress-text">{{ hawkDungeonProgress.percentage }}%</span>
+				</div>
+
+				<button class="btn btn--primary game-play-btn" @click="startGame('hawkDungeon')">
 					<Icon name="play" size="16" />
 					{{ t('common.play') }}
 				</button>
