@@ -267,6 +267,19 @@ const validateGameData = (games) => {
       stars: typeof games?.hawkTower?.stars === 'number' ? games.hawkTower.stars : 0,
       completedLevels: typeof games?.hawkTower?.completedLevels === 'number' ? games.hawkTower.completedLevels : 0,
       levels: typeof games?.hawkTower?.levels === 'object' ? games.hawkTower.levels : {}
+    },
+    hawkDungeon: {
+      highScore: typeof games?.hawkDungeon?.highScore === 'number' ? games.hawkDungeon.highScore : defaultGames.hawkDungeon.highScore,
+      totalScore: typeof games?.hawkDungeon?.totalScore === 'number' ? games.hawkDungeon.totalScore : defaultGames.hawkDungeon.totalScore,
+      gamesPlayed: typeof games?.hawkDungeon?.gamesPlayed === 'number' ? games.hawkDungeon.gamesPlayed : defaultGames.hawkDungeon.gamesPlayed,
+      maxLevel: typeof games?.hawkDungeon?.maxLevel === 'number' ? games.hawkDungeon.maxLevel : defaultGames.hawkDungeon.maxLevel,
+      totalKills: typeof games?.hawkDungeon?.totalKills === 'number' ? games.hawkDungeon.totalKills : defaultGames.hawkDungeon.totalKills,
+      totalCoins: typeof games?.hawkDungeon?.totalCoins === 'number' ? games.hawkDungeon.totalCoins : defaultGames.hawkDungeon.totalCoins,
+      bestSurvivalTime: typeof games?.hawkDungeon?.bestSurvivalTime === 'number' ? games.hawkDungeon.bestSurvivalTime : defaultGames.hawkDungeon.bestSurvivalTime,
+      maxCombo: typeof games?.hawkDungeon?.maxCombo === 'number' ? games.hawkDungeon.maxCombo : defaultGames.hawkDungeon.maxCombo,
+      stars: typeof games?.hawkDungeon?.stars === 'number' ? games.hawkDungeon.stars : 0,
+      completedLevels: typeof games?.hawkDungeon?.completedLevels === 'number' ? games.hawkDungeon.completedLevels : 0,
+      levels: typeof games?.hawkDungeon?.levels === 'object' ? games.hawkDungeon.levels : {}
     }
 	}
 }
@@ -383,6 +396,25 @@ const migrateData = (data) => {
         completedLevels: 0
       }
       console.log('🏗️ Hawk Tower game data structure added')
+    }
+
+    // Add hawkDungeon if missing
+    if (!data.games?.hawkDungeon) {
+      if (!data.games) data.games = {}
+      data.games.hawkDungeon = {
+        highScore: 0,
+        gamesPlayed: 0,
+        totalScore: 0,
+        maxLevel: 1,
+        totalKills: 0,
+        totalCoins: 0,
+        bestSurvivalTime: 0,
+        levels: {},
+        maxCombo: 0,
+        stars: 0,
+        completedLevels: 0
+      }
+      console.log('⚔️ Hawk Dungeon game data structure added')
     }
 
     // Add pendingMysteryBox if missing

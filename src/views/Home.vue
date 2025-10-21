@@ -7,6 +7,7 @@ import { memoryConfig } from "../gamingHub/games/memory/memoryConfig.js"
 import { hawkFruitConfig } from "../gamingHub/games/hawkfruit/hawkFruitConfig.js"
 import { hawkDoubleUpConfig } from "../gamingHub/games/hawkdoubleup/hawkDoubleUpConfig.js"
 import { hawkTowerConfig } from "../gamingHub/games/hawktower/stackConfig.js"
+import { hawkDungeonConfig } from "../gamingHub/games/hawkdungeon/hawkDungeonConfig.js"
 import Header from '../gamingHub/components/Header.vue'
 import Icon from '../components/Icon.vue'
 import DailyRewardCard from '../gamingHub/components/DailyRewardCard.vue'
@@ -53,7 +54,14 @@ const allRecentLevels = computed(() => {
 		gameIcon: 'hawk-tower'
 	}))
 
-	const combined = [...memoryLevels, ...hawkFruitLevels, ...hawkDoubleUpLevels, ...hawkTowerLevels]
+	const hawkDungeonLevels = getRecentLevelsForGame('hawkDungeon', 10).map(level => ({
+		...level,
+		gameId: 'hawkDungeon',
+		gameTitle: t('hawkDungeon.title'),
+		gameIcon: 'hawk-dungeon'
+	}))
+
+	const combined = [...memoryLevels, ...hawkFruitLevels, ...hawkDoubleUpLevels, ...hawkTowerLevels, ...hawkDungeonLevels]
 			.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
 			.slice(0, 3)
 
@@ -86,7 +94,8 @@ const navigateToLevel = (gameId, level) => {
 		'hawkFruit': 'hawkfruit',
 		'memory': 'memory',
 		'hawkDoubleUp': 'hawkdoubleup',
-		'hawkTower': 'hawktower'
+		'hawkTower': 'hawktower',
+		'hawkDungeon': 'hawkdungeon'
 	}
 
 	const routeName = gameRoutes[gameId]
@@ -101,7 +110,8 @@ const navigateToGame = (gameId) => {
 		memory: '/games/memory',
 		hawkFruit: '/games/hawkfruit',
 		hawkDoubleUp: '/games/hawkdoubleup',
-		hawkTower: '/games/hawktower'
+		hawkTower: '/games/hawktower',
+		hawkDungeon: '/games/hawkdungeon'
 	}
 	if (routes[gameId]) {
 		router.push(routes[gameId])
@@ -136,10 +146,11 @@ const memoryProgress = computed(() => getGameProgress('memory', memoryConfig))
 const hawkFruitProgress = computed(() => getGameProgress('hawkFruit', hawkFruitConfig))
 const hawkDoubleUpProgress = computed(() => getGameProgress('hawkDoubleUp', hawkDoubleUpConfig))
 const hawkTowerProgress = computed(() => getGameProgress('hawkTower', hawkTowerConfig))
+const hawkDungeonProgress = computed(() => getGameProgress('hawkDungeon', hawkDungeonConfig))
 
 // Overall Progress
 const overallProgress = computed(() => {
-	const allGames = ['memory', 'hawkFruit', 'hawkDoubleUp', 'hawkTower']
+	const allGames = ['memory', 'hawkFruit', 'hawkDoubleUp', 'hawkTower', 'hawkDungeon']
 	let totalCompleted = 0
 	let totalLevels = 0
 	let totalStars = 0
@@ -399,6 +410,32 @@ const getTodayName = () => {
 							<div class="game-stat">
 								<Icon name="star-filled" size="14" />
 								<span>{{ hawkTowerProgress.stars }}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Hawk Dungeon Game -->
+				<div class="game-card" @click="navigateToGame('hawkDungeon')">
+					<div class="game-header">
+						<Icon :name="hawkDungeonConfig.gameIcon" size="28" />
+						<div class="game-info">
+							<h3 class="game-title">{{ hawkDungeonConfig.gameTitle }}</h3>
+							<div class="game-progress">
+								<span class="progress-text">{{ hawkDungeonProgress.completed }}/{{ hawkDungeonProgress.total }}</span>
+								<div class="mini-progress-bar">
+									<div
+											class="mini-progress-fill hawkdungeon"
+											:style="{ width: `${hawkDungeonProgress.percentage}%` }"
+									></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="game-stats">
+							<div class="game-stat">
+								<Icon name="star-filled" size="14" />
+								<span>{{ hawkDungeonProgress.stars }}</span>
 							</div>
 						</div>
 					</div>
