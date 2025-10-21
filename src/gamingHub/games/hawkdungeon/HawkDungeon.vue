@@ -16,52 +16,18 @@
           {{ isEndlessMode ? t('hawkDungeon.endless_mode') : t('hawkDungeon.level_title', { level: gameState.level }) }}
         </div>
       </div>
-
-      <div class="game-stats-container">
-        <!-- Progress Overview (only for regular levels) -->
-        <ProgressOverview
-          v-if="!isEndlessMode"
-          :completed="gameState.kills"
-          :total="gameState.killGoal"
-          theme="primary"
-          size="small"
-          :levels-label="gameState.killGoal.toString()"
-          :show-stars="false"
-          :show-percentage="false"
-          :complete-label="t('hawkDungeon.killGoal')"
-        />
-
-        <!-- Performance Stats -->
-        <PerformanceStats
-          :score="gameState.score"
-          :time-elapsed="isEndlessMode ? sessionTime : 0"
-          :moves="gameState.kills"
-          :matches="0"
-          :total-pairs="0"
-          :combo-count="gameState.combo"
-          :combo-multiplier="1"
-          :max-combo="gameState.maxCombo"
-          :combo-time-remaining="0"
-          :combo-time-max="3000"
-          :is-combo-active="gameState.combo > 1"
-          layout="horizontal"
-          theme="card"
-          size="normal"
-          :show-score="true"
-          :show-time="isEndlessMode"
-          :show-moves="true"
-          :show-matches="false"
-          :show-combo="true"
-          :score-label="t('stats.score')"
-          :time-label="t('stats.time')"
-          :moves-label="t('hawkDungeon.kills')"
-          :combo-label="t('stats.combo')"
-        />
-      </div>
     </div>
 
     <!-- Game Canvas Container -->
     <div class="game-container">
+      <GameHUD
+        :health="gameState.currentHealth"
+        :maxHealth="gameState.maxHealth"
+        :kills="gameState.kills"
+        :killGoal="gameState.killGoal"
+        :coins="gameState.coins"
+      />
+
       <GameCanvas
         :knight="knight"
         :monsters="monsters"
@@ -92,8 +58,7 @@ import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useI18n } from '../../../composables/useI18n.js'
 import { getLevelConfig } from './hawkDungeonConfig'
 import Header from '../../components/Header.vue'
-import ProgressOverview from '../../components/ProgressOverview.vue'
-import PerformanceStats from '../../components/PerformanceStats.vue'
+import GameHUD from './components/GameHUD.vue'
 import GameCanvas from './components/GameCanvas.vue'
 import AttackButton from './components/AttackButton.vue'
 import JoystickControl from './components/JoystickControl.vue'
@@ -220,13 +185,6 @@ onUnmounted(() => {
     background: linear-gradient(135deg, var(--primary-color), var(--warning-color));
     animation: endlessGlow 2s ease-in-out infinite alternate;
   }
-}
-
-.game-stats-container {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-2);
-  justify-content: space-between;
 }
 
 // Game Container

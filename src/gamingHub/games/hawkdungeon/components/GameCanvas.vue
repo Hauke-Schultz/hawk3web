@@ -37,14 +37,16 @@ const props = defineProps({
 
 const canvas = ref(null)
 const canvasContainer = ref(null)
-const canvasWidth = ref(375)
-const canvasHeight = ref(667)
+
+// 7x7 grid with 64px tiles (16px sprites * 4 scale) = 448x448
+const GRID_SIZE = 7
+const TILE_SIZE = 64 // 16px * 4 scale
+const canvasWidth = ref(GRID_SIZE * TILE_SIZE)
+const canvasHeight = ref(GRID_SIZE * TILE_SIZE)
 
 const updateCanvasSize = () => {
-  if (canvasContainer.value) {
-    canvasWidth.value = canvasContainer.value.clientWidth
-    canvasHeight.value = canvasContainer.value.clientHeight
-  }
+  // Canvas size is fixed to 7x7 grid
+  // No need to update dynamically
 }
 
 // Initialize renderer
@@ -77,19 +79,22 @@ defineExpose({
 
 <style scoped>
 .game-canvas {
-  position: absolute;
-  top: 60px;
-  left: 0;
-  right: 0;
-  bottom: 120px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #2a2a2a;
+  width: 100%;
+  min-height: 448px;
   overflow: hidden;
+  border-radius: 8px;
 }
 
 canvas {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 448px;
+  height: 448px;
+  max-height: 100%;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;

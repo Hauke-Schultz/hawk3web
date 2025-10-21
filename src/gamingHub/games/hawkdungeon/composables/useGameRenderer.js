@@ -17,6 +17,12 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     canvasWidth = canvasRef.value.width
     canvasHeight = canvasRef.value.height
 
+    // Disable image smoothing for crisp pixel art
+    ctx.imageSmoothingEnabled = false
+    ctx.webkitImageSmoothingEnabled = false
+    ctx.mozImageSmoothingEnabled = false
+    ctx.msImageSmoothingEnabled = false
+
     // Load spritesheet
     await loadSpritesheet()
 
@@ -42,7 +48,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     //drawItems(centerX, centerY)
 
     // Draw monsters
-    //drawMonsters(centerX, centerY)
+    drawMonsters(centerX, centerY)
 
     // Draw knight (always at center)
     drawKnight(centerX, centerY)
@@ -54,15 +60,16 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawDungeon = (centerX, centerY) => {
-    // Draw a grid of floor tiles
-    const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 2
-    const tilesY = Math.ceil(canvasHeight / TILE_SIZE) + 2
+    // Draw a 7x7 grid of floor tiles
+    const GRID_SIZE = 7
+    const tilesX = GRID_SIZE
+    const tilesY = GRID_SIZE
 
     const offsetX = dungeonOffset.x % TILE_SIZE
     const offsetY = dungeonOffset.y % TILE_SIZE
 
-    for (let y = -1; y < tilesY; y++) {
-      for (let x = -1; x < tilesX; x++) {
+    for (let y = 0; y < tilesY; y++) {
+      for (let x = 0; x < tilesX; x++) {
         const drawX = x * TILE_SIZE + offsetX
         const drawY = y * TILE_SIZE + offsetY
 
@@ -92,7 +99,10 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawMonsters = (centerX, centerY) => {
-    monsters.value.forEach(monster => {
+    const monstersList = monsters()
+    if (!monstersList) return
+
+    monstersList.forEach(monster => {
       // Calculate screen position relative to knight
       const relativeX = (monster.gridX - knight.gridX) * TILE_SIZE
       const relativeY = (monster.gridY - knight.gridY) * TILE_SIZE
@@ -118,7 +128,10 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawItems = (centerX, centerY) => {
-    items.value.forEach(item => {
+    const itemsList = items()
+    if (!itemsList) return
+
+    itemsList.forEach(item => {
       const relativeX = (item.gridX - knight.gridX) * TILE_SIZE
       const relativeY = (item.gridY - knight.gridY) * TILE_SIZE
 
@@ -130,14 +143,17 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawAttackHitbox = (centerX, centerY) => {
-    const relativeX = (attackHitbox.value.gridX - knight.gridX) * TILE_SIZE
-    const relativeY = (attackHitbox.value.gridY - knight.gridY) * TILE_SIZE
+    const hitbox = attackHitbox()
+    if (!hitbox) return
+
+    const relativeX = (hitbox.gridX - knight.gridX) * TILE_SIZE
+    const relativeY = (hitbox.gridY - knight.gridY) * TILE_SIZE
 
     const drawX = centerX + relativeX - (TILE_SIZE / 2)
     const drawY = centerY + relativeY - (TILE_SIZE / 2)
 
     // Draw weapon sprite
-    drawTile(ctx, attackHitbox.value.weapon, drawX, drawY)
+    drawTile(ctx, hitbox.weapon, drawX, drawY)
 
     // Optional: Draw attack effect
     ctx.save()

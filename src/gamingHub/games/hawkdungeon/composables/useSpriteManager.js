@@ -1,6 +1,6 @@
 // Sprite manager for loading and rendering sprites
 import { ref } from 'vue'
-import { spriteConfig, TILE_SIZE } from '../config/spriteConfig'
+import { spriteConfig, SPRITE_SIZE, SPRITE_SCALE, TILE_SIZE } from '../config/spriteConfig'
 import spritesheetUrl from '../assets/spritesheet.png'
 
 export function useSpriteManager() {
@@ -21,7 +21,7 @@ export function useSpriteManager() {
     })
   }
 
-  // Draw a sprite frame
+  // Draw a sprite frame with scaling
   const drawSprite = (ctx, spriteType, frame, x, y, flipX = false, flipY = false) => {
     if (!isLoaded.value || !spritesheet.value) return
 
@@ -32,30 +32,34 @@ export function useSpriteManager() {
     const sourceX = startX + (frame * frameWidth)
     const sourceY = startY
 
+    // Calculate scaled dimensions
+    const scaledWidth = frameWidth * SPRITE_SCALE
+    const scaledHeight = frameHeight * SPRITE_SCALE
+
     ctx.save()
 
     // Apply transformations if flipping
     if (flipX || flipY) {
-      ctx.translate(x + frameWidth / 2, y + frameHeight / 2)
+      ctx.translate(x + scaledWidth / 2, y + scaledHeight / 2)
       ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
-      ctx.translate(-frameWidth / 2, -frameHeight / 2)
+      ctx.translate(-scaledWidth / 2, -scaledHeight / 2)
       ctx.drawImage(
         spritesheet.value,
         sourceX, sourceY, frameWidth, frameHeight,
-        0, 0, frameWidth, frameHeight
+        0, 0, scaledWidth, scaledHeight
       )
     } else {
       ctx.drawImage(
         spritesheet.value,
         sourceX, sourceY, frameWidth, frameHeight,
-        x, y, frameWidth, frameHeight
+        x, y, scaledWidth, scaledHeight
       )
     }
 
     ctx.restore()
   }
 
-  // Draw a tile (non-animated sprite)
+  // Draw a tile (non-animated sprite) with scaling
   const drawTile = (ctx, tileType, x, y) => {
     if (!isLoaded.value || !spritesheet.value) return
 
@@ -64,10 +68,14 @@ export function useSpriteManager() {
 
     const { width, height, x: sourceX, y: sourceY } = config
 
+    // Calculate scaled dimensions
+    const scaledWidth = width * SPRITE_SCALE
+    const scaledHeight = height * SPRITE_SCALE
+
     ctx.drawImage(
       spritesheet.value,
       sourceX, sourceY, width, height,
-      x, y, width, height
+      x, y, scaledWidth, scaledHeight
     )
   }
 
@@ -79,7 +87,7 @@ export function useSpriteManager() {
           frameWidth: 16,
           frameHeight: 32,
           startX: 128,
-          startY: 68,
+          startY: 74,
           frames: 8
         }
       case 'goblin':
@@ -87,7 +95,7 @@ export function useSpriteManager() {
           frameWidth: 16,
           frameHeight: 16,
           startX: 368,
-          startY: 80,
+          startY: 162,
           frames: 8
         }
       case 'boss':

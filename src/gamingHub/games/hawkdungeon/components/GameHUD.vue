@@ -7,11 +7,7 @@
       </div>
     </div>
 
-    <div class="hud-center">
-      <div class="level-display">
-        <span class="level-text">Level {{ level }}</span>
-      </div>
-    </div>
+    <div class="hud-center"></div>
 
     <div class="hud-right">
       <div class="kills-display">
@@ -29,10 +25,6 @@ defineProps({
     required: true
   },
   maxHealth: {
-    type: Number,
-    required: true
-  },
-  level: {
     type: Number,
     required: true
   },
@@ -76,7 +68,6 @@ defineProps({
 }
 
 .health-display,
-.level-display,
 .kills-display {
   display: flex;
   align-items: center;
@@ -93,7 +84,6 @@ defineProps({
 }
 
 .health-text,
-.level-text,
 .kills-text {
   color: white;
   font-size: 16px;
@@ -102,10 +92,6 @@ defineProps({
 
 .health-text {
   color: #ff4444;
-}
-
-.level-text {
-  color: #44aaff;
 }
 
 .kills-text {

@@ -1,7 +1,10 @@
 // Sprite sheet configuration for HawkDungeon
-// All sprites are based on 16x16 pixel tiles
+// All sprites are based on 16x16 pixel tiles in the spritesheet
+// But displayed at 4x scale (64x64) for better visibility
 
-export const TILE_SIZE = 16
+export const SPRITE_SIZE = 16 // Original sprite size in spritesheet
+export const SPRITE_SCALE = 4 // Scale factor for display
+export const TILE_SIZE = SPRITE_SIZE * SPRITE_SCALE // 64px display size
 
 export const spriteConfig = {
   // Knight character (1 wide × 2 high = 16×32 px)
