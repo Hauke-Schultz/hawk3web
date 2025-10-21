@@ -1253,7 +1253,7 @@ const completeEndlessMode = () => {
 			source: t('rewards.breakdown.merge_bonus', { merges: totalMerges.value }),
 			coins: mergeBonus,
 			diamonds: 0,
-			icon: 'num-merge-game',
+			icon: 'hawk-double-up',
 			style: 'performance'
 		})
 	}
@@ -1902,7 +1902,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 		@menu-click="handleMenuClick"
 		@save-game="handleMenuSaveGame"
 	/>
-	<main class="num-merge-game">
+	<main class="hawk-double-up">
 		<!-- Game Header -->
 		<div class="game-header">
 			<div class="game-info">
@@ -2106,7 +2106,7 @@ watch(() => gameData.player.inventory.items?.undo_move?.quantity, (newQuantity) 
 	</main>
 </template>
 <style lang="scss" scoped>
-.num-merge-game {
+.hawk-double-up {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-4);

@@ -343,7 +343,7 @@ export const hawkDoubleUpConfig = {
 	gameId: 'hawkDoubleUp',
   gameTitle: 'Hawk Double Up',
   gameDescription: 'Merge numbers to reach the target score!',
-  gameIcon: 'num-merge-game',
+  gameIcon: 'hawk-double-up',
   levels: Object.values(HAWK_DOUBLE_UP_LEVELS).map((level, index) => ({
     level: index + 1,
     ...level

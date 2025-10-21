@@ -255,7 +255,7 @@ export default {
 			features: 'Features',
 			technologies: 'Technologien',
       feature_list: {
-        three_games: '3 Spiele (Memory, Hawk Fruit, Hawk Double Up)',
+        three_games: '3 Spiele (Hawk Memory, Hawk Fruit, Hawk Double Up)',
         achievement_system: 'Erfolgssystem mit Trophäensammlung',
         shop_currency: 'In-Game Shop & Währungssystem (Münzen & Diamanten)',
         daily_rewards: 'Tägliche Belohnungen mit Mini-Spielen & Geheimnisvollen Boxen',
@@ -306,7 +306,7 @@ export default {
 			},
       games: {
         title: 'Spielerechte & Originalität',
-        description: 'Die Spiele (Memory, Hawk Fruit, Hawk Double Up) basieren auf klassischen Spielprinzipien und -mechaniken, die nicht dem Urheberrecht unterliegen. Alle visuellen Assets, Code-Implementierungen, Grafiken und Sounds sind Eigenentwicklungen. Während die grundlegenden Spielmechaniken von traditionellen Spielen inspiriert sind, sind die spezifische Umsetzung, das Design und die Benutzererfahrung vollständig unsere eigene Arbeit.'
+        description: 'Die Spiele (Hawk Memory, Hawk Fruit, Hawk Double Up) basieren auf klassischen Spielprinzipien und -mechaniken, die nicht dem Urheberrecht unterliegen. Alle visuellen Assets, Code-Implementierungen, Grafiken und Sounds sind Eigenentwicklungen. Während die grundlegenden Spielmechaniken von traditionellen Spielen inspiriert sind, sind die spezifische Umsetzung, das Design und die Benutzererfahrung vollständig unsere eigene Arbeit.'
       },
       ai_development: {
         title: 'KI-unterstützte Entwicklung',
@@ -604,7 +604,7 @@ export default {
 
 	// Memory-Spiel
 	memory: {
-		title: 'Memory-Spiel',
+		title: 'Hawk Memory-Spiel',
 		description: 'Finde Kartenpaare und teste dein Gedächtnis',
 		level_title: 'Level {level}',
 		game_paused: 'Spiel pausiert',
@@ -953,7 +953,7 @@ export default {
 			gaming: 'Spiele',
 			progress: 'Fortschritt',
 			special: 'Besonders',
-			memory: 'Memory-Spiel',
+			memory: 'Hawk Memory-Spiel',
 			hawkFruit: 'Hawk Fruit-Spiel',
       hawkDoubleUp: 'Hawk Double Up-Spiel',
       hawkTower: 'Hawk Tower Spiel',

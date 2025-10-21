@@ -1,0 +1,17 @@
+<svg viewBox="0 0 300 230" xmlns="http://www.w3.org/2000/svg">
+    <!-- Block 7 (top) - green -->
+    <rect x="73" y="20" width="120" height="40" fill="#26D07C" stroke="#000" stroke-width="1"/>
+    <text x="134" y="48" font-size="24" font-weight="bold" text-anchor="middle" fill="white">7</text>
+
+    <!-- Block 8 - turquoise -->
+    <rect x="73" y="62" width="180" height="40" fill="#20C997" stroke="#000" stroke-width="1"/>
+    <text x="165" y="90" font-size="24" font-weight="bold" text-anchor="middle" fill="white">8</text>
+
+    <!-- Block 9 - cyan -->
+    <rect x="73" y="104" width="215" height="40" fill="#00D9FF" stroke="#000" stroke-width="1"/>
+    <text x="180" y="132" font-size="24" font-weight="bold" text-anchor="middle" fill="white">9</text>
+
+    <!-- Block 10 (bottom) - bright blue -->
+    <rect x="73" y="146" width="230" height="40" fill="#00BFFF" stroke="#000" stroke-width="1"/>
+    <text x="188" y="174" font-size="24" font-weight="bold" text-anchor="middle" fill="white">10</text>
+</svg>

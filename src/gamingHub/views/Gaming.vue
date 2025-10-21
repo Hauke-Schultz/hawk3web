@@ -86,7 +86,7 @@ const handleMenuClick = () => {
 		</div>
 
 		<div class="games-grid">
-			<!-- Memory Game Card -->
+			<!-- Hawk Memory Game Card -->
 			<div class="game-card">
 				<div class="game-header">
 					<div class="game-icon">

@@ -131,7 +131,7 @@ export function useScreenshot() {
   // Helper function to get proper game display names
   const getGameDisplayName = (gameTitle) => {
     const gameNames = {
-      'Memory': 'Memory Game',
+      'Hawk Memory': 'Hawk Memory',
       'Hawk Fruit': 'Hawk Fruit',
       'Hawk Double Up': 'Hawk Double Up'
     }

@@ -83,7 +83,7 @@ export const MEMORY_LEVELS = {
 export const memoryConfig = {
 	// Game metadata
 	gameId: 'memory',
-	gameTitle: 'Memory Game',
+	gameTitle: 'Hawk Memory',
 	gameDescription: 'Match pairs of cards and test your memory',
 	gameIcon: 'brain',
 

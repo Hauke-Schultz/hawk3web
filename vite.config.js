@@ -79,9 +79,9 @@ export default defineConfig({
         // App Shortcuts
         shortcuts: [
           {
-            name: 'Memory Game',
-            short_name: 'Memory',
-            description: 'Play the Memory card matching game',
+            name: 'Hawk Memory',
+            short_name: 'HawkMemory',
+            description: 'Play the Hawk Memory card matching game',
             url: '/games/memory',
             icons: [{
               src: '/shortcut-memory.svg',

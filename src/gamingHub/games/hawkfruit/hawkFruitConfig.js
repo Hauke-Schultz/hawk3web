@@ -1199,7 +1199,7 @@ export const hawkFruitConfig = {
 	gameId: 'hawkFruit',
 	gameTitle: 'Hawk Fruit',
 	gameDescription: 'Merge fruits to create new combinations',
-	gameIcon: 'fruit-merge-game',
+	gameIcon: 'hawk-fruit',
 	levels: Object.values(HAWK_FRUIT_LEVELS).map((level, index) => ({
 		level: index + 1,
 		...level

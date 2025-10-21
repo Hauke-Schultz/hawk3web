@@ -71,7 +71,7 @@ export const ACHIEVEMENTS = {
 			trigger: { type: 'auto', condition: 'gamesPlayed >= 10' }
 		},
 
-		// Memory Game specific achievements
+		// Hawk Memory Game specific achievements
 		{
 			id: 'memory_beginner',
 			name: 'Memory Beginner',
@@ -109,7 +109,7 @@ export const ACHIEVEMENTS = {
 			name: 'Fruit Beginner',
 			description: 'Completed first hawkFruit level',
 			category: 'hawkFruit',
-			icon: 'fruit-merge-game',
+			icon: 'hawk-fruit',
 			rarity: 'common',
 			rewards: { coins: 100, diamonds: 1 },
 			trigger: { type: 'level_complete', game: 'hawkFruit', level: 1 }
@@ -119,7 +119,7 @@ export const ACHIEVEMENTS = {
 			name: 'Hawk Fruitr',
 			description: 'Completed HawkFruit Level 3',
 			category: 'hawkFruit',
-			icon: 'fruit-merge-game',
+			icon: 'hawk-fruit',
 			rarity: 'uncommon',
 			rewards: { coins: 200, diamonds: 2 },
 			trigger: { type: 'level_complete', game: 'hawkFruit', level: 3 }
@@ -129,7 +129,7 @@ export const ACHIEVEMENTS = {
 			name: 'Merge Expert',
 			description: 'Completed HawkFruit Level 5',
 			category: 'hawkFruit',
-			icon: 'fruit-merge-game',
+			icon: 'hawk-fruit',
 			rarity: 'epic',
 			rewards: { coins: 2000, diamonds: 10 },
 			trigger: { type: 'level_complete', game: 'hawkFruit', level: 5 }
@@ -139,7 +139,7 @@ export const ACHIEVEMENTS = {
 			name: 'Merge Master',
 			description: 'Completed the ultimate HawkFruit challenge',
 			category: 'hawkFruit',
-			icon: 'fruit-merge-game',
+			icon: 'hawk-fruit',
 			rarity: 'legendary',
 			rewards: { coins: 5000, diamonds: 20 },
 			trigger: { type: 'level_complete', game: 'hawkFruit', level: 5 }
@@ -149,7 +149,7 @@ export const ACHIEVEMENTS = {
 			name: 'Endless Explorer',
 			description: 'Played your first endless game',
 			category: 'hawkFruit',
-			icon: 'fruit-merge-game',
+			icon: 'hawk-fruit',
 			rarity: 'common',
 			rewards: { coins: 1000, diamonds: 10 },
 			trigger: { type: 'level_complete', game: 'hawkFruit', level: 6 }
@@ -262,7 +262,7 @@ export const ACHIEVEMENTS = {
       name: 'Number Beginner',
       description: 'Completed first Num level',
       category: 'hawkDoubleUp',
-      icon: 'num-merge-game',
+      icon: 'hawk-double-up',
       rarity: 'common',
       rewards: { coins: 150, diamonds: 1 },
       trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 1 }
@@ -272,7 +272,7 @@ export const ACHIEVEMENTS = {
       name: 'Number Crusher',
       description: 'Completed Num Level 3',
       category: 'hawkDoubleUp',
-      icon: 'num-merge-game',
+      icon: 'hawk-double-up',
       rarity: 'uncommon',
       rewards: { coins: 500, diamonds: 2 },
       trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 3 }
@@ -282,7 +282,7 @@ export const ACHIEVEMENTS = {
       name: 'Number Expert',
       description: 'Completed Num Level 5',
       category: 'hawkDoubleUp',
-      icon: 'num-merge-game',
+      icon: 'hawk-double-up',
       rarity: 'epic',
       rewards: { coins: 1500, diamonds: 8 },
       trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 5 }
@@ -292,7 +292,7 @@ export const ACHIEVEMENTS = {
       name: 'Number Master',
       description: 'Mastered all Num challenges',
       category: 'hawkDoubleUp',
-      icon: 'num-merge-game',
+      icon: 'hawk-double-up',
       rarity: 'legendary',
       rewards: { coins: 3000, diamonds: 15 },
       trigger: { type: 'level_complete', game: 'hawkDoubleUp', level: 6 }
@@ -366,7 +366,7 @@ export const ACHIEVEMENTS = {
       name: 'Stack Beginner',
       description: 'Completed first Hawk Tower level',
       category: 'hawkTower',
-      icon: 'stack',
+      icon: 'hawk-tower',
       rarity: 'common',
       rewards: { coins: 150, diamonds: 1 },
       trigger: { type: 'level_complete', game: 'hawkTower', level: 1 }
@@ -376,7 +376,7 @@ export const ACHIEVEMENTS = {
       name: 'Stack Builder',
       description: 'Completed Hawk Tower Level 3',
       category: 'hawkTower',
-      icon: 'stack',
+      icon: 'hawk-tower',
       rarity: 'uncommon',
       rewards: { coins: 500, diamonds: 2 },
       trigger: { type: 'level_complete', game: 'hawkTower', level: 3 }
@@ -386,7 +386,7 @@ export const ACHIEVEMENTS = {
       name: 'Stack Expert',
       description: 'Completed Hawk Tower Level 5',
       category: 'hawkTower',
-      icon: 'stack',
+      icon: 'hawk-tower',
       rarity: 'epic',
       rewards: { coins: 1500, diamonds: 8 },
       trigger: { type: 'level_complete', game: 'hawkTower', level: 5 }
@@ -396,7 +396,7 @@ export const ACHIEVEMENTS = {
       name: 'Stack Master',
       description: 'Completed the ultimate Hawk Tower challenge',
       category: 'hawkTower',
-      icon: 'stack',
+      icon: 'hawk-tower',
       rarity: 'legendary',
       rewards: { coins: 3000, diamonds: 15 },
       trigger: { type: 'level_complete', game: 'hawkTower', level: 6 }
@@ -581,25 +581,25 @@ export const ACHIEVEMENTS = {
 		},
 		{
 			id: 'memory',
-			name: 'Memory Game',
+			name: 'Memory',
 			color: 'purple',
 			description: 'Achievements for the Memory Game'
 		},
 		{
 			id: 'hawkFruit',
-			name: 'Hawk Fruit Game',
+			name: 'Hawk Fruit',
 			color: 'orange',
 			description: 'Achievements for the Hawk Fruit Game'
 		},
     {
       id: 'hawkDoubleUp',
-      name: 'Hawk Double Up Game',
+      name: 'Hawk Double Up',
       color: 'warning',
       description: 'Achievements for the Hawk Double Up Game'
     },
     {
       id: 'hawkTower',
-      name: 'Hawk Tower Game',
+      name: 'Hawk Tower',
       color: 'danger',
       description: 'Achievements for the Hawk Tower Game'
     },

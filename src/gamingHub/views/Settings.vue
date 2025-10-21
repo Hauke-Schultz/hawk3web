@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
+import { useScreenshot } from '../composables/useScreenshot.js'
 import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
@@ -21,6 +22,9 @@ const emit = defineEmits(['theme-change', 'font-size-change', 'language-change',
 
 // LocalStorage service
 const { gameData, clearStorage, updateSettings } = useLocalStorage()
+
+// Screenshot service
+const { clearAllScreenshots } = useScreenshot()
 
 // Internationalization
 const { t, currentLanguage, availableLanguages, setLanguage } = useI18n()
@@ -125,9 +129,17 @@ const handleDeleteProfile = () => {
 }
 
 const confirmDelete = () => {
+	// Clear all game data from localStorage
 	clearStorage()
+
+	// Clear all screenshots from localStorage
+	clearAllScreenshots()
+
 	showDeleteConfirmation.value = false
 	isDeleteUnlocked.value = false
+
+	console.log('🗑️ Profile deleted: All game data and screenshots have been cleared')
+
 	// Return to Home Page after reset
 	handleBack()
 }

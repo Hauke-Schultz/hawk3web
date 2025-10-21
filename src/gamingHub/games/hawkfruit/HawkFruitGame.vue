@@ -1908,7 +1908,7 @@ const calculateLevelReward = () => {
 				source: t('rewards.breakdown.merge_bonus', { merges: totalMerges.value }),
 				coins: mergeBonus,
 				diamonds: 0,
-				icon: 'fruit-merge-game',
+				icon: 'hawk-fruit',
 				style: 'special'
 			})
 			totalCoins += mergeBonus
@@ -3100,7 +3100,7 @@ onUnmounted(() => {
 		@menu-click="handleMenuClick"
 		@save-game="handleMenuSaveGame"
 	/>
-	<main class="fruit-merge-game">
+	<main class="hawk-fruit">
 		<!-- Game Header -->
 		<div class="game-header">
 			<div class="game-info">
@@ -3577,7 +3577,7 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.fruit-merge-game {
+.hawk-fruit {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-4);

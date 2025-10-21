@@ -450,7 +450,7 @@ export default {
       features: 'Features',
       technologies: 'Technologies',
       feature_list: {
-        three_games: '3 Games (Memory, Hawk Fruit, Hawk Double Up)',
+        three_games: '3 Games (Hawk Memory, Hawk Fruit, Hawk Double Up)',
         achievement_system: 'Achievement System with Trophy Collection',
         shop_currency: 'In-Game Shop & Currency System (Coins & Diamonds)',
         daily_rewards: 'Daily Rewards with Mini-Games & Mystery Boxes',
@@ -503,7 +503,7 @@ export default {
       },
       games: {
         title: 'Game Rights & Originality',
-        description: 'The games (Memory, Hawk Fruit, Hawk Double Up) are based on classic game principles and mechanics that are not subject to copyright protection. All visual assets, code implementations, graphics, and sounds are original creations. While the core game mechanics are inspired by traditional games, the specific implementation, design, and user experience are entirely our own work.'
+        description: 'The games (Hawk Memory, Hawk Fruit, Hawk Double Up) are based on classic game principles and mechanics that are not subject to copyright protection. All visual assets, code implementations, graphics, and sounds are original creations. While the core game mechanics are inspired by traditional games, the specific implementation, design, and user experience are entirely our own work.'
       },
       ai_development: {
         title: 'AI-Assisted Development',
@@ -605,9 +605,9 @@ export default {
 		}
 	},
 
-	// Memory Game
+	// Hawk Memory Game
 	memory: {
-		title: 'Memory',
+		title: 'Hawk Memory',
 		description: 'Match pairs of cards and test your memory',
 		level_title: 'Level {level}',
 		game_paused: 'Game Paused',
@@ -952,10 +952,10 @@ export default {
 			general: 'General',
 			gaming: 'Gaming',
 			special: 'Special',
-			memory: 'Memory Game',
-			hawkFruit: 'Hawk Fruit Game',
-      hawkDoubleUp: 'Hawk Double Up Game',
-      hawkTower: 'Hawk Tower Game'
+			memory: 'Hawk Memory',
+			hawkFruit: 'Hawk Fruit',
+      hawkDoubleUp: 'Hawk Double Up',
+      hawkTower: 'Hawk Tower'
 		},
 		rarities: {
 			common: 'Common',
@@ -990,15 +990,15 @@ export default {
 				description: 'Played 10 games'
 			},
 			memory_beginner: {
-				name: 'Memory Beginner',
+				name: 'Hawk Memory Beginner',
 				description: 'Completed first memory level'
 			},
 			memory_intermediate: {
-				name: 'Memory Intermediate',
+				name: 'Hawk Memory Intermediate',
 				description: 'Completed level 3'
 			},
 			memory_master: {
-				name: 'Memory Master',
+				name: 'Hawk Memory Master',
 				description: 'Completed the hardest level'
 			},
 
@@ -1173,8 +1173,8 @@ export default {
       },
 
       memory_perfectionist: {
-        name: 'Memory Perfectionist',
-        description: 'Complete all Memory levels with 3 stars'
+        name: 'Hawk Memory Perfectionist',
+        description: 'Complete all Hawk Memory levels with 3 stars'
       },
       hawkFruit_perfectionist: {
         name: 'Hawk Fruit Perfectionist',

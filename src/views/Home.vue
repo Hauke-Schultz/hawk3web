@@ -36,21 +36,21 @@ const allRecentLevels = computed(() => {
 		...level,
 		gameId: 'hawkFruit',
 		gameTitle: t('hawkFruit.title'),
-		gameIcon: 'fruit-merge-game'
+		gameIcon: 'hawk-fruit'
 	}))
 
 	const hawkDoubleUpLevels = getRecentLevelsForGame('hawkDoubleUp', 10).map(level => ({
 		...level,
 		gameId: 'hawkDoubleUp',
 		gameTitle: t('hawkDoubleUp.title'),
-		gameIcon: 'num-merge-game'
+		gameIcon: 'hawk-double-up'
 	}))
 
 	const hawkTowerLevels = getRecentLevelsForGame('hawkTower', 10).map(level => ({
 		...level,
 		gameId: 'hawkTower',
 		gameTitle: t('hawkTower.title'),
-		gameIcon: 'stack'
+		gameIcon: 'hawk-tower'
 	}))
 
 	const combined = [...memoryLevels, ...hawkFruitLevels, ...hawkDoubleUpLevels, ...hawkTowerLevels]
@@ -300,7 +300,7 @@ const getTodayName = () => {
 		<!-- Quick Games Access -->
 		<section class="games-section">
 			<div class="games-grid">
-				<!-- Memory Game -->
+				<!-- Hawk Memory Game -->
 				<div class="game-card" @click="navigateToGame('memory')">
 					<div class="game-header">
 						<Icon :name="memoryConfig.gameIcon" size="28" />
@@ -421,10 +421,6 @@ const getTodayName = () => {
 				<div class="project-content">
 					<h2 class="project-title">{{ t('hawkGym.title') }}</h2>
 					<p class="project-description">{{ t('hawkGym.projectDescription') }}</p>
-					<div class="project-meta">
-						<span class="project-tag">{{ t(`hawkGym.days.${getTodayName()}`) }}</span>
-						<span class="project-duration">~20 min</span>
-					</div>
 				</div>
 			</div>
 		</section>

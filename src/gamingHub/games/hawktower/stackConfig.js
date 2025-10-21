@@ -159,7 +159,7 @@ export const hawkTowerConfig = {
   gameId: 'hawkTower',
   gameTitle: 'Hawk Tower',
   gameDescription: 'Stack blocks to build the tallest tower!',
-  gameIcon: 'stack',
+  gameIcon: 'hawk-tower',
   levels: Object.entries(STACK_CONFIG.levels).map(([levelNumber, level]) => ({
     level: parseInt(levelNumber),
     ...level
