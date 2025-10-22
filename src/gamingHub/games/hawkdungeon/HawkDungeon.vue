@@ -123,17 +123,77 @@ const handleMenuClick = () => {
   router.push('/')
 }
 
+// Keyboard controls
+const activeKeys = ref(new Set())
+
+const handleKeyDown = (event) => {
+  // Prevent default for game controls
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' '].includes(event.key)) {
+    event.preventDefault()
+  }
+
+  // Avoid key repeat
+  if (activeKeys.value.has(event.key)) return
+  activeKeys.value.add(event.key)
+
+  // Movement keys
+  switch (event.key) {
+    case 'ArrowUp':
+    case 'w':
+      handleMove('up')
+      break
+    case 'ArrowDown':
+    case 's':
+      handleMove('down')
+      break
+    case 'ArrowLeft':
+    case 'a':
+      handleMove('left')
+      break
+    case 'ArrowRight':
+    case 'd':
+      handleMove('right')
+      break
+    case ' ':
+      handleAttack()
+      break
+  }
+}
+
+const handleKeyUp = (event) => {
+  activeKeys.value.delete(event.key)
+
+  // Stop movement when key is released
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(event.key)) {
+    // Only stop if no movement keys are pressed
+    const hasMovementKey = Array.from(activeKeys.value).some(key =>
+      ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(key)
+    )
+    if (!hasMovementKey) {
+      handleStopMove()
+    }
+  }
+}
+
 onMounted(() => {
   startGame()
 
   if (isEndlessMode.value) {
     startSessionTimer()
   }
+
+  // Add keyboard event listeners
+  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('keyup', handleKeyUp)
 })
 
 onUnmounted(() => {
   stopGame()
   stopSessionTimer()
+
+  // Remove keyboard event listeners
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('keyup', handleKeyUp)
 })
 </script>
 
