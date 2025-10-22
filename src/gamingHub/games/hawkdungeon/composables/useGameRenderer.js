@@ -103,13 +103,13 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     if (!monstersList) return
 
     monstersList.forEach(monster => {
-      // Calculate position relative to knight (similar to items)
-      const relativeX = (monster.gridX - knight.gridX) * TILE_SIZE
-      const relativeY = (monster.gridY - knight.gridY) * TILE_SIZE
+      // Calculate absolute screen position based on grid position and dungeon offset
+      const worldX = monster.gridX * TILE_SIZE
+      const worldY = monster.gridY * TILE_SIZE
 
-      // Draw monster centered on screen relative to knight
-      const drawX = centerX + relativeX - (TILE_SIZE / 2)
-      const drawY = centerY + relativeY - (TILE_SIZE / 2)
+      // Convert world coordinates to screen coordinates using dungeonOffset
+      const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+      const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
       const flipX = monster.facingDirection === 'left'
 
