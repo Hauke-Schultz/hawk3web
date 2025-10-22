@@ -65,10 +65,28 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       drawDamageEffect(centerX, centerY)
     }
 
-    // Draw attack hitbox in foreground (after knight)
+    // Draw attack hitbox(es) in foreground (after knight)
     const hitbox = attackHitbox()
     if (hitbox?.active) {
-      drawAttackHitbox(centerX, centerY, hitbox)
+      if (hitbox.charged) {
+        // Calculate progress for charged attack animation
+        if (!hitbox.createdAt) {
+          hitbox.createdAt = performance.now()
+        }
+        const elapsed = performance.now() - hitbox.createdAt
+        const progress = Math.min(elapsed / 300, 1)
+
+        // Draw spinning sword animation for charged attack
+        drawSpinningSword(centerX, centerY, hitbox, progress)
+
+        // Draw multiple hitboxes for charged attack
+        hitbox.hitboxes.forEach(pos => {
+          drawAttackHitboxAt(centerX, centerY, hitbox, pos.x, pos.y)
+        })
+      } else {
+        // Draw single hitbox for normal attack
+        drawAttackHitbox(centerX, centerY, hitbox)
+      }
     }
   }
 
@@ -217,20 +235,36 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     // Draw sword with swing animation FIRST (behind effect)
     drawSwordSwing(centerX, centerY, hitbox, progress)
 
-    // Draw animated attack effect ON TOP
+    // Draw attack effect at hitbox position
+    drawAttackEffect(centerX, centerY, hitbox, progress, hitbox.gridX, hitbox.gridY)
+  }
+
+  const drawAttackHitboxAt = (centerX, centerY, hitbox, gridX, gridY) => {
+    if (!hitbox || !hitbox.active) return
+
+    // Calculate animation progress (0 to 1) based on creation time
+    if (!hitbox.createdAt) {
+      hitbox.createdAt = performance.now()
+    }
+    const elapsed = performance.now() - hitbox.createdAt
+    const progress = Math.min(elapsed / 300, 1) // 300ms animation
+
+    // Draw attack effect at specified position
+    drawAttackEffect(centerX, centerY, hitbox, progress, gridX, gridY)
+  }
+
+  const drawAttackEffect = (centerX, centerY, hitbox, progress, gridX, gridY) => {
     ctx.save()
 
-    // Position circle closer to player
-    const relativeX = (hitbox.gridX - knight.gridX) * TILE_SIZE
-    const relativeY = (hitbox.gridY - knight.gridY) * TILE_SIZE
+    // Position circle at specified grid position
+    const relativeX = (gridX - knight.gridX) * TILE_SIZE
+    const relativeY = (gridY - knight.gridY) * TILE_SIZE
     const circleCenterX = centerX + relativeX
     const circleCenterY = centerY + relativeY
 
     const maxRadius = TILE_SIZE * 1.2 // 20% bigger!
     const radius = maxRadius * progress
     const alpha = 0.85 * (1 - progress) // Start more opaque
-    // Determine intensity based on whether we hit something
-    const isIntense = hitbox.didHit === true
 
     // Layer 1: Outer explosive glow
     const outerGradient = ctx.createRadialGradient(
@@ -291,6 +325,39 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         ctx.stroke()
       }
     }
+
+    ctx.restore()
+  }
+
+  const drawSpinningSword = (centerX, centerY, hitbox, progress) => {
+    ctx.save()
+
+    // Sword dimensions (16x28 scaled by 4)
+    const swordWidth = 16 * 4
+    const swordHeight = 28 * 4
+
+    // Position sword at knight's center
+    const swordX = centerX
+    const swordY = centerY
+
+    // Full 360° rotation during the attack animation
+    const rotationAngle = progress * Math.PI * 2 // 0 to 2π (360°)
+
+    // Move to sword position (knight's center)
+    ctx.translate(swordX, swordY)
+
+    // Rotate around the center
+    ctx.rotate(rotationAngle)
+
+    // Draw sword (pivot point at center)
+    const swordDrawX = -swordWidth / 2
+    const swordDrawY = -swordHeight / 2
+
+    // Add slight fade in/out for smoother visual
+    const fadeAlpha = Math.sin(progress * Math.PI) // Fade in and out during spin
+    ctx.globalAlpha = 0.7 + (fadeAlpha * 0.3)
+
+    drawTile(ctx, hitbox.weapon, swordDrawX, swordDrawY)
 
     ctx.restore()
   }

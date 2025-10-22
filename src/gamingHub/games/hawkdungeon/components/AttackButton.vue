@@ -2,18 +2,27 @@
   <div class="attack-button-container">
     <button
       class="attack-button"
-      :class="{ 'on-cooldown': cooldown > 0 }"
-      @click="handleAttack"
-      @touchstart.prevent="handleAttack"
+      :class="{ 'on-cooldown': cooldown > 0, 'charging': isCharging }"
+      @mousedown="handlePressStart"
+      @mouseup="handlePressEnd"
+      @mouseleave="handlePressCancel"
+      @touchstart.prevent="handlePressStart"
+      @touchend.prevent="handlePressEnd"
+      @touchcancel.prevent="handlePressCancel"
     >
       <div class="button-content">
         <div class="weapon-icon">⚔️</div>
-        <div class="button-text">ATTACK</div>
+        <div class="button-text">{{ isCharging ? 'CHARGING...' : 'ATTACK' }}</div>
       </div>
       <div
         v-if="cooldown > 0"
         class="cooldown-overlay"
         :style="{ height: `${(cooldown / maxCooldown) * 100}%` }"
+      />
+      <div
+        v-if="isCharging"
+        class="charge-overlay"
+        :style="{ height: `${Math.min((chargeDuration / 300) * 100, 100)}%` }"
       />
     </button>
   </div>
@@ -36,11 +45,58 @@ const props = defineProps({
 const emit = defineEmits(['attack'])
 
 const maxCooldown = ref(0.5)
+const isCharging = ref(false)
+const chargeDuration = ref(0)
+let chargeStartTime = 0
+let chargeInterval = null
 
-const handleAttack = () => {
-  if (props.cooldown <= 0) {
-    emit('attack')
+const handlePressStart = () => {
+  if (props.cooldown > 0) return
+
+  isCharging.value = true
+  chargeStartTime = performance.now()
+  chargeDuration.value = 0
+
+  // Update charge duration every 16ms
+  chargeInterval = setInterval(() => {
+    chargeDuration.value = performance.now() - chargeStartTime
+
+    // Auto-execute charged attack when reaching 300ms
+    if (chargeDuration.value >= 300) {
+      clearInterval(chargeInterval)
+      isCharging.value = false
+      chargeDuration.value = 0
+      emit('attack', { charged: true })
+    }
+  }, 16)
+}
+
+const handlePressEnd = () => {
+  if (!isCharging.value) return
+
+  clearInterval(chargeInterval)
+
+  const duration = performance.now() - chargeStartTime
+
+  // Only execute normal attack if released before 300ms
+  // (charged attack already executed automatically at 300ms)
+  if (duration < 300) {
+    isCharging.value = false
+    chargeDuration.value = 0
+    emit('attack', { charged: false })
+  } else {
+    // Just reset state if already charged
+    isCharging.value = false
+    chargeDuration.value = 0
   }
+}
+
+const handlePressCancel = () => {
+  if (!isCharging.value) return
+
+  clearInterval(chargeInterval)
+  isCharging.value = false
+  chargeDuration.value = 0
 }
 </script>
 
@@ -102,5 +158,28 @@ const handleAttack = () => {
   background: rgba(0,0,0,0.5);
   transition: height 0.05s linear;
   z-index: 1;
+}
+
+.charge-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.6) 0%, rgba(255, 165, 0, 0.8) 100%);
+  transition: none;
+  z-index: 1;
+}
+
+.attack-button.charging {
+  animation: pulse 0.3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 </style>

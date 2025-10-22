@@ -125,6 +125,9 @@ const handleMenuClick = () => {
 
 // Keyboard controls
 const activeKeys = ref(new Set())
+const spaceCharging = ref(false)
+const spaceChargeStart = ref(0)
+let spaceChargeInterval = null
 
 const handleKeyDown = (event) => {
   // Prevent default for game controls
@@ -155,7 +158,22 @@ const handleKeyDown = (event) => {
       handleMove('right')
       break
     case ' ':
-      handleAttack()
+      // Start charging attack
+      if (!spaceCharging.value && attackCooldown.value <= 0) {
+        spaceCharging.value = true
+        spaceChargeStart.value = performance.now()
+
+        // Check every 16ms if charge is complete
+        spaceChargeInterval = setInterval(() => {
+          const duration = performance.now() - spaceChargeStart.value
+          if (duration >= 300) {
+            // Auto-execute charged attack
+            clearInterval(spaceChargeInterval)
+            spaceCharging.value = false
+            handleAttack({ charged: true })
+          }
+        }, 16)
+      }
       break
   }
 }
@@ -171,6 +189,19 @@ const handleKeyUp = (event) => {
     )
     if (!hasMovementKey) {
       handleStopMove()
+    }
+  }
+
+  // Handle space key release
+  if (event.key === ' ' && spaceCharging.value) {
+    clearInterval(spaceChargeInterval)
+    const duration = performance.now() - spaceChargeStart.value
+    spaceCharging.value = false
+
+    // Only execute normal attack if released before 300ms
+    // (charged attack already executed automatically at 300ms)
+    if (duration < 300) {
+      handleAttack({ charged: false })
     }
   }
 }

@@ -287,22 +287,38 @@ export function useHawkDungeon() {
     knight.movementQueue = []
   }
 
-  const handleAttack = () => {
+  const handleAttack = (attackData = { charged: false }) => {
     if (attackCooldown.value > 0 || knight.isAttacking) return
 
     knight.isAttacking = true
     attackCooldown.value = weaponConfig[gameState.weapon].cooldown
 
-    // Create attack hitbox
+    // Create attack hitbox(es)
     const weapon = weaponConfig[gameState.weapon]
-    const hitboxPos = getAttackHitboxPosition()
 
-    attackHitbox.value = {
-      active: true,
-      gridX: hitboxPos.x,
-      gridY: hitboxPos.y,
-      damage: weapon.damage,
-      weapon: gameState.weapon
+    if (attackData.charged) {
+      // Charged attack: create 3 hitboxes in cross pattern
+      const hitboxes = getChargedAttackHitboxes()
+
+      attackHitbox.value = {
+        active: true,
+        charged: true,
+        hitboxes: hitboxes,
+        damage: weapon.damage,
+        weapon: gameState.weapon
+      }
+    } else {
+      // Normal attack: single hitbox
+      const hitboxPos = getAttackHitboxPosition()
+
+      attackHitbox.value = {
+        active: true,
+        charged: false,
+        gridX: hitboxPos.x,
+        gridY: hitboxPos.y,
+        damage: weapon.damage,
+        weapon: gameState.weapon
+      }
     }
 
     console.log('Attack hitbox created:', attackHitbox.value)
@@ -334,6 +350,40 @@ export function useHawkDungeon() {
     }
 
     return pos
+  }
+
+  const getChargedAttackHitboxes = () => {
+    // Returns 3 hitbox positions in cross pattern based on facing direction
+    const hitboxes = []
+
+    switch (knight.facingDirection) {
+      case 'up':
+        // Up: attack up, left, right
+        hitboxes.push({ x: knight.gridX, y: knight.gridY - 1 })
+        hitboxes.push({ x: knight.gridX - 1, y: knight.gridY })
+        hitboxes.push({ x: knight.gridX + 1, y: knight.gridY })
+        break
+      case 'down':
+        // Down: attack down, left, right
+        hitboxes.push({ x: knight.gridX, y: knight.gridY + 1 })
+        hitboxes.push({ x: knight.gridX - 1, y: knight.gridY })
+        hitboxes.push({ x: knight.gridX + 1, y: knight.gridY })
+        break
+      case 'left':
+        // Left: attack left, up, down
+        hitboxes.push({ x: knight.gridX - 1, y: knight.gridY })
+        hitboxes.push({ x: knight.gridX, y: knight.gridY - 1 })
+        hitboxes.push({ x: knight.gridX, y: knight.gridY + 1 })
+        break
+      case 'right':
+        // Right: attack right, up, down
+        hitboxes.push({ x: knight.gridX + 1, y: knight.gridY })
+        hitboxes.push({ x: knight.gridX, y: knight.gridY - 1 })
+        hitboxes.push({ x: knight.gridX, y: knight.gridY + 1 })
+        break
+    }
+
+    return hitboxes
   }
 
   return {
