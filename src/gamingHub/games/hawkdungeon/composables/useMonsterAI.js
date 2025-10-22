@@ -9,7 +9,7 @@ export function useMonsterAI(knight, monsters, gameState) {
   let currentSpawnRate = 5
 
   // Helper function to check if a grid position is occupied
-  const isPositionOccupied = (gridX, gridY) => {
+  const isPositionOccupied = (gridX, gridY, excludeMonster = null) => {
     // Check if knight is at this position (current position)
     if (knight.gridX === gridX && knight.gridY === gridY) {
       return true
@@ -20,12 +20,31 @@ export function useMonsterAI(knight, monsters, gameState) {
       return true
     }
 
-    // Check if any monster is at this position
-    return monsters.value.some(monster =>
-      monster.state !== 'dead' &&
-      monster.gridX === gridX &&
-      monster.gridY === gridY
-    )
+    // Check if any monster is at this position OR moving to this position
+    return monsters.value.some(monster => {
+      // Skip the monster we're checking for (to avoid self-collision)
+      if (excludeMonster && monster.id === excludeMonster.id) {
+        return false
+      }
+
+      if (monster.state === 'dead') {
+        return false
+      }
+
+      // Check current position
+      if (monster.gridX === gridX && monster.gridY === gridY) {
+        return true
+      }
+
+      // Check target position (if monster is moving)
+      if (monster.isMovingToTarget &&
+          monster.targetGridX === gridX &&
+          monster.targetGridY === gridY) {
+        return true
+      }
+
+      return false
+    })
   }
 
   const update = (deltaTime) => {
@@ -74,6 +93,12 @@ export function useMonsterAI(knight, monsters, gameState) {
       type: monsterType,
       gridX: spawnX,
       gridY: spawnY,
+      targetGridX: spawnX, // Target position for smooth movement
+      targetGridY: spawnY,
+      renderX: spawnX, // Interpolated rendering position
+      renderY: spawnY,
+      moveProgress: 0, // 0 to 1 for interpolation
+      isMovingToTarget: false,
       health: config.health,
       maxHealth: config.health,
       damage: config.damage,
@@ -96,13 +121,34 @@ export function useMonsterAI(knight, monsters, gameState) {
   const updateMonster = (monster, deltaTime) => {
     if (monster.state === 'dead') return
 
+    // Update smooth movement interpolation
+    if (monster.isMovingToTarget) {
+      const moveDuration = 1 / monster.moveSpeed // Duration in seconds
+      monster.moveProgress += deltaTime / moveDuration
+
+      if (monster.moveProgress >= 1) {
+        // Movement complete
+        monster.renderX = monster.targetGridX
+        monster.renderY = monster.targetGridY
+        monster.gridX = monster.targetGridX
+        monster.gridY = monster.targetGridY
+        monster.isMovingToTarget = false
+        monster.moveProgress = 0
+      } else {
+        // Smooth interpolation with easing
+        const eased = easeInOutQuad(monster.moveProgress)
+        const startX = monster.gridX
+        const startY = monster.gridY
+        monster.renderX = startX + (monster.targetGridX - startX) * eased
+        monster.renderY = startY + (monster.targetGridY - startY) * eased
+      }
+    }
+
     // Update animation
     monster.animationTimer += deltaTime * 1000
 
-    // Check if monster is moving (position changed recently)
-    const previousX = monster.previousGridX ?? monster.gridX
-    const previousY = monster.previousGridY ?? monster.gridY
-    const isMoving = (previousX !== monster.gridX || previousY !== monster.gridY)
+    // Check if monster is moving
+    const isMoving = monster.isMovingToTarget
 
     if (isMoving) {
       // Walking animation: cycle through all 8 frames
@@ -118,22 +164,24 @@ export function useMonsterAI(knight, monsters, gameState) {
       }
     }
 
-    // Store previous position for next frame
-    monster.previousGridX = monster.gridX
-    monster.previousGridY = monster.gridY
-
     // Update attack timer
     monster.attackTimer += deltaTime
 
-    // Update movement
-    monster.moveTimer += deltaTime
+    // Try to initiate new movement
+    if (!monster.isMovingToTarget) {
+      monster.moveTimer += deltaTime
+      const moveInterval = 1 / monster.moveSpeed
 
-    const moveInterval = 1 / monster.moveSpeed
-
-    if (monster.moveTimer >= moveInterval) {
-      moveTowardsKnight(monster)
-      monster.moveTimer = 0
+      if (monster.moveTimer >= moveInterval) {
+        moveTowardsKnight(monster)
+        monster.moveTimer = 0
+      }
     }
+  }
+
+  // Easing function for smooth movement
+  const easeInOutQuad = (t) => {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
   }
 
   const moveTowardsKnight = (monster) => {
@@ -156,7 +204,7 @@ export function useMonsterAI(knight, monsters, gameState) {
       }
 
       // If horizontal move is blocked, try vertical move instead
-      if (isPositionOccupied(newX, newY)) {
+      if (isPositionOccupied(newX, newY, monster)) {
         newX = monster.gridX // Reset X
         if (dy > 0) {
           newY = monster.gridY + 1
@@ -177,7 +225,7 @@ export function useMonsterAI(knight, monsters, gameState) {
       }
 
       // If vertical move is blocked, try horizontal move instead
-      if (isPositionOccupied(newX, newY)) {
+      if (isPositionOccupied(newX, newY, monster)) {
         newY = monster.gridY // Reset Y
         if (dx > 0) {
           newX = monster.gridX + 1
@@ -189,10 +237,14 @@ export function useMonsterAI(knight, monsters, gameState) {
       }
     }
 
-    // Only move if the target position is free
-    if (!isPositionOccupied(newX, newY)) {
-      monster.gridX = newX
-      monster.gridY = newY
+    // Only move if the target position is free (excluding this monster) and not already at target
+    if (!isPositionOccupied(newX, newY, monster) && (newX !== monster.gridX || newY !== monster.gridY)) {
+      // Set target position for smooth interpolation
+      monster.targetGridX = newX
+      monster.targetGridY = newY
+      monster.isMovingToTarget = true
+      monster.moveProgress = 0
+
       // Only update facing direction if it was changed (horizontal movement)
       if (newDirection !== monster.facingDirection) {
         monster.facingDirection = newDirection

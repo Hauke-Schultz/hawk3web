@@ -155,9 +155,13 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     if (!monstersList) return
 
     monstersList.forEach(monster => {
-      // Calculate absolute screen position based on grid position and dungeon offset
-      const worldX = monster.gridX * TILE_SIZE
-      const worldY = monster.gridY * TILE_SIZE
+      // Use renderX/renderY for smooth interpolated position, fall back to gridX/gridY
+      const renderPosX = monster.renderX ?? monster.gridX
+      const renderPosY = monster.renderY ?? monster.gridY
+
+      // Calculate absolute screen position based on render position and dungeon offset
+      const worldX = renderPosX * TILE_SIZE
+      const worldY = renderPosY * TILE_SIZE
 
       // Convert world coordinates to screen coordinates using dungeonOffset
       const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
