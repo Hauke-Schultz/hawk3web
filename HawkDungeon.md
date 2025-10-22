@@ -1,6 +1,6 @@
 # 🏰 Hawk Dungeon - Game Documentation
 
-> **Status:** Pre-Development | **Version:** 0.1.0 (Planning)
+> **Status:** Active Development | **Version:** 0.5.0 (Alpha)
 
 ## 📖 Game Overview
 
@@ -128,36 +128,24 @@ if (movingUp || movingDown) {
 
 ### Hit Animation System
 
-**Damage Feedback (CSS Filters):**
-```css
-@keyframes hitFlash {
-  0% {
-    filter: brightness(1) hue-rotate(0deg);
-  }
-  25% {
-    filter: brightness(1.5) hue-rotate(0deg);
-  }
-  50% {
-    filter: brightness(1) hue-rotate(0deg);
-  }
-  75% {
-    filter: brightness(1.5) hue-rotate(0deg);
-  }
-  100% {
-    filter: brightness(1) hue-rotate(0deg);
-  }
-}
+**Player Hit Effects:**
+- **Duration:** 300ms
+- **Visual Filter:** `brightness(1.5) saturate(2) hue-rotate(-10deg) contrast(1.2)`
+- **Blood Splash Effect:** Expanding red gradient circles with 12 splatter lines
+- **Trigger:** Collision with monster (1-tile melee range)
+- **Invincibility:** 1 second cooldown after hit
 
-.character.hit {
-  animation: hitFlash 0.3s ease-out;
-}
-```
+**Monster Hit Effects:**
+- **Duration:** 200ms
+- **Visual Filter:** `brightness(1.8) saturate(3) hue-rotate(-20deg) contrast(1.5)`
+- **Trigger:** Hit by player attack
+- **Effect:** Bright red flash with high saturation
 
-**Hit Effect:**
-- Duration: 300ms
-- Effect: Brightness flash (white flash)
-- Triggers on collision with monster or taking damage
-- Can stack for multiple rapid hits
+**Monster Death Animation:**
+- **Duration:** 300ms fade-out
+- **Visual Filter:** `brightness(0.5) saturate(0.5) opacity(0.3)`
+- **Effect:** Dark, desaturated, and transparent
+- **Removal:** Monster removed after fade completes
 
 ---
 
@@ -266,6 +254,29 @@ if (facingDown) {
 // All monsters in hit positions take damage
 ```
 
+**Attack Visual Effects:**
+
+*Subtle Version (No Hit):*
+- Radius: 0.6x tile size
+- Alpha: 40%
+- Soft yellow/beige glow
+- Minimal visual presence
+
+*Intense Version (Hit Landed):*
+- Radius: 1.5x tile size
+- Alpha: 95%
+- Bright yellow/orange/white explosion
+- 12 shockwave lines radiating outward
+- 3 layered gradient circles for depth
+- Duration: 300ms
+
+**Sword Swing Animation:**
+- Weapon appears 0.4 tiles in front of knight
+- Swing arc: 0° → 80° → 0° (sine curve)
+- Rotation around grip point
+- Horizontal flip for left-facing attacks
+- Synchronized with attack effect
+
 **Attack Animation:**
 ```javascript
 attackAnimation = {
@@ -312,25 +323,53 @@ if (facingDirection === 'down') {
 | **Boss** | 2×2 | 15 | Walks toward knight | 100 coins |
 
 **Monster Behavior:**
-- Spawn at screen edges (outside viewport)
-- Path toward knight (always center)
+- Spawn at screen edges (10 tiles away from knight)
+- Path toward knight using Manhattan distance
 - Move 16 pixels at a time (grid-based like knight)
 - Movement speed: 1 step per 1 second (configurable)
-- Deal damage on collision with knight
-- Drop loot when defeated
-- Hit animation on taking damage
+- **Melee Range:** 1 tile (attacks from adjacent tiles)
+- **Collision Detection:** Manhattan distance ≤ 1 for damage
+- **Movement Blocking:** Cannot move onto tile with knight or other monster
+- **Simultaneous Movement:** Checks knight's target position to prevent collisions
+- Drop loot when defeated (5 coins for goblins)
+- Hit animation on taking damage (200ms red flash)
+- Death animation before removal (300ms fade-out)
 
 **Monster AI:**
 ```javascript
 // Per movement cycle:
-1. Calculate direction to knight
-2. Move 16 pixels in that direction
-3. Play 8-frame walk animation
-4. Check collision with knight
-5. Check collision with attack hitbox
-6. Update health if hit
-7. Trigger hit animation if damaged
-8. Remove if health <= 0
+1. Calculate direction to knight (Manhattan distance)
+2. Try to move in primary axis (larger distance)
+3. If blocked, try alternative axis
+4. Check if target position is occupied:
+   - Knight's current position
+   - Knight's target position (during movement)
+   - Other monster positions
+5. Move 16 pixels if position is free
+6. Play 8-frame walk animation
+7. Check melee range collision with knight (distance ≤ 1)
+8. Check collision with attack hitbox
+9. Update health if hit, trigger 200ms red flash
+10. If health <= 0, set state to 'dead'
+11. Show death animation (300ms fade-out)
+12. Remove monster after animation completes
+```
+
+**Pathfinding Logic:**
+```javascript
+// Priority-based movement
+const dx = knight.gridX - monster.gridX
+const dy = knight.gridY - monster.gridY
+
+if (Math.abs(dx) > Math.abs(dy)) {
+  // Try horizontal first, vertical as fallback
+  tryMove(dx > 0 ? 'right' : 'left')
+  if (blocked) tryMove(dy > 0 ? 'down' : 'up')
+} else {
+  // Try vertical first, horizontal as fallback
+  tryMove(dy > 0 ? 'down' : 'up')
+  if (blocked) tryMove(dx > 0 ? 'right' : 'left')
+}
 ```
 
 **Monster Animation:**
@@ -457,7 +496,7 @@ timeLimits = {
 
 ```
 ┌─────────────────────────────┐
-│ ❤️ 10/10 │ Lvl 1 │ 0/50 💰  │  <- Top Bar (Stats)
+│ ❤️ 10/10 │      │ 0/50 💰  │  <- Top Bar (Stats)
 ├─────────────────────────────┤
 │                             │
 │         [Stone Dungeon]     │
@@ -632,10 +671,15 @@ attackHitbox = {
    ```
 
 4. **Collision Detection**
-    - Knight-Monster collision on same grid tile (deals damage)
-    - Attack hitbox-Monster collision (monster takes damage)
-    - Knight-Item collision on same tile (auto-pickup)
+    - **Knight-Monster collision** - Manhattan distance ≤ 1 (melee range)
+    - **Attack hitbox-Monster collision** - Exact grid position match
+    - **Knight-Item collision** - Same tile (auto-pickup)
+    - **Movement blocking** - Cannot move to occupied tiles:
+      - Tile with knight (current or target position)
+      - Tile with another monster
+    - **Race condition prevention** - Checks target positions during movement
     - Grid-based collision (discrete, not continuous)
+    - Invincibility frames (1s cooldown after player hit)
 
 5. **Monster Spawning**
     - Random spawn points at screen edges (grid-aligned)
@@ -643,11 +687,28 @@ attackHitbox = {
     - Maximum concurrent enemies limit
     - Type distribution
 
-6. **Hit Animation System**
-    - CSS filter-based damage flash
-    - Duration: 300ms
-    - Brightness increase effect
-    - Applies to knight and monsters
+6. **Visual Effects System**
+    - **Player Hit Effects:**
+      - CSS filters: brightness, saturation, hue-rotation, contrast
+      - Blood splash: 3 gradient layers + 12 splatter lines
+      - Duration: 300ms
+      - Invincibility: 1 second after hit
+
+    - **Monster Hit Effects:**
+      - CSS filters: intense red flash
+      - Duration: 200ms
+      - Triggers on successful attack
+
+    - **Monster Death:**
+      - Dark fade-out effect
+      - Duration: 300ms before removal
+      - Health bar hidden
+
+    - **Attack Visual Feedback:**
+      - Subtle version: Soft glow when missing
+      - Intense version: Explosive effect when hitting
+      - Sword swing animation with rotation
+      - 12 shockwave lines on successful hit
 
 ---
 
@@ -684,43 +745,60 @@ src/gamingHub/games/hawkdungeon/
 
 ## 📝 Development Phases
 
-### Phase 1: Core Gameplay
-- [ ] Game loop setup with grid system
-- [ ] Sprite sheet loading and 8-frame animation
-- [ ] Knight rendering with 4-axis movement
-- [ ] Grid-based movement (16-pixel steps)
-- [ ] Sprite flipping (left/right facing)
-- [ ] Dungeon background scrolling
-- [ ] Goblin spawning and grid-based AI
-- [ ] Basic attack system (Sword)
-- [ ] Weapon positioning and attack detection
-- [ ] Monster damage and collision
-- [ ] Level 1 implementation
+### Phase 1: Core Gameplay ✅ COMPLETED
+- [x] Game loop setup with grid system
+- [x] Sprite sheet loading and 8-frame animation
+- [x] Knight rendering with 4-axis movement
+- [x] Grid-based movement (16-pixel steps)
+- [x] Sprite flipping (left/right facing)
+- [x] Dungeon background scrolling
+- [x] Goblin spawning and grid-based AI
+- [x] Basic attack system (Sword)
+- [x] Weapon positioning and attack detection
+- [x] Sword swing animation with rotation
+- [x] Monster damage and collision
+- [x] Monster melee range (1-tile)
+- [x] Movement collision prevention
+- [x] Race condition prevention (simultaneous movement)
+- [x] Level 1 implementation
 
-### Phase 2: Polish & Items
-- [ ] Hit animation with CSS filters
-- [ ] Health system with visual display
+### Phase 2: Polish & Animations ✅ COMPLETED
+- [x] Hit animation with CSS filters (player)
+- [x] Hit animation with CSS filters (monsters)
+- [x] Blood splash effect for player damage
+- [x] Death animation for monsters (fade-out)
+- [x] Dynamic attack effects (subtle vs intense)
+- [x] Health system with visual display
+- [x] Health bar for monsters
+- [x] Attack cooldown system (0.5s)
+- [x] Invincibility frames after hit (1s)
+- [x] Monster hit feedback (200ms)
+- [x] Monster death delay (300ms)
+
+### Phase 3: Items & Progression 🚧 IN PROGRESS
 - [ ] Mana Potion system
 - [ ] Heart item spawning and collection
 - [ ] Axe weapon implementation
-- [ ] Cooldown visualization
-- [ ] Sound effects
+- [ ] Cooldown visualization improvement
+- [ ] Experience and leveling
+- [ ] Weapon upgrades
 
-### Phase 3: Progression
+### Phase 4: Content & Balance
 - [ ] All level implementations (1-6)
 - [ ] Level completion detection
 - [ ] Star rating system
 - [ ] Boss enemy implementation
-- [ ] Experience and leveling
-- [ ] Save/Restore system
-
-### Phase 4: Balance & Endless
 - [ ] Difficulty curve tuning
 - [ ] Endless mode implementation
+
+### Phase 5: Polish & Release
 - [ ] Statistics tracking
 - [ ] Achievement system integration
 - [ ] Performance optimization
+- [ ] Sound effects
+- [ ] Music
 - [ ] Final testing
+- [ ] Mobile optimization
 
 ---
 

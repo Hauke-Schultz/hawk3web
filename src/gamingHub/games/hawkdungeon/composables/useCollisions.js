@@ -27,8 +27,14 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
     monsters.value.forEach(monster => {
       if (monster.state === 'dead') return
 
-      // Check if knight and monster are on same grid tile
-      if (knight.gridX === monster.gridX && knight.gridY === monster.gridY) {
+      // Calculate Manhattan distance (distance in grid units)
+      const distanceX = Math.abs(knight.gridX - monster.gridX)
+      const distanceY = Math.abs(knight.gridY - monster.gridY)
+      const manhattanDistance = distanceX + distanceY
+
+      // Check if monster is within melee range (1 tile away in 4 directions)
+      // This includes: directly on same tile (0,0), or adjacent tiles (1,0), (0,1)
+      if (manhattanDistance <= 1) {
         damageKnight(monster.damage)
         damageCooldown = DAMAGE_COOLDOWN_TIME
       }
@@ -39,14 +45,30 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
     const hitbox = attackHitbox.value
     if (!hitbox) return
 
+    let hitSomething = false
+
     monsters.value.forEach(monster => {
       if (monster.state === 'dead') return
 
       // Check if attack hitbox overlaps with monster
       if (hitbox.gridX === monster.gridX && hitbox.gridY === monster.gridY) {
-        monsterAI.damageMonster(monster, hitbox.damage)
+        const killed = monsterAI.damageMonster(monster, hitbox.damage)
+        hitSomething = true
+
+        // Mark monster as hit for visual effect
+        monster.isHit = true
+        setTimeout(() => {
+          if (monster.state !== 'dead') {
+            monster.isHit = false
+          }
+        }, 200)
       }
     })
+
+    // Mark hitbox with hit status for animation intensity
+    if (hitbox) {
+      hitbox.didHit = hitSomething
+    }
   }
 
   const checkKnightItemCollisions = () => {

@@ -60,6 +60,11 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     // Draw knight (always at center)
     drawKnight(centerX, centerY)
 
+    // Draw damage effect if knight is hit
+    if (knight.isHit) {
+      drawDamageEffect(centerX, centerY)
+    }
+
     // Draw attack hitbox in foreground (after knight)
     const hitbox = attackHitbox()
     if (hitbox?.active) {
@@ -95,15 +100,36 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
     const flipX = knight.facingDirection === 'left'
 
-    drawSprite(
-      ctx,
-      'knight',
-      knight.animationFrame,
-      drawX,
-      drawY,
-      flipX,
-      false
-    )
+    // Apply damage filter if knight is hit
+    if (knight.isHit) {
+      ctx.save()
+
+      // Apply CSS-like filters that only affect visible pixels
+      // Combination of: brightness (flash), saturate (red tint), hue-rotate (shift to red)
+      ctx.filter = 'brightness(1.5) saturate(2) hue-rotate(-10deg) contrast(1.2)'
+
+      drawSprite(
+        ctx,
+        'knight',
+        knight.animationFrame,
+        drawX,
+        drawY,
+        flipX,
+        false
+      )
+
+      ctx.restore()
+    } else {
+      drawSprite(
+        ctx,
+        'knight',
+        knight.animationFrame,
+        drawX,
+        drawY,
+        flipX,
+        false
+      )
+    }
   }
 
   const drawMonsters = (centerX, centerY) => {
@@ -121,18 +147,46 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
       const flipX = monster.facingDirection === 'left'
 
-      drawSprite(
-        ctx,
-        monster.type,
-        monster.animationFrame || 0,
-        drawX,
-        drawY,
-        flipX,
-        false
-      )
+      // Apply hit filter or death fade for monsters
+      if (monster.isHit || monster.state === 'dead') {
+        ctx.save()
 
-      // Draw health bar centered above the monster
-      drawHealthBar(drawX, drawY - 5, TILE_SIZE, monster.health, monster.maxHealth)
+        if (monster.state === 'dead') {
+          // Death animation: fade out with red tint
+          ctx.filter = 'brightness(0.5) saturate(0.5) opacity(0.3)'
+          ctx.globalAlpha = 0.3
+        } else {
+          // Hit animation: bright red flash
+          ctx.filter = 'brightness(1.8) saturate(3) hue-rotate(-20deg) contrast(1.5)'
+        }
+
+        drawSprite(
+          ctx,
+          monster.type,
+          monster.animationFrame || 0,
+          drawX,
+          drawY,
+          flipX,
+          false
+        )
+
+        ctx.restore()
+      } else {
+        drawSprite(
+          ctx,
+          monster.type,
+          monster.animationFrame || 0,
+          drawX,
+          drawY,
+          flipX,
+          false
+        )
+      }
+
+      // Don't draw health bar for dead monsters
+      if (monster.state !== 'dead') {
+        drawHealthBar(drawX, drawY - 5, TILE_SIZE, monster.health, monster.maxHealth)
+      }
     })
   }
 
@@ -164,7 +218,10 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     // Draw sword with swing animation FIRST (behind effect)
     drawSwordSwing(centerX, centerY, hitbox, progress)
 
-    // Draw JUICY animated attack effect ON TOP
+    // Determine intensity based on whether we hit something
+    const isIntense = hitbox.didHit === true
+
+    // Draw animated attack effect ON TOP
     ctx.save()
 
     // Position circle closer to player
@@ -173,70 +230,96 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const circleCenterX = centerX + relativeX
     const circleCenterY = centerY + relativeY
 
-    // Much larger and more dynamic circle
-    const maxRadius = TILE_SIZE * 1.2 // 20% bigger!
-    const radius = maxRadius * progress
-    const alpha = 0.85 * (1 - progress) // Start more opaque
+    if (isIntense) {
+      // INTENSE VERSION: Larger, brighter, more dramatic
+      const maxRadius = TILE_SIZE * 1.5
+      const radius = maxRadius * progress
+      const alpha = 0.95 * (1 - progress)
 
-    // Multiple gradient layers for JUICE
-    // Layer 1: Outer explosive glow
-    const outerGradient = ctx.createRadialGradient(
-      circleCenterX, circleCenterY, 0,
-      circleCenterX, circleCenterY, radius * 1.3
-    )
-    outerGradient.addColorStop(0, `rgba(255, 255, 150, ${alpha * 0.9})`)
-    outerGradient.addColorStop(0.3, `rgba(255, 220, 100, ${alpha * 0.7})`)
-    outerGradient.addColorStop(0.6, `rgba(255, 180, 50, ${alpha * 0.4})`)
-    outerGradient.addColorStop(1, `rgba(255, 100, 0, 0)`)
+      // Layer 1: Outer explosive glow (more intense)
+      const outerGradient = ctx.createRadialGradient(
+        circleCenterX, circleCenterY, 0,
+        circleCenterX, circleCenterY, radius * 1.4
+      )
+      outerGradient.addColorStop(0, `rgba(255, 255, 150, ${alpha * 1.0})`)
+      outerGradient.addColorStop(0.2, `rgba(255, 220, 100, ${alpha * 0.9})`)
+      outerGradient.addColorStop(0.5, `rgba(255, 180, 50, ${alpha * 0.6})`)
+      outerGradient.addColorStop(1, `rgba(255, 100, 0, 0)`)
 
-    ctx.fillStyle = outerGradient
-    ctx.beginPath()
-    ctx.arc(circleCenterX, circleCenterY, radius * 1.3, 0, Math.PI * 2)
-    ctx.fill()
+      ctx.fillStyle = outerGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 1.4, 0, Math.PI * 2)
+      ctx.fill()
 
-    // Layer 2: Middle impact ring
-    const middleGradient = ctx.createRadialGradient(
-      circleCenterX, circleCenterY, radius * 0.3,
-      circleCenterX, circleCenterY, radius * 0.8
-    )
-    middleGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`)
-    middleGradient.addColorStop(0.5, `rgba(255, 230, 100, ${alpha * 0.6})`)
-    middleGradient.addColorStop(1, `rgba(255, 150, 0, 0)`)
+      // Layer 2: Middle impact ring (brighter)
+      const middleGradient = ctx.createRadialGradient(
+        circleCenterX, circleCenterY, radius * 0.2,
+        circleCenterX, circleCenterY, radius * 0.9
+      )
+      middleGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 1.2})`)
+      middleGradient.addColorStop(0.4, `rgba(255, 230, 100, ${alpha * 0.8})`)
+      middleGradient.addColorStop(1, `rgba(255, 150, 0, 0)`)
 
-    ctx.fillStyle = middleGradient
-    ctx.beginPath()
-    ctx.arc(circleCenterX, circleCenterY, radius * 0.8, 0, Math.PI * 2)
-    ctx.fill()
+      ctx.fillStyle = middleGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.9, 0, Math.PI * 2)
+      ctx.fill()
 
-    // Layer 3: Bright core flash
-    const coreAlpha = alpha * (1 - progress * 0.5) // Flash brighter early
-    ctx.fillStyle = `rgba(255, 255, 255, ${coreAlpha})`
-    ctx.beginPath()
-    ctx.arc(circleCenterX, circleCenterY, radius * 0.25, 0, Math.PI * 2)
-    ctx.fill()
+      // Layer 3: Bright core flash (more prominent)
+      const coreAlpha = alpha * (1 - progress * 0.3)
+      ctx.fillStyle = `rgba(255, 255, 255, ${coreAlpha * 1.5})`
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.35, 0, Math.PI * 2)
+      ctx.fill()
 
-    // Add impact "shockwave" lines radiating out
-    if (progress < 0.5) { // Only in first half
-      const shockwaveAlpha = alpha * (1 - progress * 2)
-      ctx.strokeStyle = `rgba(255, 255, 200, ${shockwaveAlpha})`
-      ctx.lineWidth = 3
+      // More shockwave lines for intense hit
+      if (progress < 0.6) {
+        const shockwaveAlpha = alpha * (1 - progress * 1.5)
+        ctx.strokeStyle = `rgba(255, 255, 200, ${shockwaveAlpha})`
+        ctx.lineWidth = 4
 
-      for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2
-        const startDist = radius * 0.3
-        const endDist = radius * 0.9
+        for (let i = 0; i < 12; i++) {
+          const angle = (i / 12) * Math.PI * 2
+          const startDist = radius * 0.25
+          const endDist = radius * 1.0
 
-        ctx.beginPath()
-        ctx.moveTo(
-          circleCenterX + Math.cos(angle) * startDist,
-          circleCenterY + Math.sin(angle) * startDist
-        )
-        ctx.lineTo(
-          circleCenterX + Math.cos(angle) * endDist,
-          circleCenterY + Math.sin(angle) * endDist
-        )
-        ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(
+            circleCenterX + Math.cos(angle) * startDist,
+            circleCenterY + Math.sin(angle) * startDist
+          )
+          ctx.lineTo(
+            circleCenterX + Math.cos(angle) * endDist,
+            circleCenterY + Math.sin(angle) * endDist
+          )
+          ctx.stroke()
+        }
       }
+    } else {
+      // SUBTLE VERSION: Smaller, softer, less prominent
+      const maxRadius = TILE_SIZE * 0.6
+      const radius = maxRadius * progress
+      const alpha = 0.4 * (1 - progress)
+
+      // Single soft glow layer
+      const gradient = ctx.createRadialGradient(
+        circleCenterX, circleCenterY, 0,
+        circleCenterX, circleCenterY, radius * 1.2
+      )
+      gradient.addColorStop(0, `rgba(255, 255, 200, ${alpha * 0.8})`)
+      gradient.addColorStop(0.5, `rgba(255, 230, 150, ${alpha * 0.4})`)
+      gradient.addColorStop(1, `rgba(255, 200, 100, 0)`)
+
+      ctx.fillStyle = gradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 1.2, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Minimal core
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.3, 0, Math.PI * 2)
+      ctx.fill()
     }
 
     ctx.restore()
@@ -309,6 +392,96 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     ctx.restore()
   }
 
+  const drawDamageEffect = (centerX, centerY) => {
+    // Track when the damage effect started
+    if (!knight.hitStartTime) {
+      knight.hitStartTime = performance.now()
+    }
+
+    const elapsed = performance.now() - knight.hitStartTime
+    const progress = Math.min(elapsed / 300, 1) // 300ms animation (same as isHit duration)
+
+    // Reset hitStartTime when animation is complete
+    if (progress >= 1) {
+      knight.hitStartTime = null
+      return
+    }
+
+    ctx.save()
+
+    // Draw BLOODY impact effect centered on knight
+    const circleCenterX = centerX
+    const circleCenterY = centerY
+
+    // Expanding blood splash effect
+    const maxRadius = TILE_SIZE * 1.5
+    const radius = maxRadius * progress
+    const alpha = 0.9 * (1 - progress) // Fade out
+
+    // Layer 1: Outer blood splash
+    const outerGradient = ctx.createRadialGradient(
+      circleCenterX, circleCenterY, 0,
+      circleCenterX, circleCenterY, radius * 1.3
+    )
+    outerGradient.addColorStop(0, `rgba(200, 0, 0, ${alpha * 0.9})`)
+    outerGradient.addColorStop(0.3, `rgba(180, 0, 0, ${alpha * 0.7})`)
+    outerGradient.addColorStop(0.6, `rgba(150, 0, 0, ${alpha * 0.4})`)
+    outerGradient.addColorStop(1, `rgba(100, 0, 0, 0)`)
+
+    ctx.fillStyle = outerGradient
+    ctx.beginPath()
+    ctx.arc(circleCenterX, circleCenterY, radius * 1.3, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Layer 2: Middle dark red impact
+    const middleGradient = ctx.createRadialGradient(
+      circleCenterX, circleCenterY, radius * 0.2,
+      circleCenterX, circleCenterY, radius * 0.8
+    )
+    middleGradient.addColorStop(0, `rgba(255, 0, 0, ${alpha})`)
+    middleGradient.addColorStop(0.5, `rgba(200, 0, 0, ${alpha * 0.7})`)
+    middleGradient.addColorStop(1, `rgba(150, 0, 0, 0)`)
+
+    ctx.fillStyle = middleGradient
+    ctx.beginPath()
+    ctx.arc(circleCenterX, circleCenterY, radius * 0.8, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Layer 3: Bright center flash (white-red)
+    const coreAlpha = alpha * (1 - progress * 0.5)
+    ctx.fillStyle = `rgba(255, 100, 100, ${coreAlpha})`
+    ctx.beginPath()
+    ctx.arc(circleCenterX, circleCenterY, radius * 0.25, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Add blood splatter lines radiating out
+    if (progress < 0.6) {
+      const splatterAlpha = alpha * (1 - progress * 1.5)
+      ctx.strokeStyle = `rgba(200, 0, 0, ${splatterAlpha})`
+      ctx.lineWidth = 4
+
+      // Random-looking splatter (using deterministic angles)
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 + (i % 3) * 0.2 // Slight offset for organic look
+        const startDist = radius * 0.2
+        const endDist = radius * 1.1
+
+        ctx.beginPath()
+        ctx.moveTo(
+          circleCenterX + Math.cos(angle) * startDist,
+          circleCenterY + Math.sin(angle) * startDist
+        )
+        ctx.lineTo(
+          circleCenterX + Math.cos(angle) * endDist,
+          circleCenterY + Math.sin(angle) * endDist
+        )
+        ctx.stroke()
+      }
+    }
+
+    ctx.restore()
+  }
+
   const drawHealthBar = (x, y, width, current, max) => {
     const barHeight = 3
     const percentage = current / max
@@ -323,7 +496,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   // Watch for changes and re-render
-  watch([() => knight.animationFrame, () => knight.gridX, () => knight.gridY, monsters, items, attackHitbox, dungeonOffset], () => {
+  watch([() => knight.animationFrame, () => knight.gridX, () => knight.gridY, () => knight.isHit, monsters, items, attackHitbox, dungeonOffset], () => {
     render()
   }, { deep: true })
 
