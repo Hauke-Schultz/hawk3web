@@ -279,8 +279,11 @@ export function useHawkDungeon() {
       weapon: gameState.weapon
     }
 
+    console.log('Attack hitbox created:', attackHitbox.value)
+
     // Remove hitbox after attack animation
     setTimeout(() => {
+      console.log('Removing attack hitbox')
       attackHitbox.value = null
       knight.isAttacking = false
     }, 300)

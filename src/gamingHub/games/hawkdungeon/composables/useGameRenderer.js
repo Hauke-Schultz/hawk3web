@@ -10,6 +10,8 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   let canvasWidth = 0
   let canvasHeight = 0
 
+  let animationFrameId = null
+
   const initialize = async () => {
     if (!canvasRef.value) return
 
@@ -26,8 +28,13 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     // Load spritesheet
     await loadSpritesheet()
 
-    // Start render loop
+    // Start continuous render loop
+    renderLoop()
+  }
+
+  const renderLoop = () => {
     render()
+    animationFrameId = requestAnimationFrame(renderLoop)
   }
 
   const render = () => {
@@ -54,8 +61,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     drawKnight(centerX, centerY)
 
     // Draw attack hitbox
-    if (attackHitbox.value?.active) {
-      //drawAttackHitbox(centerX, centerY)
+    const hitbox = attackHitbox()
+    if (hitbox?.active) {
+      drawAttackHitbox(centerX, centerY, hitbox)
     }
   }
 
@@ -143,9 +151,8 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     })
   }
 
-  const drawAttackHitbox = (centerX, centerY) => {
-    const hitbox = attackHitbox()
-    if (!hitbox) return
+  const drawAttackHitbox = (centerX, centerY, hitbox) => {
+    if (!hitbox || !hitbox.active) return
 
     const relativeX = (hitbox.gridX - knight.gridX) * TILE_SIZE
     const relativeY = (hitbox.gridY - knight.gridY) * TILE_SIZE
@@ -153,15 +160,49 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const drawX = centerX + relativeX - (TILE_SIZE / 2)
     const drawY = centerY + relativeY - (TILE_SIZE / 2)
 
-    // Draw weapon sprite
-    drawTile(ctx, hitbox.weapon, drawX, drawY)
+    // Calculate animation progress (0 to 1) based on creation time
+    if (!hitbox.createdAt) {
+      hitbox.createdAt = performance.now()
+    }
+    const elapsed = performance.now() - hitbox.createdAt
+    const progress = Math.min(elapsed / 300, 1) // 300ms animation
 
-    // Optional: Draw attack effect
+    // Draw animated attack circle effect
     ctx.save()
-    ctx.globalAlpha = 0.3
-    ctx.fillStyle = '#ffff00'
-    ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE)
+
+    // Circle expands and fades out
+    const maxRadius = TILE_SIZE / 2
+    const radius = maxRadius * progress
+    const alpha = 0.6 * (1 - progress) // Fade from 0.6 to 0
+
+    // Circle center
+    const circleCenterX = drawX + TILE_SIZE / 2
+    const circleCenterY = drawY + TILE_SIZE / 2
+
+    // Outer glow
+    const gradient = ctx.createRadialGradient(
+      circleCenterX, circleCenterY, 0,
+      circleCenterX, circleCenterY, radius
+    )
+    gradient.addColorStop(0, `rgba(255, 255, 100, ${alpha})`)
+    gradient.addColorStop(0.5, `rgba(255, 200, 50, ${alpha * 0.5})`)
+    gradient.addColorStop(1, `rgba(255, 150, 0, 0)`)
+
+    ctx.fillStyle = gradient
+    ctx.beginPath()
+    ctx.arc(circleCenterX, circleCenterY, radius, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Inner circle
+    ctx.fillStyle = `rgba(255, 255, 200, ${alpha * 0.8})`
+    ctx.beginPath()
+    ctx.arc(circleCenterX, circleCenterY, radius * 0.3, 0, Math.PI * 2)
+    ctx.fill()
+
     ctx.restore()
+
+    // Draw weapon sprite on top
+    drawTile(ctx, hitbox.weapon, drawX, drawY)
   }
 
   const drawHealthBar = (x, y, width, current, max) => {
