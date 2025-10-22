@@ -33,6 +33,7 @@ const joystickBase = ref(null)
 const direction = ref(null)
 const stickPosition = reactive({ x: 0, y: 0 })
 const isActive = ref(false)
+let moveInterval = null
 
 const maxDistance = 35 // Maximum distance stick can move from center
 
@@ -76,7 +77,21 @@ const updateStick = (clientX, clientY) => {
 
   if (newDirection !== direction.value) {
     direction.value = newDirection
+
+    // Clear previous interval if direction changed
+    if (moveInterval) {
+      clearInterval(moveInterval)
+    }
+
+    // Send initial move
     emit('move', newDirection)
+
+    // Start continuous move interval (every 100ms)
+    moveInterval = setInterval(() => {
+      if (direction.value) {
+        emit('move', direction.value)
+      }
+    }, 100)
   }
 }
 
@@ -85,8 +100,22 @@ const resetStick = () => {
   stickPosition.y = 0
   direction.value = null
   isActive.value = false
+
+  // Clear move interval
+  if (moveInterval) {
+    clearInterval(moveInterval)
+    moveInterval = null
+  }
+
   emit('stop')
 }
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (moveInterval) {
+    clearInterval(moveInterval)
+  }
+})
 
 const handleTouchStart = (e) => {
   isActive.value = true

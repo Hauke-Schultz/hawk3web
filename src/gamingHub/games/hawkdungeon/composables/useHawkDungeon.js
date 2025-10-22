@@ -179,32 +179,48 @@ export function useHawkDungeon() {
 
   const startMovement = (direction) => {
     knight.facingDirection = direction
-    knight.isMoving = true
-    knight.animationState = 'walking'
-    knight.animationFrame = 0
 
     moveStartPos.x = knight.gridX
     moveStartPos.y = knight.gridY
 
     // Calculate target position
+    let targetX = knight.gridX
+    let targetY = knight.gridY
+
     switch (direction) {
       case 'up':
-        moveTargetPos.y = knight.gridY - 1
-        moveTargetPos.x = knight.gridX
+        targetY = knight.gridY - 1
         break
       case 'down':
-        moveTargetPos.y = knight.gridY + 1
-        moveTargetPos.x = knight.gridX
+        targetY = knight.gridY + 1
         break
       case 'left':
-        moveTargetPos.x = knight.gridX - 1
-        moveTargetPos.y = knight.gridY
+        targetX = knight.gridX - 1
         break
       case 'right':
-        moveTargetPos.x = knight.gridX + 1
-        moveTargetPos.y = knight.gridY
+        targetX = knight.gridX + 1
         break
     }
+
+    // Check if target position is occupied by a monster
+    const isBlocked = monsters.value.some(monster =>
+      monster.state !== 'dead' &&
+      monster.gridX === targetX &&
+      monster.gridY === targetY
+    )
+
+    // If blocked by a monster, don't move
+    if (isBlocked) {
+      return
+    }
+
+    // Movement is allowed - set up the animation
+    knight.isMoving = true
+    knight.animationState = 'walking'
+    knight.animationFrame = 0
+
+    moveTargetPos.x = targetX
+    moveTargetPos.y = targetY
 
     isMovingToTarget = true
     moveProgress = 0
