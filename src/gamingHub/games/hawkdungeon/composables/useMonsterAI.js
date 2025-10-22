@@ -78,13 +78,16 @@ export function useMonsterAI(knight, monsters, gameState) {
       maxHealth: config.health,
       damage: config.damage,
       moveSpeed: config.moveSpeed,
+      attackCheckInterval: config.attackCheckInterval,
+      attackChance: config.attackChance,
       facingDirection: 'right',
       animationFrame: 0,
       animationTimer: 0,
       moveTimer: 0,
       state: 'walking',
       lootCoins: config.lootCoins,
-      lootDropChance: config.lootDropChance
+      lootDropChance: config.lootDropChance,
+      attackTimer: 0 // Timer for next attack check
     }
 
     monsters.value.push(monster)
@@ -100,6 +103,9 @@ export function useMonsterAI(knight, monsters, gameState) {
       monster.animationFrame = (monster.animationFrame + 1) % 8
       monster.animationTimer = 0
     }
+
+    // Update attack timer
+    monster.attackTimer += deltaTime
 
     // Update movement
     monster.moveTimer += deltaTime
@@ -192,10 +198,10 @@ export function useMonsterAI(knight, monsters, gameState) {
       // Drop items based on chance
       dropLoot(monster)
 
-      // Remove monster after death animation
+      // Remove monster after death animation (1000ms)
       setTimeout(() => {
         removeMonster(monster.id)
-      }, 300)
+      }, 1000)
 
       return true
     }

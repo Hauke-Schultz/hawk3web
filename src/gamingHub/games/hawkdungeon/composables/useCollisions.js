@@ -35,8 +35,20 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
       // Check if monster is within melee range (1 tile away in 4 directions)
       // This includes: directly on same tile (0,0), or adjacent tiles (1,0), (0,1)
       if (manhattanDistance <= 1) {
-        damageKnight(monster.damage)
-        damageCooldown = DAMAGE_COOLDOWN_TIME
+        // Check if it's time for an attack check (every attackCheckInterval)
+        if (monster.attackTimer >= monster.attackCheckInterval) {
+          // Reset timer
+          monster.attackTimer = 0
+
+          // Roll for attack chance
+          if (Math.random() < monster.attackChance) {
+            damageKnight(monster.damage)
+            damageCooldown = DAMAGE_COOLDOWN_TIME
+          }
+        }
+      } else {
+        // Reset attack timer when not in range
+        monster.attackTimer = 0
       }
     })
   }
