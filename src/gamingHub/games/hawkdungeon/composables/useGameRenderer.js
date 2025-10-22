@@ -103,10 +103,11 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     if (!monstersList) return
 
     monstersList.forEach(monster => {
-      // Calculate screen position relative to knight
+      // Calculate position relative to knight (similar to items)
       const relativeX = (monster.gridX - knight.gridX) * TILE_SIZE
       const relativeY = (monster.gridY - knight.gridY) * TILE_SIZE
 
+      // Draw monster centered on screen relative to knight
       const drawX = centerX + relativeX - (TILE_SIZE / 2)
       const drawY = centerY + relativeY - (TILE_SIZE / 2)
 
@@ -122,7 +123,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         false
       )
 
-      // Draw health bar
+      // Draw health bar centered above the monster
       drawHealthBar(drawX, drawY - 5, TILE_SIZE, monster.health, monster.maxHealth)
     })
   }
