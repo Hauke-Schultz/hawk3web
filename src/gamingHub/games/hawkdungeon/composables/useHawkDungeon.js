@@ -29,6 +29,8 @@ export function useHawkDungeon() {
   const knight = reactive({
     gridX: 0, // Grid position (center of screen)
     gridY: 0,
+    targetGridX: 0, // Target grid position when moving
+    targetGridY: 0,
     screenX: 0, // Screen position (pixels)
     screenY: 0,
     animationState: 'idle', // idle, walking, attacking
@@ -88,6 +90,8 @@ export function useHawkDungeon() {
     // Center knight on screen
     knight.gridX = 0
     knight.gridY = 0
+    knight.targetGridX = 0
+    knight.targetGridY = 0
     knight.screenX = 0
     knight.screenY = 0
 
@@ -159,6 +163,8 @@ export function useHawkDungeon() {
         // Movement complete
         knight.gridX = moveTargetPos.x
         knight.gridY = moveTargetPos.y
+        knight.targetGridX = moveTargetPos.x
+        knight.targetGridY = moveTargetPos.y
         dungeonOffset.x = -knight.gridX * TILE_SIZE
         dungeonOffset.y = -knight.gridY * TILE_SIZE
         isMovingToTarget = false
@@ -221,6 +227,10 @@ export function useHawkDungeon() {
 
     moveTargetPos.x = targetX
     moveTargetPos.y = targetY
+
+    // Update target position so monsters can see where we're moving
+    knight.targetGridX = targetX
+    knight.targetGridY = targetY
 
     isMovingToTarget = true
     moveProgress = 0

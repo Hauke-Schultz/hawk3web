@@ -10,8 +10,13 @@ export function useMonsterAI(knight, monsters, gameState) {
 
   // Helper function to check if a grid position is occupied
   const isPositionOccupied = (gridX, gridY) => {
-    // Check if knight is at this position
+    // Check if knight is at this position (current position)
     if (knight.gridX === gridX && knight.gridY === gridY) {
+      return true
+    }
+
+    // Check if knight is moving to this position (target position)
+    if (knight.targetGridX === gridX && knight.targetGridY === gridY) {
       return true
     }
 
