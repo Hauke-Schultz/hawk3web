@@ -184,7 +184,11 @@ export function useHawkDungeon() {
   }
 
   const startMovement = (direction) => {
-    knight.facingDirection = direction
+    // Only update facing direction for horizontal movements
+    // Vertical movements (up/down) preserve the current horizontal facing direction
+    if (direction === 'left' || direction === 'right') {
+      knight.facingDirection = direction
+    }
 
     moveStartPos.x = knight.gridX
     moveStartPos.y = knight.gridY
@@ -237,11 +241,17 @@ export function useHawkDungeon() {
   }
 
   const updateKnightAnimation = (deltaTime) => {
-    if (knight.animationState === 'walking') {
-      animationTimer += deltaTime
+    animationTimer += deltaTime
 
+    if (knight.animationState === 'walking') {
       if (animationTimer >= ANIMATION_FRAME_DURATION) {
         knight.animationFrame = (knight.animationFrame + 1) % 8
+        animationTimer = 0
+      }
+    } else if (knight.animationState === 'idle') {
+      // Idle animation: alternate between frames 0 and 1
+      if (animationTimer >= ANIMATION_FRAME_DURATION * 4) { // Slower idle animation (400ms per frame)
+        knight.animationFrame = knight.animationFrame === 0 ? 1 : 0
         animationTimer = 0
       }
     }

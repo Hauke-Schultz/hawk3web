@@ -99,10 +99,28 @@ export function useMonsterAI(knight, monsters, gameState) {
     // Update animation
     monster.animationTimer += deltaTime * 1000
 
-    if (monster.animationTimer >= 100) {
-      monster.animationFrame = (monster.animationFrame + 1) % 8
-      monster.animationTimer = 0
+    // Check if monster is moving (position changed recently)
+    const previousX = monster.previousGridX ?? monster.gridX
+    const previousY = monster.previousGridY ?? monster.gridY
+    const isMoving = (previousX !== monster.gridX || previousY !== monster.gridY)
+
+    if (isMoving) {
+      // Walking animation: cycle through all 8 frames
+      if (monster.animationTimer >= 100) {
+        monster.animationFrame = (monster.animationFrame + 1) % 8
+        monster.animationTimer = 0
+      }
+    } else {
+      // Idle animation: alternate between frames 0 and 1
+      if (monster.animationTimer >= 400) { // Slower idle animation (400ms per frame)
+        monster.animationFrame = monster.animationFrame === 0 ? 1 : 0
+        monster.animationTimer = 0
+      }
     }
+
+    // Store previous position for next frame
+    monster.previousGridX = monster.gridX
+    monster.previousGridY = monster.gridY
 
     // Update attack timer
     monster.attackTimer += deltaTime
@@ -142,20 +160,20 @@ export function useMonsterAI(knight, monsters, gameState) {
         newX = monster.gridX // Reset X
         if (dy > 0) {
           newY = monster.gridY + 1
-          newDirection = 'down'
+          // Don't change direction for vertical movement
         } else if (dy < 0) {
           newY = monster.gridY - 1
-          newDirection = 'up'
+          // Don't change direction for vertical movement
         }
       }
     } else {
       // Try to move vertically first
       if (dy > 0) {
         newY = monster.gridY + 1
-        newDirection = 'down'
+        // Don't change direction for vertical movement
       } else {
         newY = monster.gridY - 1
-        newDirection = 'up'
+        // Don't change direction for vertical movement
       }
 
       // If vertical move is blocked, try horizontal move instead
@@ -175,7 +193,10 @@ export function useMonsterAI(knight, monsters, gameState) {
     if (!isPositionOccupied(newX, newY)) {
       monster.gridX = newX
       monster.gridY = newY
-      monster.facingDirection = newDirection
+      // Only update facing direction if it was changed (horizontal movement)
+      if (newDirection !== monster.facingDirection) {
+        monster.facingDirection = newDirection
+      }
     }
     // If both moves are blocked, monster stays in place
   }

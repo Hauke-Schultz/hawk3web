@@ -340,18 +340,25 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const swordX = centerX
     const swordY = centerY
 
-    // Full 360° rotation during the attack animation
-    const rotationAngle = progress * Math.PI * 2 // 0 to 2π (360°)
+    // Determine rotation direction based on facing direction
+    // Left: counter-clockwise (negative rotation)
+    // Right/Up/Down: clockwise (positive rotation)
+    const rotationDirection = knight.facingDirection === 'left' ? -1 : 1
 
-    // Move to sword position (knight's center)
+    // Full 360° rotation with grip staying at bottom
+    // Rotate around the grip point which stays fixed
+    const rotationAngle = progress * Math.PI * 2 * rotationDirection // 0 to ±2π (360°)
+
+    // Move to sword position (knight's center, where grip is)
     ctx.translate(swordX, swordY)
 
-    // Rotate around the center
+    // Rotate around the grip (bottom of sword)
     ctx.rotate(rotationAngle)
 
-    // Draw sword (pivot point at center)
+    // Draw sword (pivot point at the grip/bottom)
+    // Offset so the grip is at the rotation point
     const swordDrawX = -swordWidth / 2
-    const swordDrawY = -swordHeight / 2
+    const swordDrawY = -swordHeight // Sword extends upward from grip
 
     // Add slight fade in/out for smoother visual
     const fadeAlpha = Math.sin(progress * Math.PI) // Fade in and out during spin
@@ -404,8 +411,24 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         break
     }
 
-    // Swing animation: 0° -> 80° -> 0° (ease in-out)
-    const swingAngle = Math.sin(progress * Math.PI) * (80 * Math.PI / 180)
+    // Two-phase swing animation:
+    // Phase 1 (0-0.3): Wind up backward -30°
+    // Phase 2 (0.3-1.0): Fast swing forward to +80° and back
+    let swingAngle = 0
+
+    if (progress < 0.3) {
+      // Wind-up phase: ease into -30°
+      const windupProgress = progress / 0.3
+      const easeWindup = 1 - Math.pow(1 - windupProgress, 2) // Ease out
+      swingAngle = -30 * (Math.PI / 180) * easeWindup
+    } else {
+      // Strike phase: quick swing from -30° to +80° and back
+      const strikeProgress = (progress - 0.3) / 0.7
+      const strikeSwing = Math.sin(strikeProgress * Math.PI) * (80 * Math.PI / 180)
+      const windupOffset = -30 * (Math.PI / 180)
+      swingAngle = windupOffset + strikeSwing - (windupOffset * strikeProgress)
+    }
+
     const totalAngle = baseAngle + swingAngle
 
     // Move to sword position
