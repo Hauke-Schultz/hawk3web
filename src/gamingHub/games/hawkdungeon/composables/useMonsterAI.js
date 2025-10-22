@@ -8,6 +8,21 @@ export function useMonsterAI(knight, monsters, gameState) {
   let spawnTimer = 0
   let currentSpawnRate = 5
 
+  // Helper function to check if a grid position is occupied
+  const isPositionOccupied = (gridX, gridY) => {
+    // Check if knight is at this position
+    if (knight.gridX === gridX && knight.gridY === gridY) {
+      return true
+    }
+
+    // Check if any monster is at this position
+    return monsters.value.some(monster =>
+      monster.state !== 'dead' &&
+      monster.gridX === gridX &&
+      monster.gridY === gridY
+    )
+  }
+
   const update = (deltaTime) => {
     // Update spawn timer
     spawnTimer += deltaTime
@@ -31,17 +46,29 @@ export function useMonsterAI(knight, monsters, gameState) {
     const monsterType = levelCfg.enemyType
     const config = monsterConfig[monsterType]
 
-    // Random spawn position around knight (off-screen)
+    // Try to find a free spawn position (max 10 attempts)
+    let spawnX, spawnY
+    let attempts = 0
+    const maxAttempts = 10
     const spawnDistance = 10 // tiles away from knight
-    const angle = Math.random() * Math.PI * 2
-    const spawnX = knight.gridX + Math.cos(angle) * spawnDistance
-    const spawnY = knight.gridY + Math.sin(angle) * spawnDistance
+
+    do {
+      const angle = Math.random() * Math.PI * 2
+      spawnX = Math.round(knight.gridX + Math.cos(angle) * spawnDistance)
+      spawnY = Math.round(knight.gridY + Math.sin(angle) * spawnDistance)
+      attempts++
+    } while (isPositionOccupied(spawnX, spawnY) && attempts < maxAttempts)
+
+    // If we couldn't find a free position after max attempts, don't spawn
+    if (isPositionOccupied(spawnX, spawnY)) {
+      return
+    }
 
     const monster = {
       id: `monster-${nextMonsterId++}`,
       type: monsterType,
-      gridX: Math.round(spawnX),
-      gridY: Math.round(spawnY),
+      gridX: spawnX,
+      gridY: spawnY,
       health: config.health,
       maxHealth: config.health,
       damage: config.damage,
@@ -84,26 +111,62 @@ export function useMonsterAI(knight, monsters, gameState) {
     const dx = knight.gridX - monster.gridX
     const dy = knight.gridY - monster.gridY
 
-    // Move in the axis with greater distance (4-axis movement)
+    let newX = monster.gridX
+    let newY = monster.gridY
+    let newDirection = monster.facingDirection
+
+    // Try to move in the axis with greater distance (4-axis movement)
     if (Math.abs(dx) > Math.abs(dy)) {
-      // Move horizontally
+      // Try to move horizontally first
       if (dx > 0) {
-        monster.gridX += 1
-        monster.facingDirection = 'right'
+        newX = monster.gridX + 1
+        newDirection = 'right'
       } else {
-        monster.gridX -= 1
-        monster.facingDirection = 'left'
+        newX = monster.gridX - 1
+        newDirection = 'left'
+      }
+
+      // If horizontal move is blocked, try vertical move instead
+      if (isPositionOccupied(newX, newY)) {
+        newX = monster.gridX // Reset X
+        if (dy > 0) {
+          newY = monster.gridY + 1
+          newDirection = 'down'
+        } else if (dy < 0) {
+          newY = monster.gridY - 1
+          newDirection = 'up'
+        }
       }
     } else {
-      // Move vertically
+      // Try to move vertically first
       if (dy > 0) {
-        monster.gridY += 1
-        monster.facingDirection = 'down'
+        newY = monster.gridY + 1
+        newDirection = 'down'
       } else {
-        monster.gridY -= 1
-        monster.facingDirection = 'up'
+        newY = monster.gridY - 1
+        newDirection = 'up'
+      }
+
+      // If vertical move is blocked, try horizontal move instead
+      if (isPositionOccupied(newX, newY)) {
+        newY = monster.gridY // Reset Y
+        if (dx > 0) {
+          newX = monster.gridX + 1
+          newDirection = 'right'
+        } else if (dx < 0) {
+          newX = monster.gridX - 1
+          newDirection = 'left'
+        }
       }
     }
+
+    // Only move if the target position is free
+    if (!isPositionOccupied(newX, newY)) {
+      monster.gridX = newX
+      monster.gridY = newY
+      monster.facingDirection = newDirection
+    }
+    // If both moves are blocked, monster stays in place
   }
 
   const removeMonster = (monsterId) => {
