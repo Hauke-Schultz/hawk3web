@@ -91,21 +91,30 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawDungeon = (centerX, centerY) => {
-    // Draw a 7x7 grid of floor tiles
-    const GRID_SIZE = 7
-    const tilesX = GRID_SIZE
-    const tilesY = GRID_SIZE
+    // Draw a larger grid to cover the entire screen with buffer for smooth scrolling
+    // Calculate how many tiles we need to cover the canvas plus extra for scrolling
+    const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 3 // +3 for extra scroll buffer
+    const tilesY = Math.ceil(canvasHeight / TILE_SIZE) + 3 // +3 for extra scroll buffer
 
-    const offsetX = dungeonOffset.x % TILE_SIZE
-    const offsetY = dungeonOffset.y % TILE_SIZE
+    // Calculate the offset for seamless scrolling (using modulo for wrapping)
+    const offsetX = ((dungeonOffset.x % TILE_SIZE) + TILE_SIZE) % TILE_SIZE
+    const offsetY = ((dungeonOffset.y % TILE_SIZE) + TILE_SIZE) % TILE_SIZE
+
+    // Calculate starting tile position in world coordinates
+    const startTileX = Math.floor(-dungeonOffset.x / TILE_SIZE) - 2
+    const startTileY = Math.floor(-dungeonOffset.y / TILE_SIZE) - 2
 
     for (let y = 0; y < tilesY; y++) {
       for (let x = 0; x < tilesX; x++) {
-        const drawX = x * TILE_SIZE + offsetX
-        const drawY = y * TILE_SIZE + offsetY
+        const drawX = x * TILE_SIZE + offsetX - TILE_SIZE
+        const drawY = y * TILE_SIZE + offsetY - TILE_SIZE
 
-        // Alternate between floor tiles for texture
-        const tileType = ((x + y) % 2 === 0) ? 'floor' : 'floor'
+        // Use world tile coordinates for pattern
+        const worldTileX = startTileX + x
+        const worldTileY = startTileY + y
+
+        // Alternate between floor tiles for texture based on world position
+        const tileType = ((worldTileX + worldTileY) % 2 === 0) ? 'floor' : 'floor'
         drawTile(ctx, tileType, drawX, drawY)
       }
     }

@@ -74,7 +74,7 @@ export function useMonsterAI(knight, monsters, gameState, items) {
     let spawnX, spawnY
     let attempts = 0
     const maxAttempts = 10
-    const spawnDistance = 10 // tiles away from knight
+    const spawnDistance = 5 // tiles away from knight (reduced from 10 for faster gameplay)
 
     do {
       const angle = Math.random() * Math.PI * 2
