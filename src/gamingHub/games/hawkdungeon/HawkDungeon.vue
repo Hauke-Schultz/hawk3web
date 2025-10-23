@@ -48,6 +48,19 @@
         @stop="handleStopMove"
       />
     </div>
+
+    <GameOverModal
+      v-if="!isEndlessMode"
+      :visible="showGameOverModal"
+      :level="gameState.level"
+      :game-title="t('hawkDungeon.title')"
+      :final-score="gameState.kills"
+      :game-over-icon="'💀'"
+      :try-again-label="t('common.try_again')"
+      :back-to-games-label="t('common.back_to_levels')"
+      @try-again="handleModalPlayAgain"
+      @back-to-games="handleModalBackToLevels"
+    />
   </main>
 </template>
 
@@ -62,6 +75,7 @@ import GameHUD from './components/GameHUD.vue'
 import GameCanvas from './components/GameCanvas.vue'
 import AttackButton from './components/AttackButton.vue'
 import JoystickControl from './components/JoystickControl.vue'
+import GameOverModal from '../../components/GameOverModal.vue'
 import { useHawkDungeon } from './composables/useHawkDungeon'
 
 // Props
@@ -88,12 +102,23 @@ const {
   handleMove,
   handleStopMove,
   startGame,
-  stopGame
+  stopGame,
+  setGameOverCallback
 } = useHawkDungeon()
+
+// Set game over callback to show modal
+if (setGameOverCallback) {
+  setGameOverCallback(() => {
+    showGameOverModal.value = true
+  })
+}
 
 // Session timer for endless mode
 const sessionTime = ref(0)
 const sessionTimer = ref(null)
+
+// Modal state
+const showGameOverModal = ref(false)
 
 // Computed
 const currentLevelConfig = computed(() => getLevelConfig(props.level || gameState.value?.level || 1))
@@ -121,6 +146,39 @@ const stopSessionTimer = () => {
 // Navigation
 const handleMenuClick = () => {
   router.push('/')
+}
+
+const backToLevelSelection = () => {
+  stopGame()
+  router.push('/games/hawkdungeon')
+}
+
+const handleModalPlayAgain = () => {
+  showGameOverModal.value = false
+  handleTryAgain()
+}
+
+const handleModalBackToLevels = () => {
+  showGameOverModal.value = false
+  backToLevelSelection()
+}
+
+const handleTryAgain = () => {
+  // Clear all game state
+  monsters.value = []
+  items.value = []
+
+  // Restart the game completely
+  stopGame()
+
+  // Small delay to ensure cleanup
+  setTimeout(() => {
+    // Set the level from props if available
+    if (props.level) {
+      gameState.level = props.level
+    }
+    startGame()
+  }, 100)
 }
 
 // Keyboard controls
@@ -293,11 +351,12 @@ onUnmounted(() => {
 
 .controls {
   position: absolute;
-  bottom: 20px;
+  bottom: 80px;
   left: 0;
   right: 0;
   display: flex;
   justify-content: space-between;
+	align-items: center;
   padding: 0 20px;
   pointer-events: none;
 }

@@ -191,13 +191,13 @@ const handleMouseDown = (e) => {
 }
 
 .direction-marker.up {
-  top: 8px;
+  top: 2px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .direction-marker.down {
-  bottom: 8px;
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
 }

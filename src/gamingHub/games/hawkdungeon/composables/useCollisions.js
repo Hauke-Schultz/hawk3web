@@ -1,5 +1,5 @@
 // Collision detection system
-export function useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI) {
+export function useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback = null) {
   let damageCooldown = 0
   const DAMAGE_COOLDOWN_TIME = 1 // 1 second invincibility after hit
 
@@ -136,8 +136,11 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
 
   const handleGameOver = () => {
     gameState.isRunning = false
-    // TODO: Show game over screen
-    console.log('Game Over!')
+
+    // Call game over callback if provided
+    if (gameOverCallback) {
+      gameOverCallback()
+    }
   }
 
   return {

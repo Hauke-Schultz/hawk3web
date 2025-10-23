@@ -61,7 +61,7 @@ export const DUNGEON_CONFIG = {
       enemyType: 'goblin',
       spawnRate: 5,
       maxEnemies: 5,
-      killGoal: 50,
+      killGoal: 5,
       difficulty: 'easy',
       rewards: {
         coins: 100,

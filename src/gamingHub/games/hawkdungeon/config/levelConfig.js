@@ -6,7 +6,7 @@ export const levelConfig = {
     enemyType: 'goblin',
     spawnRate: 5, // Seconds between spawns
     maxEnemies: 5,
-    killGoal: 50,
+    killGoal: 5,
     hasBoss: false,
     timeLimit: 120 // 2 minutes
   },

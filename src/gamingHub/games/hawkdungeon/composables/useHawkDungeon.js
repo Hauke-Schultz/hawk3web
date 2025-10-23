@@ -16,7 +16,7 @@ export function useHawkDungeon() {
     maxMana: 5,
     score: 0,
     kills: 0,
-    killGoal: 50,
+    killGoal: 5,
     coins: 0,
     experience: 0,
     weapon: 'sword',
@@ -212,12 +212,24 @@ export function useHawkDungeon() {
         break
     }
 
-    // Check if target position is occupied by a monster
-    const isBlocked = monsters.value.some(monster =>
-      monster.state !== 'dead' &&
-      monster.gridX === targetX &&
-      monster.gridY === targetY
-    )
+    // Check if target position is occupied by a monster (current or target position)
+    const isBlocked = monsters.value.some(monster => {
+      if (monster.state === 'dead') return false
+
+      // Check monster's current position
+      if (monster.gridX === targetX && monster.gridY === targetY) {
+        return true
+      }
+
+      // Check monster's target position if it's moving
+      if (monster.isMovingToTarget &&
+          monster.targetGridX === targetX &&
+          monster.targetGridY === targetY) {
+        return true
+      }
+
+      return false
+    })
 
     // If blocked by a monster, don't move
     if (isBlocked) {
@@ -260,10 +272,19 @@ export function useHawkDungeon() {
   // Initialize AI and collision systems
   let monsterAI = null
   let collisionSystem = null
+  let gameOverCallback = null
 
   const initializeSystems = () => {
     monsterAI = useMonsterAI(knight, monsters, gameState)
-    collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI)
+    collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
+  }
+
+  const setGameOverCallback = (callback) => {
+    gameOverCallback = callback
+    // Reinitialize collision system with new callback if already initialized
+    if (collisionSystem && monsterAI) {
+      collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
+    }
   }
 
   const updateMonsters = (dt) => {
@@ -408,7 +429,8 @@ export function useHawkDungeon() {
     handleMove,
     handleStopMove,
     startGame,
-    stopGame
+    stopGame,
+    setGameOverCallback
   }
 }
 

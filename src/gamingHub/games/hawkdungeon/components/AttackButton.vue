@@ -106,11 +106,11 @@ const handlePressCancel = () => {
 }
 
 .attack-button {
-  width: 100px;
-  height: 100px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-  border: 4px solid #ffffff;
+  border: 3px solid #ffffff;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 -2px 8px rgba(0,0,0,0.3);
   cursor: pointer;
   position: relative;
@@ -141,12 +141,12 @@ const handlePressCancel = () => {
 }
 
 .weapon-icon {
-  font-size: 32px;
-  margin-bottom: 4px;
+  font-size: 24px;
+  margin-bottom: 2px;
 }
 
 .button-text {
-  font-size: 12px;
+  font-size: 9px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
