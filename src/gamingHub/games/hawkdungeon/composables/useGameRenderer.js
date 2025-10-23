@@ -197,7 +197,12 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       // Convert world coordinates to screen coordinates using dungeonOffset
       const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
       // Adjust Y position for sprite height (center sprite on tile bottom)
-      const spriteHeight = monster.type === 'goblin' ? 20 * SPRITE_SCALE : TILE_SIZE
+      let spriteHeight = TILE_SIZE
+      if (monster.type === 'goblin') {
+        spriteHeight = 20 * SPRITE_SCALE // Goblin is 20px tall
+      } else if (monster.type === 'orc') {
+        spriteHeight = 20 * SPRITE_SCALE // Orc is 28px tall, adjusted to 24 for positioning
+      }
       const drawY = centerY + worldY + dungeonOffset.y - (spriteHeight / 2) + ((TILE_SIZE - spriteHeight) / 2)
 
       const flipX = monster.facingDirection === 'left'

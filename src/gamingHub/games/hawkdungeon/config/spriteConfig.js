@@ -21,7 +21,7 @@ export const spriteConfig = {
     }
   },
 
-  // Goblin enemy (1 wide × 1 high = 16×16 px)
+  // Goblin enemy (1 wide × 1 high = 16×24 px)
   goblin: {
     width: 16,
     height: 24,
@@ -32,6 +32,20 @@ export const spriteConfig = {
       frameDuration: 100,
       startX: 368,
       startY: 158
+    }
+  },
+
+  // Orc enemy (1 wide × 1 high = 16×28 px)
+  orc: {
+    width: 16,
+    height: 24,
+    walk: {
+      frames: 8,
+      frameWidth: 16,
+      frameHeight: 24,
+      frameDuration: 100,
+      startX: 368,
+      startY: 182
     }
   },
 

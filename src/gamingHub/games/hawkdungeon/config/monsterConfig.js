@@ -5,14 +5,30 @@ export const monsterConfig = {
     type: 'goblin',
     width: 16,
     height: 24,
-    health: 2,
+    health: 1,
     damage: 1,
     moveSpeed: 0.5, // Tiles per second
     attackCheckInterval: 0.5, // Check every 500ms if monster should attack
     attackChance: 0.2, // 20% chance to attack on each check
     lootCoins: 5,
     lootDropChance: {
-      heart: 0.9, // 30% chance
+      heart: 0.2, // 20% chance
+      manaPotion: 0.1 // 10% chance
+    }
+  },
+
+  orc: {
+    type: 'orc',
+    width: 16,
+    height: 24,
+    health: 3,
+    damage: 1,
+    moveSpeed: 0.4, // Slower than goblins
+    attackCheckInterval: 0.5, // Check every 500ms if monster should attack
+    attackChance: 0.3, // 30% chance to attack on each check
+    lootCoins: 10,
+    lootDropChance: {
+      heart: 0.3, // 30% chance
       manaPotion: 0.1 // 10% chance
     }
   },

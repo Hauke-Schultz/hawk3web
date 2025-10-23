@@ -57,8 +57,12 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
     const hitbox = attackHitbox.value
     if (!hitbox) return
 
+    // Initialize hitMonsters set on first check of this attack
+    if (!hitbox.hitMonsters) {
+      hitbox.hitMonsters = new Set()
+    }
+
     let hitSomething = false
-    const hitMonsters = new Set() // Track which monsters were hit (avoid double-hitting)
 
     // Get all hitbox positions (either single or multiple for charged attack)
     const hitboxPositions = hitbox.charged
@@ -69,13 +73,13 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
     hitboxPositions.forEach(pos => {
       monsters.value.forEach(monster => {
         if (monster.state === 'dead') return
-        if (hitMonsters.has(monster.id)) return // Already hit by this attack
+        if (hitbox.hitMonsters.has(monster.id)) return // Already hit by this attack
 
         // Check if attack hitbox overlaps with monster
         if (pos.x === monster.gridX && pos.y === monster.gridY) {
           const killed = monsterAI.damageMonster(monster, hitbox.damage)
           hitSomething = true
-          hitMonsters.add(monster.id)
+          hitbox.hitMonsters.add(monster.id)
 
           // Mark monster as hit for visual effect
           monster.isHit = true

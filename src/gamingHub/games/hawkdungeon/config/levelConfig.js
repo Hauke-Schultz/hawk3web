@@ -4,9 +4,9 @@ export const levelConfig = {
     level: 1,
     name: 'Entrance Hall',
     description: 'First steps into the dungeon',
-    enemyType: 'goblin',
+    enemyTypes: ['goblin', 'orc'], // Mixed enemy types
     spawnRate: 5, // Seconds between spawns
-    maxEnemies: 3,
+    maxEnemies: 5,
     killGoal: 5,
     hasBoss: false,
     timeLimit: 120, // 2 minutes

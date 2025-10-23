@@ -72,7 +72,15 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
 
   const spawnMonster = () => {
     const levelCfg = levelConfig[gameState.level]
-    const monsterType = levelCfg.enemyType
+
+    // Determine which monster type to spawn
+    let monsterType = levelCfg.enemyType
+
+    // If level has mixed enemies, randomly choose one
+    if (levelCfg.enemyTypes && Array.isArray(levelCfg.enemyTypes)) {
+      monsterType = levelCfg.enemyTypes[Math.floor(Math.random() * levelCfg.enemyTypes.length)]
+    }
+
     const config = monsterConfig[monsterType]
 
     // Try to find a free spawn position on a floor tile (max 20 attempts)
