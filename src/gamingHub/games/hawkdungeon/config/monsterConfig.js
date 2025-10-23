@@ -4,7 +4,7 @@ export const monsterConfig = {
   goblin: {
     type: 'goblin',
     width: 16,
-    height: 32,
+    height: 24,
     health: 2,
     damage: 1,
     moveSpeed: 0.5, // Tiles per second

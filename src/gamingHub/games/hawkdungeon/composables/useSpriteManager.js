@@ -79,56 +79,48 @@ export function useSpriteManager() {
     )
   }
 
-  // Get sprite configuration based on type
+  // Get sprite configuration from spriteConfig
   const getSpriteConfig = (spriteType) => {
-    switch (spriteType) {
-      case 'knight':
-        return {
-          frameWidth: 16,
-          frameHeight: 32,
-          startX: 128,
-          startY: 74,
-          frames: 8
-        }
-      case 'goblin':
-        return {
-          frameWidth: 16,
-          frameHeight: 16,
-          startX: 368,
-          startY: 162,
-          frames: 8
-        }
-      case 'boss':
-        return {
-          frameWidth: 16,
-          frameHeight: 16,
-          startX: 368,
-          startY: 96,
-          frames: 8
-        }
-      default:
-        return null
+    const config = spriteConfig[spriteType]
+
+    if (!config || !config.walk) {
+      console.warn(`Sprite type "${spriteType}" not found in spriteConfig`)
+      return null
+    }
+
+    return {
+      frameWidth: config.walk.frameWidth,
+      frameHeight: config.walk.frameHeight,
+      startX: config.walk.startX,
+      startY: config.walk.startY,
+      frames: config.walk.frames
     }
   }
 
-  // Get tile configuration
+  // Get tile configuration from spriteConfig
   const getTileConfig = (tileType) => {
-    switch (tileType) {
-      case 'floor':
-        return { width: 16, height: 16, x: 16, y: 64 }
-      case 'wall':
-        return { width: 16, height: 16, x: 16, y: 16 }
-      case 'sword':
-        return { width: 16, height: 28, x: 304, y: 68 }
-      case 'axe':
-        return { width: 16, height: 16, x: 293, y: 34 }
-      case 'heart':
-        return { width: 16, height: 16, x: 288, y: 368 }
-      case 'manaPotion':
-        return { width: 16, height: 16, x: 320, y: 224 }
-      default:
-        return null
+    // Check dungeon tiles
+    if (spriteConfig.dungeon[tileType]) {
+      return spriteConfig.dungeon[tileType]
     }
+
+    // Check dungeon tiles with floor variants
+    if (tileType.startsWith('floor')) {
+      return spriteConfig.dungeon[tileType] || spriteConfig.dungeon.floor
+    }
+
+    // Check weapons
+    if (spriteConfig.weapons[tileType]) {
+      return spriteConfig.weapons[tileType]
+    }
+
+    // Check items
+    if (spriteConfig.items[tileType]) {
+      return spriteConfig.items[tileType]
+    }
+
+    console.warn(`Tile type "${tileType}" not found in spriteConfig`)
+    return null
   }
 
   return {

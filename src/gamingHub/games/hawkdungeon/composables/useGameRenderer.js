@@ -1,7 +1,7 @@
 // Game renderer composable
 import { watch, onMounted } from 'vue'
 import { useSpriteManager } from './useSpriteManager'
-import { TILE_SIZE } from '../config/spriteConfig'
+import { TILE_SIZE, SPRITE_SCALE } from '../config/spriteConfig'
 
 export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, levelLoader) {
   const { loadSpritesheet, drawSprite, drawTile, isLoaded } = useSpriteManager()
@@ -196,7 +196,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
       // Convert world coordinates to screen coordinates using dungeonOffset
       const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
-      const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
+      // Adjust Y position for sprite height (center sprite on tile bottom)
+      const spriteHeight = monster.type === 'goblin' ? 20 * SPRITE_SCALE : TILE_SIZE
+      const drawY = centerY + worldY + dungeonOffset.y - (spriteHeight / 2) + ((TILE_SIZE - spriteHeight) / 2)
 
       const flipX = monster.facingDirection === 'left'
 

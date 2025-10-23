@@ -16,53 +16,52 @@ export const spriteConfig = {
       frameWidth: 16,
       frameHeight: 32,
       frameDuration: 100, // milliseconds per frame
-      // Sprite sheet coordinates (will be updated when we map the actual spritesheet)
-      startX: 0,
-      startY: 0
+      startX: 128,
+      startY: 74
     }
   },
 
-  // Goblin enemy (1 wide × 2 high = 16×32 px)
+  // Goblin enemy (1 wide × 1 high = 16×16 px)
   goblin: {
     width: 16,
-    height: 32,
+    height: 24,
     walk: {
       frames: 8,
       frameWidth: 16,
-      frameHeight: 32,
+      frameHeight: 24,
       frameDuration: 100,
-      startX: 0,
-      startY: 32
+      startX: 368,
+      startY: 158
     }
   },
 
-  // Boss enemy (2 wide × 2 high = 32×32 px)
+  // Boss enemy (1 wide × 1 high = 16×16 px)
   boss: {
-    width: 32,
-    height: 32,
+    width: 16,
+    height: 16,
     walk: {
       frames: 8,
-      frameWidth: 32,
-      frameHeight: 32,
+      frameWidth: 16,
+      frameHeight: 16,
       frameDuration: 100,
-      startX: 0,
-      startY: 64
+      startX: 368,
+      startY: 96
     }
   },
 
-  // Weapons (1 tile = 16×16 px)
+  // Weapons
   weapons: {
     sword: {
       width: 16,
-      height: 16,
-      x: 128,
-      y: 0
+      height: 28,
+      x: 304,
+      y: 68
     },
     axe: {
       width: 16,
       height: 16,
-      x: 144,
-      y: 0
+      x: 293,
+      y: 34
     }
   },
 
@@ -71,14 +70,14 @@ export const spriteConfig = {
     heart: {
       width: 16,
       height: 16,
-      x: 128,
-      y: 16
+      x: 288,
+      y: 368
     },
     manaPotion: {
       width: 16,
       height: 16,
-      x: 144,
-      y: 16
+      x: 320,
+      y: 224
     }
   },
 
