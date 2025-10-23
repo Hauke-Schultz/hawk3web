@@ -275,7 +275,7 @@ export function useHawkDungeon() {
   let gameOverCallback = null
 
   const initializeSystems = () => {
-    monsterAI = useMonsterAI(knight, monsters, gameState)
+    monsterAI = useMonsterAI(knight, monsters, gameState, items)
     collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
   }
 
@@ -294,7 +294,12 @@ export function useHawkDungeon() {
   }
 
   const updateItems = (dt) => {
-    // Items don't need updates yet (static for now)
+    // Remove expired items (items that have exceeded their lifetime)
+    const currentTime = Date.now()
+    items.value = items.value.filter(item => {
+      const age = currentTime - item.spawnTime
+      return age < item.lifetime
+    })
   }
 
   const checkCollisions = () => {

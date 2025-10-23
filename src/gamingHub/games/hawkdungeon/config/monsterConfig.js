@@ -12,7 +12,7 @@ export const monsterConfig = {
     attackChance: 0.2, // 20% chance to attack on each check
     lootCoins: 5,
     lootDropChance: {
-      heart: 0.3, // 30% chance
+      heart: 0.9, // 30% chance
       manaPotion: 0.1 // 10% chance
     }
   },

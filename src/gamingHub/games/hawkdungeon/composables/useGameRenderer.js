@@ -216,11 +216,13 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     if (!itemsList) return
 
     itemsList.forEach(item => {
-      const relativeX = (item.gridX - knight.gridX) * TILE_SIZE
-      const relativeY = (item.gridY - knight.gridY) * TILE_SIZE
+      // Calculate absolute world position
+      const worldX = item.gridX * TILE_SIZE
+      const worldY = item.gridY * TILE_SIZE
 
-      const drawX = centerX + relativeX - (TILE_SIZE / 2)
-      const drawY = centerY + relativeY - (TILE_SIZE / 2)
+      // Convert world coordinates to screen coordinates using dungeonOffset
+      const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+      const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
       drawTile(ctx, item.type, drawX, drawY)
     })

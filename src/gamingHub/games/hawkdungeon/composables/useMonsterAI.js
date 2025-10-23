@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { monsterConfig } from '../config/monsterConfig'
 import { levelConfig } from '../config/levelConfig'
 
-export function useMonsterAI(knight, monsters, gameState) {
+export function useMonsterAI(knight, monsters, gameState, items) {
   let nextMonsterId = 0
   let spawnTimer = 0
   let currentSpawnRate = 5
@@ -269,7 +269,7 @@ export function useMonsterAI(knight, monsters, gameState) {
       gameState.coins += monster.lootCoins
 
       // Drop items based on chance
-      dropLoot(monster)
+      dropLoot(monster, items)
 
       // Remove monster after death animation (1000ms)
       setTimeout(() => {
@@ -282,9 +282,43 @@ export function useMonsterAI(knight, monsters, gameState) {
     return false
   }
 
-  const dropLoot = (monster) => {
-    // This will be handled by the items system
-    // For now, just coins are added
+  const dropLoot = (monster, items) => {
+    // Check if there's already an item at this position
+    const hasItemAtPosition = items.value.some(item =>
+      item.gridX === monster.gridX && item.gridY === monster.gridY
+    )
+
+    // Don't spawn items if position is already occupied
+    if (hasItemAtPosition) {
+      return
+    }
+
+    // Check for heart drop
+    if (Math.random() < monster.lootDropChance.heart) {
+      const heartItem = {
+        id: `heart-${Date.now()}-${Math.random()}`,
+        type: 'heart',
+        gridX: monster.gridX,
+        gridY: monster.gridY,
+        spawnTime: Date.now(),
+        lifetime: 60000 // 60 seconds in ms
+      }
+      items.value.push(heartItem)
+      return // Only drop one item per monster
+    }
+
+    // Check for mana potion drop (only if no heart was dropped)
+    if (Math.random() < monster.lootDropChance.manaPotion) {
+      const manaPotionItem = {
+        id: `manaPotion-${Date.now()}-${Math.random()}`,
+        type: 'manaPotion',
+        gridX: monster.gridX,
+        gridY: monster.gridY,
+        spawnTime: Date.now(),
+        lifetime: 60000 // 60 seconds in ms
+      }
+      items.value.push(manaPotionItem)
+    }
   }
 
   return {

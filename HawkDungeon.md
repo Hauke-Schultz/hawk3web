@@ -776,8 +776,8 @@ src/gamingHub/games/hawkdungeon/
 - [x] Monster death delay (300ms)
 
 ### Phase 3: Items & Progression 🚧 IN PROGRESS
-- [ ] Mana Potion system
 - [ ] Heart item spawning and collection
+- [ ] Mana Potion system
 - [ ] Axe weapon implementation
 - [ ] Cooldown visualization improvement
 - [ ] Experience and leveling
