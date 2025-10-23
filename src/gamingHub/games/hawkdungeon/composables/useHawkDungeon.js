@@ -5,6 +5,7 @@ import { weaponConfig } from '../config/weaponConfig'
 import { TILE_SIZE } from '../config/spriteConfig'
 import { useMonsterAI } from './useMonsterAI'
 import { useCollisions } from './useCollisions'
+import { useLevelLoader } from './useLevelLoader'
 
 export function useHawkDungeon() {
   // Game state
@@ -212,6 +213,11 @@ export function useHawkDungeon() {
         break
     }
 
+    // Check if target position has a wall
+    if (!levelLoader.isWalkable(targetX, targetY)) {
+      return
+    }
+
     // Check if target position is occupied by a monster (current or target position)
     const isBlocked = monsters.value.some(monster => {
       if (monster.state === 'dead') return false
@@ -269,13 +275,25 @@ export function useHawkDungeon() {
     }
   }
 
-  // Initialize AI and collision systems
+  // Initialize AI, collision, and level systems
   let monsterAI = null
   let collisionSystem = null
   let gameOverCallback = null
+  const levelLoader = useLevelLoader()
 
   const initializeSystems = () => {
-    monsterAI = useMonsterAI(knight, monsters, gameState, items)
+    // Load the level from levelConfig
+    levelLoader.loadLevel(gameState.level)
+
+    // Set knight starting position from level data
+    knight.gridX = levelLoader.levelData.playerStart.x
+    knight.gridY = levelLoader.levelData.playerStart.y
+    knight.targetGridX = knight.gridX
+    knight.targetGridY = knight.gridY
+    dungeonOffset.x = -knight.gridX * TILE_SIZE
+    dungeonOffset.y = -knight.gridY * TILE_SIZE
+
+    monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader)
     collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
   }
 
@@ -430,6 +448,7 @@ export function useHawkDungeon() {
     attackHitbox,
     attackCooldown,
     dungeonOffset,
+    levelLoader,
     handleAttack,
     handleMove,
     handleStopMove,

@@ -34,6 +34,7 @@
         :items="items"
         :attackHitbox="attackHitbox"
         :dungeonOffset="dungeonOffset"
+        :levelLoader="levelLoader"
       />
     </div>
 
@@ -98,6 +99,7 @@ const {
   attackHitbox,
   attackCooldown,
   dungeonOffset,
+  levelLoader,
   handleAttack,
   handleMove,
   handleStopMove,

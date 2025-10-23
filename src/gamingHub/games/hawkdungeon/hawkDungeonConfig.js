@@ -1,4 +1,7 @@
 // Game configuration for Hawk Dungeon
+// NOTE: Level configurations are now in config/levelConfig.js
+import { levelConfig } from './config/levelConfig.js'
+
 export const DUNGEON_CONFIG = {
   // Canvas settings
   canvas: {
@@ -53,95 +56,6 @@ export const DUNGEON_CONFIG = {
     threeStars: 80   // Complete with 80%+ health remaining
   },
 
-  // Level configurations
-  levels: {
-    1: {
-      name: 'Level 1',
-      description: 'First steps into the dungeon',
-      enemyType: 'goblin',
-      spawnRate: 5,
-      maxEnemies: 5,
-      killGoal: 5,
-      difficulty: 'easy',
-      rewards: {
-        coins: 100,
-        exp: 50
-      }
-    },
-    2: {
-      name: 'Level 2',
-      description: 'Deeper into darkness',
-      enemyType: 'goblin',
-      spawnRate: 4,
-      maxEnemies: 8,
-      killGoal: 75,
-      difficulty: 'medium',
-      rewards: {
-        coins: 150,
-        exp: 75
-      }
-    },
-    3: {
-      name: 'Level 3',
-      description: 'The goblin horde',
-      enemyType: 'goblin',
-      spawnRate: 3,
-      maxEnemies: 12,
-      killGoal: 100,
-      difficulty: 'medium',
-      rewards: {
-        coins: 200,
-        exp: 100
-      }
-    },
-    4: {
-      name: 'Boss Fight',
-      description: 'Face the Orc Warrior',
-      enemyType: 'boss',
-      spawnRate: 2,
-      maxEnemies: 15,
-      killGoal: 1,
-      hasBoss: true,
-      difficulty: 'boss',
-      rewards: {
-        coins: 500,
-        exp: 250
-      }
-    },
-    5: {
-      name: 'Level 5',
-      description: 'Veteran challenge',
-      enemyType: 'goblin',
-      spawnRate: 1,
-      maxEnemies: 20,
-      killGoal: 150,
-      difficulty: 'hard',
-      rewards: {
-        coins: 300,
-        exp: 150
-      }
-    },
-    6: {
-      name: 'Endless Mode',
-      description: 'Survive as long as you can',
-      enemyType: 'goblin',
-      spawnRate: 1,
-      maxEnemies: 999,
-      killGoal: Infinity,
-      endless: true,
-      difficulty: 'endless',
-      milestoneRewards: [50, 100, 150, 200, 250, 300], // Rewards at these kill counts
-      starSystem: {
-        maxKills: 300,
-        progressPerKill: 1
-      },
-      rewards: {
-        coins: 0, // Dynamic based on performance
-        exp: 0    // Dynamic based on performance
-      }
-    }
-  },
-
   // Difficulty progression settings
   progression: {
     healthIncrease: 5,        // Enemy health increase per milestone
@@ -159,9 +73,9 @@ export const DUNGEON_CONFIG = {
   }
 }
 
-// Helper function to get level config
+// Helper function to get level config (now from levelConfig.js)
 export const getLevelConfig = (levelNumber) => {
-  return DUNGEON_CONFIG.levels[levelNumber] || DUNGEON_CONFIG.levels[1]
+  return levelConfig[levelNumber] || levelConfig[1]
 }
 
 // Helper function to get enemy config
@@ -171,8 +85,8 @@ export const getEnemyConfig = (enemyType) => {
 
 // Helper function to calculate enemy stats based on progression
 export const calculateEnemyStats = (levelNumber, currentKills) => {
-  const levelConfig = getLevelConfig(levelNumber)
-  const baseEnemy = getEnemyConfig(levelConfig.enemyType)
+  const level = getLevelConfig(levelNumber)
+  const baseEnemy = getEnemyConfig(level.enemyType)
 
   const progressionBonus = Math.floor(currentKills / DUNGEON_CONFIG.progression.milestoneInterval)
 
@@ -201,12 +115,13 @@ export const getStarRating = (healthPercent) => {
   return 1
 }
 
+// Game metadata for UI
 export const hawkDungeonConfig = {
   gameId: 'hawkDungeon',
   gameTitle: 'Hawk Dungeon',
   gameDescription: 'Fight through dungeon levels as a brave knight',
   gameIcon: 'hawk-dungeon',
-  levels: Object.entries(DUNGEON_CONFIG.levels).map(([levelNumber, level]) => ({
+  levels: Object.entries(levelConfig).map(([levelNumber, level]) => ({
     id: parseInt(levelNumber),
     ...level
   }))

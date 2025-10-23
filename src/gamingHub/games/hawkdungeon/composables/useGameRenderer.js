@@ -3,7 +3,7 @@ import { watch, onMounted } from 'vue'
 import { useSpriteManager } from './useSpriteManager'
 import { TILE_SIZE } from '../config/spriteConfig'
 
-export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset) {
+export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, levelLoader) {
   const { loadSpritesheet, drawSprite, drawTile, isLoaded } = useSpriteManager()
 
   let ctx = null
@@ -91,31 +91,53 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawDungeon = (centerX, centerY) => {
-    // Draw a larger grid to cover the entire screen with buffer for smooth scrolling
-    // Calculate how many tiles we need to cover the canvas plus extra for scrolling
-    const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 3 // +3 for extra scroll buffer
-    const tilesY = Math.ceil(canvasHeight / TILE_SIZE) + 3 // +3 for extra scroll buffer
+    if (!levelLoader) return
 
-    // Calculate the offset for seamless scrolling (using modulo for wrapping)
-    const offsetX = ((dungeonOffset.x % TILE_SIZE) + TILE_SIZE) % TILE_SIZE
-    const offsetY = ((dungeonOffset.y % TILE_SIZE) + TILE_SIZE) % TILE_SIZE
+    // Calculate visible tile range based on canvas size and dungeon offset
+    const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 2 // Extra tiles for smooth scrolling
+    const tilesY = Math.ceil(canvasHeight / TILE_SIZE) + 2
 
-    // Calculate starting tile position in world coordinates
-    const startTileX = Math.floor(-dungeonOffset.x / TILE_SIZE) - 2
-    const startTileY = Math.floor(-dungeonOffset.y / TILE_SIZE) - 2
+    // Calculate which tiles are visible
+    const knightWorldX = knight.gridX
+    const knightWorldY = knight.gridY
 
+    const startTileX = knightWorldX - Math.ceil(tilesX / 2)
+    const startTileY = knightWorldY - Math.ceil(tilesY / 2)
+
+    // First pass: Draw floors
     for (let y = 0; y < tilesY; y++) {
       for (let x = 0; x < tilesX; x++) {
-        const drawX = x * TILE_SIZE + offsetX - TILE_SIZE
-        const drawY = y * TILE_SIZE + offsetY - TILE_SIZE
-
-        // Use world tile coordinates for pattern
         const worldTileX = startTileX + x
         const worldTileY = startTileY + y
 
-        // Alternate between floor tiles for texture based on world position
-        const tileType = ((worldTileX + worldTileY) % 2 === 0) ? 'floor' : 'floor'
-        drawTile(ctx, tileType, drawX, drawY)
+        // Calculate screen position using world coordinates + dungeonOffset
+        const worldX = worldTileX * TILE_SIZE
+        const worldY = worldTileY * TILE_SIZE
+        const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+        const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
+
+        // Get floor tile from level or use default
+        const floorType = levelLoader.getFloorTile(worldTileX, worldTileY)
+        drawTile(ctx, floorType, drawX, drawY)
+      }
+    }
+
+    // Second pass: Draw walls on top
+    for (let y = 0; y < tilesY; y++) {
+      for (let x = 0; x < tilesX; x++) {
+        const worldTileX = startTileX + x
+        const worldTileY = startTileY + y
+
+        // Calculate screen position using world coordinates + dungeonOffset
+        const worldX = worldTileX * TILE_SIZE
+        const worldY = worldTileY * TILE_SIZE
+        const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+        const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
+
+        // Draw wall if present
+        if (levelLoader.isWall(worldTileX, worldTileY)) {
+          drawTile(ctx, 'wall', drawX, drawY)
+        }
       }
     }
   }

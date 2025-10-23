@@ -117,7 +117,7 @@ export function useSpriteManager() {
       case 'floor':
         return { width: 16, height: 16, x: 16, y: 64 }
       case 'wall':
-        return { width: 16, height: 16, x: 16, y: 80 }
+        return { width: 16, height: 16, x: 16, y: 16 }
       case 'sword':
         return { width: 16, height: 28, x: 304, y: 68 }
       case 'axe':

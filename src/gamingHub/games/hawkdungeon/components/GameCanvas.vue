@@ -32,6 +32,10 @@ const props = defineProps({
   dungeonOffset: {
     type: Object,
     required: true
+  },
+  levelLoader: {
+    type: Object,
+    required: false
   }
 })
 
@@ -57,7 +61,8 @@ const { initialize } = useGameRenderer(
   () => props.monsters,
   () => props.items,
   () => props.attackHitbox,
-  props.dungeonOffset
+  props.dungeonOffset,
+  props.levelLoader
 )
 
 onMounted(async () => {

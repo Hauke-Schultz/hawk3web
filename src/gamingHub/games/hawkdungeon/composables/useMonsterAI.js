@@ -3,13 +3,18 @@ import { ref } from 'vue'
 import { monsterConfig } from '../config/monsterConfig'
 import { levelConfig } from '../config/levelConfig'
 
-export function useMonsterAI(knight, monsters, gameState, items) {
+export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
   let nextMonsterId = 0
   let spawnTimer = 0
   let currentSpawnRate = 5
 
   // Helper function to check if a grid position is occupied
   const isPositionOccupied = (gridX, gridY, excludeMonster = null) => {
+    // Check if position has a wall
+    if (levelLoader && !levelLoader.isWalkable(gridX, gridY)) {
+      return true
+    }
+
     // Check if knight is at this position (current position)
     if (knight.gridX === gridX && knight.gridY === gridY) {
       return true
@@ -70,10 +75,10 @@ export function useMonsterAI(knight, monsters, gameState, items) {
     const monsterType = levelCfg.enemyType
     const config = monsterConfig[monsterType]
 
-    // Try to find a free spawn position (max 10 attempts)
+    // Try to find a free spawn position on a floor tile (max 20 attempts)
     let spawnX, spawnY
     let attempts = 0
-    const maxAttempts = 10
+    const maxAttempts = 20
     const spawnDistance = 5 // tiles away from knight (reduced from 10 for faster gameplay)
 
     do {

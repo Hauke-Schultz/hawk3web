@@ -84,18 +84,8 @@ export const spriteConfig = {
 
   // Dungeon tiles (16×16 px each)
   dungeon: {
-    floor: {
-      width: 16,
-      height: 16,
-      x: 160,
-      y: 0
-    },
-    wall: {
-      width: 16,
-      height: 16,
-      x: 176,
-      y: 0
-    }
+    floor: { width: 16, height: 16, x: 16, y: 64 },
+    wall: { width: 16, height: 16, x: 16, y: 16 }
   }
 }
 
