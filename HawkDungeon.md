@@ -420,11 +420,14 @@ knight = {
 - Auto-pickup on collision with knight
 
 #### 🧪 Mana Potion
-- Restores all mana (5 points)
-- Spawned occasionally by defeated enemies (~10% chance)
-- Single-use collectible
-- 16×16 pixel sprite
-- Auto-pickup on collision with knight
+- **Restoration:** Restores all mana (5 points)
+- **Source:**
+  - Spawned occasionally by defeated enemies (~10% chance)
+  - Found in chests (configurable)
+- **Collection:** Auto-pickup on collision with knight
+- **Visual:** 16×16 pixel sprite (64×64 when scaled 4x)
+- **HUD Display:** Mana shown in top-left as 🧪 [current]/[max]
+- **Single-use:** Collectible consumed immediately on pickup
 
 #### 📦 Chest System
 - Chests can be placed in the dungeon map
@@ -512,27 +515,27 @@ timeLimits = {
 ### Screen Layout (Mobile 375px width)
 
 ```
-┌─────────────────────────────┐
-│ ❤️ 10/10 │      │ 0/50 💰  │  <- Top Bar (Stats)
-├─────────────────────────────┤
-│                             │
-│         [Stone Dungeon]     │
-│     [Goblin]     [Goblin]   │
-│                             │
-│        [🧑‍🗡️ Knight]          │
-│                             │
-│     [Goblin]     [Goblin]   │
-├─────────────────────────────┤
-│ [Attack]        [Joystick]  │  <- Control Bar
-│ [⚔️ Cool]      [4-Axis]    │
-└─────────────────────────────┘
+┌─────────────────────────────────────┐
+│ ❤️ 10/10  🧪 5/5 │      │ 0/50 💰  │  <- Top Bar (Stats)
+├─────────────────────────────────────┤
+│                                     │
+│         [Stone Dungeon]             │
+│     [Goblin]     [Goblin]           │
+│                                     │
+│        [🧑‍🗡️ Knight]                  │
+│                                     │
+│     [Goblin]     [Goblin]           │
+├─────────────────────────────────────┤
+│ [Attack]            [Joystick]      │  <- Control Bar
+│ [⚔️ Cool]          [4-Axis]        │
+└─────────────────────────────────────┘
 ```
 
 ### HUD Elements
 
 **Top Bar (Stats):**
-- ❤️ Health display (current/max with hearts)
-- 📊 Current level number
+- ❤️ Health display (current/max) - Red color
+- 🧪 Mana display (current/max) - Blue color
 - 💰 Kill counter with goal (e.g., "0/50")
 
 **Bottom Left (Attack):**
@@ -795,17 +798,17 @@ src/gamingHub/games/hawkdungeon/
 ### Phase 3: Items & Progression 🚧 IN PROGRESS
 - [x] Heart item spawning and collection
 - [x] Chest system (open, loot drops)
-- [ ] Mana Potion system
+- [x] Mana Potion system
 - [ ] Axe weapon implementation
-- [ ] Cooldown visualization improvement
-- [ ] Experience and leveling
-- [ ] Weapon upgrades
 
 ### Phase 4: Content & Balance
 - [ ] All level implementations (1-6)
 - [ ] Level completion detection
 - [ ] Star rating system
 - [ ] Boss enemy implementation
+- [ ] Cooldown visualization improvement
+- [ ] Experience and leveling
+- [ ] Weapon upgrades
 - [ ] Difficulty curve tuning
 - [ ] Endless mode implementation
 

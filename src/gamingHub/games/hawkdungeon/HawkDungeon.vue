@@ -23,6 +23,8 @@
       <GameHUD
         :health="gameState.currentHealth"
         :maxHealth="gameState.maxHealth"
+        :mana="gameState.currentMana"
+        :maxMana="gameState.maxMana"
         :kills="gameState.kills"
         :killGoal="gameState.killGoal"
         :coins="gameState.coins"

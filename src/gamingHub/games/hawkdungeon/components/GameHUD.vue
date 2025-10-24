@@ -5,6 +5,10 @@
         <span class="heart-icon">❤️</span>
         <span class="health-text">{{ health }}/{{ maxHealth }}</span>
       </div>
+      <div class="mana-display">
+        <span class="mana-icon">🧪</span>
+        <span class="mana-text">{{ mana }}/{{ maxMana }}</span>
+      </div>
     </div>
 
     <div class="hud-center"></div>
@@ -25,6 +29,14 @@ defineProps({
     required: true
   },
   maxHealth: {
+    type: Number,
+    required: true
+  },
+  mana: {
+    type: Number,
+    required: true
+  },
+  maxMana: {
     type: Number,
     required: true
   },
@@ -65,9 +77,11 @@ defineProps({
 .hud-right {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .health-display,
+.mana-display,
 .kills-display {
   display: flex;
   align-items: center;
@@ -79,11 +93,13 @@ defineProps({
 }
 
 .heart-icon,
+.mana-icon,
 .coin-icon {
   font-size: 20px;
 }
 
 .health-text,
+.mana-text,
 .kills-text {
   color: white;
   font-size: 16px;
@@ -92,6 +108,10 @@ defineProps({
 
 .health-text {
   color: #ff4444;
+}
+
+.mana-text {
+  color: #44aaff;
 }
 
 .kills-text {
