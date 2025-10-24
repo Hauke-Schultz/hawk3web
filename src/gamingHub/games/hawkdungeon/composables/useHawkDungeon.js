@@ -146,22 +146,32 @@ export function useHawkDungeon() {
 
     // Update mana regeneration
     const weapon = weaponConfig[gameState.weapon]
-    if (weapon.mana && gameState.currentMana < gameState.maxMana) {
-      manaRegenTimer += dt
-      if (manaRegenTimer >= weapon.mana.regenInterval) {
-        gameState.currentMana = Math.min(gameState.maxMana, gameState.currentMana + 1)
+    if (weapon.mana) {
+      if (gameState.currentMana < gameState.maxMana) {
+        manaRegenTimer += dt
+        if (manaRegenTimer >= weapon.mana.regenInterval) {
+          gameState.currentMana = Math.min(gameState.maxMana, gameState.currentMana + 1)
+          manaRegenTimer = 0
+          console.log(`Mana regenerated: ${gameState.currentMana}/${gameState.maxMana}`)
+        }
+      } else {
+        // Reset timer when mana is full
         manaRegenTimer = 0
-        console.log(`Mana regenerated: ${gameState.currentMana}/${gameState.maxMana}`)
       }
     }
 
     // Update health regeneration
-    if (weapon.health && gameState.currentHealth < gameState.maxHealth) {
-      healthRegenTimer += dt
-      if (healthRegenTimer >= weapon.health.regenInterval) {
-        gameState.currentHealth = Math.min(gameState.maxHealth, gameState.currentHealth + 1)
+    if (weapon.health) {
+      if (gameState.currentHealth < gameState.maxHealth) {
+        healthRegenTimer += dt
+        if (healthRegenTimer >= weapon.health.regenInterval) {
+          gameState.currentHealth = Math.min(gameState.maxHealth, gameState.currentHealth + 1)
+          healthRegenTimer = 0
+          console.log(`Health regenerated: ${gameState.currentHealth}/${gameState.maxHealth}`)
+        }
+      } else {
+        // Reset timer when health is full
         healthRegenTimer = 0
-        console.log(`Health regenerated: ${gameState.currentHealth}/${gameState.maxHealth}`)
       }
     }
 
@@ -220,11 +230,8 @@ export function useHawkDungeon() {
   }
 
   const startMovement = (direction) => {
-    // Only update facing direction for horizontal movements
-    // Vertical movements (up/down) preserve the current horizontal facing direction
-    if (direction === 'left' || direction === 'right') {
-      knight.facingDirection = direction
-    }
+    // Update facing direction for all movements
+    knight.facingDirection = direction
 
     moveStartPos.x = knight.gridX
     moveStartPos.y = knight.gridY

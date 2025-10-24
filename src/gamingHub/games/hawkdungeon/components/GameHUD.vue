@@ -1,28 +1,54 @@
 <template>
   <div class="game-hud">
     <div class="hud-left">
-      <div class="health-display">
-        <span class="heart-icon">❤️</span>
-        <span class="health-text">{{ health }}/{{ maxHealth }}</span>
+      <div class="indicator-container">
+        <LiquidIndicator
+          :current-value="health"
+          :max-value="maxHealth"
+          :color-from="'rgb(185, 28, 28)'"
+          :color-to="'rgb(239, 68, 68)'"
+          :show-value="true"
+          :size="64"
+          :regeneration-interval="10000"
+          type="health"
+        />
       </div>
-      <div class="mana-display">
-        <span class="mana-icon">🧪</span>
-        <span class="mana-text">{{ mana }}/{{ maxMana }}</span>
+      <div class="indicator-container">
+        <LiquidIndicator
+          :current-value="mana"
+          :max-value="maxMana"
+          :color-from="'rgb(29, 78, 216)'"
+          :color-to="'rgb(59, 130, 246)'"
+          :show-value="true"
+          :size="64"
+          :regeneration-interval="10000"
+          type="mana"
+        />
       </div>
     </div>
 
     <div class="hud-center"></div>
 
     <div class="hud-right">
-      <div class="kills-display">
-        <span class="kills-text">{{ kills }}/{{ killGoal }}</span>
-        <span class="coin-icon">💰</span>
+      <div class="indicator-container">
+        <LiquidIndicator
+          :current-value="kills"
+          :max-value="killGoal"
+          :color-from="'rgb(217, 119, 6)'"
+          :color-to="'rgb(251, 191, 36)'"
+          :show-value="true"
+          :size="64"
+          :regeneration-interval="null"
+          type="kills"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import LiquidIndicator from './LiquidIndicator.vue'
+
 defineProps({
   health: {
     type: Number,
@@ -80,8 +106,21 @@ defineProps({
   gap: 12px;
 }
 
-.health-display,
-.mana-display,
+.indicator-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.indicator-label {
+  position: absolute;
+  bottom: -8px;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  pointer-events: none;
+}
+
 .kills-display {
   display: flex;
   align-items: center;
@@ -92,29 +131,14 @@ defineProps({
   border: 2px solid rgba(255,255,255,0.2);
 }
 
-.heart-icon,
-.mana-icon,
 .coin-icon {
   font-size: 20px;
 }
 
-.health-text,
-.mana-text,
 .kills-text {
   color: white;
   font-size: 16px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-}
-
-.health-text {
-  color: #ff4444;
-}
-
-.mana-text {
-  color: #44aaff;
-}
-
-.kills-text {
   color: #ffaa44;
 }
 </style>

@@ -8,11 +8,11 @@ export const weaponConfig = {
     cooldown: 0.5, // Seconds
     icon: '⚔️',
     mana: {
-      regenInterval: 15, // Seconds between mana regeneration
+      regenInterval: 10, // Seconds between mana regeneration
       chargedAttackCost: 1 // Mana cost for charged attack
     },
     health: {
-      regenInterval: 15 // Seconds between health regeneration
+      regenInterval: 10 // Seconds between health regeneration
     }
   },
 
@@ -23,11 +23,11 @@ export const weaponConfig = {
     cooldown: 0.5,
     icon: '🪓',
     mana: {
-      regenInterval: 15,
+      regenInterval: 10,
       chargedAttackCost: 1
     },
     health: {
-      regenInterval: 15
+      regenInterval: 10
     }
   }
 }
