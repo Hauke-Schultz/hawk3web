@@ -247,7 +247,8 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
       // Don't draw health bar for dead monsters
       if (monster.state !== 'dead') {
-        drawHealthBar(drawX, drawY - 5, TILE_SIZE, monster.health, monster.maxHealth)
+        // Position health bar centered above the monster
+        drawHealthBar(drawX, drawY - 12, monster.health, monster.maxHealth)
       }
     })
   }
@@ -609,17 +610,41 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     ctx.restore()
   }
 
-  const drawHealthBar = (x, y, width, current, max) => {
-    const barHeight = 3
+  const drawHealthBar = (x, y, current, max) => {
+    // Sprite width minus 8px (TILE_SIZE = 64px - 8px = 56px)
+    const barWidth = TILE_SIZE - 16
+    // Inner bar height: 4px
+    const barHeight = 4
+    // 4px border
+    const borderWidth = 4
+
     const percentage = current / max
 
-    // Background
-    ctx.fillStyle = '#333333'
-    ctx.fillRect(x, y, width, barHeight)
+    // Draw black border (4px all around)
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(
+      x - borderWidth + 8,
+      y - borderWidth,
+      barWidth + (borderWidth * 2),
+      barHeight + (borderWidth * 2)
+    )
 
-    // Health
-    ctx.fillStyle = percentage > 0.5 ? '#44ff44' : percentage > 0.25 ? '#ffaa44' : '#ff4444'
-    ctx.fillRect(x, y, width * percentage, barHeight)
+    // Draw dark gray background inside border
+    ctx.fillStyle = '#1a1a1a'
+    ctx.fillRect(x + 8, y, barWidth, barHeight)
+
+    // Draw health bar with color based on percentage
+    let healthColor
+    if (percentage > 0.6) {
+      healthColor = '#44ff44' // Green
+    } else if (percentage > 0.3) {
+      healthColor = '#ffaa44' // Orange
+    } else {
+      healthColor = '#ff4444' // Red
+    }
+
+    ctx.fillStyle = healthColor
+    ctx.fillRect(x + 8, y, barWidth * percentage, barHeight)
   }
 
   // Watch for changes and re-render
