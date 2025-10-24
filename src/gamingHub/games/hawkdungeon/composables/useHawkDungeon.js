@@ -6,6 +6,7 @@ import { TILE_SIZE } from '../config/spriteConfig'
 import { useMonsterAI } from './useMonsterAI'
 import { useCollisions } from './useCollisions'
 import { useLevelLoader } from './useLevelLoader'
+import { useChest } from './useChest'
 
 export function useHawkDungeon() {
   // Game state
@@ -50,6 +51,10 @@ export function useHawkDungeon() {
 
   // Attack hitbox
   const attackHitbox = ref(null)
+
+  // Chest system
+  const levelLoader = useLevelLoader()
+  const chestSystem = useChest(items, levelLoader)
 
   // Attack cooldown
   const attackCooldown = ref(0)
@@ -147,6 +152,9 @@ export function useHawkDungeon() {
 
     // Check collisions
     checkCollisions()
+
+    // Check chest interactions
+    checkChestInteractions()
   }
 
   const updateKnightMovement = (dt) => {
@@ -279,7 +287,6 @@ export function useHawkDungeon() {
   let monsterAI = null
   let collisionSystem = null
   let gameOverCallback = null
-  const levelLoader = useLevelLoader()
 
   const initializeSystems = () => {
     // Load the level from levelConfig
@@ -292,6 +299,15 @@ export function useHawkDungeon() {
     knight.targetGridY = knight.gridY
     dungeonOffset.x = -knight.gridX * TILE_SIZE
     dungeonOffset.y = -knight.gridY * TILE_SIZE
+
+    // Clear and create test chests
+    chestSystem.clearChests()
+    // Create a basic chest 3 tiles to the right and 2 tiles up from spawn
+    chestSystem.createChest(
+      levelLoader.levelData.playerStart.x + 3,
+      levelLoader.levelData.playerStart.y - 2,
+      'basic'
+    )
 
     monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader)
     collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
@@ -324,6 +340,10 @@ export function useHawkDungeon() {
     if (collisionSystem) {
       collisionSystem.update(0.016) // Approximate 60fps
     }
+  }
+
+  const checkChestInteractions = () => {
+    chestSystem.checkChestInteraction(knight.gridX, knight.gridY)
   }
 
   const easeInOutQuad = (t) => {
@@ -449,6 +469,7 @@ export function useHawkDungeon() {
     attackCooldown,
     dungeonOffset,
     levelLoader,
+    chestSystem,
     handleAttack,
     handleMove,
     handleStopMove,

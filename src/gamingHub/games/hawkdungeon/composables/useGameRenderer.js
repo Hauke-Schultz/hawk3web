@@ -3,7 +3,7 @@ import { watch, onMounted } from 'vue'
 import { useSpriteManager } from './useSpriteManager'
 import { TILE_SIZE, SPRITE_SCALE } from '../config/spriteConfig'
 
-export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, levelLoader) {
+export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, levelLoader, chestSystem) {
   const { loadSpritesheet, drawSprite, drawTile, isLoaded } = useSpriteManager()
 
   let ctx = null
@@ -50,6 +50,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
     // Draw dungeon background
     drawDungeon(centerX, centerY)
+
+    // Draw chests
+    drawChests(centerX, centerY)
 
     // Draw items
     drawItems(centerX, centerY)
@@ -246,6 +249,26 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       if (monster.state !== 'dead') {
         drawHealthBar(drawX, drawY - 5, TILE_SIZE, monster.health, monster.maxHealth)
       }
+    })
+  }
+
+  const drawChests = (centerX, centerY) => {
+    if (!chestSystem) return
+    const chestsList = chestSystem.chests.value
+    if (!chestsList) return
+
+    chestsList.forEach(chest => {
+      // Calculate absolute world position
+      const worldX = chest.gridX * TILE_SIZE
+      const worldY = chest.gridY * TILE_SIZE
+
+      // Convert world coordinates to screen coordinates using dungeonOffset
+      const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+      const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
+
+      // Draw chest sprite based on open/closed state
+      const spriteType = chest.isOpen ? chest.config.spriteOpen : chest.config.spriteClosed
+      drawTile(ctx, spriteType, drawX, drawY)
     })
   }
 

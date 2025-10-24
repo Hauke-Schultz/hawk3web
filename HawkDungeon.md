@@ -426,8 +426,25 @@ knight = {
 - 16×16 pixel sprite
 - Auto-pickup on collision with knight
 
+#### 📦 Chest System
+- Chests can be placed in the dungeon map
+- **Types:**
+  - Basic: Contains 3 hearts (100% chance)
+  - Treasure: Contains 2 hearts (80%) + 1 mana potion (50%)
+  - Rich: Contains 5 hearts (100%) + 2 mana potions (70%)
+- **States:**
+  - Closed: Default state, chest_closed sprite
+  - Open: After interaction, chest_open sprite
+- **Interaction:**
+  - Opens automatically when knight walks on chest tile
+  - Items drop around chest on free walkable tiles
+  - Supports up to 8 surrounding tiles for item placement
+- **Visual:**
+  - 16×16 pixel sprite (64×64 when scaled 4x)
+  - Two sprite states: closed and open
+
 **Item Mechanics:**
-- Items spawn on tile where enemy was defeated
+- Items spawn on tile where enemy was defeated or from chests
 - Items stay on screen for 60 seconds
 - Auto-collect when knight occupies same tile
 - Visual feedback: Item pickup animation
@@ -776,7 +793,8 @@ src/gamingHub/games/hawkdungeon/
 - [x] Monster death delay (300ms)
 
 ### Phase 3: Items & Progression 🚧 IN PROGRESS
-- [ ] Heart item spawning and collection
+- [x] Heart item spawning and collection
+- [x] Chest system (open, loot drops)
 - [ ] Mana Potion system
 - [ ] Axe weapon implementation
 - [ ] Cooldown visualization improvement

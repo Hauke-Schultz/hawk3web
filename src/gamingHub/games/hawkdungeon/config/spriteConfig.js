@@ -92,6 +92,18 @@ export const spriteConfig = {
       height: 16,
       x: 320,
       y: 224
+    },
+    chest_closed: {
+      width: 16,
+      height: 16,
+      x: 304,
+      y: 400
+    },
+    chest_open: {
+      width: 16,
+      height: 16,
+      x: 336,
+      y: 400
     }
   },
 
