@@ -125,14 +125,24 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       state: 'walking',
       lootCoins: config.lootCoins,
       lootDropChance: config.lootDropChance,
-      attackTimer: 0 // Timer for next attack check
+      attackTimer: 0, // Timer for next attack check
+      deathAnimationProgress: 0, // 0 to 1 for death animation
+      deathAnimationStartTime: null // Time when death animation started
     }
 
     monsters.value.push(monster)
   }
 
   const updateMonster = (monster, deltaTime) => {
-    if (monster.state === 'dead') return
+    // Update death animation if monster is dead
+    if (monster.state === 'dead') {
+      if (!monster.deathAnimationStartTime) {
+        monster.deathAnimationStartTime = performance.now()
+      }
+      const elapsed = performance.now() - monster.deathAnimationStartTime
+      monster.deathAnimationProgress = Math.min(elapsed / 1000, 1) // 1000ms animation
+      return
+    }
 
     // Update smooth movement interpolation
     if (monster.isMovingToTarget) {
@@ -278,11 +288,15 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
 
     if (monster.health <= 0) {
       monster.state = 'dead'
+      monster.deathAnimationStartTime = performance.now()
+      monster.deathAnimationProgress = 0
       gameState.kills += 1
       gameState.coins += monster.lootCoins
 
-      // Drop items based on chance
-      dropLoot(monster, items)
+      // Drop items after 300ms delay (let death animation start first)
+      setTimeout(() => {
+        dropLoot(monster, items)
+      }, 300)
 
       // Remove monster after death animation (1000ms)
       setTimeout(() => {

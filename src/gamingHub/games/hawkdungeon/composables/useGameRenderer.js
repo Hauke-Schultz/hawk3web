@@ -210,6 +210,17 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
       const flipX = monster.facingDirection === 'left'
 
+      // Calculate death animation offset and clip
+      let deathClipHeight = spriteHeight
+      let deathClipOffsetY = 0
+
+      if (monster.state === 'dead' && monster.deathAnimationProgress !== undefined) {
+        // Shrink visible height from full to 0 (clips from bottom)
+        deathClipHeight = spriteHeight * (1 - monster.deathAnimationProgress)
+        // Clip from bottom by moving clip rect down
+        deathClipOffsetY = spriteHeight * monster.deathAnimationProgress
+      }
+
       // Apply hit filter or death effect for monsters
       if (monster.isHit || monster.state === 'dead') {
         ctx.save()
@@ -217,20 +228,38 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         if (monster.state === 'dead') {
           // Death animation: grayscale (black and white)
           ctx.filter = 'grayscale(1)'
+
+          // Set up clipping for death animation - clip from bottom
+          if (deathClipHeight > 0) {
+            ctx.beginPath()
+            // Clip rect moves down as monster sinks
+            ctx.rect(drawX, drawY + deathClipOffsetY, TILE_SIZE, deathClipHeight)
+            ctx.clip()
+
+            drawSprite(
+              ctx,
+              monster.type,
+              monster.animationFrame || 0,
+              drawX,
+              drawY,
+              flipX,
+              false
+            )
+          }
         } else {
           // Hit animation: bright red flash
           ctx.filter = 'brightness(1.8) saturate(3) hue-rotate(-20deg) contrast(1.5)'
-        }
 
-        drawSprite(
-          ctx,
-          monster.type,
-          monster.animationFrame || 0,
-          drawX,
-          drawY,
-          flipX,
-          false
-        )
+          drawSprite(
+            ctx,
+            monster.type,
+            monster.animationFrame || 0,
+            drawX,
+            drawY,
+            flipX,
+            false
+          )
+        }
 
         ctx.restore()
       } else {
