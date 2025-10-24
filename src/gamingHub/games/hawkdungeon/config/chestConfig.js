@@ -2,11 +2,11 @@
 // Defines chest types, loot tables, and spawn behavior
 
 export const chestConfig = {
-  // Basic chest with hearts
+  // Basic chest with health restore
   basic: {
     type: 'basic',
     loot: [
-      { type: 'heart', count: 3, chance: 1.0 } // 100% chance to drop 3 hearts
+      { type: 'health', count: 3, chance: 1.0 } // 100% chance to drop 3 health (restore only)
     ],
     spriteClosed: 'chest_closed',
     spriteOpen: 'chest_open'
@@ -16,8 +16,8 @@ export const chestConfig = {
   treasure: {
     type: 'treasure',
     loot: [
-      { type: 'heart', count: 2, chance: 0.8 }, // 80% chance for 2 hearts
-      { type: 'manaPotion', count: 1, chance: 0.5 } // 50% chance for 1 mana potion
+      { type: 'health', count: 2, chance: 0.8 }, // 80% chance for 2 health
+      { type: 'mana', count: 1, chance: 0.5 } // 50% chance for 1 mana
     ],
     spriteClosed: 'chest_closed',
     spriteOpen: 'chest_open'
@@ -27,20 +27,20 @@ export const chestConfig = {
   rich: {
     type: 'rich',
     loot: [
-      { type: 'heart', count: 5, chance: 1.0 }, // 100% chance for 5 hearts
-      { type: 'manaPotion', count: 2, chance: 0.7 } // 70% chance for 2 mana potions
+      { type: 'health', count: 5, chance: 1.0 }, // 100% chance for 5 health
+      { type: 'mana', count: 2, chance: 0.7 } // 70% chance for 2 mana
     ],
     spriteClosed: 'chest_closed',
     spriteOpen: 'chest_open'
   },
 
-  // Epic chest with rare mana orb
+  // Epic chest with permanent upgrades
   epic: {
     type: 'epic',
     loot: [
-      { type: 'heart', count: 3, chance: 1.0 }, // 100% chance for 3 hearts
-      { type: 'manaPotion', count: 1, chance: 1.0 }, // 100% chance for 1 mana potion
-      { type: 'manaOrb', count: 1, chance: 1.0 } // 100% chance for 1 mana orb (increases max mana)
+      { type: 'healthPotion', count: 1, chance: 1.0 }, // 100% chance for 1 health potion (permanent max health +1)
+      { type: 'manaPotion', count: 1, chance: 1.0 }, // 100% chance for 1 mana potion (permanent max mana +1)
+      { type: 'health', count: 2, chance: 1.0 } // 100% chance for 2 health (restore)
     ],
     spriteClosed: 'chest_closed',
     spriteOpen: 'chest_open'

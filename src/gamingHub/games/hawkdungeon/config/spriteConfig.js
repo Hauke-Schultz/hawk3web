@@ -81,23 +81,29 @@ export const spriteConfig = {
 
   // Items (16×16 px each)
   items: {
-    heart: {
+    health: {
       width: 16,
       height: 16,
       x: 288,
-      y: 368
+      y: 352
+    },
+    healthPotion: {
+      width: 16,
+      height: 16,
+      x: 288,
+      y: 336
+    },
+    mana: {
+      width: 16,
+      height: 16,
+      x: 304,
+      y: 352
     },
     manaPotion: {
       width: 16,
       height: 16,
-      x: 320,
-      y: 224
-    },
-    manaOrb: {
-      width: 16,
-      height: 16,
-      x: 336,
-      y: 224
+      x: 304,
+      y: 336
     },
     chest_closed: {
       width: 16,
