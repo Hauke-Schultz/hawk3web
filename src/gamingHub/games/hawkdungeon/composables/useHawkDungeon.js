@@ -85,6 +85,9 @@ export function useHawkDungeon() {
   let moveTargetPos = { x: 0, y: 0 }
   let moveProgress = 0
 
+  // Mana regeneration timer
+  let manaRegenTimer = 0
+
   const startGame = () => {
     gameState.isRunning = true
     gameState.level = 1
@@ -136,6 +139,17 @@ export function useHawkDungeon() {
     // Update attack cooldown
     if (attackCooldown.value > 0) {
       attackCooldown.value = Math.max(0, attackCooldown.value - dt)
+    }
+
+    // Update mana regeneration
+    const weapon = weaponConfig[gameState.weapon]
+    if (weapon.mana && gameState.currentMana < gameState.maxMana) {
+      manaRegenTimer += dt
+      if (manaRegenTimer >= weapon.mana.regenInterval) {
+        gameState.currentMana = Math.min(gameState.maxMana, gameState.currentMana + 1)
+        manaRegenTimer = 0
+        console.log(`Mana regenerated: ${gameState.currentMana}/${gameState.maxMana}`)
+      }
     }
 
     // Update knight movement
@@ -367,11 +381,23 @@ export function useHawkDungeon() {
   const handleAttack = (attackData = { charged: false }) => {
     if (attackCooldown.value > 0 || knight.isAttacking) return
 
-    knight.isAttacking = true
-    attackCooldown.value = weaponConfig[gameState.weapon].cooldown
-
     // Create attack hitbox(es)
     const weapon = weaponConfig[gameState.weapon]
+
+    // Check mana cost for charged attack
+    if (attackData.charged) {
+      const manaCost = weapon.mana?.chargedAttackCost || 0
+      if (gameState.currentMana < manaCost) {
+        console.log('Not enough mana for charged attack!')
+        return
+      }
+      // Consume mana for charged attack
+      gameState.currentMana -= manaCost
+      console.log(`Mana consumed: -${manaCost}, remaining: ${gameState.currentMana}/${gameState.maxMana}`)
+    }
+
+    knight.isAttacking = true
+    attackCooldown.value = weapon.cooldown
 
     if (attackData.charged) {
       // Charged attack: create 3 hitboxes in cross pattern

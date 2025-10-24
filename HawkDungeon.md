@@ -419,15 +419,25 @@ knight = {
 - 16×16 pixel sprite
 - Auto-pickup on collision with knight
 
-#### 🧪 Mana Potion
-- **Restoration:** Restores all mana (5 points)
-- **Source:**
-  - Spawned occasionally by defeated enemies (~10% chance)
-  - Found in chests (configurable)
-- **Collection:** Auto-pickup on collision with knight
-- **Visual:** 16×16 pixel sprite (64×64 when scaled 4x)
-- **HUD Display:** Mana shown in top-left as 🧪 [current]/[max]
-- **Single-use:** Collectible consumed immediately on pickup
+#### 🧪 Mana System
+- **Mana Display:** Shown in top-left HUD as 🧪 [current]/[max] (blue color)
+- **Starting Mana:** 5/5
+- **Usage:**
+  - **Charged Attack:** Costs 1 mana
+  - Hold space bar for 300ms to execute charged attack (3-tile cross pattern)
+  - Cannot perform charged attack without sufficient mana
+- **Regeneration:**
+  - Automatic regeneration: +1 mana every 5 seconds
+  - Regenerates up to max mana (5)
+  - Configuration per weapon in weaponConfig.js
+- **Mana Potions:**
+  - **Restoration:** Restores all mana (5 points)
+  - **Source:**
+    - Spawned occasionally by defeated enemies (~10% chance)
+    - Found in chests (configurable)
+  - **Collection:** Auto-pickup on collision with knight
+  - **Visual:** 16×16 pixel sprite (64×64 when scaled 4x)
+  - **Single-use:** Consumed immediately on pickup
 
 #### 📦 Chest System
 - Chests can be placed in the dungeon map

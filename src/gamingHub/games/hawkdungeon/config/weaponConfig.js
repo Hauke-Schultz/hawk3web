@@ -6,7 +6,11 @@ export const weaponConfig = {
     damage: 1,
     range: 1, // Tiles
     cooldown: 0.5, // Seconds
-    icon: '⚔️'
+    icon: '⚔️',
+    mana: {
+      regenInterval: 5, // Seconds between mana regeneration
+      chargedAttackCost: 1 // Mana cost for charged attack
+    }
   },
 
   axe: {
@@ -14,7 +18,11 @@ export const weaponConfig = {
     damage: 2,
     range: 1,
     cooldown: 0.5,
-    icon: '🪓'
+    icon: '🪓',
+    mana: {
+      regenInterval: 5,
+      chargedAttackCost: 1
+    }
   }
 }
 
