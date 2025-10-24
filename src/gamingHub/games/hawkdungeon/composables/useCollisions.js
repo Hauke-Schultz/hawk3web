@@ -135,8 +135,8 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
 
       case 'healthPotion':
         gameState.maxHealth = Math.min(20, gameState.maxHealth + 1)
-        gameState.currentHealth = gameState.maxHealth
-        console.log(`Health Potion collected! Max Health increased to: ${gameState.maxHealth}`)
+        gameState.currentHealth = Math.min(gameState.maxHealth, gameState.currentHealth + 1)
+        console.log(`Health Potion collected! Max Health increased to: ${gameState.maxHealth}, Health: ${gameState.currentHealth}/${gameState.maxHealth}`)
         break
 
       case 'mana':
@@ -149,8 +149,8 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
 
       case 'manaPotion':
         gameState.maxMana = Math.min(10, gameState.maxMana + 1)
-        gameState.currentMana = gameState.maxMana
-        console.log(`Mana Potion collected! Max Mana increased to: ${gameState.maxMana}`)
+        gameState.currentMana = Math.min(gameState.maxMana, gameState.currentMana + 1)
+        console.log(`Mana Potion collected! Max Mana increased to: ${gameState.maxMana}, Mana: ${gameState.currentMana}/${gameState.maxMana}`)
         break
     }
   }
