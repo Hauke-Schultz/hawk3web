@@ -27,12 +27,12 @@ export const levelConfig = {
       tiles: [
         'WWWWWWWWWW',
         'W........W',
+        'W..C.....W',
         'W........W',
         'W........W',
         'W........W',
         'W........W',
-        'W........W',
-        'W........W',
+        'W.....C..W',
         'W........W',
         'WWWWWWWWWW'
       ],

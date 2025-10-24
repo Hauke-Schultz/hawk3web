@@ -11,7 +11,8 @@ export function useLevelLoader() {
     width: 0,
     height: 0,
     playerStart: { x: 0, y: 0 },
-    spawns: {}
+    spawns: {},
+    chests: []
   })
 
   /**
@@ -47,6 +48,7 @@ export function useLevelLoader() {
     // Clear previous data
     levelData.walls.clear()
     levelData.floors.clear()
+    levelData.chests = []
 
     // Parse tiles
     for (let y = 0; y < level.tiles.length; y++) {
@@ -73,6 +75,15 @@ export function useLevelLoader() {
           case 'P':
             // Player start marker (floor underneath)
             levelData.floors.set(key, 'floor')
+            break
+          case 'C':
+            // Chest marker (floor underneath)
+            levelData.floors.set(key, 'floor')
+            levelData.chests.push({
+              gridX: x,
+              gridY: y,
+              type: 'basic' // Default chest type, can be customized
+            })
             break
         }
       }

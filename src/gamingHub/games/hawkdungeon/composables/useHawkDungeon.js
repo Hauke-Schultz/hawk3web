@@ -300,14 +300,15 @@ export function useHawkDungeon() {
     dungeonOffset.x = -knight.gridX * TILE_SIZE
     dungeonOffset.y = -knight.gridY * TILE_SIZE
 
-    // Clear and create test chests
+    // Clear and spawn chests from level data
     chestSystem.clearChests()
-    // Create a basic chest 3 tiles to the right and 2 tiles up from spawn
-    chestSystem.createChest(
-      levelLoader.levelData.playerStart.x + 3,
-      levelLoader.levelData.playerStart.y - 2,
-      'basic'
-    )
+    // Spawn all chests marked with 'C' in the level map
+    if (levelLoader.levelData.chests && levelLoader.levelData.chests.length > 0) {
+      levelLoader.levelData.chests.forEach(chestData => {
+        chestSystem.createChest(chestData.gridX, chestData.gridY, chestData.type)
+      })
+      console.log(`Spawned ${levelLoader.levelData.chests.length} chests from level data`)
+    }
 
     monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader)
     collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
