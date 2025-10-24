@@ -9,7 +9,7 @@
           :color-to="'rgb(239, 68, 68)'"
           :show-value="true"
           :size="64"
-          :regeneration-interval="10000"
+          :external-progress="healthRegenProgress"
           type="health"
         />
       </div>
@@ -21,7 +21,7 @@
           :color-to="'rgb(59, 130, 246)'"
           :show-value="true"
           :size="64"
-          :regeneration-interval="10000"
+          :external-progress="manaRegenProgress"
           type="mana"
         />
       </div>
@@ -77,6 +77,14 @@ defineProps({
   coins: {
     type: Number,
     required: true
+  },
+  healthRegenProgress: {
+    type: Number,
+    default: 0
+  },
+  manaRegenProgress: {
+    type: Number,
+    default: 0
   }
 })
 </script>

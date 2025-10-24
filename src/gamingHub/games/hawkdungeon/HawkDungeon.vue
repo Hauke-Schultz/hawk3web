@@ -28,6 +28,8 @@
         :kills="gameState.kills"
         :killGoal="gameState.killGoal"
         :coins="gameState.coins"
+        :health-regen-progress="healthRegenProgress"
+        :mana-regen-progress="manaRegenProgress"
       />
 
       <GameCanvas
@@ -104,6 +106,8 @@ const {
   dungeonOffset,
   levelLoader,
   chestSystem,
+  manaRegenProgress,
+  healthRegenProgress,
   handleAttack,
   handleMove,
   handleStopMove,

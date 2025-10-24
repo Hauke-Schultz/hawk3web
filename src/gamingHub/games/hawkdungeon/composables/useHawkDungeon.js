@@ -87,9 +87,11 @@ export function useHawkDungeon() {
 
   // Mana regeneration timer
   let manaRegenTimer = 0
+  const manaRegenProgress = ref(0)
 
   // Health regeneration timer
   let healthRegenTimer = 0
+  const healthRegenProgress = ref(0)
 
   const startGame = () => {
     gameState.isRunning = true
@@ -149,14 +151,17 @@ export function useHawkDungeon() {
     if (weapon.mana) {
       if (gameState.currentMana < gameState.maxMana) {
         manaRegenTimer += dt
+        manaRegenProgress.value = (manaRegenTimer / weapon.mana.regenInterval) * 100
         if (manaRegenTimer >= weapon.mana.regenInterval) {
           gameState.currentMana = Math.min(gameState.maxMana, gameState.currentMana + 1)
           manaRegenTimer = 0
+          manaRegenProgress.value = 0
           console.log(`Mana regenerated: ${gameState.currentMana}/${gameState.maxMana}`)
         }
       } else {
         // Reset timer when mana is full
         manaRegenTimer = 0
+        manaRegenProgress.value = 0
       }
     }
 
@@ -164,14 +169,17 @@ export function useHawkDungeon() {
     if (weapon.health) {
       if (gameState.currentHealth < gameState.maxHealth) {
         healthRegenTimer += dt
+        healthRegenProgress.value = (healthRegenTimer / weapon.health.regenInterval) * 100
         if (healthRegenTimer >= weapon.health.regenInterval) {
           gameState.currentHealth = Math.min(gameState.maxHealth, gameState.currentHealth + 1)
           healthRegenTimer = 0
+          healthRegenProgress.value = 0
           console.log(`Health regenerated: ${gameState.currentHealth}/${gameState.maxHealth}`)
         }
       } else {
         // Reset timer when health is full
         healthRegenTimer = 0
+        healthRegenProgress.value = 0
       }
     }
 
@@ -519,6 +527,8 @@ export function useHawkDungeon() {
     dungeonOffset,
     levelLoader,
     chestSystem,
+    manaRegenProgress,
+    healthRegenProgress,
     handleAttack,
     handleMove,
     handleStopMove,

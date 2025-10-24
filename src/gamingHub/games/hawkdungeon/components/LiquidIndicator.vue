@@ -26,15 +26,15 @@
       type: Number,
       default: 64
     },
-    player: {
-      type: Object,
-      required: false
-    },
     type: {
       type: String,
       default: 'health'
     },
     regenerationInterval: {
+      type: Number,
+      default: null
+    },
+    externalProgress: {
       type: Number,
       default: null
     }
@@ -62,7 +62,7 @@
     height: `${props.size}px`
   }));
   const textStyle = computed(() => ({
-    top: `${50 - percentage.value / 2}%`
+    top: `${percentage.value > 100 ? 0 : 50 - percentage.value / 2}%`
   }));
   const liquidStyle = computed(() => ({
     height: `${percentage.value}%`,
@@ -84,7 +84,16 @@
     value.value = newValue;
   });
 
+  // Watch external progress if provided
+  watch(() => props.externalProgress, (newProgress) => {
+    if (newProgress !== null) {
+      regenerationProgress.value = newProgress;
+    }
+  });
+
   const startRegeneration = () => {
+    // Only use internal timer if no external progress is provided
+    if (props.externalProgress !== null) return;
     if (!props.regenerationInterval) return;
     const updateRate = 100;
     regenerationTimer = setInterval(() => {
@@ -101,7 +110,7 @@
   };
 
   onMounted(() => {
-    if (props.regenerationInterval) {
+    if (props.regenerationInterval && props.externalProgress === null) {
       startRegeneration();
     }
   });
