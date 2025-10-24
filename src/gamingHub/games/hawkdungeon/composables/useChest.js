@@ -13,21 +13,40 @@ export function useChest(items, levelLoader) {
    * Create a chest at a specific grid position
    * @param {number} gridX - Grid X position
    * @param {number} gridY - Grid Y position
-   * @param {string} chestType - Type of chest (basic, treasure, rich)
+   * @param {string|Array} chestTypeOrItems - Type of chest (basic, treasure, rich) OR array of items
    * @returns {object} The created chest object
    */
-  const createChest = (gridX, gridY, chestType = 'basic') => {
-    const config = chestConfig[chestType]
-    if (!config) {
-      console.error(`Unknown chest type: ${chestType}`)
-      return null
+  const createChest = (gridX, gridY, chestTypeOrItems = 'basic') => {
+    let config
+    let customItems = null
+
+    // Check if chestTypeOrItems is an array (custom items)
+    if (Array.isArray(chestTypeOrItems)) {
+      customItems = chestTypeOrItems
+      config = {
+        type: 'custom',
+        loot: customItems.map(item => ({
+          type: item.type,
+          count: item.count,
+          chance: 1.0 // 100% chance for custom items
+        })),
+        spriteClosed: 'chest_closed',
+        spriteOpen: 'chest_open'
+      }
+    } else {
+      // It's a chest type string
+      config = chestConfig[chestTypeOrItems]
+      if (!config) {
+        console.error(`Unknown chest type: ${chestTypeOrItems}`)
+        return null
+      }
     }
 
     const chest = {
       id: `chest-${nextChestId++}`,
       gridX,
       gridY,
-      type: chestType,
+      type: customItems ? 'custom' : chestTypeOrItems,
       isOpen: false,
       config
     }

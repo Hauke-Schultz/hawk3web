@@ -43,6 +43,23 @@ export const levelConfig = {
           { x: 6, y: 3 }
         ]
       },
+      chests: [
+        {
+          x: 3,
+          y: 2,
+          items: [
+            { type: 'heart', count: 3 },
+            { type: 'manaPotion', count: 1 }
+          ]
+        },
+        {
+          x: 6,
+          y: 7,
+          items: [
+            { type: 'heart', count: 5 }
+          ]
+        }
+      ],
       killGoal: 5,
     }
   },

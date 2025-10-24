@@ -50,7 +50,8 @@ export function useLevelLoader() {
     levelData.floors.clear()
     levelData.chests = []
 
-    // Parse tiles
+    // Parse tiles and collect 'C' positions
+    const chestPositionsFromMap = []
     for (let y = 0; y < level.tiles.length; y++) {
       const row = level.tiles[y]
       for (let x = 0; x < row.length; x++) {
@@ -79,14 +80,30 @@ export function useLevelLoader() {
           case 'C':
             // Chest marker (floor underneath)
             levelData.floors.set(key, 'floor')
-            levelData.chests.push({
-              gridX: x,
-              gridY: y,
-              type: 'basic' // Default chest type, can be customized
-            })
+            chestPositionsFromMap.push({ x, y })
             break
         }
       }
+    }
+
+    // If level has a chests array with items defined, use it
+    if (level.chests && level.chests.length > 0) {
+      level.chests.forEach(chestConfig => {
+        levelData.chests.push({
+          gridX: chestConfig.x,
+          gridY: chestConfig.y,
+          items: chestConfig.items || []
+        })
+      })
+    } else {
+      // Fallback: use positions from 'C' tiles with default type
+      chestPositionsFromMap.forEach(pos => {
+        levelData.chests.push({
+          gridX: pos.x,
+          gridY: pos.y,
+          type: 'basic' // Default chest type
+        })
+      })
     }
   }
 

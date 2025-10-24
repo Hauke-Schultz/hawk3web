@@ -305,7 +305,9 @@ export function useHawkDungeon() {
     // Spawn all chests marked with 'C' in the level map
     if (levelLoader.levelData.chests && levelLoader.levelData.chests.length > 0) {
       levelLoader.levelData.chests.forEach(chestData => {
-        chestSystem.createChest(chestData.gridX, chestData.gridY, chestData.type)
+        // Use custom items if defined, otherwise use chest type
+        const chestTypeOrItems = chestData.items ? chestData.items : (chestData.type || 'basic')
+        chestSystem.createChest(chestData.gridX, chestData.gridY, chestTypeOrItems)
       })
       console.log(`Spawned ${levelLoader.levelData.chests.length} chests from level data`)
     }
