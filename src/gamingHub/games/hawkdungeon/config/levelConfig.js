@@ -56,7 +56,9 @@ export const levelConfig = {
           x: 6,
           y: 7,
           items: [
-            { type: 'heart', count: 5 }
+            { type: 'heart', count: 3 },
+            { type: 'manaPotion', count: 1 },
+            { type: 'manaOrb', count: 1 }
           ]
         }
       ],

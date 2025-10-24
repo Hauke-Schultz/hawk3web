@@ -32,6 +32,18 @@ export const chestConfig = {
     ],
     spriteClosed: 'chest_closed',
     spriteOpen: 'chest_open'
+  },
+
+  // Epic chest with rare mana orb
+  epic: {
+    type: 'epic',
+    loot: [
+      { type: 'heart', count: 3, chance: 1.0 }, // 100% chance for 3 hearts
+      { type: 'manaPotion', count: 1, chance: 1.0 }, // 100% chance for 1 mana potion
+      { type: 'manaOrb', count: 1, chance: 1.0 } // 100% chance for 1 mana orb (increases max mana)
+    ],
+    spriteClosed: 'chest_closed',
+    spriteOpen: 'chest_open'
   }
 }
 

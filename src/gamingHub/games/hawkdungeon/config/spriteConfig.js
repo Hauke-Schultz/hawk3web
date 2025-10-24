@@ -93,6 +93,12 @@ export const spriteConfig = {
       x: 320,
       y: 224
     },
+    manaOrb: {
+      width: 16,
+      height: 16,
+      x: 336,
+      y: 224
+    },
     chest_closed: {
       width: 16,
       height: 16,

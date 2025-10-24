@@ -422,29 +422,45 @@ knight = {
 #### 🧪 Mana System
 - **Mana Display:** Shown in top-left HUD as 🧪 [current]/[max] (blue color)
 - **Starting Mana:** 5/5
+- **Maximum Mana:** Can be increased up to 10 with Mana Orbs
 - **Usage:**
   - **Charged Attack:** Costs 1 mana
   - Hold space bar for 300ms to execute charged attack (3-tile cross pattern)
   - Cannot perform charged attack without sufficient mana
 - **Regeneration:**
   - Automatic regeneration: +1 mana every 5 seconds
-  - Regenerates up to max mana (5)
+  - Regenerates up to max mana
   - Configuration per weapon in weaponConfig.js
-- **Mana Potions:**
-  - **Restoration:** Restores all mana (5 points)
-  - **Source:**
-    - Spawned occasionally by defeated enemies (~10% chance)
-    - Found in chests (configurable)
-  - **Collection:** Auto-pickup on collision with knight
-  - **Visual:** 16×16 pixel sprite (64×64 when scaled 4x)
-  - **Single-use:** Consumed immediately on pickup
+
+**Mana Items:**
+
+**🧪 Mana Potion:**
+- **Restoration:** Restores all mana to maximum
+- **Source:**
+  - Spawned occasionally by defeated enemies (~10% chance)
+  - Found in chests (configurable)
+- **Collection:** Auto-pickup on collision with knight
+- **Visual:** 16×16 pixel sprite (64×64 when scaled 4x)
+- **Single-use:** Consumed immediately on pickup
+
+**✨ Mana Orb (Permanent Upgrade):**
+- **Effect:** Increases maximum mana by +1 (up to 10 max)
+- **Restoration:** Also fills current mana to new maximum
+- **Source:**
+  - Found in epic chests (rare)
+  - Special level rewards
+- **Collection:** Auto-pickup on collision with knight
+- **Visual:** 16×16 pixel sprite (64×64 when scaled 4x)
+- **Permanent:** Effect persists across levels
+- **Single-use:** Consumed immediately on pickup
 
 #### 📦 Chest System
 - Chests can be placed in the dungeon map
 - **Types:**
-  - Basic: Contains 3 hearts (100% chance)
-  - Treasure: Contains 2 hearts (80%) + 1 mana potion (50%)
-  - Rich: Contains 5 hearts (100%) + 2 mana potions (70%)
+  - **Basic:** Contains 3 hearts (100% chance)
+  - **Treasure:** Contains 2 hearts (80%) + 1 mana potion (50%)
+  - **Rich:** Contains 5 hearts (100%) + 2 mana potions (70%)
+  - **Epic:** Contains 3 hearts (100%) + 1 mana potion (100%) + 1 mana orb (100%)
 - **States:**
   - Closed: Default state, chest_closed sprite
   - Open: After interaction, chest_open sprite
