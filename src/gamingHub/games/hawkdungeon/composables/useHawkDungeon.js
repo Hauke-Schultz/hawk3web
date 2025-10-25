@@ -238,8 +238,10 @@ export function useHawkDungeon() {
   }
 
   const startMovement = (direction) => {
-    // Update facing direction for all movements
-    knight.facingDirection = direction
+    // Update facing direction only for horizontal movements (left/right)
+    if (direction === 'left' || direction === 'right') {
+      knight.facingDirection = direction
+    }
 
     moveStartPos.x = knight.gridX
     moveStartPos.y = knight.gridY

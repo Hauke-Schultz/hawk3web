@@ -9,10 +9,10 @@
       @mousedown.prevent="handleMouseDown"
     >
       <div class="joystick-directions">
-        <div class="direction-marker up" :class="{ active: direction === 'up' }">▲</div>
-        <div class="direction-marker down" :class="{ active: direction === 'down' }">▼</div>
-        <div class="direction-marker left" :class="{ active: direction === 'left' }">◀</div>
-        <div class="direction-marker right" :class="{ active: direction === 'right' }">▶</div>
+        <div class="direction-marker up" :class="{ active: direction === 'up', player: !direction && playerDirection === 'up' }">▲</div>
+        <div class="direction-marker down" :class="{ active: direction === 'down', player: !direction && playerDirection === 'down' }">▼</div>
+        <div class="direction-marker left" :class="{ active: direction === 'left', player: !direction && playerDirection === 'left' }">◀</div>
+        <div class="direction-marker right" :class="{ active: direction === 'right', player: !direction && playerDirection === 'right' }">▶</div>
       </div>
       <div
         class="joystick-stick"
@@ -25,7 +25,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
+
+const props = defineProps({
+  playerDirection: {
+    type: String,
+    default: 'right'
+  }
+})
 
 const emit = defineEmits(['move', 'stop'])
 
@@ -188,6 +195,11 @@ const handleMouseDown = (e) => {
   color: rgba(255,255,255,0.9);
   text-shadow: 0 0 8px rgba(255,255,255,0.8);
   transform: scale(1.2);
+}
+
+.direction-marker.player {
+  color: rgba(100,200,255,0.7);
+  text-shadow: 0 0 6px rgba(100,200,255,0.6);
 }
 
 .direction-marker.up {

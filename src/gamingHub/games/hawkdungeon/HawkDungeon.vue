@@ -50,6 +50,7 @@
         @attack="handleAttack"
       />
       <JoystickControl
+        :player-direction="knight.facingDirection"
         @move="handleMove"
         @stop="handleStopMove"
       />
@@ -196,6 +197,8 @@ const activeKeys = ref(new Set())
 const spaceCharging = ref(false)
 const spaceChargeStart = ref(0)
 let spaceChargeInterval = null
+let movementInterval = null
+let currentDirection = ref(null)
 
 const handleKeyDown = (event) => {
   // Prevent default for game controls
@@ -208,22 +211,23 @@ const handleKeyDown = (event) => {
   activeKeys.value.add(event.key)
 
   // Movement keys
+  let direction = null
   switch (event.key) {
     case 'ArrowUp':
     case 'w':
-      handleMove('up')
+      direction = 'up'
       break
     case 'ArrowDown':
     case 's':
-      handleMove('down')
+      direction = 'down'
       break
     case 'ArrowLeft':
     case 'a':
-      handleMove('left')
+      direction = 'left'
       break
     case 'ArrowRight':
     case 'd':
-      handleMove('right')
+      direction = 'right'
       break
     case ' ':
       // Start charging attack
@@ -244,6 +248,26 @@ const handleKeyDown = (event) => {
       }
       break
   }
+
+  // Start continuous movement
+  if (direction && direction !== currentDirection.value) {
+    currentDirection.value = direction
+
+    // Clear previous interval if exists
+    if (movementInterval) {
+      clearInterval(movementInterval)
+    }
+
+    // Send initial move
+    handleMove(direction)
+
+    // Start continuous move interval (every 100ms, like joystick)
+    movementInterval = setInterval(() => {
+      if (currentDirection.value) {
+        handleMove(currentDirection.value)
+      }
+    }, 100)
+  }
 }
 
 const handleKeyUp = (event) => {
@@ -256,6 +280,12 @@ const handleKeyUp = (event) => {
       ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(key)
     )
     if (!hasMovementKey) {
+      // Clear movement interval
+      if (movementInterval) {
+        clearInterval(movementInterval)
+        movementInterval = null
+      }
+      currentDirection.value = null
       handleStopMove()
     }
   }
@@ -289,6 +319,18 @@ onMounted(() => {
 onUnmounted(() => {
   stopGame()
   stopSessionTimer()
+
+  // Clear movement interval
+  if (movementInterval) {
+    clearInterval(movementInterval)
+    movementInterval = null
+  }
+
+  // Clear space charge interval
+  if (spaceChargeInterval) {
+    clearInterval(spaceChargeInterval)
+    spaceChargeInterval = null
+  }
 
   // Remove keyboard event listeners
   window.removeEventListener('keydown', handleKeyDown)
