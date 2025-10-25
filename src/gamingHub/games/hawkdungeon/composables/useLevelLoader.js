@@ -141,7 +141,7 @@ export function useLevelLoader() {
    */
   const getFloorTile = (gridX, gridY) => {
     const key = `${gridX},${gridY}`
-    return levelData.floors.get(key) || 'floor'
+    return levelData.floors.get(key) || 'empty'
   }
 
   /**

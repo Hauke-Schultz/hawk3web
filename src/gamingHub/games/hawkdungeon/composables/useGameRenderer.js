@@ -113,15 +113,25 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         const worldTileX = startTileX + x
         const worldTileY = startTileY + y
 
+        // Skip tiles outside level bounds
+        if (worldTileX < 0 || worldTileX >= levelLoader.levelData.width ||
+            worldTileY < 0 || worldTileY >= levelLoader.levelData.height) {
+          continue
+        }
+
         // Calculate screen position using world coordinates + dungeonOffset
         const worldX = worldTileX * TILE_SIZE
         const worldY = worldTileY * TILE_SIZE
         const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
         const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
-        // Get floor tile from level or use default
+        // Get floor tile from level
         const floorType = levelLoader.getFloorTile(worldTileX, worldTileY)
-        drawTile(ctx, floorType, drawX, drawY)
+
+        // Only draw if it's not empty
+        if (floorType !== 'empty') {
+          drawTile(ctx, floorType, drawX, drawY)
+        }
       }
     }
 
@@ -130,6 +140,12 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       for (let x = 0; x < tilesX; x++) {
         const worldTileX = startTileX + x
         const worldTileY = startTileY + y
+
+        // Skip tiles outside level bounds
+        if (worldTileX < 0 || worldTileX >= levelLoader.levelData.width ||
+            worldTileY < 0 || worldTileY >= levelLoader.levelData.height) {
+          continue
+        }
 
         // Calculate screen position using world coordinates + dungeonOffset
         const worldX = worldTileX * TILE_SIZE
