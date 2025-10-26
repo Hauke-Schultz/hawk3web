@@ -15,6 +15,7 @@ import About from '../views/About.vue'
 import HawkGymHome from '../hawkGym/views/HawkGymHome.vue'
 import HawkGymTimer from '../hawkGym/views/HawkGymTimer.vue'
 import HawkGymSettings from "../hawkGym/views/HawkGymSettings.vue";
+import PartyInfo from '../party/PartyInfo.vue'
 
 const routes = [
   {
@@ -167,6 +168,14 @@ const routes = [
     component: HawkGymSettings,
     meta: {
       title: 'Hawk Gym Settings'
+    }
+  },
+  {
+    path: '/party',
+    name: 'Party',
+    component: PartyInfo,
+    meta: {
+      title: 'Party Einladung'
     }
   },
   {
