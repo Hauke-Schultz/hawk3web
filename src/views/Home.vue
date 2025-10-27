@@ -479,12 +479,7 @@ const getTodayName = () => {
 
 <style lang="scss" scoped>
 .home {
-	padding: var(--space-4) 0;
-	display: flex;
-	flex-direction: column;
 	gap: var(--space-2);
-	max-width: var(--content-width);
-	margin: 0;
 }
 
 // Progress Section

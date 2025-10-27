@@ -87,7 +87,6 @@ onMounted(async () => {
 
 <style lang="scss">
 #app {
-	margin: 0 auto;
 	display: flex;
 	justify-content: center;
 }
@@ -100,8 +99,18 @@ onMounted(async () => {
 	transition: background-color 0.3s, color 0.3s;
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	position: relative;
-	width: var(--content-width);
+	width: 100%;
+	max-width: var(--content-width);
+}
+
+main {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	padding: var(--space-4);
+	width: 100%;
 }
 
 .content {

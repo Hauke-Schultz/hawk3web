@@ -469,7 +469,7 @@ watch(() => props.player.diamonds, () => {
 .header {
 	background-color: var(--bg-header);
 	border-bottom: 1px solid var(--card-border);
-	width: var(--content-width);
+	width: 100%;
 	position: relative;
 	z-index: 100;
 }
