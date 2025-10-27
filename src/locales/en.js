@@ -73,6 +73,10 @@ export default {
     title: 'Hauke Schultz',
     subtitle: 'Explore my projects and works',
     projects: 'Projects',
+    welcome: {
+      title: 'Welcome',
+      description: 'Hello! I\'m Hauke Schultz, a passionate developer. Here you can find my projects and works. Feel free to explore!'
+    },
     gamingHub: {
       title: 'Hawk3 Gaming Platform',
       description: 'A modern gaming platform with multiple mini-games.',
@@ -567,6 +571,10 @@ export default {
 	gaming: {
 		title: 'Games',
 		subtitle: 'Challenge yourself with exciting games',
+		hub: {
+			title: 'Hawk3 Gaming Platform',
+			description: 'Play exciting mini-games, collect achievements and compete against yourself! Dive into the Hawk3 Gaming Platform.'
+		},
 		choose_level: 'Choose your level',
 		back_to_games: 'Back to Games',
 		back_to_game_hub: 'Back to Game Hub',

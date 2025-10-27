@@ -30,6 +30,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false
 	},
+	showGameInfo: {
+		type: Boolean,
+		default: true
+	},
 	gameState: {
 		type: Object,
 		default: null
@@ -358,7 +362,7 @@ watch(() => props.player.diamonds, () => {
 			</div>
 
 			<!-- Right section -->
-			<div class="header-right">
+			<div class="header-right" v-if="showGameInfo">
 				<div class="notification-container">
 					<button
 						v-if="showNotifications || notificationItems.length >= 0"

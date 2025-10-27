@@ -49,10 +49,8 @@ const handleMenuClick = () => {
 
 <template>
 	<Header
-			:game-data="gameData"
-			:player="gameData.player"
-			:achievements="gameData.achievements"
 			:show-menu-button="true"
+			:show-game-info="false"
 			@menu-click="handleMenuClick"
 	/>
 	<main class="content">
@@ -474,7 +472,7 @@ const handleMenuClick = () => {
 
 // Contact Info
 .contact-info {
-	display: flex;
+	display: none;
 	flex-direction: column;
 	gap: var(--space-3);
 }

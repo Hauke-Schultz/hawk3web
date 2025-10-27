@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import HaukeSchultz from '../views/HaukeSchultz.vue'
 import Home from '../views/Home.vue'
 import Gaming from '../gamingHub/views/Gaming.vue'
 import MemoryLevels from '../gamingHub/games/memory/MemoryLevels.vue'
@@ -20,7 +21,12 @@ import PartyInfo from '../party/PartyInfo.vue'
 const routes = [
   {
     path: '/',
-    name: 'Home',
+    name: 'Landing',
+    component: HaukeSchultz
+  },
+  {
+    path: '/gaming',
+    name: 'GamingHub',
     component: Home
   },
   {
