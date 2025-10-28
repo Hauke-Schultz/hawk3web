@@ -5,7 +5,7 @@ import Icon from '../components/Icon.vue'
 // Bilder für Slider
 const images = [
   new URL('./img/party-01.png', import.meta.url).href,
-  new URL('./img/party-02.png', import.meta.url).href,
+  // new URL('./img/party-02.png', import.meta.url).href,
   new URL('./img/party-03.png', import.meta.url).href
 ]
 
@@ -22,6 +22,147 @@ const countdown = ref({
   seconds: 0
 })
 let countdownInterval = null
+
+// Level-Up Clicker Game State
+const currentLevel = ref(0)
+const clickAnimation = ref(false)
+const gameCompleted = ref(false)
+
+// Level Titles
+const getLevelTitle = (level) => {
+  if (level === 0) return 'Bereit zum Leveln?'
+  if (level < 5) return 'Anfänger'
+  if (level < 10) return 'Fortgeschritten'
+  if (level < 25) return 'Profi'
+  if (level < 50) return 'Experte'
+  if (level < 75) return 'Meister'
+  if (level < 100) return 'Champion'
+  return 'LEVEL GOD 🔥'
+}
+
+// Level Up Click Handler
+const levelUp = () => {
+  // Animation triggern
+  clickAnimation.value = true
+  setTimeout(() => {
+    clickAnimation.value = false
+  }, 200)
+
+  currentLevel.value++
+
+  // Bei Level 10: Game Completed - Münzen-Regen startet!
+  if (currentLevel.value === 100) {
+    gameCompleted.value = true
+    createConfetti()
+    createTreasureRain()
+    return
+  }
+
+  // Nach Level 10: Füge bei jedem Klick eine zufällige Münze hinzu
+  if (currentLevel.value > 1) {
+    addSingleTreasure()
+  }
+
+  // Konfetti bei Milestones
+  const milestones = [50, 100, 150, 200]
+  if (milestones.includes(currentLevel.value)) {
+    createConfetti()
+  }
+}
+
+// Füge eine einzelne Münze hinzu (nach Level 100)
+const addSingleTreasure = () => {
+  const treasures = ['💰', '💎', '🪙', '💵', '💴', '💶', '💷', '💸', '🏆', '⭐', '✨']
+  const container = document.querySelector('.level-up-card')
+
+  let treasureContainer = document.querySelector('.treasure-container')
+  if (!treasureContainer) {
+    treasureContainer = document.createElement('div')
+    treasureContainer.className = 'treasure-container'
+    container.appendChild(treasureContainer)
+  }
+
+  const treasure = document.createElement('div')
+  treasure.className = 'treasure'
+  treasure.textContent = treasures[Math.floor(Math.random() * treasures.length)]
+
+  const startLeft = Math.random() * 100
+  treasure.style.left = startLeft + '%'
+  treasure.style.top = '-50px'
+  treasure.style.fontSize = Math.random() * 15 + 20 + 'px'
+
+  // Zähle vorhandene Treasures
+  const existingTreasures = treasureContainer.querySelectorAll('.treasure').length
+  const row = Math.floor(existingTreasures / 8)
+  const col = existingTreasures % 8
+  const finalBottom = row * 35 + Math.random() * 10
+  const finalLeft = col * 12 + Math.random() * 8
+
+  const rotation = Math.random() * 60 - 30
+  const duration = Math.random() * 0.5 + 1.5
+
+  treasure.style.setProperty('--treasure-final-bottom', finalBottom + 'px')
+  treasure.style.setProperty('--treasure-final-left', finalLeft + '%')
+  treasure.style.setProperty('--treasure-rotation', rotation + 'deg')
+  treasure.style.animation = `treasureFillUp ${duration}s ease-out forwards`
+
+  treasureContainer.appendChild(treasure)
+}
+
+// Münzen und Diamanten füllen die Card wie ein Glas bei Level 100
+const createTreasureRain = () => {
+  const treasures = ['💰', '💎', '🪙', '💵', '💴', '💶', '💷', '💸', '🏆', '⭐', '✨']
+  const treasureCount = 80
+  const container = document.querySelector('.level-up-card')
+
+  // Container für Treasures erstellen
+  const treasureContainer = document.createElement('div')
+  treasureContainer.className = 'treasure-container'
+  container.appendChild(treasureContainer)
+
+  for (let i = 0; i < treasureCount; i++) {
+    setTimeout(() => {
+      const treasure = document.createElement('div')
+      treasure.className = 'treasure'
+      treasure.textContent = treasures[Math.floor(Math.random() * treasures.length)]
+
+      const startLeft = Math.random() * 100
+      treasure.style.left = startLeft + '%'
+      treasure.style.top = '-50px'
+      treasure.style.fontSize = Math.random() * 15 + 20 + 'px'
+
+      // Berechne finale Position (stapelt sich von unten nach oben)
+      const cardHeight = container.offsetHeight
+      const row = Math.floor(i / 8) // 8 Münzen pro Reihe
+      const col = i % 8
+      const finalBottom = row * 35 + Math.random() * 10 // Stapelt sich von unten
+      const finalLeft = col * 12 + Math.random() * 8 - 16 // Verteilt horizontal
+
+      const rotation = Math.random() * 60 - 30 // Leichte Rotation
+      const duration = Math.random() * 0.5 + 1.5
+
+      treasure.style.setProperty('--treasure-final-bottom', finalBottom + 'px')
+      treasure.style.setProperty('--treasure-final-left', finalLeft + '%')
+      treasure.style.setProperty('--treasure-rotation', rotation + 'deg')
+      treasure.style.animation = `treasureFillUp ${duration}s ease-out forwards`
+
+      treasureContainer.appendChild(treasure)
+      // NICHT entfernen - bleibt sichtbar!
+    }, i * 40)
+  }
+}
+
+// Level Reset
+const resetLevel = () => {
+  currentLevel.value = 0
+  gameCompleted.value = false
+
+  // Entferne den treasure-container falls vorhanden
+  const treasureContainer = document.querySelector('.treasure-container')
+  if (treasureContainer) {
+    treasureContainer.remove()
+  }
+}
 
 // Autoplay stoppen
 const stopAutoplay = () => {
@@ -121,21 +262,21 @@ onUnmounted(() => {
 // Party Details - Hier kannst du die Daten anpassen
 const partyDetails = ref({
   title: 'Toni & Hauke Ehe-Challenge Party',
-  date: '2026-07-04', // Format: YYYY-MM-DD
-  startTime: '16:00',
+  date: '2026-07-25', // Format: YYYY-MM-DD (Samstag, 25.07.2026)
+  startTime: '16:00', // Platzhalter für Countdown
   endTime: '02:00',
-  hotelName: 'Hotel Kramer´s Gasthof',
-  hotelWebsite: 'https://www.hotel-kramers-gasthof.de/',
-  address: 'Dorfstraße 24, 25479 Ellerau, Deutschland',
-  description: 'Wir haben nicht nur 15 Jahre Ehe-Challenge gemeistert, sondern feiern auch einen weiteren Meilenstein!\n\nToni wurde 50, oder wie sie es ausdrückt: Sie steigt im Wert.\n\nJetzt kommt das Bonuslevel: Party! 🥳\nKommt und feiert mit uns, wenn wir zusammen weiterleveln – mit Musik, Spaß und ganz viel Konfetti! 🎊',
+  hotelName: '',
+  hotelWebsite: '',
+  address: '',
+  description: 'Wir haben nicht nur 15 Jahre Ehe-Challenge gemeistert, sondern feiern auch einen weiteren Meilenstein!\n\nToni wurde 50, oder wie sie es ausdrückt: Sie steigt im Wert.\n\nJetzt kommt das Bonuslevel:\nParty! 🥳\n\nKommt und feiert mit uns, wenn wir zusammen weiterleveln – mit Musik, Spaß und ganz viel Konfetti! 🎊',
   dresscode: 'Nach Belieben - Hauptsache ihr fühlt euch wohl!',
   rsvpDeadline: '2026-05-01',
   rsvpEmail: 'tonjaschultz@gmail.com',
   rsvpPhone: '+49 173 8934144',
   program: [
-    { time: '16:00', activity: 'Empfang' },
-    { time: '18:00', activity: 'Abendessen' },
-    { time: '20:00', activity: 'Party' }
+    { time: '--:--', activity: 'Empfang' },
+    { time: '--:--', activity: 'Abendessen' },
+    { time: '--:--', activity: 'Party' }
   ]
 })
 
@@ -149,82 +290,74 @@ const escapeICalText = (text) => {
     .replace(/\n/g, '\\n')   // Newlines escapen
 }
 
-// Google Calendar Link
-const addToGoogleCalendar = () => {
-  const event = partyDetails.value
-  const startDateTime = `${event.date.replace(/-/g, '')}T${event.startTime.replace(':', '')}00`
-  const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
-  const endDateTime = `${endDate.replace(/-/g, '')}T${event.endTime.replace(':', '')}00`
+// Google Calendar Event Link - Hier deinen Google Calendar Event Link einfügen
+const GOOGLE_CALENDAR_EVENT_LINK = 'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=N2xiZHFsczZwZTYzdnNxbnRmNGtwMjkxNGogYWYyMDdiNzAxMDg5ZWIyMmYyZDE2NTI2YTg1Njg0M2Q1NTBjMDBjYTViMWJiNjVhNDhmZjJjNjk5OTE4ZDI0YkBn&tmsrc=af207b701089eb22f2d16526a856843d550c00ca5b1bb65a48ff2c699918d24b%40group.calendar.google.com' // <-- HIER DEINEN LINK EINFÜGEN!
 
-  const url = new URL('https://calendar.google.com/calendar/render')
-  url.searchParams.append('action', 'TEMPLATE')
-  url.searchParams.append('text', event.title)
-  url.searchParams.append('dates', `${startDateTime}/${endDateTime}`)
-  url.searchParams.append('details', event.description)
-  url.searchParams.append('location', `${event.hotelName}, ${event.address}`)
-
-  window.open(url.toString(), '_blank')
+const openGoogleCalendarEvent = () => {
+  window.open(GOOGLE_CALENDAR_EVENT_LINK, '_blank')
 }
 
-// Outlook Calendar Link
-const addToOutlookCalendar = () => {
-  const event = partyDetails.value
-  const startDateTime = `${event.date}T${event.startTime}:00`
-  const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
-  const endDateTime = `${endDate}T${event.endTime}:00`
+// TODO: Später aktivieren wenn alle Details final sind
+// Outlook Calendar - einmaliges Hinzufügen
+// const addToOutlookCalendar = () => {
+//   const event = partyDetails.value
+//   const startDateTime = `${event.date}T${event.startTime}:00`
+//   const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
+//   const endDateTime = `${endDate}T${event.endTime}:00`
+//
+//   const url = new URL('https://outlook.live.com/calendar/0/deeplink/compose')
+//   url.searchParams.append('subject', event.title)
+//   url.searchParams.append('startdt', startDateTime)
+//   url.searchParams.append('enddt', endDateTime)
+//   url.searchParams.append('body', event.description)
+//   url.searchParams.append('location', `${event.hotelName}, ${event.address}`)
+//   url.searchParams.append('path', '/calendar/action/compose')
+//   url.searchParams.append('rru', 'addevent')
+//
+//   window.open(url.toString(), '_blank')
+// }
 
-  const url = new URL('https://outlook.live.com/calendar/0/deeplink/compose')
-  url.searchParams.append('subject', event.title)
-  url.searchParams.append('startdt', startDateTime)
-  url.searchParams.append('enddt', endDateTime)
-  url.searchParams.append('body', event.description)
-  url.searchParams.append('location', `${event.hotelName}, ${event.address}`)
-  url.searchParams.append('path', '/calendar/action/compose')
-  url.searchParams.append('rru', 'addevent')
-
-  window.open(url.toString(), '_blank')
-}
-
-// .ics Datei Download (Fallback)
-const downloadCalendar = () => {
-  const event = partyDetails.value
-  const startDateTime = `${event.date.replace(/-/g, '')}T${event.startTime.replace(':', '')}00`
-  const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
-  const endDateTime = `${endDate.replace(/-/g, '')}T${event.endTime.replace(':', '')}00`
-
-  const escapedTitle = escapeICalText(event.title)
-  const escapedDescription = escapeICalText(event.description)
-  const escapedLocation = escapeICalText(`${event.hotelName}, ${event.address}`)
-
-  const icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Party Invitation//NONSGML v1.0//EN
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-BEGIN:VEVENT
-DTSTART:${startDateTime}
-DTEND:${endDateTime}
-SUMMARY:${escapedTitle}
-DESCRIPTION:${escapedDescription}
-LOCATION:${escapedLocation}
-STATUS:CONFIRMED
-SEQUENCE:0
-BEGIN:VALARM
-TRIGGER:-P1D
-ACTION:DISPLAY
-DESCRIPTION:Reminder: ${escapedTitle} morgen!
-END:VALARM
-END:VEVENT
-END:VCALENDAR`
-
-  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'party-einladung.ics'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+// TODO: Später aktivieren wenn alle Details final sind
+// Apple Calendar - .ics Download
+// const downloadCalendar = () => {
+//   const event = partyDetails.value
+//   const startDateTime = `${event.date.replace(/-/g, '')}T${event.startTime.replace(':', '')}00`
+//   const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
+//   const endDateTime = `${endDate.replace(/-/g, '')}T${event.endTime.replace(':', '')}00`
+//
+//   const escapedTitle = escapeICalText(event.title)
+//   const escapedDescription = escapeICalText(event.description)
+//   const escapedLocation = escapeICalText(`${event.hotelName}, ${event.address}`)
+//
+//   const icsContent = `BEGIN:VCALENDAR
+// VERSION:2.0
+// PRODID:-//Party Invitation//NONSGML v1.0//EN
+// CALSCALE:GREGORIAN
+// METHOD:PUBLISH
+// BEGIN:VEVENT
+// DTSTART:${startDateTime}
+// DTEND:${endDateTime}
+// SUMMARY:${escapedTitle}
+// DESCRIPTION:${escapedDescription}
+// LOCATION:${escapedLocation}
+// STATUS:CONFIRMED
+// SEQUENCE:0
+// BEGIN:VALARM
+// TRIGGER:-P1D
+// ACTION:DISPLAY
+// DESCRIPTION:Reminder: ${escapedTitle} morgen!
+// END:VALARM
+// END:VEVENT
+// END:VCALENDAR`
+//
+//   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+//   const link = document.createElement('a')
+//   link.href = URL.createObjectURL(blob)
+//   link.download = 'party-einladung.ics'
+//   document.body.appendChild(link)
+//   link.click()
+//   document.body.removeChild(link)
+// }
 
 // Hilfsfunktion: Nächsten Tag berechnen
 const getNextDay = (dateString) => {
@@ -363,38 +496,55 @@ const createConfetti = () => {
       <!-- Calendar Card -->
       <section class="info-card calendar-card">
         <div class="calendar-visual">
-          <div class="calendar-month">{{ getCalendarMonth(partyDetails.date) }}</div>
+	        <div class="calendar-month">{{ getCalendarMonth(partyDetails.date) }}</div>
           <div class="calendar-day">{{ getCalendarDay(partyDetails.date) }}</div>
           <div class="calendar-weekday">{{ getCalendarWeekday(partyDetails.date) }}</div>
-          <div class="calendar-time">{{ partyDetails.startTime }} - {{ partyDetails.endTime }} Uhr</div>
+<!--          <div class="calendar-time">{{ partyDetails.startTime }} - {{ partyDetails.endTime }} Uhr</div>-->
 
+	        <div class="save-the-date-badge">SAVE THE DATE</div>
           <!-- Countdown -->
-          <div class="countdown" v-if="countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0">
-            <div class="countdown-item">
-              <span class="countdown-value">{{ countdown.days }}</span>
-              <span class="countdown-label">Tage</span>
-            </div>
-            <div class="countdown-item">
-              <span class="countdown-value">{{ String(countdown.hours).padStart(2, '0') }}</span>
-              <span class="countdown-label">Stunden</span>
-            </div>
-            <div class="countdown-item">
-              <span class="countdown-value">{{ String(countdown.minutes).padStart(2, '0') }}</span>
-              <span class="countdown-label">Minuten</span>
-            </div>
-          </div>
+<!--          <div class="countdown" v-if="countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0">-->
+<!--            <div class="countdown-item">-->
+<!--              <span class="countdown-value">{{ countdown.days }}</span>-->
+<!--              <span class="countdown-label">Tage</span>-->
+<!--            </div>-->
+<!--            <div class="countdown-item">-->
+<!--              <span class="countdown-value">{{ String(countdown.hours).padStart(2, '0') }}</span>-->
+<!--              <span class="countdown-label">Stunden</span>-->
+<!--            </div>-->
+<!--            <div class="countdown-item">-->
+<!--              <span class="countdown-value">{{ String(countdown.minutes).padStart(2, '0') }}</span>-->
+<!--              <span class="countdown-label">Minuten</span>-->
+<!--            </div>-->
+<!--          </div>-->
         </div>
       </section>
 
       <!-- Description Card -->
       <section class="info-card">
-	      <div class="card-header">
-		      <h2>Über die Veranstaltung</h2>
-	      </div>
         <div class="card-content">
           <p class="description">{{ partyDetails.description }}</p>
         </div>
       </section>
+
+
+	    <!-- Level-Up Clicker Game Card -->
+	    <section class="info-card level-up-card">
+		    <div class="card-content">
+			    <div class="level-display">
+				    <div class="level-number">Level {{ currentLevel }}</div>
+				    <div class="level-title">{{ getLevelTitle(currentLevel) }}</div>
+			    </div>
+
+			    <button
+					    class="level-up-btn"
+					    :class="{ 'level-up-btn--animate': clickAnimation }"
+					    @click="levelUp"
+			    >
+				    LEVEL UP!
+			    </button>
+		    </div>
+	    </section>
 
 	    <!-- Location Card -->
 	    <section class="info-card">
@@ -402,24 +552,25 @@ const createConfetti = () => {
 			    <h2>Ort</h2>
 		    </div>
 		    <div class="card-content">
-			    <h3 class="hotel-name">{{ partyDetails.hotelName }}</h3>
-			    <p class="address">{{ partyDetails.address }}</p>
-			    <p class="hotel-link">
-				    <a :href="partyDetails.hotelWebsite" target="_blank" rel="noopener noreferrer">
-					    {{ partyDetails.hotelWebsite }}
-				    </a>
-			    </p>
+			    <div class="placeholder-badge">📍 Ort wird bekannt gegeben</div>
+<!--			    <h3 class="hotel-name">{{ partyDetails.hotelName }}</h3>-->
+<!--			    <p class="address">{{ partyDetails.address }}</p>-->
+<!--			    <p class="hotel-link">-->
+<!--				    <a :href="partyDetails.hotelWebsite" target="_blank" rel="noopener noreferrer">-->
+<!--					    {{ partyDetails.hotelWebsite }}-->
+<!--				    </a>-->
+<!--			    </p>-->
 
 			    <!-- Google Maps iframe -->
-			    <div class="maps-container">
-				    <iframe
-					    :src="getGoogleMapsEmbedLink(partyDetails.address)"
-					    class="maps-iframe"
-					    allowfullscreen
-					    loading="lazy"
-					    referrerpolicy="no-referrer-when-downgrade"
-				    ></iframe>
-			    </div>
+<!--			    <div class="maps-container">-->
+<!--				    <iframe-->
+<!--					    :src="getGoogleMapsEmbedLink(partyDetails.address)"-->
+<!--					    class="maps-iframe"-->
+<!--					    allowfullscreen-->
+<!--					    loading="lazy"-->
+<!--					    referrerpolicy="no-referrer-when-downgrade"-->
+<!--				    ></iframe>-->
+<!--			    </div>-->
 		    </div>
 	    </section>
 
@@ -429,16 +580,17 @@ const createConfetti = () => {
           <h2>Programm</h2>
         </div>
         <div class="card-content">
-          <div class="program-list">
-            <div
-              v-for="(item, index) in partyDetails.program"
-              :key="index"
-              class="program-item"
-            >
-              <span class="program-time">{{ item.time }}</span>
-              <span class="program-activity">{{ item.activity }}</span>
-            </div>
-          </div>
+          <div class="placeholder-badge">🗓️ Programm folgt</div>
+<!--          <div class="program-list">-->
+<!--            <div-->
+<!--              v-for="(item, index) in partyDetails.program"-->
+<!--              :key="index"-->
+<!--              class="program-item"-->
+<!--            >-->
+<!--              <span class="program-time">{{ item.time }}</span>-->
+<!--              <span class="program-activity">{{ item.activity }}</span>-->
+<!--            </div>-->
+<!--          </div>-->
         </div>
       </section>
 
@@ -448,7 +600,8 @@ const createConfetti = () => {
           <h2>Dresscode</h2>
         </div>
         <div class="card-content">
-          <p class="dresscode">{{ partyDetails.dresscode }}</p>
+          <div class="placeholder-badge">👔 Details folgen</div>
+<!--          <p class="dresscode">{{ partyDetails.dresscode }}</p>-->
         </div>
       </section>
 
@@ -458,7 +611,8 @@ const createConfetti = () => {
           <h2>Hotel Übernachtung</h2>
         </div>
         <div class="card-content">
-          <p>Falls ihr eine Übernachtung im Hotel benötigt, meldet euch bitte bei uns.</p>
+          <div class="placeholder-badge">🏨 Infos folgen</div>
+<!--          <p>Falls ihr eine Übernachtung im Hotel benötigt, meldet euch bitte bei uns.</p>-->
         </div>
       </section>
 
@@ -468,25 +622,28 @@ const createConfetti = () => {
           <h2>Zusage</h2>
         </div>
         <div class="card-content">
-          <p>Bitte sage bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> zu.</p>
+          <div class="placeholder-badge">📬 Deadline folgt</div>
+<!--          <p>Bitte sage bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> zu.</p>-->
         </div>
       </section>
 
-      <!-- Calendar Download Card -->
+      <!-- Calendar Subscribe Card -->
       <section class="info-card">
         <div class="card-header">
           <h2>Zum Kalender hinzufügen</h2>
         </div>
-        <div class="card-content calendar-buttons">
-          <button class="btn btn--calendar btn--google" @click="addToGoogleCalendar">
-            Google
-          </button>
-          <button class="btn btn--calendar btn--outlook" @click="addToOutlookCalendar">
-            Outlook
-          </button>
-          <button class="btn btn--calendar btn--apple" @click="downloadCalendar">
-            Apple
-          </button>
+        <div class="card-content">
+	        <div class="placeholder-badge">📅 Kalender Eintrag folgt</div>
+
+          <!-- TODO: Später aktivieren wenn alle Details final sind -->
+          <!-- <div class="calendar-buttons" style="margin-top: var(--space-4);">
+            <button class="btn btn--calendar btn--outlook" @click="addToOutlookCalendar">
+              Outlook
+            </button>
+            <button class="btn btn--calendar btn--apple" @click="downloadCalendar">
+              Apple
+            </button>
+          </div> -->
         </div>
       </section>
 
@@ -528,6 +685,7 @@ const createConfetti = () => {
 <style lang="scss">
 .container {
 	width: 100%;
+	max-width: 100%;
 }
 
 .party-page {
@@ -537,6 +695,7 @@ const createConfetti = () => {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	width: 100%;
 }
 
 .hero-section {
@@ -660,6 +819,7 @@ const createConfetti = () => {
 .party-main {
   padding: var(--space-6) var(--space-4);
   display: flex;
+	flex-direction: row;
 	justify-content: center;
   flex-wrap: wrap;
   gap: var(--space-4);
@@ -710,8 +870,8 @@ const createConfetti = () => {
   color: var(--text-color);
 
   p {
-    margin: var(--space-2) 0;
-    line-height: 1.6;
+    margin: 0;
+    line-height: 1.3;
   }
 
   a {
@@ -743,6 +903,7 @@ const createConfetti = () => {
 
 .description {
   white-space: pre-line;
+	font-size: var(--font-size-lg);
 }
 
 .program-list {
@@ -1059,6 +1220,71 @@ const createConfetti = () => {
   opacity: 0.9;
 }
 
+// Save The Date Badge
+.save-the-date-badge {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: var(--space-3) var(--space-6);
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius-lg);
+  display: inline-block;
+  margin-bottom: var(--space-3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: pulse-badge 2s ease-in-out infinite;
+
+  @media (min-width: 768px) {
+    font-size: var(--font-size-xl);
+  }
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+// Placeholder Badge Styles
+.placeholder-badge {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(135deg, rgba(var(--primary-color-rgb, 255, 107, 107), 0.1), rgba(var(--success-color-rgb, 72, 219, 251), 0.1));
+  border: 2px dashed var(--card-border);
+  border-radius: var(--border-radius-lg);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  text-align: center;
+  animation: fade-pulse 2.5s ease-in-out infinite;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: var(--warning-color);
+    color: var(--text-color);
+    transform: translateY(-2px);
+  }
+
+  @media (min-width: 768px) {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@keyframes fade-pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 // Google Maps iframe Styles
 .maps-container {
   margin-top: var(--space-4);
@@ -1079,6 +1305,131 @@ const createConfetti = () => {
   height: 100%;
   border: none;
   border-radius: var(--border-radius-lg);
+}
+
+// Level-Up Clicker Game Styles
+.level-up-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+
+  .card-header h2 {
+    color: white;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    position: relative;
+    z-index: 2;
+  }
+}
+
+// Treasure Container - füllt die Card von unten
+.treasure-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+// Münzen und Diamanten Animation
+.treasure {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+// Neue Animation: Münzen fallen und stapeln sich von unten
+@keyframes treasureFillUp {
+  0% {
+    top: -50px;
+    left: var(--treasure-final-left, 50%);
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.1) rotate(180deg);
+  }
+  100% {
+    top: auto;
+    bottom: var(--treasure-final-bottom, 0px);
+    left: var(--treasure-final-left, 50%);
+    opacity: 1;
+    transform: scale(1) rotate(var(--treasure-rotation, 0deg));
+  }
+}
+
+.level-display {
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+.level-number {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-2);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+
+  @media (min-width: 768px) {
+    font-size: 3.5rem;
+  }
+}
+
+.level-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  opacity: 0.9;
+  min-height: 28px;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+
+  @media (min-width: 768px) {
+    font-size: var(--font-size-xl);
+  }
+}
+
+.level-up-btn {
+  width: 100%;
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  user-select: none;
+	opacity: .9;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+.level-milestones {
+  text-align: center;
+}
+
+.milestone-text {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
