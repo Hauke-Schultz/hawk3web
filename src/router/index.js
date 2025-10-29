@@ -181,7 +181,8 @@ const routes = [
     name: 'Party',
     component: PartyInfo,
     meta: {
-      title: 'Party Einladung'
+      title: 'Toni & Hauke Ehe-Challenge Party 2026',
+      description: 'Wir haben nicht nur 15 Jahre Ehe-Challenge gemeistert, sondern feiern auch einen weiteren Meilenstein!\n\nToni wurde 50, oder wie sie es ausdrückt: Sie steigt im Wert.\n\nJetzt kommt das Bonuslevel:\nParty! 🥳\n\nKommt und feiert mit uns, wenn wir zusammen weiterleveln – mit Musik, Spaß und ganz viel Konfetti! 🎊'
     }
   },
   {
@@ -193,6 +194,11 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Update document title based on route meta
+router.afterEach((to) => {
+  document.title = to.meta?.title || 'Hawk3'
 })
 
 export default router

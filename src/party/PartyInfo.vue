@@ -1,6 +1,10 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import Icon from '../components/Icon.vue'
+
+// Router instance
+const route = useRoute()
 
 // Bilder für Slider
 const images = [
@@ -207,34 +211,8 @@ const openImageInNewTab = () => {
   window.open(images[currentImageIndex.value], '_blank')
 }
 
-// Seitentitel und Favicon setzen
-const setPageMetadata = () => {
-  // Titel setzen
-  document.title = 'Toni & Hauke Ehe-Challenge Party 2026'
-
-  // Favicon setzen (SVG Party-Icon)
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r="45" fill="#ff6b6b"/>
-      <text x="50" y="65" font-size="50" text-anchor="middle" fill="white">🎉</text>
-    </svg>
-  `
-  const favicon = document.querySelector("link[rel*='icon']") || document.createElement('link')
-  favicon.type = 'image/svg+xml'
-  favicon.rel = 'shortcut icon'
-  favicon.href = `data:image/svg+xml,${encodeURIComponent(svg)}`
-
-  // Altes Favicon entfernen und neues hinzufügen
-  const oldFavicon = document.querySelector("link[rel*='icon']")
-  if (oldFavicon) {
-    oldFavicon.remove()
-  }
-  document.getElementsByTagName('head')[0].appendChild(favicon)
-}
-
 // Beim Laden der Seite
 onMounted(() => {
-  setPageMetadata()
   intervalId = setInterval(nextImage, 5000)
 
   // Countdown starten
@@ -255,8 +233,6 @@ onUnmounted(() => {
   if (countdownInterval) {
     clearInterval(countdownInterval)
   }
-  // Optional: Titel zurücksetzen
-  document.title = 'Hawk3'
 })
 
 // Party Details - Hier kannst du die Daten anpassen
@@ -1227,13 +1203,19 @@ const createConfetti = () => {
   text-transform: uppercase;
   letter-spacing: 2px;
   padding: var(--space-3) var(--space-6);
-  background: rgba(255, 255, 255, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--border-radius-lg);
+	background: linear-gradient(135deg, rgba(var(--primary-color-rgb, 255, 107, 107), 0.1), rgba(var(--success-color-rgb, 72, 219, 251), 0.1));
+	border-radius: var(--border-radius-lg);
   display: inline-block;
   margin-bottom: var(--space-3);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   animation: pulse-badge 2s ease-in-out infinite;
+	cursor: default;
+
+	&:hover {
+		border-color: var(--warning-color);
+		color: var(--text-color);
+		transform: translateY(-2px);
+	}
 
   @media (min-width: 768px) {
     font-size: var(--font-size-xl);
@@ -1313,6 +1295,7 @@ const createConfetti = () => {
   color: white;
   position: relative;
   overflow: hidden;
+	min-height: 360px;
 
   .card-header h2 {
     color: white;
