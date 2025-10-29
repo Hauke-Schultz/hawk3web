@@ -173,6 +173,11 @@ const formatTime = (seconds, locale = currentLanguage.value) => {
 
 // Detect browser language
 const detectBrowserLanguage = () => {
+	// SSR-safe: Check if navigator is available (browser only)
+	if (typeof navigator === 'undefined') {
+		return DEFAULT_LANGUAGE
+	}
+
 	const browserLang = navigator.language || navigator.userLanguage || DEFAULT_LANGUAGE
 	const langCode = browserLang.split('-')[0] // Extract language code (e.g., 'en' from 'en-US')
 
@@ -182,6 +187,11 @@ const detectBrowserLanguage = () => {
 
 // Get language from localStorage or detect from browser
 const getStoredLanguage = () => {
+	// SSR-safe: Check if localStorage is available (browser only)
+	if (typeof localStorage === 'undefined') {
+		return DEFAULT_LANGUAGE
+	}
+
 	try {
 		const stored = localStorage.getItem('hawk3_language')
 		if (stored && AVAILABLE_LANGUAGES[stored]) {

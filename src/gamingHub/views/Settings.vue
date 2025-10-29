@@ -64,6 +64,11 @@ const closeInstallPrompt = () => {
 
 // Check if PWA is already installed
 const isPWAInstalled = () => {
+	// SSR-safe: Check if window is available (browser only)
+	if (typeof window === 'undefined') {
+		return false
+	}
+
 	// Check various standalone indicators
 	const matchMedia = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
 	const navigatorStandalone = typeof navigator !== 'undefined' && navigator.standalone

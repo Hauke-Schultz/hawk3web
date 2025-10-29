@@ -10,7 +10,11 @@ const route = useRoute()
 const images = [
   new URL('./img/party-01.png', import.meta.url).href,
   // new URL('./img/party-02.png', import.meta.url).href,
-  new URL('./img/party-03.png', import.meta.url).href
+  // new URL('./img/party-03.png', import.meta.url).href,
+  new URL('./img/party-04.png', import.meta.url).href,
+  new URL('./img/party-05.png', import.meta.url).href,
+  new URL('./img/party-06.png', import.meta.url).href,
+  new URL('./img/party-07.png', import.meta.url).href
 ]
 
 // Slider State
@@ -624,7 +628,7 @@ const createConfetti = () => {
       </section>
 
       <!-- Bilder Slider Card -->
-      <section class="info-card">
+      <section class="info-card info-card--wide">
         <div class="card-content">
           <div class="image-slider">
             <div class="slider-container">
@@ -661,7 +665,7 @@ const createConfetti = () => {
 <style lang="scss">
 .container {
 	width: 100%;
-	max-width: 100%;
+	max-width: none !important;
 }
 
 .party-page {
@@ -669,7 +673,6 @@ const createConfetti = () => {
   background: var(--bg-primary);
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
 	align-items: center;
 	width: 100%;
 }
@@ -811,6 +814,16 @@ const createConfetti = () => {
     @media (min-width: 1024px) {
       width: calc(33.333% - var(--space-3)); // Desktop: 33%
     }
+
+	  &--wide {
+		  @media (min-width: 768px) {
+			  width: 100%;
+		  }
+
+		  @media (min-width: 1024px) {
+			  width: calc(50% - var(--space-3));
+		  }
+	  }
   }
 }
 
@@ -942,21 +955,13 @@ const createConfetti = () => {
 .slider-container {
   position: relative;
   width: 100%;
-  height: 250px;
+  height: 480px;
   overflow: hidden;
   border-radius: var(--border-radius-lg);
   background: var(--bg-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-
-  @media (min-width: 768px) {
-    height: 200px;
-  }
-
-  @media (min-width: 1024px) {
-    height: 180px;
-  }
 }
 
 .slider-image {
@@ -981,7 +986,7 @@ const createConfetti = () => {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
   color: white;
   border: none;
   padding: var(--space-3) var(--space-4);
@@ -992,7 +997,7 @@ const createConfetti = () => {
   z-index: 10;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.5);
     transform: translateY(-50%) scale(1.1);
   }
 

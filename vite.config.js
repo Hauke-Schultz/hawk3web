@@ -4,6 +4,10 @@ import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  ssgOptions: {
+    script: 'async',
+    formatting: 'minify',
+  },
   plugins: [
     vue(),
     VitePWA({

@@ -43,6 +43,11 @@ const getDefaultGymData = () => ({
 
 // Load gym data from localStorage
 const loadGymData = () => {
+  // SSR-safe: Check if localStorage is available (browser only)
+  if (typeof localStorage === 'undefined') {
+    return getDefaultGymData()
+  }
+
   try {
     const stored = localStorage.getItem(GYM_STORAGE_KEY)
     if (stored) {
@@ -73,6 +78,11 @@ const loadGymData = () => {
 
 // Save gym data to localStorage
 const saveGymData = (data) => {
+  // SSR-safe: Check if localStorage is available (browser only)
+  if (typeof localStorage === 'undefined') {
+    return false
+  }
+
   try {
     localStorage.setItem(GYM_STORAGE_KEY, JSON.stringify(data))
     return true

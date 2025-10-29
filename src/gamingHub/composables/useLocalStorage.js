@@ -441,6 +441,11 @@ const migrateData = (data) => {
 export function useLocalStorage() {
 	// Load initial data from localStorage
 	const loadData = () => {
+		// SSR-safe: Check if localStorage is available (browser only)
+		if (typeof localStorage === 'undefined') {
+			return getDefaultData()
+		}
+
 		try {
 			const stored = localStorage.getItem(STORAGE_KEY)
 			if (stored) {
@@ -477,6 +482,11 @@ export function useLocalStorage() {
 
 	// Save data to localStorage
 	const saveData = () => {
+		// SSR-safe: Check if localStorage is available (browser only)
+		if (typeof localStorage === 'undefined') {
+			return
+		}
+
 		try {
 			gameData.player.lastPlayed = new Date().toISOString().split('T')[0]
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(gameData))
@@ -1252,6 +1262,11 @@ export function useLocalStorage() {
 	}
 
 	const loadLevelState = (gameId, levelNumber) => {
+		// SSR-safe: Check if localStorage is available (browser only)
+		if (typeof localStorage === 'undefined') {
+			return null
+		}
+
 		try {
 			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
 			const levelState = existingStates[gameId]?.[levelNumber]
@@ -1384,6 +1399,11 @@ export function useLocalStorage() {
 	}
 
 	const getRecentLevelsForGame = (gameId, limit = 3) => {
+		// SSR-safe: Check if localStorage is available (browser only)
+		if (typeof localStorage === 'undefined') {
+			return []
+		}
+
 		try {
 			const existingStates = JSON.parse(localStorage.getItem(LEVEL_STATE_KEY) || '{}')
 			const gameLevels = existingStates[gameId] || {}

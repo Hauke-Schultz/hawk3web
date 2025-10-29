@@ -18,7 +18,7 @@ import HawkGymTimer from '../hawkGym/views/HawkGymTimer.vue'
 import HawkGymSettings from "../hawkGym/views/HawkGymSettings.vue";
 import PartyInfo from '../party/PartyInfo.vue'
 
-const routes = [
+export const routes = [
   {
     path: '/',
     name: 'Landing',
@@ -191,14 +191,5 @@ const routes = [
   }
 ]
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
-
-// Update document title based on route meta
-router.afterEach((to) => {
-  document.title = to.meta?.title || 'Hawk3'
-})
-
-export default router
+// Export routes for ViteSSG
+// ViteSSG will create the router automatically

@@ -48,6 +48,12 @@ const screenshots = ref({})
 export function useScreenshot() {
   // Load screenshots from localStorage on initialization
   const loadScreenshots = () => {
+    // SSR-safe: Check if localStorage is available (browser only)
+    if (typeof localStorage === 'undefined') {
+      screenshots.value = {}
+      return
+    }
+
     try {
       const stored = localStorage.getItem(SCREENSHOT_STORAGE_KEY)
       if (stored) {
@@ -61,6 +67,11 @@ export function useScreenshot() {
 
   // Save screenshots to localStorage
   const saveScreenshots = () => {
+    // SSR-safe: Check if localStorage is available (browser only)
+    if (typeof localStorage === 'undefined') {
+      return
+    }
+
     try {
       localStorage.setItem(SCREENSHOT_STORAGE_KEY, JSON.stringify(screenshots.value))
     } catch (error) {
