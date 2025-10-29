@@ -36,6 +36,24 @@ const currentLevel = ref(0)
 const clickAnimation = ref(false)
 const gameCompleted = ref(false)
 
+// Highscore State
+const playerName = ref('')
+const showHighscore = ref(false)
+
+// Dummy Highscore Daten (Top 10)
+const dummyHighscores = ref([
+  { rank: 1, name: 'MaxPower', level: 10000, date: '2025-10-20' },
+  { rank: 2, name: 'LevelKing', level: 8500, date: '2025-10-18' },
+  { rank: 3, name: 'ClickMaster', level: 7800, date: '2025-10-15' },
+  { rank: 4, name: 'PartyHero', level: 6200, date: '2025-10-12' },
+  { rank: 5, name: 'ButtonSmasher', level: 5500, date: '2025-10-10' },
+  { rank: 6, name: 'ProGamer', level: 4900, date: '2025-10-08' },
+  { rank: 7, name: 'SpeedClicker', level: 3800, date: '2025-10-05' },
+  { rank: 8, name: 'ChampionX', level: 2900, date: '2025-10-02' },
+  { rank: 9, name: 'NinjaFinger', level: 2100, date: '2025-09-28' },
+  { rank: 10, name: 'ClickNinja', level: 1500, date: '2025-09-25' }
+])
+
 // Level Titles
 const getLevelTitle = (level) => {
   if (level === 0) return 'Bereit zum Leveln?'
@@ -45,7 +63,70 @@ const getLevelTitle = (level) => {
   if (level < 50) return 'Experte'
   if (level < 75) return 'Meister'
   if (level < 100) return 'Champion'
-  return 'LEVEL GOD 🔥'
+  if (level < 200) return 'LEVEL GOD 🔥'
+  if (level < 400) return 'UNSTOPPABLE 💪'
+  if (level < 800) return 'LEGENDARY 👑'
+  if (level < 1200) return 'IMMORTAL ⚡'
+  if (level < 1600) return 'MYTHICAL 🦄'
+  if (level < 2000) return 'GODLIKE 🌟'
+  if (level < 2400) return 'CELESTIAL 🌌'
+  if (level < 2800) return 'DIVINE ✨'
+  if (level < 3200) return 'ETERNAL 🔮'
+  if (level < 3600) return 'COSMIC 🌠'
+  if (level < 4000) return 'TRANSCENDENT 🎆'
+  if (level < 4400) return 'OMNIPOTENT 💫'
+  if (level < 4800) return 'SUPREME 👾'
+  if (level < 5200) return 'ULTIMATE 🎮'
+  if (level < 5600) return 'INFINITE ♾️'
+  if (level < 6000) return 'ABSOLUTE 💎'
+  if (level < 6400) return 'LIMITLESS 🚀'
+  if (level < 6800) return 'UNRIVALED 🏆'
+  if (level < 7200) return 'INVINCIBLE 🛡️'
+  if (level < 7600) return 'OMNISCIENT 🧠'
+  if (level < 8000) return 'LEGENDARY TITAN 🗿'
+  if (level < 8400) return 'COSMIC EMPEROR 👹'
+  if (level < 8800) return 'UNIVERSAL DEITY 🌍'
+  if (level < 9200) return 'DIMENSION LORD 🌀'
+  if (level < 9600) return 'REALITY BENDER 🔱'
+  if (level < 10000) return 'EXISTENCE MASTER 🌊'
+  if (level >= 10000) return 'THE ONE ☯️'
+  return ''
+}
+
+// LocalStorage Key für Party Level
+const PARTY_LEVEL_KEY = 'party_level'
+
+// Level aus localStorage laden
+const loadLevel = () => {
+  // SSR-safe: Check if localStorage is available (browser only)
+  if (typeof localStorage === 'undefined') {
+    return 0
+  }
+
+  try {
+    const stored = localStorage.getItem(PARTY_LEVEL_KEY)
+    if (stored) {
+      const level = parseInt(stored, 10)
+      return isNaN(level) ? 0 : level
+    }
+  } catch (error) {
+    console.error('Error loading party level from localStorage:', error)
+  }
+  return 0
+}
+
+// Level im localStorage speichern
+const saveLevel = (level) => {
+  // SSR-safe: Check if localStorage is available (browser only)
+  if (typeof localStorage === 'undefined') {
+    return
+  }
+
+  try {
+    localStorage.setItem(PARTY_LEVEL_KEY, level.toString())
+  } catch (error) {
+    console.error('Error saving party level to localStorage:', error)
+  }
 }
 
 // Level Up Click Handler
@@ -57,6 +138,9 @@ const levelUp = () => {
   }, 200)
 
   currentLevel.value++
+
+  // Level im localStorage speichern
+  saveLevel(currentLevel.value)
 
   // Bei Level 10: Game Completed - Münzen-Regen startet!
   if (currentLevel.value === 100) {
@@ -72,7 +156,7 @@ const levelUp = () => {
   }
 
   // Konfetti bei Milestones
-  const milestones = [50, 100, 150, 200]
+  const milestones = [50, 100, 150, 200, 300, 400, 500, 1000, 1500, 2000]
   if (milestones.includes(currentLevel.value)) {
     createConfetti()
   }
@@ -165,6 +249,9 @@ const resetLevel = () => {
   currentLevel.value = 0
   gameCompleted.value = false
 
+  // Level aus localStorage löschen
+  saveLevel(0)
+
   // Entferne den treasure-container falls vorhanden
   const treasureContainer = document.querySelector('.treasure-container')
   if (treasureContainer) {
@@ -217,6 +304,10 @@ const openImageInNewTab = () => {
 
 // Beim Laden der Seite
 onMounted(() => {
+  // Level aus localStorage laden
+  currentLevel.value = loadLevel()
+
+  // Slider starten
   intervalId = setInterval(nextImage, 5000)
 
   // Countdown starten
@@ -406,6 +497,18 @@ const updateCountdown = () => {
   countdown.value = { days, hours, minutes, seconds }
 }
 
+// Submit Score (Placeholder für Datenbank-Integration)
+const submitScore = () => {
+  if (!playerName.value.trim()) {
+    alert('Bitte gib einen Namen ein!')
+    return
+  }
+
+  // Hier später Datenbank-Integration
+  alert(`Glückwunsch ${playerName.value}! Dein Score (Level ${currentLevel.value}) wurde eingetragen!`)
+  createConfetti()
+}
+
 // Konfetti-Animation (Regenfall von oben)
 const createConfetti = () => {
   const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#00d2d3']
@@ -523,6 +626,48 @@ const createConfetti = () => {
 			    >
 				    LEVEL UP!
 			    </button>
+		    </div>
+	    </section>
+
+	    <!-- Highscore Card - nur sichtbar ab Level 100 -->
+	    <section v-if="currentLevel >= 100" class="info-card highscore-card">
+		    <div class="card-header">
+			    <h2>Highscore</h2>
+		    </div>
+		    <div class="card-content">
+			    <!-- Namenseingabe -->
+			    <div class="name-input-section">
+				    <h4 class="congratulations-text">Trage deinen Namen ein und werde Teil der Highscore-Liste:</h4>
+				    <div class="name-input-wrapper">
+					    <input
+						    v-model="playerName"
+						    type="text"
+						    placeholder="Dein Name..."
+						    class="name-input"
+						    maxlength="20"
+					    />
+					    <button class="btn submit-btn" @click="submitScore">
+						    Eintragen
+					    </button>
+				    </div>
+			    </div>
+
+			    <!-- Top 10 Highscore Liste -->
+			    <div class="highscore-list">
+				    <div
+					    v-for="entry in dummyHighscores"
+					    :key="entry.rank"
+					    class="highscore-entry"
+					    :class="{ 'top-3': entry.rank <= 3 }"
+				    >
+					    <span class="rank-number">{{ entry.rank }}.</span>
+					    <span v-if="entry.rank === 1" class="rank-medal">🥇</span>
+					    <span v-else-if="entry.rank === 2" class="rank-medal">🥈</span>
+					    <span v-else-if="entry.rank === 3" class="rank-medal">🥉</span>
+					    <span class="player-name">{{ entry.name }}</span>
+					    <span class="player-level">{{ entry.level }}</span>
+				    </div>
+			    </div>
 		    </div>
 	    </section>
 
@@ -1423,6 +1568,150 @@ body:has(.party-page) .container,
   font-style: italic;
 }
 
+// Highscore Card Styles
+.highscore-card {
+  background: linear-gradient(135deg, #667eea 0%, #19547b 100%);
+  color: white;
+
+  @media (min-width: 768px) {
+    width: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    width: calc(66.666% - var(--space-3));
+  }
+
+  .card-header h2 {
+    color: white;
+  }
+}
+
+.name-input-section {
+  margin-bottom: var(--space-4);
+}
+
+.congratulations-text {
+  margin: 0 0 var(--space-2);
+  color: white;
+}
+
+.input-label {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-3);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.name-input-wrapper {
+  display: flex;
+  gap: var(--space-2);
+  flex-direction: column;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
+}
+
+.name-input {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  transition: all 0.3s ease;
+	width: 140px;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.submit-btn {
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--border-radius-lg);
+  border: none;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.highscore-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--space-4);
+  color: white;
+}
+
+.highscore-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-1);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(4px);
+  }
+
+  &.top-3 {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.6), rgba(255, 140, 0, 0.6));
+    border: 2px solid rgba(255, 215, 0, 0.5);
+  }
+}
+
+.rank-number {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: white;
+  min-width: 30px;
+}
+
+.rank-medal {
+  font-size: var(--font-size-lg);
+  margin-right: var(--space-1);
+}
+
+.player-name {
+  flex: 1;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: white;
+}
+
+.player-level {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: white;
+  text-align: right;
+}
+
 @media (max-width: 768px) {
   .party-title {
     font-size: var(--font-size-2xl);
@@ -1435,6 +1724,22 @@ body:has(.party-page) .container,
   .program-item {
     flex-direction: column;
     gap: var(--space-1);
+  }
+
+  .highscore-entry {
+    gap: var(--space-1);
+  }
+
+  .rank-number {
+    min-width: 25px;
+  }
+
+  .player-name {
+    font-size: var(--font-size-sm);
+  }
+
+  .player-level {
+    font-size: var(--font-size-sm);
   }
 }
 </style>
