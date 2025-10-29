@@ -663,7 +663,10 @@ const createConfetti = () => {
 </template>
 
 <style lang="scss">
-.container {
+// Override App.vue container width for full-width party page
+body:has(.party-page) .container,
+.party-page + .container,
+:root:has(.party-page) .container {
 	width: 100%;
 	max-width: none !important;
 }
