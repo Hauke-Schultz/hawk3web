@@ -1014,7 +1014,11 @@ const createConfetti = () => {
 						    v-for="entry in dummyHighscores"
 						    :key="entry.rank"
 						    class="highscore-entry"
-						    :class="{ 'top-3': entry.rank <= 3 }"
+						    :class="{
+						      'top-1': entry.rank === 1,
+						      'top-2': entry.rank === 2,
+						      'top-3': entry.rank === 3
+						    }"
 				    >
 					    <span class="rank-number">{{ entry.rank }}.</span>
 					    <span v-if="entry.rank === 1" class="rank-medal">🥇</span>
@@ -1906,9 +1910,25 @@ body:has(.party-page) .container,
     transform: translateX(4px);
   }
 
+  // Gold for 1st place
+  &.top-1 {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.7), rgba(255, 185, 0, 0.7));
+    border: 2px solid rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+  }
+
+  // Silver for 2nd place
+  &.top-2 {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.6), rgba(169, 169, 169, 0.6));
+    border: 2px solid rgba(192, 192, 192, 0.7);
+    box-shadow: 0 0 12px rgba(192, 192, 192, 0.3);
+  }
+
+  // Bronze for 3rd place
   &.top-3 {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.6), rgba(255, 140, 0, 0.6));
-    border: 2px solid rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.6), rgba(184, 115, 51, 0.6));
+    border: 2px solid rgba(205, 127, 50, 0.7);
+    box-shadow: 0 0 10px rgba(205, 127, 50, 0.3);
   }
 }
 
