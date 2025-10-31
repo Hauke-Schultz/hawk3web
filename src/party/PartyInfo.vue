@@ -38,63 +38,75 @@ const gameCompleted = ref(false)
 
 // Highscore State
 const playerName = ref('')
-const showHighscore = ref(false)
+const playerId = ref('')
 
-// Dummy Highscore Daten (Top 10)
+// Dummy Highscore Daten (Top 10) - mit eindeutigen Player IDs
 const dummyHighscores = ref([
-  { rank: 1, name: 'MaxPower', level: 10000, date: '2025-10-20' },
-  { rank: 2, name: 'LevelKing', level: 8500, date: '2025-10-18' },
-  { rank: 3, name: 'ClickMaster', level: 7800, date: '2025-10-15' },
-  { rank: 4, name: 'PartyHero', level: 6200, date: '2025-10-12' },
-  { rank: 5, name: 'ButtonSmasher', level: 5500, date: '2025-10-10' },
-  { rank: 6, name: 'ProGamer', level: 4900, date: '2025-10-08' },
-  { rank: 7, name: 'SpeedClicker', level: 3800, date: '2025-10-05' },
-  { rank: 8, name: 'ChampionX', level: 2900, date: '2025-10-02' },
-  { rank: 9, name: 'NinjaFinger', level: 2100, date: '2025-09-28' },
-  { rank: 10, name: 'ClickNinja', level: 1500, date: '2025-09-25' }
+  { rank: 1, playerId: 'dummy-1', name: 'MaxPower', level: 300, cpm: 100, date: '2025-10-20' },
+  { rank: 2, playerId: 'dummy-2', name: 'LevelKing', level: 200, cpm: 100, date: '2025-10-18' },
+  { rank: 3, playerId: 'dummy-3', name: 'ClickMaster', level: 100, cpm: 100, date: '2025-10-15' },
+  { rank: 4, playerId: 'dummy-4', name: 'PartyHero', level: 90, cpm: 100, date: '2025-10-12' },
+  { rank: 5, playerId: 'dummy-5', name: 'ButtonSmasher', level: 80, cpm: 100, date: '2025-10-10' },
+  { rank: 6, playerId: 'dummy-6', name: 'ProGamer', level: 70, cpm: 100, date: '2025-10-08' },
+  { rank: 7, playerId: 'dummy-7', name: 'SpeedClicker', level: 60, cpm: 100, date: '2025-10-05' },
+  { rank: 8, playerId: 'dummy-8', name: 'ChampionX', level: 50, cpm: 100, date: '2025-10-02' },
+  { rank: 9, playerId: 'dummy-9', name: 'NinjaFinger', level: 40, cpm: 100, date: '2025-09-28' },
+  { rank: 10, playerId: 'dummy-10', name: 'ClickNinja', level: 30, cpm: 100, date: '2025-09-25' }
 ])
 
 // Level Titles
 const getLevelTitle = (level) => {
-  if (level === 0) return 'Bereit zum Leveln?'
-  if (level < 5) return 'Anfänger'
-  if (level < 10) return 'Fortgeschritten'
-  if (level < 25) return 'Profi'
-  if (level < 50) return 'Experte'
-  if (level < 75) return 'Meister'
-  if (level < 100) return 'Champion'
-  if (level < 200) return 'LEVEL GOD 🔥'
-  if (level < 400) return 'UNSTOPPABLE 💪'
-  if (level < 800) return 'LEGENDARY 👑'
-  if (level < 1200) return 'IMMORTAL ⚡'
-  if (level < 1600) return 'MYTHICAL 🦄'
-  if (level < 2000) return 'GODLIKE 🌟'
-  if (level < 2400) return 'CELESTIAL 🌌'
-  if (level < 2800) return 'DIVINE ✨'
-  if (level < 3200) return 'ETERNAL 🔮'
-  if (level < 3600) return 'COSMIC 🌠'
-  if (level < 4000) return 'TRANSCENDENT 🎆'
-  if (level < 4400) return 'OMNIPOTENT 💫'
-  if (level < 4800) return 'SUPREME 👾'
-  if (level < 5200) return 'ULTIMATE 🎮'
-  if (level < 5600) return 'INFINITE ♾️'
-  if (level < 6000) return 'ABSOLUTE 💎'
-  if (level < 6400) return 'LIMITLESS 🚀'
-  if (level < 6800) return 'UNRIVALED 🏆'
-  if (level < 7200) return 'INVINCIBLE 🛡️'
-  if (level < 7600) return 'OMNISCIENT 🧠'
-  if (level < 8000) return 'LEGENDARY TITAN 🗿'
-  if (level < 8400) return 'COSMIC EMPEROR 👹'
-  if (level < 8800) return 'UNIVERSAL DEITY 🌍'
-  if (level < 9200) return 'DIMENSION LORD 🌀'
-  if (level < 9600) return 'REALITY BENDER 🔱'
-  if (level < 10000) return 'EXISTENCE MASTER 🌊'
-  if (level >= 10000) return 'THE ONE ☯️'
-  return ''
+	if (level === 0) return 'Bereit für dein Abenteuer?'
+	if (level < 5) return 'Neuling'
+	if (level < 10) return 'Novize'
+	if (level < 25) return 'Wegfinder'
+	if (level < 50) return 'Abenteurer'
+	if (level < 75) return 'Kämpfer'
+	if (level < 100) return 'Held'
+	if (level < 200) return 'Erweckter 🔥'
+	if (level < 400) return 'Unaufhaltsamer 💪'
+	if (level < 800) return 'Legende 👑'
+	if (level < 1200) return 'Unsterblicher ⚡'
+	if (level < 1600) return 'Mythischer 🦄'
+	if (level < 2000) return 'Göttlicher 🌟'
+	if (level < 2400) return 'Himmelswächter 🌌'
+	if (level < 2800) return 'Erleuchteter ✨'
+	if (level < 3200) return 'Ewiger 🔮'
+	if (level < 3600) return 'Kosmischer Wanderer 🌠'
+	if (level < 4000) return 'Transzendenter 🎆'
+	if (level < 4400) return 'Allmächtiger 💫'
+	if (level < 4800) return 'Überwesen 👾'
+	if (level < 5200) return 'Ultimativer 🎮'
+	if (level < 5600) return 'Unendlicher ♾️'
+	if (level < 6000) return 'Absoluter 💎'
+	if (level < 6400) return 'Grenzenloser 🚀'
+	if (level < 6800) return 'Unübertroffener 🏆'
+	if (level < 7200) return 'Unbesiegbarer 🛡️'
+	if (level < 7600) return 'Allwissender 🧠'
+	if (level < 8000) return 'Titan der Sagen 🗿'
+	if (level < 8400) return 'Kosmischer Imperator 👹'
+	if (level < 8800) return 'Gott der Welten 🌍'
+	if (level < 9200) return 'Herr der Dimensionen 🌀'
+	if (level < 9600) return 'Realitätsformer 🔱'
+	if (level < 10000) return 'Meister der Existenz 🌊'
+	if (level >= 10000) return 'der Eine ☯️'
+	return ''
 }
 
-// LocalStorage Key für Party Level
+// LocalStorage Keys
 const PARTY_LEVEL_KEY = 'party_level'
+const PLAYER_NAME_KEY = 'player_name'
+const PLAYER_ID_KEY = 'player_id'
+const HIGHSCORE_KEY = 'party_highscores'
+
+// UUID Generator (v4)
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 
 // Level aus localStorage laden
 const loadLevel = () => {
@@ -126,6 +138,104 @@ const saveLevel = (level) => {
     localStorage.setItem(PARTY_LEVEL_KEY, level.toString())
   } catch (error) {
     console.error('Error saving party level to localStorage:', error)
+  }
+}
+
+// Name aus localStorage laden
+const loadPlayerName = () => {
+  if (typeof localStorage === 'undefined') {
+    return ''
+  }
+
+  try {
+    const stored = localStorage.getItem(PLAYER_NAME_KEY)
+    return stored || ''
+  } catch (error) {
+    console.error('Error loading player name from localStorage:', error)
+    return ''
+  }
+}
+
+// Name im localStorage speichern
+const savePlayerName = (name) => {
+  if (typeof localStorage === 'undefined') {
+    return
+  }
+
+  try {
+    localStorage.setItem(PLAYER_NAME_KEY, name)
+  } catch (error) {
+    console.error('Error saving player name to localStorage:', error)
+  }
+}
+
+// Player-ID aus localStorage laden oder neu generieren
+const loadOrCreatePlayerId = () => {
+  if (typeof localStorage === 'undefined') {
+    return generateUUID()
+  }
+
+  try {
+    let playerId = localStorage.getItem(PLAYER_ID_KEY)
+    if (!playerId) {
+      playerId = generateUUID()
+      localStorage.setItem(PLAYER_ID_KEY, playerId)
+    }
+    return playerId
+  } catch (error) {
+    console.error('Error loading/creating player ID:', error)
+    return generateUUID()
+  }
+}
+
+// API Base URL - automatische Erkennung
+// Development: http://localhost:3000 (Node.js Server)
+// Production: https://www.haukeschultz.com (PHP API)
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.DEV
+    ? 'http://localhost:3000'  // Development
+    : window.location.origin    // Production: nutzt die aktuelle Domain
+)
+
+// API-Endpunkt: Node.js nutzt /api/highscores, PHP nutzt /api/highscores.php
+const API_ENDPOINT = import.meta.env.DEV ? '/api/highscores' : '/api/highscores.php'
+
+// Highscores von API laden
+const loadHighscores = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINT}`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch highscores')
+    }
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error loading highscores from API:', error)
+    // Fallback zu Dummy-Daten bei Fehler
+    return dummyHighscores.value
+  }
+}
+
+// Highscore zur API senden
+const saveHighscores = async (newScore) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newScore)
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to save highscore')
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error saving highscore to API:', error)
+    return null
   }
 }
 
@@ -303,9 +413,21 @@ const openImageInNewTab = () => {
 }
 
 // Beim Laden der Seite
-onMounted(() => {
+onMounted(async () => {
   // Level aus localStorage laden
   currentLevel.value = loadLevel()
+
+  // Name aus localStorage laden
+  playerName.value = loadPlayerName()
+
+  // Player-ID laden oder generieren
+  playerId.value = loadOrCreatePlayerId()
+
+  // Highscores von API laden
+  const savedHighscores = await loadHighscores()
+  if (savedHighscores && savedHighscores.length > 0) {
+    dummyHighscores.value = savedHighscores
+  }
 
   // Slider starten
   intervalId = setInterval(nextImage, 5000)
@@ -497,17 +619,110 @@ const updateCountdown = () => {
   countdown.value = { days, hours, minutes, seconds }
 }
 
-// Submit Score (Placeholder für Datenbank-Integration)
-const submitScore = () => {
-  if (!playerName.value.trim()) {
-    alert('Bitte gib einen Namen ein!')
+// Name-Sanitization (nur Buchstaben, Zahlen, Leerzeichen, Bindestriche)
+const sanitizeName = (name) => {
+  if (!name || typeof name !== 'string') return ''
+
+  return name
+    .trim() // Remove whitespace from start/end
+    .replace(/[^a-zA-Z0-9\s\-äöüÄÖÜß]/g, '') // Allow letters, numbers, spaces, hyphens, and German umlauts
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/\-+/g, '-') // Replace multiple hyphens with single hyphen
+    .substring(0, 20) // Limit to 20 characters
+    .trim() // Final trim in case we cut off in the middle of spaces
+}
+
+// Submit Score
+const submitScore = async () => {
+  // Name sanitizen (Sonderzeichen entfernen)
+  const sanitizedName = sanitizeName(playerName.value)
+
+  if (!sanitizedName) {
+    alert('Bitte gib einen gültigen Namen ein (nur Buchstaben, Zahlen, Leerzeichen und Bindestriche)')
     return
   }
 
-  // Hier später Datenbank-Integration
-  alert(`Glückwunsch ${playerName.value}! Dein Score (Level ${currentLevel.value}) wurde eingetragen!`)
-  createConfetti()
+  // Sanitizierten Namen zurück ins Feld schreiben
+  playerName.value = sanitizedName
+
+  // Name im LocalStorage speichern
+  savePlayerName(sanitizedName)
+
+  // Neuen Score erstellen
+  const newScore = {
+    playerId: playerId.value,
+    name: sanitizedName,
+    level: currentLevel.value,
+    date: new Date().toISOString().split('T')[0] // Format: YYYY-MM-DD
+  }
+
+  // Score zur API senden
+  const result = await saveHighscores(newScore)
+
+  if (result && result.highscores) {
+    // Erfolg - aktualisiere die Anzeige
+    dummyHighscores.value = result.highscores
+    console.log(`Highscore gespeichert! Rang: ${result.rank}`)
+    createConfetti()
+  } else {
+    // Fehler - informiere den Benutzer
+    console.error('Fehler beim Speichern des Highscores')
+    alert('Fehler beim Speichern des Highscores. Bitte versuche es später erneut.')
+  }
 }
+
+// Name speichern, wenn er geändert wird
+const savePlayerNameOnChange = () => {
+  // Name sanitizen beim Verlassen des Input-Feldes
+  const sanitized = sanitizeName(playerName.value)
+  if (sanitized) {
+    playerName.value = sanitized
+    savePlayerName(sanitized)
+  }
+}
+
+// Aktuellen Spieler-Score berechnen
+const currentPlayerScore = computed(() => {
+  if (!playerName.value.trim()) {
+		playerName.value = 'Partyklicker'
+  }
+
+  // Erstelle eine temporäre Liste mit allen Scores inkl. aktuellem Spieler
+  const allScores = [...dummyHighscores.value]
+
+  // Prüfe ob dieser Spieler schon in der Liste ist
+  const existingIndex = allScores.findIndex(score => score.playerId === playerId.value)
+
+  if (existingIndex !== -1) {
+    // Spieler ist bereits in der Liste - aktuellen Level für Vorschau nutzen
+    allScores[existingIndex] = {
+      playerId: playerId.value,
+      name: playerName.value.trim(),
+      level: currentLevel.value,
+      date: new Date().toISOString().split('T')[0]
+    }
+  } else {
+    // Füge den aktuellen Score hinzu
+    allScores.push({
+      playerId: playerId.value,
+      name: playerName.value.trim(),
+      level: currentLevel.value,
+      date: new Date().toISOString().split('T')[0]
+    })
+  }
+
+  // Sortieren nach Level (höchste zuerst)
+  allScores.sort((a, b) => b.level - a.level)
+
+  // Finde den Rang des aktuellen Spielers
+  const rank = allScores.findIndex(score => score.playerId === playerId.value) + 1
+
+  return {
+    rank,
+    name: playerName.value.trim(),
+    level: currentLevel.value
+  }
+})
 
 // Konfetti-Animation (Regenfall von oben)
 const createConfetti = () => {
@@ -626,48 +841,6 @@ const createConfetti = () => {
 			    >
 				    LEVEL UP!
 			    </button>
-		    </div>
-	    </section>
-
-	    <!-- Highscore Card - nur sichtbar ab Level 100 -->
-	    <section v-if="currentLevel >= 100" class="info-card highscore-card">
-		    <div class="card-header">
-			    <h2>Highscore</h2>
-		    </div>
-		    <div class="card-content">
-			    <!-- Namenseingabe -->
-			    <div class="name-input-section">
-				    <h4 class="congratulations-text">Trage deinen Namen ein und werde Teil der Highscore-Liste:</h4>
-				    <div class="name-input-wrapper">
-					    <input
-						    v-model="playerName"
-						    type="text"
-						    placeholder="Dein Name..."
-						    class="name-input"
-						    maxlength="20"
-					    />
-					    <button class="btn submit-btn" @click="submitScore">
-						    Eintragen
-					    </button>
-				    </div>
-			    </div>
-
-			    <!-- Top 10 Highscore Liste -->
-			    <div class="highscore-list">
-				    <div
-					    v-for="entry in dummyHighscores"
-					    :key="entry.rank"
-					    class="highscore-entry"
-					    :class="{ 'top-3': entry.rank <= 3 }"
-				    >
-					    <span class="rank-number">{{ entry.rank }}.</span>
-					    <span v-if="entry.rank === 1" class="rank-medal">🥇</span>
-					    <span v-else-if="entry.rank === 2" class="rank-medal">🥈</span>
-					    <span v-else-if="entry.rank === 3" class="rank-medal">🥉</span>
-					    <span class="player-name">{{ entry.name }}</span>
-					    <span class="player-level">{{ entry.level }}</span>
-				    </div>
-			    </div>
 		    </div>
 	    </section>
 
@@ -803,6 +976,57 @@ const createConfetti = () => {
           </div>
         </div>
       </section>
+
+
+	    <!-- Highscore Card -->
+	    <section class="info-card highscore-card">
+		    <div class="card-header">
+			    <h2>🏆 Highscore</h2>
+		    </div>
+		    <div class="card-content">
+			    <!-- Top 10 Highscore Liste -->
+			    <div class="highscore-list">
+				    <!-- Dein aktueller Score -->
+				    <div
+						    v-if="currentPlayerScore"
+						    class="highscore-entry current-player"
+				    >
+					    <span class="rank-number">{{ currentPlayerScore.rank }}.</span>
+					    <span class="player-name">
+						    <input
+								    v-model="playerName"
+								    type="text"
+								    name="playerName"
+								    placeholder="Dein Name..."
+								    class="name-input"
+								    maxlength="20"
+								    @blur="savePlayerNameOnChange"
+						    />
+					    </span>
+					    <span class="player-level">{{ currentPlayerScore.level }}</span>
+					    <h4 class="congratulations-text">Trage deinen Namen ein und sende deinen Highscore</h4>
+					    <button class="btn submit-btn" @click="submitScore">
+						    senden
+					    </button>
+				    </div>
+				    <!-- Top 10 Liste -->
+				    <div
+						    v-for="entry in dummyHighscores"
+						    :key="entry.rank"
+						    class="highscore-entry"
+						    :class="{ 'top-3': entry.rank <= 3 }"
+				    >
+					    <span class="rank-number">{{ entry.rank }}.</span>
+					    <span v-if="entry.rank === 1" class="rank-medal">🥇</span>
+					    <span v-else-if="entry.rank === 2" class="rank-medal">🥈</span>
+					    <span v-else-if="entry.rank === 3" class="rank-medal">🥉</span>
+					    <span class="player-name">{{ entry.name }}</span>
+					    <span class="player-level">{{ entry.level }}</span>
+				    </div>
+			    </div>
+		    </div>
+	    </section>
+
     </main>
   </div>
 </template>
@@ -1491,14 +1715,14 @@ body:has(.party-page) .container,
     transform: scale(0.3) rotate(0deg);
   }
   30% {
-    opacity: 1;
+    opacity: 0.5;
     transform: scale(1.1) rotate(180deg);
   }
   100% {
     top: auto;
     bottom: var(--treasure-final-bottom, 0px);
     left: var(--treasure-final-left, 50%);
-    opacity: 1;
+    opacity: 0.6;
     transform: scale(1) rotate(var(--treasure-rotation, 0deg));
   }
 }
@@ -1592,7 +1816,9 @@ body:has(.party-page) .container,
 
 .congratulations-text {
   margin: 0 0 var(--space-2);
+	line-height: 1.2;
   color: white;
+	width: 60%;
 }
 
 .input-label {
@@ -1622,7 +1848,7 @@ body:has(.party-page) .container,
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   transition: all 0.3s ease;
-	width: 140px;
+	width: 160px;
 
   &::placeholder {
     color: rgba(255, 255, 255, 0.6);
@@ -1710,6 +1936,79 @@ body:has(.party-page) .container,
   font-weight: var(--font-weight-bold);
   color: white;
   text-align: right;
+}
+
+// Accordion Styles
+.accordion-header {
+  cursor: pointer;
+  user-select: none;
+  justify-content: space-between;
+	margin: 0;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.accordion-icon {
+  font-size: var(--font-size-sm);
+  transition: transform 0.3s ease;
+  color: white;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.accordion-content {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Current Player Section Styles
+.current-player-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 var(--space-2);
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+.highscore-entry.current-player {
+  background: linear-gradient(135deg, rgba(0, 200, 150, 0.7), rgba(0, 150, 255, 0.7));
+  border: 2px solid rgba(0, 200, 150, 0.8);
+  animation: pulse-glow 2s ease-in-out infinite;
+	flex-wrap: wrap;
+	justify-content: space-between;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(0, 220, 170, 0.8), rgba(0, 170, 255, 0.8));
+    transform: translateX(4px);
+  }
+}
+
+.highscore-entry.player-level {
+	flex-grow: 0;
+	padding: 0 var(--space-2);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 200, 150, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 200, 150, 0.8);
+  }
 }
 
 @media (max-width: 768px) {

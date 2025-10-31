@@ -1,0 +1,14 @@
+# .htaccess für API-Ordner
+# CORS Konfiguration für www.haukeschultz.com
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "https://www.haukeschultz.com"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</IfModule>
+
+# Setze Standard-Datei
+DirectoryIndex highscores.php
+
+# Verhindere Directory Listing
+Options -Indexes
