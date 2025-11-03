@@ -596,7 +596,7 @@ const backToGaming = () => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 
 // Lifecycle hooks

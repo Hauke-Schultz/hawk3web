@@ -155,7 +155,7 @@ const cancelDelete = () => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 </script>
 

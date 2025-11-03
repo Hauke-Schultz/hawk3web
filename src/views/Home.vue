@@ -210,7 +210,7 @@ const handleMysteryBoxClaim = (reward) => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 
 const navigateToGym = () => {

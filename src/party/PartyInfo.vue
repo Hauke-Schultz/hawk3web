@@ -36,6 +36,14 @@ const currentLevel = ref(0)
 const clickAnimation = ref(false)
 const gameCompleted = ref(false)
 
+// Flip Card State
+const isFlipped = ref(false)
+
+// Toggle Flip Card
+const toggleFlip = () => {
+  isFlipped.value = !isFlipped.value
+}
+
 // Highscore State
 const playerName = ref('')
 const playerId = ref('')
@@ -667,7 +675,6 @@ const submitScore = async () => {
   } else {
     // Fehler - informiere den Benutzer
     console.error('Fehler beim Speichern des Highscores')
-    alert('Fehler beim Speichern des Highscores. Bitte versuche es später erneut.')
   }
 }
 
@@ -692,9 +699,12 @@ const currentPlayerScore = computed(() => {
 
   // Prüfe ob dieser Spieler schon in der Liste ist
   const existingIndex = allScores.findIndex(score => score.playerId === playerId.value)
+  let existingLevel = null
 
   if (existingIndex !== -1) {
-    // Spieler ist bereits in der Liste - aktuellen Level für Vorschau nutzen
+    // Spieler ist bereits in der Liste - speichere den bisherigen Level
+    existingLevel = allScores[existingIndex].level
+    // Aktuellen Level für Vorschau nutzen
     allScores[existingIndex] = {
       playerId: playerId.value,
       name: playerName.value.trim(),
@@ -717,10 +727,14 @@ const currentPlayerScore = computed(() => {
   // Finde den Rang des aktuellen Spielers
   const rank = allScores.findIndex(score => score.playerId === playerId.value) + 1
 
+  // Prüfe ob der aktuelle Level besser ist als der bisherige
+  const isImprovement = existingLevel === null || currentLevel.value > existingLevel
+
   return {
     rank,
     name: playerName.value.trim(),
-    level: currentLevel.value
+    level: currentLevel.value,
+    isImprovement
   }
 })
 
@@ -826,21 +840,115 @@ const createConfetti = () => {
       </section>
 
 
-	    <!-- Level-Up Clicker Game Card -->
+	    <!-- Level-Up Clicker Game Card with Flip -->
 	    <section class="info-card level-up-card">
-		    <div class="card-content">
-			    <div class="level-display">
-				    <div class="level-number">Level {{ currentLevel }}</div>
-				    <div class="level-title">{{ getLevelTitle(currentLevel) }}</div>
+		    <div class="flip-card-container" :class="{ 'flipped': isFlipped }">
+			    <!-- Vorderseite: Play Content -->
+			    <div class="flip-card-front">
+				    <div class="card-content play-content">
+					    <div class="level-display">
+						    <div class="level-number">Level {{ currentLevel }}</div>
+						    <div class="level-title">{{ getLevelTitle(currentLevel) }}</div>
+					    </div>
+
+					    <button
+						    class="level-up-btn"
+						    :class="{ 'level-up-btn--animate': clickAnimation }"
+						    @click="levelUp"
+					    >
+						    LEVEL UP!
+					    </button>
+
+					    <!-- Toggle Button -->
+					    <button class="flip-toggle-btn" @click="toggleFlip">
+						    🏆 Highscore
+					    </button>
+				    </div>
 			    </div>
 
-			    <button
-					    class="level-up-btn"
-					    :class="{ 'level-up-btn--animate': clickAnimation }"
-					    @click="levelUp"
-			    >
-				    LEVEL UP!
-			    </button>
+			    <!-- Rückseite: Highscore Content -->
+			    <div class="flip-card-back">
+				    <div class="card-content highscore-content">
+					    <div class="card-header">
+						    <h2>🏆 Highscore</h2>
+					    </div>
+					    <div class="card-content">
+						    <!-- Toggle Button -->
+						    <button class="flip-toggle-btn" @click="toggleFlip">
+							    🎮 Zurück zum Spiel
+						    </button>
+						    <!-- Top 10 Highscore Liste -->
+						    <div class="highscore-list">
+							    <!-- Dein aktueller Score -->
+							    <div
+									    v-if="currentPlayerScore"
+									    class="highscore-entry current-player"
+							    >
+								    <!-- Noch keine Score erreicht (Level 0) -->
+								    <template v-if="currentLevel === 0">
+									    <div class="info-text-container">
+										    <div class="info-text">Klicke auf "LEVEL UP!" um zu starten und deinen Highscore zu erreichen!</div>
+									    </div>
+								    </template>
+
+								    <!-- Noch nicht in Top 10 (Rang > 10) -->
+								    <template v-else-if="currentPlayerScore.rank > 10">
+									    <div class="info-text-container">
+										    <div class="info-text">Klicke weiter, um einen Highscore zu erreichen!</div>
+									    </div>
+								    </template>
+
+								    <!-- Highscore erreicht (Rang <= 10) und Verbesserung -->
+								    <template v-else-if="currentPlayerScore.isImprovement">
+									    <h4 class="congratulations-text">
+										    Du hast einen neuen Highscore erreicht! Trage deinen Namen ein und sende deinen Level.</h4>
+									    <span class="rank-number">{{ currentPlayerScore.rank }}.</span>
+									    <span class="player-name">
+										    <input
+												    v-model="playerName"
+												    type="text"
+												    name="playerName"
+												    placeholder="Dein Name..."
+												    class="name-input"
+												    maxlength="20"
+												    @blur="savePlayerNameOnChange"
+										    />
+									    </span>
+									    <span class="player-level">{{ currentPlayerScore.level }}</span>
+									    <button class="btn submit-btn" @click="submitScore">
+										    Highscore senden
+									    </button>
+								    </template>
+
+								    <!-- Kein Highscore (gleicher oder schlechterer Score) -->
+								    <template v-else>
+									    <div class="info-text-container">
+										    <div class="info-text">Highscore Platz {{ currentPlayerScore.rank }} mit Level {{ currentPlayerScore.level }} erreicht. Klicke weiter, um ihn zu verbessern!</div>
+									    </div>
+								    </template>
+							    </div>
+							    <!-- Top 10 Liste -->
+							    <div
+									    v-for="entry in dummyHighscores"
+									    :key="entry.rank"
+									    class="highscore-entry"
+									    :class="{
+								      'top-1': entry.rank === 1,
+								      'top-2': entry.rank === 2,
+								      'top-3': entry.rank === 3
+								    }"
+							    >
+								    <span class="rank-number">{{ entry.rank }}.</span>
+								    <span v-if="entry.rank === 1" class="rank-medal">🥇</span>
+								    <span v-else-if="entry.rank === 2" class="rank-medal">🥈</span>
+								    <span v-else-if="entry.rank === 3" class="rank-medal">🥉</span>
+								    <span class="player-name">{{ entry.name }}</span>
+								    <span class="player-level">{{ entry.level }}</span>
+							    </div>
+						    </div>
+					    </div>
+				    </div>
+			    </div>
 		    </div>
 	    </section>
 
@@ -976,61 +1084,6 @@ const createConfetti = () => {
           </div>
         </div>
       </section>
-
-
-	    <!-- Highscore Card -->
-	    <section class="info-card highscore-card">
-		    <div class="card-header">
-			    <h2>🏆 Highscore</h2>
-		    </div>
-		    <div class="card-content">
-			    <!-- Top 10 Highscore Liste -->
-			    <div class="highscore-list">
-				    <!-- Dein aktueller Score -->
-				    <div
-						    v-if="currentPlayerScore"
-						    class="highscore-entry current-player"
-				    >
-					    <span class="rank-number">{{ currentPlayerScore.rank }}.</span>
-					    <span class="player-name">
-						    <input
-								    v-model="playerName"
-								    type="text"
-								    name="playerName"
-								    placeholder="Dein Name..."
-								    class="name-input"
-								    maxlength="20"
-								    @blur="savePlayerNameOnChange"
-						    />
-					    </span>
-					    <span class="player-level">{{ currentPlayerScore.level }}</span>
-					    <h4 class="congratulations-text">Trage deinen Namen ein und sende deinen Highscore</h4>
-					    <button class="btn submit-btn" @click="submitScore">
-						    senden
-					    </button>
-				    </div>
-				    <!-- Top 10 Liste -->
-				    <div
-						    v-for="entry in dummyHighscores"
-						    :key="entry.rank"
-						    class="highscore-entry"
-						    :class="{
-						      'top-1': entry.rank === 1,
-						      'top-2': entry.rank === 2,
-						      'top-3': entry.rank === 3
-						    }"
-				    >
-					    <span class="rank-number">{{ entry.rank }}.</span>
-					    <span v-if="entry.rank === 1" class="rank-medal">🥇</span>
-					    <span v-else-if="entry.rank === 2" class="rank-medal">🥈</span>
-					    <span v-else-if="entry.rank === 3" class="rank-medal">🥉</span>
-					    <span class="player-name">{{ entry.name }}</span>
-					    <span class="player-level">{{ entry.level }}</span>
-				    </div>
-			    </div>
-		    </div>
-	    </section>
-
     </main>
   </div>
 </template>
@@ -1685,6 +1738,9 @@ body:has(.party-page) .container,
   .card-content {
     display: flex;
     flex-direction: column;
+	  align-items: center;
+	  justify-content: space-between;
+	  height: 100%;
     gap: var(--space-4);
     position: relative;
     z-index: 2;
@@ -1822,7 +1878,7 @@ body:has(.party-page) .container,
   margin: 0 0 var(--space-2);
 	line-height: 1.2;
   color: white;
-	width: 60%;
+	width: 100%;
 }
 
 .input-label {
@@ -1899,7 +1955,7 @@ body:has(.party-page) .container,
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
   margin-bottom: var(--space-1);
   background: rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius-md);
@@ -2028,6 +2084,94 @@ body:has(.party-page) .container,
   }
   50% {
     box-shadow: 0 0 20px rgba(0, 200, 150, 0.8);
+  }
+}
+
+// Info Text Container Styles
+.info-text-container {
+  width: 100%;
+  text-align: center;
+  padding: var(--space-1);
+}
+
+.info-text {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: white;
+  line-height: 1.2;
+
+  &:not(:last-child) {
+    margin-bottom: var(--space-2);
+  }
+}
+
+// Flip Card Styles
+.flip-card-container {
+  position: relative;
+  width: 100%;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+	height: 100%;
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.flip-card-front {
+  transform: rotateY(0deg);
+  z-index: 2;
+	height: 100%;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+	height: 0;
+}
+
+.flip-card-container.flipped {
+  .flip-card-front {
+    transform: rotateY(-180deg);
+	  height: 0;
+  }
+
+  .flip-card-back {
+    transform: rotateY(0deg);
+	  height: 100%;
+  }
+}
+
+// Flip Toggle Button
+.flip-toggle-btn {
+  width: auto;
+	align-self: flex-end;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 

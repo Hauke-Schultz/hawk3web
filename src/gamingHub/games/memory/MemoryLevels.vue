@@ -77,7 +77,7 @@ const handlePlayLevel = (levelNumber) => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 </script>
 

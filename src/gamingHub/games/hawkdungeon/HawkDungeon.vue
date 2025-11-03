@@ -156,7 +156,7 @@ const stopSessionTimer = () => {
 
 // Navigation
 const handleMenuClick = () => {
-  router.push('/')
+  router.push('/gaming')
 }
 
 const backToLevelSelection = () => {

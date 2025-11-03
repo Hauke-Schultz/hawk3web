@@ -338,7 +338,7 @@ const selectAvatar = (avatar) => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 
 onMounted(() => {

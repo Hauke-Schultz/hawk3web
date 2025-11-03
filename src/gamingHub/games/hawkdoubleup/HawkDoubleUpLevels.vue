@@ -103,7 +103,7 @@ const handleScreenshotDownloaded = (screenshot) => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 </script>
 

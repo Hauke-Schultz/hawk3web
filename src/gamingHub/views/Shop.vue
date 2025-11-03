@@ -391,7 +391,7 @@ const markAsReceived = async () => {
 
 // Navigation
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 
 onMounted(() => {

@@ -30,7 +30,7 @@ const handleFontSizeChange = (newFontSize) => {
 
 // Navigation handlers using router
 const handleBackToHome = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 
 const handleSettingsClick = () => {
@@ -50,7 +50,7 @@ const handleTrophyClick = () => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 
 // Lifecycle

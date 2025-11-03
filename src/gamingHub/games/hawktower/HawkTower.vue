@@ -794,7 +794,7 @@ const backToLevelSelection = () => {
 
 const handleMenuClick = () => {
 	stopUpdateLoop()
-	router.push('/')
+	router.push('/gaming')
 }
 
 const handleModalNextLevel = () => {

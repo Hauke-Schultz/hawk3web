@@ -144,7 +144,7 @@ const formatDate = (dateString) => {
 }
 
 const handleMenuClick = () => {
-	router.push('/')
+	router.push('/gaming')
 }
 </script>
 

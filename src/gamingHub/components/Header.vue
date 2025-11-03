@@ -263,7 +263,7 @@ const openMenuWithAutoSave = async () => {
 		}
 	}
 
-	await router.push('/')
+	await router.push('/gaming')
 }
 
 // Close menu when clicking outside
