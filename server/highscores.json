@@ -1,31 +1,31 @@
 [
   {
+    "playerId": "057f6c00-08aa-40c1-b60e-2550577988b9",
+    "name": "Partyklicker2",
+    "level": 2058,
+    "date": "2025-11-04",
+    "rank": 1
+  },
+  {
     "playerId": "8bdf3ee2-93f7-4c91-af65-0581f5f39e75",
     "name": "PartyHöauke as",
     "level": 450,
     "date": "2025-10-31",
-    "rank": 1
+    "rank": 2
   },
   {
-    "rank": 2,
+    "rank": 3,
     "playerId": "dummy-1",
     "name": "MaxPower",
     "level": 300,
     "date": "2025-10-20"
   },
   {
-    "rank": 3,
+    "rank": 4,
     "playerId": "dummy-2",
     "name": "LevelKing",
     "level": 200,
     "date": "2025-10-18"
-  },
-  {
-    "playerId": "057f6c00-08aa-40c1-b60e-2550577988b9",
-    "name": "Partyklicker2",
-    "level": 198,
-    "date": "2025-11-03",
-    "rank": 4
   },
   {
     "rank": 5,

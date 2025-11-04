@@ -39,6 +39,11 @@ const gameCompleted = ref(false)
 // Flip Card State
 const isFlipped = ref(false)
 
+// Combo System
+const comboCount = ref(0)
+const comboTimeout = ref(null)
+const currentFloatingStatus = ref(null) // Tracks current floating number status
+
 // Toggle Flip Card
 const toggleFlip = () => {
   isFlipped.value = !isFlipped.value
@@ -248,7 +253,7 @@ const saveHighscores = async (newScore) => {
 }
 
 // Level Up Click Handler
-const levelUp = () => {
+const levelUp = (event) => {
   // Animation triggern
   clickAnimation.value = true
   setTimeout(() => {
@@ -260,7 +265,23 @@ const levelUp = () => {
   // Level im localStorage speichern
   saveLevel(currentLevel.value)
 
-  // Bei Level 10: Game Completed - Münzen-Regen startet!
+  // Combo System
+  comboCount.value++
+
+  // Clear existing timeout
+  if (comboTimeout.value) {
+    clearTimeout(comboTimeout.value)
+  }
+
+  // Reset combo nach 200ms
+  comboTimeout.value = setTimeout(() => {
+    comboCount.value = 0
+  }, 200)
+
+  // Floating Number anzeigen
+  showFloatingNumber(event)
+
+  // Bei Level 100: Game Completed - Münzen-Regen startet!
   if (currentLevel.value === 100) {
     gameCompleted.value = true
     createConfetti()
@@ -268,55 +289,152 @@ const levelUp = () => {
     return
   }
 
-  // Nach Level 10: Füge bei jedem Klick eine zufällige Münze hinzu
-  if (currentLevel.value > 1) {
-    addSingleTreasure()
-  }
-
   // Konfetti bei Milestones
-  const milestones = [50, 100, 150, 200, 300, 400, 500, 1000, 1500, 2000]
+  const milestones = [50, 100, 150, 200, 300, 400, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7000]
   if (milestones.includes(currentLevel.value)) {
     createConfetti()
   }
 }
 
-// Füge eine einzelne Münze hinzu (nach Level 100)
-const addSingleTreasure = () => {
-  const treasures = ['💰', '💎', '🪙', '💵', '💴', '💶', '💷', '💸', '🏆', '⭐', '✨']
+// Floating Number mit Combo-Anzeige
+const showFloatingNumber = (event) => {
   const container = document.querySelector('.level-up-card')
+  if (!container) return
 
-  let treasureContainer = document.querySelector('.treasure-container')
-  if (!treasureContainer) {
-    treasureContainer = document.createElement('div')
-    treasureContainer.className = 'treasure-container'
-    container.appendChild(treasureContainer)
+  // Lustige Combo-Texte für verschiedene Stufen
+  const comboTexts = {
+    1: ['+1', '👆', 'Click!', 'Nice!'],
+    3: ['Läuft! 🔥', 'Weiter so!', 'Go! 💪', 'Gut!'],
+    5: ['COMBO! 🎯', 'On Fire! 🔥', 'Stark! 💥', 'Top! ⭐'],
+    8: ['SUPER! 🚀', 'Krass! ⚡', 'Heftig! 💫', 'Wow! 🌟'],
+    12: ['MEGA! 🎆', 'Wahnsinn! 🎊', 'Irre! 🎨', 'Geil! 🎪'],
+    15: ['ULTRA! 🌈', 'Monster! 👾', 'Brutal! 💀', 'Hammer! 🔨'],
+    20: ['GIGANTISCH! 🦖', 'Legendär! 👑', 'Episch! ⚔️', 'Crazy! 🤪'],
+    25: ['UNGLAUBLICH! 🌠', 'Perfekt! 💎', 'Göttlich! ⚡', 'Irrsinn! 🎭'],
+    30: ['UNSTOPPABLE! 🔥', 'Phänomenal! 🎇', 'Meisterlich! 🏆', 'Fantastisch! 🎪'],
+    40: ['GODLIKE! 👼', 'Überirdisch! 🛸', 'Kosmisch! 🌌', 'Unreal! 🎮'],
+    50: ['LEGENDARY! 🐉', 'Mythisch! 🦄', 'Ewig! ♾️', 'Absolut! 💫']
   }
 
-  const treasure = document.createElement('div')
-  treasure.className = 'treasure'
-  treasure.textContent = treasures[Math.floor(Math.random() * treasures.length)]
+  // Bestimme den Status basierend auf Combo
+  let status = 'level1'
+  let text = '+1'
+  let fontSize = 'normal'
 
-  const startLeft = Math.random() * 100
-  treasure.style.left = startLeft + '%'
-  treasure.style.top = '-50px'
-  treasure.style.fontSize = Math.random() * 15 + 20 + 'px'
+  if (comboCount.value >= 50) {
+    status = 'level50'
+    const texts = comboTexts[50]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'huge'
+  } else if (comboCount.value >= 40) {
+    status = 'level40'
+    const texts = comboTexts[40]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'huge'
+  } else if (comboCount.value >= 30) {
+    status = 'level30'
+    const texts = comboTexts[30]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'huge'
+  } else if (comboCount.value >= 25) {
+    status = 'level25'
+    const texts = comboTexts[25]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'large'
+  } else if (comboCount.value >= 20) {
+    status = 'level20'
+    const texts = comboTexts[20]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'large'
+  } else if (comboCount.value >= 15) {
+    status = 'level15'
+    const texts = comboTexts[15]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'large'
+  } else if (comboCount.value >= 12) {
+    status = 'level12'
+    const texts = comboTexts[12]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'medium'
+  } else if (comboCount.value >= 8) {
+    status = 'level8'
+    const texts = comboTexts[8]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'medium'
+  } else if (comboCount.value >= 5) {
+    status = 'level5'
+    const texts = comboTexts[5]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'medium'
+  } else if (comboCount.value >= 3) {
+    status = 'level3'
+    const texts = comboTexts[3]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'small'
+  } else {
+    status = 'level1'
+    const texts = comboTexts[1]
+    text = texts[Math.floor(Math.random() * texts.length)]
+    fontSize = 'normal'
+  }
 
-  // Zähle vorhandene Treasures
-  const existingTreasures = treasureContainer.querySelectorAll('.treasure').length
-  const row = Math.floor(existingTreasures / 8)
-  const col = existingTreasures % 8
-  const finalBottom = row * 35 + Math.random() * 10
-  const finalLeft = col * 12 + Math.random() * 8
+  // Nur anzeigen wenn sich der Status ändert
+  if (currentFloatingStatus.value === status) {
+    return // Keine Änderung, nicht neu anzeigen
+  }
 
-  const rotation = Math.random() * 60 - 30
-  const duration = Math.random() * 0.5 + 1.5
+  // Status aktualisieren
+  currentFloatingStatus.value = status
 
-  treasure.style.setProperty('--treasure-final-bottom', finalBottom + 'px')
-  treasure.style.setProperty('--treasure-final-left', finalLeft + '%')
-  treasure.style.setProperty('--treasure-rotation', rotation + 'deg')
-  treasure.style.animation = `treasureFillUp ${duration}s ease-out forwards`
+  // Check if floating number already exists
+  let floatingNumber = container.querySelector('.floating-number')
 
-  treasureContainer.appendChild(treasure)
+  // Falls vorhanden, erst entfernen
+  if (floatingNumber) {
+    floatingNumber.remove()
+  }
+
+  // Zufällige Farben
+  const colors = [
+    '#feca57', '#f3b67e', '#ff9ff3', '#f093fb',
+	  '#1dd1a1', '#00cf68', '#00d2d3', '#48dbfb',
+  ]
+
+  // Neues Element erstellen
+  floatingNumber = document.createElement('div')
+  floatingNumber.className = 'floating-number'
+  floatingNumber.classList.add(`size-${fontSize}`)
+
+  // Zufällige Farbe setzen
+  const randomColor = colors[Math.floor(Math.random() * colors.length)]
+  floatingNumber.style.color = randomColor
+  floatingNumber.style.textShadow = `0 0 20px ${randomColor}80`
+
+  floatingNumber.textContent = text
+
+  // Position: Above the button, centered
+  const button = container.querySelector('.level-up-btn')
+  if (button) {
+    const buttonRect = button.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+
+    // Position above the button, centered
+    const x = (buttonRect.left - containerRect.left) + (buttonRect.width / 2)
+    const y = (buttonRect.top - containerRect.top) - 40 // 40px above button
+
+    floatingNumber.style.left = x + 'px'
+    floatingNumber.style.top = y + 'px'
+  }
+
+  container.appendChild(floatingNumber)
+
+  // Remove after animation (1 second)
+  setTimeout(() => {
+    if (floatingNumber.parentNode === container) {
+      floatingNumber.remove()
+      currentFloatingStatus.value = null // Reset status nach Animation
+    }
+  }, 1000)
 }
 
 // Münzen und Diamanten füllen die Card wie ein Glas bei Level 100
@@ -871,12 +989,13 @@ const createConfetti = () => {
 				    <div class="card-content highscore-content">
 					    <div class="card-header">
 						    <h2>🏆 Highscore</h2>
-					    </div>
-					    <div class="card-content">
 						    <!-- Toggle Button -->
 						    <button class="flip-toggle-btn" @click="toggleFlip">
 							    🎮 Zurück zum Spiel
 						    </button>
+					    </div>
+					    <div class="card-content">
+
 						    <!-- Top 10 Highscore Liste -->
 						    <div class="highscore-list">
 							    <!-- Dein aktueller Score -->
@@ -894,7 +1013,7 @@ const createConfetti = () => {
 								    <!-- Noch nicht in Top 10 (Rang > 10) -->
 								    <template v-else-if="currentPlayerScore.rank > 10">
 									    <div class="info-text-container">
-										    <div class="info-text">Klicke weiter, um einen Highscore zu erreichen!</div>
+										    <div class="info-text">Klicke den "LEVEL UP!" Button weiter, um einen Highscore zu erreichen!</div>
 									    </div>
 								    </template>
 
@@ -923,7 +1042,7 @@ const createConfetti = () => {
 								    <!-- Kein Highscore (gleicher oder schlechterer Score) -->
 								    <template v-else>
 									    <div class="info-text-container">
-										    <div class="info-text">Highscore Platz {{ currentPlayerScore.rank }} mit Level {{ currentPlayerScore.level }} erreicht. Klicke weiter, um ihn zu verbessern!</div>
+										    <div class="info-text">Highscore Platz {{ currentPlayerScore.rank }} mit Level {{ currentPlayerScore.level }} erreicht. Klicke den "LEVEL UP!" Button weiter, um ihn zu verbessern!</div>
 									    </div>
 								    </template>
 							    </div>
@@ -2114,6 +2233,11 @@ body:has(.party-page) .container,
   transform-style: preserve-3d;
   transition: transform 0.6s;
 	height: 100%;
+
+	.card-header {
+		justify-content: space-between;
+		width: 100%;
+	}
 }
 
 .flip-card-front,
@@ -2161,7 +2285,6 @@ body:has(.party-page) .container,
   border-radius: var(--border-radius-lg);
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
 
   &:hover {
     background: rgba(255, 255, 255, 0.3);
@@ -2172,6 +2295,77 @@ body:has(.party-page) .container,
 
   &:active {
     transform: translateY(0);
+  }
+}
+
+// Floating Number Styles
+.floating-number {
+  position: absolute;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: white;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+  animation: floatUp 1s ease-out forwards;
+  transform: translateX(-50%);
+  white-space: nowrap;
+
+  // Size Varianten
+  &.size-normal {
+    font-size: var(--font-size-xl);
+  }
+
+  &.size-small {
+    font-size: var(--font-size-2xl);
+  }
+
+  &.size-medium {
+    font-size: calc(var(--font-size-2xl) * 1.2);
+  }
+
+  &.size-large {
+    font-size: var(--font-size-3xl);
+  }
+
+  &.size-huge {
+    font-size: calc(var(--font-size-3xl) * 1.2);
+  }
+}
+
+// Floating Animation (Standard)
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -30px) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80px) scale(1);
+  }
+}
+
+// Floating Animation (Mega)
+@keyframes floatUpMega {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.5) rotate(-5deg);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -20px) scale(1.3) rotate(5deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50px) scale(1.2) rotate(-3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -100px) scale(1) rotate(0deg);
   }
 }
 
