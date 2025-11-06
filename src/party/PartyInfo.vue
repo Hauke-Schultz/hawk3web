@@ -270,14 +270,6 @@ const levelUp = (event) => {
   // Floating Number anzeigen
   showFloatingNumber(event)
 
-  // Bei Level 100: Game Completed - Münzen-Regen startet!
-  if (currentLevel.value === 100) {
-    gameCompleted.value = true
-    createConfetti()
-    createTreasureRain()
-    return
-  }
-
   // Konfetti bei Milestones
   const milestones = [50, 100, 150, 200, 300, 400, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7000]
   if (milestones.includes(currentLevel.value)) {
@@ -292,7 +284,7 @@ const showFloatingNumber = (event) => {
 
   // Lustige Combo-Texte für verschiedene Stufen
   const comboTexts = {
-    1: ['+1', '👆', 'Click!', 'Nice!'],
+    1: ['👆', '👌', 'Click! ✌️', 'Nice! 🤘'],
     3: ['Läuft! 🔥', 'Weiter so!', 'Go! 💪', 'Gut!'],
     5: ['COMBO! 🎯', 'On Fire! 🔥', 'Stark! 💥', 'Top! ⭐'],
     8: ['SUPER! 🚀', 'Krass! ⚡', 'Heftig! 💫', 'Wow! 🌟'],
@@ -424,49 +416,6 @@ const showFloatingNumber = (event) => {
       currentFloatingStatus.value = null // Reset status nach Animation
     }
   }, 1000)
-}
-
-// Münzen und Diamanten füllen die Card wie ein Glas bei Level 100
-const createTreasureRain = () => {
-  const treasures = ['💰', '💎', '🪙', '💵', '💴', '💶', '💷', '💸', '🏆', '⭐', '✨']
-  const treasureCount = 80
-  const container = document.querySelector('.level-up-card')
-
-  // Container für Treasures erstellen
-  const treasureContainer = document.createElement('div')
-  treasureContainer.className = 'treasure-container'
-  container.appendChild(treasureContainer)
-
-  for (let i = 0; i < treasureCount; i++) {
-    setTimeout(() => {
-      const treasure = document.createElement('div')
-      treasure.className = 'treasure'
-      treasure.textContent = treasures[Math.floor(Math.random() * treasures.length)]
-
-      const startLeft = Math.random() * 100
-      treasure.style.left = startLeft + '%'
-      treasure.style.top = '-50px'
-      treasure.style.fontSize = Math.random() * 15 + 20 + 'px'
-
-      // Berechne finale Position (stapelt sich von unten nach oben)
-      const cardHeight = container.offsetHeight
-      const row = Math.floor(i / 8) // 8 Münzen pro Reihe
-      const col = i % 8
-      const finalBottom = row * 35 + Math.random() * 10 // Stapelt sich von unten
-      const finalLeft = col * 12 + Math.random() * 8 - 16 // Verteilt horizontal
-
-      const rotation = Math.random() * 60 - 30 // Leichte Rotation
-      const duration = Math.random() * 0.5 + 1.5
-
-      treasure.style.setProperty('--treasure-final-bottom', finalBottom + 'px')
-      treasure.style.setProperty('--treasure-final-left', finalLeft + '%')
-      treasure.style.setProperty('--treasure-rotation', rotation + 'deg')
-      treasure.style.animation = `treasureFillUp ${duration}s ease-out forwards`
-
-      treasureContainer.appendChild(treasure)
-      // NICHT entfernen - bleibt sichtbar!
-    }, i * 40)
-  }
 }
 
 // Level Reset
@@ -797,10 +746,6 @@ const savePlayerNameOnChange = () => {
 
 // Aktuellen Spieler-Score berechnen
 const currentPlayerScore = computed(() => {
-  if (!playerName.value.trim()) {
-		playerName.value = 'Partyklicker'
-  }
-
   // Erstelle eine temporäre Liste mit allen Scores inkl. aktuellem Spieler
   const allScores = [...highscores.value]
 
@@ -995,21 +940,23 @@ const createConfetti = () => {
 								    <!-- Noch keine Score erreicht (Level 0) -->
 								    <template v-if="currentLevel === 0">
 									    <div class="info-text-container">
-										    <div class="info-text">Klicke auf "LEVEL UP!" um zu starten und deinen Highscore zu erreichen!</div>
+										    <div class="info-text">Klicke auf "LEVEL UP!" um zu starten und einen Highscore zu erreichen!</div>
 									    </div>
 								    </template>
 
 								    <!-- Noch nicht in Top 10 (Rang > 10) -->
 								    <template v-else-if="currentPlayerScore.rank > 10">
 									    <div class="info-text-container">
-										    <div class="info-text">Klicke den "LEVEL UP!" Button weiter, um einen Highscore zu erreichen!</div>
+										    <div class="info-text">Noch kein Highscore erreicht! Klicke den "LEVEL UP!" Button weiter!! <strong>Level {{ currentPlayerScore.level }}</strong> erreicht.</div>
 									    </div>
 								    </template>
 
 								    <!-- Highscore erreicht (Rang <= 10) und Verbesserung -->
 								    <template v-else-if="currentPlayerScore.isImprovement">
-									    <h4 class="congratulations-text">
-										    Du hast einen neuen Highscore erreicht! Trage deinen Namen ein und sende deinen Level.</h4>
+									    <div class="congratulations-text">
+										    <span>Du hast es geschafft! Neuer Highscore!</span>
+										    <span v-if="playerName.length === 0"> Jetzt Namen eintragen und Highscore senden.</span>
+									    </div>
 									    <span class="rank-number">{{ currentPlayerScore.rank }}.</span>
 									    <span class="player-name">
 										    <input
@@ -1023,7 +970,7 @@ const createConfetti = () => {
 										    />
 									    </span>
 									    <span class="player-level">{{ currentPlayerScore.level }}</span>
-									    <button class="btn submit-btn" @click="submitScore">
+									    <button class="btn submit-btn" @click="submitScore" :disabled="playerName.length === 0">
 										    Highscore senden
 									    </button>
 								    </template>
@@ -1031,7 +978,7 @@ const createConfetti = () => {
 								    <!-- Kein Highscore (gleicher oder schlechterer Score) -->
 								    <template v-else>
 									    <div class="info-text-container">
-										    <div class="info-text">Highscore Platz {{ currentPlayerScore.rank }} mit Level {{ currentPlayerScore.level }} erreicht. Klicke den "LEVEL UP!" Button weiter, um ihn zu verbessern!</div>
+										    <div class="info-text">Highscore <strong>Platz {{ currentPlayerScore.rank }}</strong> mit Level {{ currentPlayerScore.level }} erreicht. Klicke den "LEVEL UP!" Button weiter!!</div>
 									    </div>
 								    </template>
 							    </div>
@@ -1983,7 +1930,7 @@ body:has(.party-page) .container,
 }
 
 .congratulations-text {
-  margin: 0 0 var(--space-2);
+  margin: 0;
 	line-height: 1.2;
   color: white;
 	width: 100%;
@@ -2174,6 +2121,7 @@ body:has(.party-page) .container,
   animation: pulse-glow 2s ease-in-out infinite;
 	flex-wrap: wrap;
 	justify-content: space-between;
+	padding: var(--space-3);
 
   &:hover {
     background: linear-gradient(135deg, rgba(0, 220, 170, 0.8), rgba(0, 170, 255, 0.8));
@@ -2226,6 +2174,7 @@ body:has(.party-page) .container,
 	.card-header {
 		justify-content: space-between;
 		width: 100%;
+		margin: 0;
 	}
 }
 
