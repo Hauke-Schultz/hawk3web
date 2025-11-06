@@ -53,19 +53,8 @@ const toggleFlip = () => {
 const playerName = ref('')
 const playerId = ref('')
 
-// Dummy Highscore Daten (Top 10) - mit eindeutigen Player IDs
-const dummyHighscores = ref([
-  { rank: 1, playerId: 'dummy-1', name: 'MaxPower', level: 300, cpm: 100, date: '2025-10-20' },
-  { rank: 2, playerId: 'dummy-2', name: 'LevelKing', level: 200, cpm: 100, date: '2025-10-18' },
-  { rank: 3, playerId: 'dummy-3', name: 'ClickMaster', level: 100, cpm: 100, date: '2025-10-15' },
-  { rank: 4, playerId: 'dummy-4', name: 'PartyHero', level: 90, cpm: 100, date: '2025-10-12' },
-  { rank: 5, playerId: 'dummy-5', name: 'ButtonSmasher', level: 80, cpm: 100, date: '2025-10-10' },
-  { rank: 6, playerId: 'dummy-6', name: 'ProGamer', level: 70, cpm: 100, date: '2025-10-08' },
-  { rank: 7, playerId: 'dummy-7', name: 'SpeedClicker', level: 60, cpm: 100, date: '2025-10-05' },
-  { rank: 8, playerId: 'dummy-8', name: 'ChampionX', level: 50, cpm: 100, date: '2025-10-02' },
-  { rank: 9, playerId: 'dummy-9', name: 'NinjaFinger', level: 40, cpm: 100, date: '2025-09-28' },
-  { rank: 10, playerId: 'dummy-10', name: 'ClickNinja', level: 30, cpm: 100, date: '2025-09-25' }
-])
+// Highscore Daten (werden von der API geladen)
+const highscores = ref([])
 
 // Level Titles
 const getLevelTitle = (level) => {
@@ -224,8 +213,8 @@ const loadHighscores = async () => {
     return data
   } catch (error) {
     console.error('Error loading highscores from API:', error)
-    // Fallback zu Dummy-Daten bei Fehler
-    return dummyHighscores.value
+    // Fallback zu leerer Liste bei Fehler
+    return []
   }
 }
 
@@ -552,7 +541,7 @@ onMounted(async () => {
   // Highscores von API laden
   const savedHighscores = await loadHighscores()
   if (savedHighscores && savedHighscores.length > 0) {
-    dummyHighscores.value = savedHighscores
+    highscores.value = savedHighscores
   }
 
   // Slider starten
@@ -787,7 +776,7 @@ const submitScore = async () => {
 
   if (result && result.highscores) {
     // Erfolg - aktualisiere die Anzeige
-    dummyHighscores.value = result.highscores
+    highscores.value = result.highscores
     console.log(`Highscore gespeichert! Rang: ${result.rank}`)
     createConfetti()
   } else {
@@ -813,7 +802,7 @@ const currentPlayerScore = computed(() => {
   }
 
   // Erstelle eine temporäre Liste mit allen Scores inkl. aktuellem Spieler
-  const allScores = [...dummyHighscores.value]
+  const allScores = [...highscores.value]
 
   // Prüfe ob dieser Spieler schon in der Liste ist
   const existingIndex = allScores.findIndex(score => score.playerId === playerId.value)
@@ -988,7 +977,7 @@ const createConfetti = () => {
 			    <div class="flip-card-back">
 				    <div class="card-content highscore-content">
 					    <div class="card-header">
-						    <h2>🏆 Highscore</h2>
+						    <h2>Highscore</h2>
 						    <!-- Toggle Button -->
 						    <button class="flip-toggle-btn" @click="toggleFlip">
 							    🎮 Zurück zum Spiel
@@ -1048,7 +1037,7 @@ const createConfetti = () => {
 							    </div>
 							    <!-- Top 10 Liste -->
 							    <div
-									    v-for="entry in dummyHighscores"
+									    v-for="entry in highscores.slice(0, 10)"
 									    :key="entry.rank"
 									    class="highscore-entry"
 									    :class="{
@@ -2277,8 +2266,8 @@ body:has(.party-page) .container,
 .flip-toggle-btn {
   width: auto;
 	align-self: flex-end;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
