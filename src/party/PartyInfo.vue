@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Icon from '../components/Icon.vue'
+import HotelFade from './HotelFade.vue'
 
 // Router instance
 const route = useRoute()
@@ -99,7 +100,6 @@ const getLevelTitle = (level) => {
 const PARTY_LEVEL_KEY = 'party_level'
 const PLAYER_NAME_KEY = 'player_name'
 const PLAYER_ID_KEY = 'player_id'
-const HIGHSCORE_KEY = 'party_highscores'
 
 // UUID Generator (v4)
 const generateUUID = () => {
@@ -418,21 +418,6 @@ const showFloatingNumber = (event) => {
   }, 1000)
 }
 
-// Level Reset
-const resetLevel = () => {
-  currentLevel.value = 0
-  gameCompleted.value = false
-
-  // Level aus localStorage löschen
-  saveLevel(0)
-
-  // Entferne den treasure-container falls vorhanden
-  const treasureContainer = document.querySelector('.treasure-container')
-  if (treasureContainer) {
-    treasureContainer.remove()
-  }
-}
-
 // Autoplay stoppen
 const stopAutoplay = () => {
   if (intervalId) {
@@ -520,20 +505,20 @@ onUnmounted(() => {
 const partyDetails = ref({
   title: 'Toni & Hauke Ehe-Challenge Party',
   date: '2026-07-25', // Format: YYYY-MM-DD (Samstag, 25.07.2026)
-  startTime: '16:00', // Platzhalter für Countdown
+  startTime: '16:00',
   endTime: '02:00',
-  hotelName: '',
-  hotelWebsite: '',
-  address: '',
+  hotelName: 'Hotel Hafen Hamburg',
+  hotelWebsite: 'https://www.hotel-hafen-hamburg.de/',
+  address: 'Seewartenstraße 9, 20459 Hamburg',
   description: 'Wir haben nicht nur 15 Jahre Ehe-Challenge gemeistert, sondern feiern auch einen weiteren Meilenstein!\n\nToni wurde 50, oder wie sie es ausdrückt: Sie steigt im Wert.\n\nJetzt kommt das Bonuslevel:\nParty! 🥳\n\nKommt und feiert mit uns, wenn wir zusammen weiterleveln – mit Musik, Spaß und ganz viel Konfetti! 🎊',
   dresscode: 'Nach Belieben - Hauptsache ihr fühlt euch wohl!',
   rsvpDeadline: '2026-05-01',
   rsvpEmail: 'tonjaschultz@gmail.com',
   rsvpPhone: '+49 173 8934144',
   program: [
-    { time: '--:--', activity: 'Empfang' },
-    { time: '--:--', activity: 'Abendessen' },
-    { time: '--:--', activity: 'Party' }
+    { time: '16:00', activity: 'Empfang' },
+    { time: '18:00', activity: 'Abendessen' },
+    { time: '20:00', activity: 'Party' }
   ]
 })
 
@@ -554,67 +539,65 @@ const openGoogleCalendarEvent = () => {
   window.open(GOOGLE_CALENDAR_EVENT_LINK, '_blank')
 }
 
-// TODO: Später aktivieren wenn alle Details final sind
 // Outlook Calendar - einmaliges Hinzufügen
-// const addToOutlookCalendar = () => {
-//   const event = partyDetails.value
-//   const startDateTime = `${event.date}T${event.startTime}:00`
-//   const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
-//   const endDateTime = `${endDate}T${event.endTime}:00`
-//
-//   const url = new URL('https://outlook.live.com/calendar/0/deeplink/compose')
-//   url.searchParams.append('subject', event.title)
-//   url.searchParams.append('startdt', startDateTime)
-//   url.searchParams.append('enddt', endDateTime)
-//   url.searchParams.append('body', event.description)
-//   url.searchParams.append('location', `${event.hotelName}, ${event.address}`)
-//   url.searchParams.append('path', '/calendar/action/compose')
-//   url.searchParams.append('rru', 'addevent')
-//
-//   window.open(url.toString(), '_blank')
-// }
+const addToOutlookCalendar = () => {
+  const event = partyDetails.value
+  const startDateTime = `${event.date}T${event.startTime}:00`
+  const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
+  const endDateTime = `${endDate}T${event.endTime}:00`
 
-// TODO: Später aktivieren wenn alle Details final sind
+  const url = new URL('https://outlook.live.com/calendar/0/deeplink/compose')
+  url.searchParams.append('subject', event.title)
+  url.searchParams.append('startdt', startDateTime)
+  url.searchParams.append('enddt', endDateTime)
+  url.searchParams.append('body', event.description)
+  url.searchParams.append('location', `${event.hotelName}, ${event.address}`)
+  url.searchParams.append('path', '/calendar/action/compose')
+  url.searchParams.append('rru', 'addevent')
+
+  window.open(url.toString(), '_blank')
+}
+
 // Apple Calendar - .ics Download
-// const downloadCalendar = () => {
-//   const event = partyDetails.value
-//   const startDateTime = `${event.date.replace(/-/g, '')}T${event.startTime.replace(':', '')}00`
-//   const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
-//   const endDateTime = `${endDate.replace(/-/g, '')}T${event.endTime.replace(':', '')}00`
-//
-//   const escapedTitle = escapeICalText(event.title)
-//   const escapedDescription = escapeICalText(event.description)
-//   const escapedLocation = escapeICalText(`${event.hotelName}, ${event.address}`)
-//
-//   const icsContent = `BEGIN:VCALENDAR
-// VERSION:2.0
-// PRODID:-//Party Invitation//NONSGML v1.0//EN
-// CALSCALE:GREGORIAN
-// METHOD:PUBLISH
-// BEGIN:VEVENT
-// DTSTART:${startDateTime}
-// DTEND:${endDateTime}
-// SUMMARY:${escapedTitle}
-// DESCRIPTION:${escapedDescription}
-// LOCATION:${escapedLocation}
-// STATUS:CONFIRMED
-// SEQUENCE:0
-// BEGIN:VALARM
-// TRIGGER:-P1D
-// ACTION:DISPLAY
-// DESCRIPTION:Reminder: ${escapedTitle} morgen!
-// END:VALARM
-// END:VEVENT
-// END:VCALENDAR`
-//
-//   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-//   const link = document.createElement('a')
-//   link.href = URL.createObjectURL(blob)
-//   link.download = 'party-einladung.ics'
-//   document.body.appendChild(link)
-//   link.click()
-//   document.body.removeChild(link)
-// }
+const downloadCalendar = () => {
+  const event = partyDetails.value
+  const startDateTime = `${event.date.replace(/-/g, '')}T${event.startTime.replace(':', '')}00`
+  const endDate = event.endTime < event.startTime ? getNextDay(event.date) : event.date
+  const endDateTime = `${endDate.replace(/-/g, '')}T${event.endTime.replace(':', '')}00`
+
+  const escapedTitle = escapeICalText(event.title)
+  const escapedDescription = escapeICalText(event.description)
+  const escapedLocation = escapeICalText(`${event.hotelName}, ${event.address}`)
+
+  const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Party Invitation//NONSGML v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+DTSTART:${startDateTime}
+DTEND:${endDateTime}
+SUMMARY:${escapedTitle}
+DESCRIPTION:${escapedDescription}
+LOCATION:${escapedLocation}
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Reminder: ${escapedTitle} morgen!
+END:VALARM
+END:VEVENT
+END:VCALENDAR`
+
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'party-einladung.ics'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 
 // Hilfsfunktion: Nächsten Tag berechnen
 const getNextDay = (dateString) => {
@@ -797,14 +780,19 @@ const createConfetti = () => {
   const confettiCount = 40
   const container = document.querySelector('.party-page')
 
+  // Aktuellen Viewport und Container-Höhe beim Klick berechnen
+  const currentViewportHeight = window.innerHeight
+  const currentScrollTop = window.scrollY || document.documentElement.scrollTop
+
   for (let i = 0; i < confettiCount; i++) {
     const confetti = document.createElement('div')
     confetti.className = 'confetti'
 
-    // Von oben starten, über die gesamte Breite verteilt (wie Regenfall)
+    // Von der aktuellen Scroll-Position starten, über die gesamte Breite verteilt (wie Regenfall)
     const startLeft = Math.random() * 70 + 10 // 0-100%
     confetti.style.left = startLeft + '%'
-    confetti.style.top = '-50px' // Etwas außerhalb des Viewports starten
+    // Startet etwas oberhalb der aktuellen Scroll-Position
+    confetti.style.top = `${currentScrollTop - 50}px`
 
     // 50% Chance für Emoji, 50% für bunten Kreis
     const isEmoji = Math.random() > 0.5
@@ -821,8 +809,9 @@ const createConfetti = () => {
     }
 
     // Regenfall: nach unten + leichte horizontale Bewegung
-    const horizontalDistance = Math.random() * 20 - 10 // -100 bis 100px (leichtes Schwingen)
-    const verticalDistance = Math.random() * 300 + window.innerHeight + 2200 // Bis über den Viewport hinaus
+    const horizontalDistance = Math.random() * 20 - 10 // Leichtes horizontales Schwingen
+    // Dynamische Berechnung: fällt durch den aktuellen Viewport + zusätzliche Distanz
+    const verticalDistance = Math.random() * 300 + currentViewportHeight + 140
     const duration = Math.random() * 2 + 4 // 4-6 Sekunden
 
     confetti.style.setProperty('--x', horizontalDistance + 'px')
@@ -863,34 +852,127 @@ const createConfetti = () => {
 	        <div class="calendar-month">{{ getCalendarMonth(partyDetails.date) }}</div>
           <div class="calendar-day">{{ getCalendarDay(partyDetails.date) }}</div>
           <div class="calendar-weekday">{{ getCalendarWeekday(partyDetails.date) }}</div>
-<!--          <div class="calendar-time">{{ partyDetails.startTime }} - {{ partyDetails.endTime }} Uhr</div>-->
-
-	        <div class="save-the-date-badge">SAVE THE DATE</div>
-          <!-- Countdown -->
-<!--          <div class="countdown" v-if="countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0">-->
-<!--            <div class="countdown-item">-->
-<!--              <span class="countdown-value">{{ countdown.days }}</span>-->
-<!--              <span class="countdown-label">Tage</span>-->
-<!--            </div>-->
-<!--            <div class="countdown-item">-->
-<!--              <span class="countdown-value">{{ String(countdown.hours).padStart(2, '0') }}</span>-->
-<!--              <span class="countdown-label">Stunden</span>-->
-<!--            </div>-->
-<!--            <div class="countdown-item">-->
-<!--              <span class="countdown-value">{{ String(countdown.minutes).padStart(2, '0') }}</span>-->
-<!--              <span class="countdown-label">Minuten</span>-->
-<!--            </div>-->
-<!--          </div>-->
+          <div class="calendar-time">{{ partyDetails.startTime }} - {{ partyDetails.endTime }} Uhr</div>
+          <div class="countdown" v-if="countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0">
+            <div class="countdown-item">
+              <span class="countdown-value">{{ countdown.days }}</span>
+              <span class="countdown-label">Tage</span>
+            </div>
+            <div class="countdown-item">
+              <span class="countdown-value">{{ String(countdown.hours).padStart(2, '0') }}</span>
+              <span class="countdown-label">Stunden</span>
+            </div>
+            <div class="countdown-item">
+              <span class="countdown-value">{{ String(countdown.minutes).padStart(2, '0') }}</span>
+              <span class="countdown-label">Minuten</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Description Card -->
+	    <!-- Location Card -->
+	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>Ort</h2>
+		    </div>
+		    <div class="card-content">
+			    <h3 class="hotel-name">{{ partyDetails.hotelName }}</h3>
+			    <p class="address">{{ partyDetails.address }}</p>
+			    <p class="hotel-link">
+				    <a :href="partyDetails.hotelWebsite" target="_blank" rel="noopener noreferrer">
+					    {{ partyDetails.hotelWebsite }}
+				    </a>
+			    </p>
+
+			    <!-- Google Maps iframe -->
+			    <div class="maps-container">
+				    <iframe
+					    :src="getGoogleMapsEmbedLink(partyDetails.address)"
+					    class="maps-iframe"
+					    allowfullscreen
+					    loading="lazy"
+					    referrerpolicy="no-referrer-when-downgrade"
+				    ></iframe>
+			    </div>
+		    </div>
+	    </section>
+
+	    <!-- Hotel Fade Bilder Kachel -->
+	    <section class="info-card info-card--no-border">
+		    <HotelFade />
+	    </section>
+
+	    <!-- Description Card -->
+	    <section class="info-card">
+		    <div class="card-content">
+			    <p class="description">{{ partyDetails.description }}</p>
+		    </div>
+	    </section>
+
+      <!-- Program Card -->
       <section class="info-card">
+        <div class="card-header">
+          <h2>Programm</h2>
+        </div>
         <div class="card-content">
-          <p class="description">{{ partyDetails.description }}</p>
+          <div class="program-list">
+            <div
+              v-for="(item, index) in partyDetails.program"
+              :key="index"
+              class="program-item"
+            >
+              <span class="program-time">{{ item.time }}</span>
+              <span class="program-activity">{{ item.activity }}</span>
+            </div>
+          </div>
+        </div>
+	      <div class="card-content">
+		      <p class="dresscode"><strong>Dresscode:</strong> {{ partyDetails.dresscode }}</p>
+	      </div>
+      </section>
+
+      <!-- Hotel Übernachtung Card -->
+      <section class="info-card">
+        <div class="card-header">
+          <h2>Hotel</h2>
+        </div>
+        <div class="card-content">
+	        <p class="description">Ihr möchtet vor Ort übernachten? Das Hotel Hafen Hamburg bietet Zimmer.</p>
+	        <p class="description"><strong>Zimmerpreise:</strong> Aktuelle Preise findet ihr auf der Hotel-Website.</p>
+	        <p class="description">Bei Fragen zur Übernachtung meldet euch gerne bei uns!</p>
         </div>
       </section>
 
+      <!-- Anreise Card -->
+      <section class="info-card">
+        <div class="card-header">
+          <h2>Anreise</h2>
+        </div>
+        <div class="card-content">
+	        <p class="description">Das Hotel verfügt über Parkplätze (ca. 25€ pro Tag).</p>
+	        <p class="description">Wir empfehlen alternativ die Anreise mit öffentlichen Verkehrsmitteln. Das Hotel liegt nur 5 Gehminuten von der S-Bahn-Station Landungsbrücken entfernt.</p>
+        </div>
+      </section>
+
+
+	    <!-- RSVP Card -->
+	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>Zusage</h2>
+		    </div>
+		    <div class="card-content">
+			    <p class="description">Bitte sage bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> zu.</p>
+			    <p class="description"><strong>Zum Kalender hinzufügen</strong></p>
+			    <div class="calendar-buttons" style="margin-top: var(--space-4);">
+				    <button class="btn btn--calendar btn--outlook" @click="addToOutlookCalendar">
+					    Outlook
+				    </button>
+				    <button class="btn btn--calendar btn--apple" @click="downloadCalendar">
+					    Apple
+				    </button>
+			    </div>
+		    </div>
+	    </section>
 
 	    <!-- Level-Up Clicker Game Card with Flip -->
 	    <section class="info-card level-up-card">
@@ -904,9 +986,9 @@ const createConfetti = () => {
 					    </div>
 
 					    <button
-						    class="level-up-btn"
-						    :class="{ 'level-up-btn--animate': clickAnimation }"
-						    @click="levelUp"
+							    class="level-up-btn"
+							    :class="{ 'level-up-btn--animate': clickAnimation }"
+							    @click="levelUp"
 					    >
 						    LEVEL UP!
 					    </button>
@@ -1006,107 +1088,6 @@ const createConfetti = () => {
 			    </div>
 		    </div>
 	    </section>
-
-	    <!-- Location Card -->
-	    <section class="info-card">
-		    <div class="card-header">
-			    <h2>Ort</h2>
-		    </div>
-		    <div class="card-content">
-			    <div class="placeholder-badge">📍 Ort wird bekannt gegeben</div>
-<!--			    <h3 class="hotel-name">{{ partyDetails.hotelName }}</h3>-->
-<!--			    <p class="address">{{ partyDetails.address }}</p>-->
-<!--			    <p class="hotel-link">-->
-<!--				    <a :href="partyDetails.hotelWebsite" target="_blank" rel="noopener noreferrer">-->
-<!--					    {{ partyDetails.hotelWebsite }}-->
-<!--				    </a>-->
-<!--			    </p>-->
-
-			    <!-- Google Maps iframe -->
-<!--			    <div class="maps-container">-->
-<!--				    <iframe-->
-<!--					    :src="getGoogleMapsEmbedLink(partyDetails.address)"-->
-<!--					    class="maps-iframe"-->
-<!--					    allowfullscreen-->
-<!--					    loading="lazy"-->
-<!--					    referrerpolicy="no-referrer-when-downgrade"-->
-<!--				    ></iframe>-->
-<!--			    </div>-->
-		    </div>
-	    </section>
-
-      <!-- Program Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Programm</h2>
-        </div>
-        <div class="card-content">
-          <div class="placeholder-badge">🗓️ Programm folgt</div>
-<!--          <div class="program-list">-->
-<!--            <div-->
-<!--              v-for="(item, index) in partyDetails.program"-->
-<!--              :key="index"-->
-<!--              class="program-item"-->
-<!--            >-->
-<!--              <span class="program-time">{{ item.time }}</span>-->
-<!--              <span class="program-activity">{{ item.activity }}</span>-->
-<!--            </div>-->
-<!--          </div>-->
-        </div>
-      </section>
-
-      <!-- Dresscode Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Dresscode</h2>
-        </div>
-        <div class="card-content">
-          <div class="placeholder-badge">👔 Details folgen</div>
-<!--          <p class="dresscode">{{ partyDetails.dresscode }}</p>-->
-        </div>
-      </section>
-
-      <!-- Hotel Übernachtung Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Hotel Übernachtung</h2>
-        </div>
-        <div class="card-content">
-          <div class="placeholder-badge">🏨 Infos folgen</div>
-<!--          <p>Falls ihr eine Übernachtung im Hotel benötigt, meldet euch bitte bei uns.</p>-->
-        </div>
-      </section>
-
-      <!-- RSVP Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Zusage</h2>
-        </div>
-        <div class="card-content">
-          <div class="placeholder-badge">📬 Deadline folgt</div>
-<!--          <p>Bitte sage bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> zu.</p>-->
-        </div>
-      </section>
-
-      <!-- Calendar Subscribe Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Zum Kalender hinzufügen</h2>
-        </div>
-        <div class="card-content">
-	        <div class="placeholder-badge">📅 Kalender Eintrag folgt</div>
-
-          <!-- TODO: Später aktivieren wenn alle Details final sind -->
-          <!-- <div class="calendar-buttons" style="margin-top: var(--space-4);">
-            <button class="btn btn--calendar btn--outlook" @click="addToOutlookCalendar">
-              Outlook
-            </button>
-            <button class="btn btn--calendar btn--apple" @click="downloadCalendar">
-              Apple
-            </button>
-          </div> -->
-        </div>
-      </section>
 
       <!-- Bilder Slider Card -->
       <section class="info-card info-card--wide">
@@ -1308,6 +1289,10 @@ body:has(.party-page) .container,
 			  width: calc(50% - var(--space-3));
 		  }
 	  }
+
+	  &--no-border {
+		  padding: 0;
+	  }
   }
 }
 
@@ -1332,7 +1317,7 @@ body:has(.party-page) .container,
   color: var(--warning-color);
 
   h2 {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
     font-weight: var(--font-weight-bold);
     margin: 0;
     color: var(--text-color);
@@ -1377,6 +1362,10 @@ body:has(.party-page) .container,
 .description {
   white-space: pre-line;
 	font-size: var(--font-size-lg);
+
+	& + .description {
+		margin-top: var(--space-3);
+	}
 }
 
 .program-list {
@@ -1407,7 +1396,11 @@ body:has(.party-page) .container,
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
   color: var(--warning-color);
-  margin: 0;
+  padding: var(--space-3) 0 0;
+
+	strong {
+		color: var(--white);
+	}
 }
 
 .calendar-content {
@@ -1624,7 +1617,6 @@ body:has(.party-page) .container,
   font-size: 4rem;
   font-weight: var(--font-weight-bold);
   line-height: 1;
-  margin: var(--space-3) 0;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
   @media (min-width: 768px) {
@@ -1636,7 +1628,7 @@ body:has(.party-page) .container,
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-medium);
   opacity: 0.95;
-  margin-bottom: var(--space-2);
+  margin: var(--space-1) 0 var(--space-3);
 }
 
 .calendar-time {
@@ -2316,10 +2308,9 @@ body:has(.party-page) .container,
     font-size: var(--font-size-lg);
   }
 
-  .program-item {
-    flex-direction: column;
-    gap: var(--space-1);
-  }
+	.description {
+		font-size: var(--font-size-base);
+	}
 
   .highscore-entry {
     gap: var(--space-1);
