@@ -878,7 +878,7 @@ const createConfetti = () => {
 	    <!-- Location Card -->
 	    <section class="info-card">
 		    <div class="card-header">
-			    <h2>Ort</h2>
+			    <h2>📍 Ort</h2>
 		    </div>
 		    <div class="card-content">
 			    <h3 class="hotel-name">{{ partyDetails.hotelName }}</h3>
@@ -909,79 +909,13 @@ const createConfetti = () => {
 
 	    <!-- Description Card -->
 	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>🎉 Intro</h2>
+		    </div>
 		    <div class="card-content">
 			    <p class="description">{{ partyDetails.description }}</p>
 		    </div>
 	    </section>
-
-      <!-- Program Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Programm</h2>
-        </div>
-        <div class="card-content">
-          <div class="program-list">
-            <div
-              v-for="(item, index) in partyDetails.program"
-              :key="index"
-              class="program-item"
-            >
-              <span class="program-time">{{ item.time }}</span>
-              <span class="program-activity">{{ item.activity }}</span>
-            </div>
-          </div>
-        </div>
-	      <div class="card-content">
-		      <p class="dresscode"><strong>Dresscode:</strong> {{ partyDetails.dresscode }}</p>
-	      </div>
-      </section>
-
-      <!-- Hotel Übernachtung Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Hotel</h2>
-        </div>
-        <div class="card-content">
-	        <p class="description">Ihr möchtet vor Ort übernachten? Das Hotel Hafen Hamburg bietet Zimmer.</p>
-	        <p class="description"><strong>Zimmerpreise:</strong> Aktuelle Preise findet ihr auf der Hotel-Website.</p>
-	        <p class="description">Bei Fragen zur Übernachtung meldet euch gerne bei uns!</p>
-        </div>
-      </section>
-
-      <!-- Anreise Card -->
-      <section class="info-card">
-        <div class="card-header">
-          <h2>Anreise</h2>
-        </div>
-        <div class="card-content">
-	        <p class="description">Das Hotel verfügt über Parkplätze (ca. 25€ pro Tag).</p>
-	        <p class="description">Wir empfehlen alternativ die Anreise mit öffentlichen Verkehrsmitteln. Das Hotel liegt nur 5 Gehminuten von der S-Bahn-Station Landungsbrücken entfernt.</p>
-        </div>
-      </section>
-
-
-	    <!-- RSVP Card -->
-	    <section class="info-card">
-		    <div class="card-header">
-			    <h2>Zusage</h2>
-		    </div>
-		    <div class="card-content">
-			    <p class="description">Bitte sage bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> zu.</p>
-			    <p class="description"><strong>Zum Kalender hinzufügen</strong></p>
-			    <div class="calendar-buttons" style="margin-top: var(--space-4);">
-				    <button class="btn btn--calendar btn--google" @click="openGoogleCalendarEvent">
-					    Google
-				    </button>
-				    <button class="btn btn--calendar btn--outlook" @click="addToOutlookCalendar">
-					    Outlook
-				    </button>
-				    <button class="btn btn--calendar btn--apple" @click="downloadCalendar">
-					    Apple
-				    </button>
-			    </div>
-		    </div>
-	    </section>
-
 	    <!-- Level-Up Clicker Game Card with Flip -->
 	    <section class="info-card level-up-card">
 		    <div class="flip-card-container" :class="{ 'flipped': isFlipped }">
@@ -1012,7 +946,7 @@ const createConfetti = () => {
 			    <div class="flip-card-back">
 				    <div class="card-content highscore-content">
 					    <div class="card-header">
-						    <h2>Highscore</h2>
+						    <h2>🏆 Highscore</h2>
 						    <!-- Toggle Button -->
 						    <button class="flip-toggle-btn" @click="toggleFlip">
 							    🎮 Zurück zum Spiel
@@ -1093,6 +1027,100 @@ const createConfetti = () => {
 						    </div>
 					    </div>
 				    </div>
+			    </div>
+		    </div>
+	    </section>
+
+	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>💌 Bist du dabei?</h2>
+		    </div>
+		    <div class="card-content">
+			    <p class="description">Wir würden uns riesig freuen, wenn du mit uns feierst!</p>
+			    <p class="description">Damit wir besser planen können, gib uns bitte bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> Bescheid.</p>
+			    <p class="description" style="margin-top: var(--space-4);">Melde dich bei uns!</p>
+		    </div>
+	    </section>
+
+      <!-- Hotel Übernachtung Card -->
+      <section class="info-card">
+        <div class="card-header">
+          <h2>🏨 Hotel</h2>
+        </div>
+        <div class="card-content">
+	        <p class="description">Ihr möchtet vor Ort übernachten? Das Hotel Hafen Hamburg bietet Zimmer.</p>
+	        <p class="description"><strong>Zimmerpreise:</strong> Aktuelle Preise findet ihr auf der Hotel-Website.</p>
+	        <p class="description">Bei Fragen zur Übernachtung meldet euch gerne bei uns!</p>
+        </div>
+      </section>
+
+      <!-- Anreise Card -->
+      <section class="info-card">
+        <div class="card-header">
+          <h2>🚗 Anreise</h2>
+        </div>
+        <div class="card-content">
+	        <p class="description">Das Hotel verfügt über Parkplätze (ca. 25€ pro Tag).</p>
+	        <p class="description">Wir empfehlen alternativ die Anreise mit öffentlichen Verkehrsmitteln. Das Hotel liegt nur 5 Gehminuten von der S-Bahn-Station Landungsbrücken entfernt.</p>
+        </div>
+      </section>
+
+	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>🎁 Geschenke</h2>
+		    </div>
+		    <div class="card-content">
+			    <p class="description">Das größte Geschenk ist eure Anwesenheit!</p>
+			    <p class="description">Wir haben alles, was wir brauchen. Wenn ihr trotzdem etwas beisteuern möchtet, freuen wir uns über einen kleinen Beitrag im Umschlag.</p>
+			    <p class="description">Parkplätze und Zimmer sind schon teuer genug – und wir investieren kräftig in diese Party, damit ihr einen unvergesslichen Abend habt! 🎉</p>
+		    </div>
+	    </section>
+
+	    <!-- Program Card -->
+	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>📋 Programm</h2>
+		    </div>
+		    <div class="card-content">
+			    <div class="program-list">
+				    <div
+						    v-for="(item, index) in partyDetails.program"
+						    :key="index"
+						    class="program-item"
+				    >
+					    <span class="program-time">{{ item.time }}</span>
+					    <span class="program-activity">{{ item.activity }}</span>
+				    </div>
+			    </div>
+		    </div>
+	    </section>
+
+	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>👔 Dresscode</h2>
+		    </div>
+		    <div class="card-content">
+			    <p class="dresscode">{{ partyDetails.dresscode }}</p>
+		    </div>
+	    </section>
+
+	    <!-- Kalender Card -->
+	    <section class="info-card">
+		    <div class="card-header">
+			    <h2>📅 Speichere den Termin</h2>
+		    </div>
+		    <div class="card-content">
+			    <p class="description">Damit du den Tag nicht vergisst - füge ihn direkt zu deinem Kalender hinzu:</p>
+			    <div class="calendar-buttons">
+				    <button class="btn btn--calendar btn--google" @click="openGoogleCalendarEvent">
+					    Google
+				    </button>
+				    <button class="btn btn--calendar btn--outlook" @click="addToOutlookCalendar">
+					    Outlook
+				    </button>
+				    <button class="btn btn--calendar btn--apple" @click="downloadCalendar">
+					    Apple
+				    </button>
 			    </div>
 		    </div>
 	    </section>
@@ -1246,7 +1274,7 @@ body:has(.party-page) .container,
 .party-title {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
-  margin: var(--space-4) 0 var(--space-2);
+  margin: var(--space-2) 0;
   color: white;
 
   @media (min-width: 1024px) {
@@ -1405,7 +1433,7 @@ body:has(.party-page) .container,
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
   color: var(--warning-color);
-  padding: var(--space-3) 0 0;
+  padding: 0;
 
 	strong {
 		color: var(--white);
@@ -1425,6 +1453,7 @@ body:has(.party-page) .container,
 	flex-wrap: wrap;
   gap: var(--space-3);
   width: 100%;
+	padding-top: var(--space-3);
 }
 
 .placeholder-text {
