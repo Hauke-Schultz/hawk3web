@@ -518,7 +518,8 @@ const partyDetails = ref({
   program: [
     { time: '16:00', activity: 'Empfang' },
     { time: '18:00', activity: 'Abendessen' },
-    { time: '20:00', activity: 'Party' }
+    { time: '20:00', activity: 'Party' },
+    { time: '02:00', activity: 'Ende' },
   ]
 })
 
@@ -779,10 +780,11 @@ const createConfetti = () => {
   const emojis = ['🍬', '🍭', '🍫', '🍦', '🍰', '🍺', '🍻', '🍷', '🥂', '🎂', '🎁', '✨', '🎈', '🎊']
   const confettiCount = 40
   const container = document.querySelector('.party-page')
-
-  // Aktuellen Viewport und Container-Höhe beim Klick berechnen
-  const currentViewportHeight = window.innerHeight
   const currentScrollTop = window.scrollY || document.documentElement.scrollTop
+
+  // Berechne Scroll-Prozentsatz (0 = oben, 1 = unten)
+  const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight
+  const scrollPercent = Math.min(currentScrollTop / scrollableHeight, 1)
 
   for (let i = 0; i < confettiCount; i++) {
     const confetti = document.createElement('div')
@@ -810,9 +812,12 @@ const createConfetti = () => {
 
     // Regenfall: nach unten + leichte horizontale Bewegung
     const horizontalDistance = Math.random() * 20 - 10 // Leichtes horizontales Schwingen
-    // Dynamische Berechnung: fällt durch den aktuellen Viewport + zusätzliche Distanz
-    const verticalDistance = Math.random() * 300 + currentViewportHeight + 140
-    const duration = Math.random() * 2 + 4 // 4-6 Sekunden
+    const verticalDistance = container.clientHeight + (Math.random() * 300) - 250 - currentScrollTop
+
+    // Dauer: 4-6s oben, 2-3s unten (basierend auf Scroll-Position)
+    const minDuration = 2 + (1 - scrollPercent) * 2 // 2-4s
+    const maxDuration = 3 + (1 - scrollPercent) * 3 // 3-6s
+    const duration = Math.random() * (maxDuration - minDuration) + minDuration
 
     confetti.style.setProperty('--x', horizontalDistance + 'px')
     confetti.style.setProperty('--y', verticalDistance + 'px')
@@ -964,6 +969,9 @@ const createConfetti = () => {
 			    <p class="description">Bitte sage bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> zu.</p>
 			    <p class="description"><strong>Zum Kalender hinzufügen</strong></p>
 			    <div class="calendar-buttons" style="margin-top: var(--space-4);">
+				    <button class="btn btn--calendar btn--google" @click="openGoogleCalendarEvent">
+					    Google
+				    </button>
 				    <button class="btn btn--calendar btn--outlook" @click="addToOutlookCalendar">
 					    Outlook
 				    </button>
@@ -1140,6 +1148,7 @@ body:has(.party-page) .container,
 	flex-direction: column;
 	align-items: center;
 	width: 100%;
+	padding-bottom: 400px;
 }
 
 .hero-section {
