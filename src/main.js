@@ -22,9 +22,8 @@ export const createApp = ViteSSG(
 	{
 		// SSG Options
 		includedRoutes(paths, routes) {
-			// Nur diese Routen pre-rendern
 			return paths.filter((path) => {
-				return ['/', '/party'].includes(path)
+				return ['/'].includes(path)
 			})
 		}
 	}

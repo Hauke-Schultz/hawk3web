@@ -17,12 +17,29 @@ import HawkGymHome from '../hawkGym/views/HawkGymHome.vue'
 import HawkGymTimer from '../hawkGym/views/HawkGymTimer.vue'
 import HawkGymSettings from "../hawkGym/views/HawkGymSettings.vue";
 import PartyInfo from '../party/PartyInfo.vue'
+import PartyRSVPAdmin from '../party/PartyRSVPAdmin.vue'
 
 export const routes = [
   {
     path: '/',
     name: 'Landing',
     component: HaukeSchultz
+  },
+  {
+    path: '/party',
+    name: 'Party',
+    component: PartyInfo,
+    meta: {
+      title: 'Toni & Hauke Ehe-Challenge Party 2026',
+    }
+  },
+  {
+    path: '/party/admin',
+    name: 'PartyRSVPAdmin',
+    component: PartyRSVPAdmin,
+    meta: {
+      title: 'RSVP Verwaltung',
+    }
   },
   {
     path: '/gaming',
@@ -174,15 +191,6 @@ export const routes = [
     component: HawkGymSettings,
     meta: {
       title: 'Hawk Gym Settings'
-    }
-  },
-  {
-    path: '/party',
-    name: 'Party',
-    component: PartyInfo,
-    meta: {
-      title: 'Toni & Hauke Ehe-Challenge Party 2026',
-      description: 'Wir haben nicht nur 15 Jahre Ehe-Challenge gemeistert, sondern feiern auch einen weiteren Meilenstein!\n\nToni wurde 50, oder wie sie es ausdrückt: Sie steigt im Wert.\n\nJetzt kommt das Bonuslevel:\nParty! 🥳\n\nKommt und feiert mit uns, wenn wir zusammen weiterleveln – mit Musik, Spaß und ganz viel Konfetti! 🎊'
     }
   },
   {

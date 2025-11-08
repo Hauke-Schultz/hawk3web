@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Icon from '../components/Icon.vue'
 import HotelFade from './HotelFade.vue'
@@ -100,6 +100,8 @@ const getLevelTitle = (level) => {
 const PARTY_LEVEL_KEY = 'party_level'
 const PLAYER_NAME_KEY = 'player_name'
 const PLAYER_ID_KEY = 'player_id'
+const GUEST_ID_KEY = 'party_guest_id'
+const RSVP_DATA_KEY = 'party_rsvp_data'
 
 // UUID Generator (v4)
 const generateUUID = () => {
@@ -190,6 +192,75 @@ const loadOrCreatePlayerId = () => {
   }
 }
 
+// ========================================
+// RSVP State & Functions
+// ========================================
+
+// RSVP State
+const guestId = ref('')
+const rsvpData = ref({
+  name: '',
+  numberOfGuests: 1,
+  comingByCar: false,
+  needsParking: false,
+  needsHotelRoom: false,
+  numberOfRooms: 1,
+  remarks: '',
+  status: 'pending', // 'pending' | 'accepted' | 'declined'
+  lastUpdated: null
+})
+const rsvpSaving = ref(false)
+const rsvpSaved = ref(false)
+
+// Guest-ID aus localStorage laden oder neu generieren
+const loadOrCreateGuestId = () => {
+  if (typeof localStorage === 'undefined') {
+    return generateUUID()
+  }
+
+  try {
+    let guestId = localStorage.getItem(GUEST_ID_KEY)
+    if (!guestId) {
+      guestId = generateUUID()
+      localStorage.setItem(GUEST_ID_KEY, guestId)
+    }
+    return guestId
+  } catch (error) {
+    console.error('Error loading/creating guest ID:', error)
+    return generateUUID()
+  }
+}
+
+// RSVP Daten aus localStorage laden
+const loadRSVPData = () => {
+  if (typeof localStorage === 'undefined') {
+    return null
+  }
+
+  try {
+    const stored = localStorage.getItem(RSVP_DATA_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (error) {
+    console.error('Error loading RSVP data from localStorage:', error)
+  }
+  return null
+}
+
+// RSVP Daten im localStorage speichern
+const saveRSVPDataToLocal = (data) => {
+  if (typeof localStorage === 'undefined') {
+    return
+  }
+
+  try {
+    localStorage.setItem(RSVP_DATA_KEY, JSON.stringify(data))
+  } catch (error) {
+    console.error('Error saving RSVP data to localStorage:', error)
+  }
+}
+
 // API Base URL - automatische Erkennung
 // Development: http://localhost:3000 (Node.js Server)
 // Production: https://www.haukeschultz.com (PHP API)
@@ -201,6 +272,97 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || (
 
 // API-Endpunkt: Node.js nutzt /api/highscores, PHP nutzt /api/highscores.php
 const API_ENDPOINT = import.meta.env.DEV ? '/api/highscores' : '/api/highscores.php'
+const RSVP_API_ENDPOINT = import.meta.env.DEV ? '/api/rsvp' : '/api/rsvp.php'
+
+// RSVP Daten von API laden
+const loadRSVPDataFromAPI = async (guestId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${RSVP_API_ENDPOINT}?guestId=${guestId}`)
+    if (!response.ok) {
+      return null
+    }
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error loading RSVP data from API:', error)
+    return null
+  }
+}
+
+// RSVP Daten zur API senden
+const saveRSVPData = async (data) => {
+  try {
+    rsvpSaving.value = true
+    const response = await fetch(`${API_BASE_URL}${RSVP_API_ENDPOINT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        guestId: guestId.value,
+        ...data,
+        lastUpdated: new Date().toISOString()
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to save RSVP')
+    }
+
+    const result = await response.json()
+
+    // LocalStorage aktualisieren
+    rsvpData.value.lastUpdated = result.lastUpdated || new Date().toISOString()
+    saveRSVPDataToLocal(rsvpData.value)
+
+    // Erfolgs-Feedback
+    rsvpSaved.value = true
+    setTimeout(() => {
+      rsvpSaved.value = false
+    }, 3000)
+
+    // Konfetti bei Zusage
+    if (data.status === 'accepted') {
+      createConfetti()
+    }
+
+    return result
+  } catch (error) {
+    console.error('Error saving RSVP to API:', error)
+    return null
+  } finally {
+    rsvpSaving.value = false
+  }
+}
+
+// RSVP Submit Handler
+const submitRSVP = async () => {
+  // Validierung
+  if (!rsvpData.value.name || rsvpData.value.name.trim().length === 0) {
+    alert('Bitte gib deinen Namen ein')
+    return
+  }
+
+  if (rsvpData.value.status === 'pending') {
+    alert('Bitte wähle aus, ob du zusagst oder absagst')
+    return
+  }
+
+  // Name sanitizen
+  rsvpData.value.name = sanitizeName(rsvpData.value.name)
+
+  // Daten speichern
+  await saveRSVPData(rsvpData.value)
+}
+
+// RSVP Watcher - speichert Änderungen automatisch im localStorage
+watch(
+  rsvpData,
+  (newData) => {
+    saveRSVPDataToLocal(newData)
+  },
+  { deep: true }
+)
 
 // Highscores von API laden
 const loadHighscores = async () => {
@@ -461,6 +623,27 @@ const openImageInNewTab = () => {
   window.open(images[currentImageIndex.value], '_blank')
 }
 
+const setFavicon = (src) => {
+	const iconSizes = [
+		{ rel: 'icon', sizes: '32x32' },
+		{ rel: 'icon', sizes: '16x16' },
+		{ rel: 'apple-touch-icon', sizes: '180x180' },
+		{ rel: 'shortcut icon' },
+	]
+
+	// Vorhandene entfernen
+	document.querySelectorAll('link[rel*="icon"]').forEach(el => el.remove())
+
+	// Neue hinzufügen
+	iconSizes.forEach(def => {
+		const link = document.createElement('link')
+		link.rel = def.rel
+		if (def.sizes) link.sizes = def.sizes
+		link.href = new URL(src, import.meta.url).href
+		document.head.appendChild(link)
+	})
+}
+
 // Beim Laden der Seite
 onMounted(async () => {
   // Level aus localStorage laden
@@ -478,6 +661,22 @@ onMounted(async () => {
     highscores.value = savedHighscores
   }
 
+  // Guest-ID laden oder generieren
+  guestId.value = loadOrCreateGuestId()
+
+  // RSVP-Daten laden (zuerst aus localStorage, dann von API)
+  const localRSVP = loadRSVPData()
+  if (localRSVP) {
+    rsvpData.value = { ...rsvpData.value, ...localRSVP }
+  }
+
+  // Versuche RSVP-Daten von API zu laden
+  const apiRSVP = await loadRSVPDataFromAPI(guestId.value)
+  if (apiRSVP) {
+    rsvpData.value = { ...rsvpData.value, ...apiRSVP }
+    saveRSVPDataToLocal(rsvpData.value)
+  }
+
   // Slider starten
   intervalId = setInterval(nextImage, 5000)
 
@@ -489,6 +688,13 @@ onMounted(async () => {
   setTimeout(() => {
     createConfetti()
   }, 500)
+
+  // Favicon ändern
+  // const favicon = document.querySelector('link[rel="icon"]')
+  // if (favicon) {
+  //   favicon.href = new URL('party.svg', import.meta.url).href
+  // }
+	setFavicon('/party.svg')
 })
 
 // Beim Verlassen der Seite Titel zurücksetzen
@@ -1039,6 +1245,150 @@ const createConfetti = () => {
 			    <p class="description">Wir würden uns riesig freuen, wenn du mit uns feierst!</p>
 			    <p class="description">Damit wir besser planen können, gib uns bitte bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> Bescheid.</p>
 			    <p class="description" style="margin-top: var(--space-4);">Melde dich bei uns!</p>
+		    </div>
+	    </section>
+
+	    <!-- RSVP Formular Card -->
+	    <section class="info-card rsvp-card">
+		    <div class="card-header">
+			    <h2>✉️ Deine Rückmeldung</h2>
+		    </div>
+		    <div class="card-content">
+			    <form @submit.prevent="submitRSVP" class="rsvp-form">
+				    <!-- Name Field -->
+				    <div class="form-group">
+					    <label for="rsvp-name">Dein Name *</label>
+					    <input
+						    type="text"
+						    id="rsvp-name"
+						    v-model="rsvpData.name"
+						    placeholder="Max Mustermann"
+						    class="form-input"
+						    maxlength="50"
+						    required
+					    />
+				    </div>
+
+				    <!-- Status Selection -->
+				    <div class="form-group">
+					    <label>Kommst du? *</label>
+					    <div class="status-buttons">
+						    <button
+							    type="button"
+							    class="status-btn"
+							    :class="{ 'active': rsvpData.status === 'accepted' }"
+							    @click="rsvpData.status = 'accepted'"
+						    >
+							    ✅ Ich komme!
+						    </button>
+						    <button
+							    type="button"
+							    class="status-btn"
+							    :class="{ 'active': rsvpData.status === 'declined' }"
+							    @click="rsvpData.status = 'declined'"
+						    >
+							    ❌ Kann leider nicht
+						    </button>
+					    </div>
+				    </div>
+
+				    <!-- Additional Fields (nur bei Zusage) -->
+				    <div v-if="rsvpData.status === 'accepted'" class="additional-fields">
+					    <!-- Anzahl Gäste -->
+					    <div class="form-group">
+						    <label for="rsvp-guests">Anzahl Personen (inkl. dir)</label>
+						    <input
+							    type="number"
+							    id="rsvp-guests"
+							    v-model.number="rsvpData.numberOfGuests"
+							    min="1"
+							    max="10"
+							    class="form-input"
+						    />
+					    </div>
+
+					    <!-- Checkboxen -->
+					    <div class="form-group">
+						    <label class="checkbox-label">
+							    <input
+								    type="checkbox"
+								    v-model="rsvpData.comingByCar"
+								    class="form-checkbox"
+							    />
+							    <span>Ich komme mit dem Auto</span>
+						    </label>
+					    </div>
+
+					    <div class="form-group" v-if="rsvpData.comingByCar">
+						    <label class="checkbox-label">
+							    <input
+								    type="checkbox"
+								    v-model="rsvpData.needsParking"
+								    class="form-checkbox"
+							    />
+							    <span>Ich brauche einen Parkplatz (ca. 25€/Tag)</span>
+						    </label>
+					    </div>
+
+					    <div class="form-group">
+						    <label class="checkbox-label">
+							    <input
+								    type="checkbox"
+								    v-model="rsvpData.needsHotelRoom"
+								    class="form-checkbox"
+							    />
+							    <span>Ich brauche ein Hotelzimmer</span>
+						    </label>
+					    </div>
+
+					    <div class="form-group" v-if="rsvpData.needsHotelRoom">
+						    <label for="rsvp-rooms">Anzahl Zimmer</label>
+						    <input
+							    type="number"
+							    id="rsvp-rooms"
+							    v-model.number="rsvpData.numberOfRooms"
+							    min="1"
+							    max="10"
+							    class="form-input"
+						    />
+					    </div>
+
+					    <!-- Bemerkungen -->
+					    <div class="form-group">
+						    <label for="rsvp-remarks">Bemerkungen</label>
+						    <textarea
+							    id="rsvp-remarks"
+							    v-model="rsvpData.remarks"
+							    placeholder="z.B. Ich brauche ein Doppelzimmer und ein Einzelzimmer"
+							    class="form-textarea"
+							    maxlength="500"
+							    rows="3"
+						    ></textarea>
+					    </div>
+				    </div>
+
+				    <!-- Submit Button -->
+				    <button
+					    type="submit"
+					    class="btn btn--primary btn--large rsvp-submit-btn"
+					    :disabled="rsvpSaving"
+				    >
+					    <span v-if="rsvpSaving">Wird gespeichert...</span>
+					    <span v-else-if="rsvpSaved">✓ Gespeichert!</span>
+					    <span v-else>Absenden</span>
+				    </button>
+
+				    <!-- Last Updated -->
+				    <div v-if="rsvpData.lastUpdated" class="last-updated">
+					    Zuletzt aktualisiert: {{ new Date(rsvpData.lastUpdated).toLocaleDateString('de-DE', {
+						    day: '2-digit',
+						    month: '2-digit',
+						    year: 'numeric',
+						    hour: '2-digit',
+						    minute: '2-digit'
+					    }) }}
+				    </div>
+			    </form>
 		    </div>
 	    </section>
 
@@ -2337,6 +2687,144 @@ body:has(.party-page) .container,
   }
 }
 
+// RSVP Form Styles
+.rsvp-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  .card-header h2 {
+    color: white;
+  }
+}
+
+.rsvp-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  label {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: white;
+  }
+}
+
+.form-input,
+.form-textarea {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  transition: all 0.3s ease;
+  font-family: var(--font-family-base);
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.status-buttons {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.status-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.additional-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-lg);
+  margin-top: var(--space-2);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  color: white;
+  user-select: none;
+
+  span {
+    flex: 1;
+  }
+}
+
+.form-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--warning-color);
+}
+
+.rsvp-submit-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: var(--space-2);
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.last-updated {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin-top: var(--space-2);
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .party-title {
     font-size: var(--font-size-2xl);
@@ -2364,6 +2852,14 @@ body:has(.party-page) .container,
 
   .player-level {
     font-size: var(--font-size-sm);
+  }
+
+  .status-buttons {
+    flex-direction: column;
+  }
+
+  .status-btn {
+    min-width: 100%;
   }
 }
 </style>

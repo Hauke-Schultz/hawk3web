@@ -1,0 +1,32 @@
+{
+  "e6f476a9-b9b0-48e7-9f20-ab48cc2984ff": {
+    "name": "Froppy",
+    "numberOfGuests": 4,
+    "comingByCar": true,
+    "needsParking": true,
+    "needsHotelRoom": true,
+    "remarks": "Ein DZ und ein EZ bitte.",
+    "status": "accepted",
+    "lastUpdated": "2025-11-08T14:09:29.024Z"
+  },
+  "82af051d-5710-484d-9d22-611518e1b212": {
+    "name": "Wursty",
+    "numberOfGuests": 1,
+    "comingByCar": false,
+    "needsParking": false,
+    "needsHotelRoom": false,
+    "remarks": "",
+    "status": "declined",
+    "lastUpdated": "2025-11-08T14:01:53.168Z"
+  },
+  "6b2efc73-a1f7-4960-885d-2656a0570c5a": {
+    "name": "Party Knödel",
+    "numberOfGuests": 1,
+    "comingByCar": false,
+    "needsParking": false,
+    "needsHotelRoom": true,
+    "remarks": "",
+    "status": "accepted",
+    "lastUpdated": "2025-11-08T14:09:06.863Z"
+  }
+}

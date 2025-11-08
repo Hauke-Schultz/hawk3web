@@ -14,56 +14,63 @@
     "date": "2025-10-18"
   },
   {
-    "rank": 3,
+    "playerId": "2700224a-1b72-4851-86c7-fe36b685eb2c",
+    "name": "Hauke",
+    "level": 127,
+    "date": "2025-11-08",
+    "rank": 3
+  },
+  {
+    "rank": 4,
     "playerId": "dummy-3",
     "name": "ClickMaster",
     "level": 100,
     "date": "2025-10-15"
   },
   {
-    "rank": 4,
+    "rank": 5,
     "playerId": "dummy-4",
     "name": "PartyHero",
     "level": 90,
     "date": "2025-10-12"
   },
   {
-    "rank": 5,
+    "rank": 6,
     "playerId": "dummy-5",
     "name": "ButtonSmasher",
     "level": 80,
     "date": "2025-10-10"
   },
   {
-    "rank": 6,
+    "rank": 7,
     "playerId": "dummy-6",
     "name": "ProGamer",
     "level": 70,
     "date": "2025-10-08"
   },
   {
-    "rank": 7,
+    "rank": 8,
     "playerId": "dummy-7",
     "name": "SpeedClicker",
     "level": 60,
     "date": "2025-10-05"
   },
   {
-    "rank": 8,
+    "rank": 9,
     "playerId": "dummy-8",
     "name": "ChampionX",
     "level": 50,
     "date": "2025-10-02"
   },
   {
-    "rank": 9,
+    "rank": 10,
     "playerId": "dummy-9",
     "name": "NinjaFinger",
     "level": 40,
     "date": "2025-09-28"
   },
   {
-    "rank": 10,
+    "rank": 11,
     "playerId": "dummy-10",
     "name": "ClickNinja",
     "level": 30,

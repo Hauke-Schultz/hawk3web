@@ -1,57 +1,88 @@
 # Party Einladung
 
-## Event Details
+## Roadmap: Gäste-Zusage-System (RSVP)
 
-**Titel** Toni & Hauke Ehe-Challenge Party
-**Datum:** 4. Juli 2026 
-**Uhrzeit:** 16:00 (GMT+01:00) Mitteleuropäische Zeit - Berlin
-**Location:** Hotel Kramer´s Gasthof
-**Adresse:** Dorfstraße 24, 25479 Ellerau, Deutschland
+### Übersicht
+Integration eines RSVP-Systems (Répondez s'il vous plaît / Zusage-System), damit Gäste ihre Teilnahme bestätigen und zusätzliche Informationen angeben können.
 
-## Beschreibung
+### Phase 1: Datenmodell & API-Endpunkte
+**Benötigte Datenstruktur:**
+```javascript
+{
+  guestId: string (UUID),
+  name: string,
+  numberOfGuests: number,
+  comingByCar: boolean,
+  needsParking: boolean,
+  needsHotelRoom: boolean,
+  status: 'pending' | 'accepted' | 'declined',
+  lastUpdated: timestamp,
+  partyId: string (für spätere Multi-Party-Unterstützung)
+}
+```
 
-Wir haben nicht nur 15 Jahre Ehe-Challenge gemeistert, sondern feiern auch einen weiteren Meilenstein!
+**API-Endpunkte:**
+- `POST /api/rsvp.php` - Neue Zusage speichern/aktualisieren
+- `GET /api/rsvp.php?partyId=xyz` - Alle Zusagen für Gastgeber laden
+- `GET /api/rsvp.php?guestId=xyz` - Eigene Zusage laden
 
-Toni wurde 50, oder wie sie es ausdrückt: Sie steigt im Wert.
+### Phase 2: Gäste-Ansicht (auf PartyInfo.vue)
+**Neue Kachel "Zusage" erstellen:**
+- Position: Nach der "Bist du dabei?"-Kachel (aktuell Zeile 1062-1071)
+- Formular mit folgenden Feldern:
+  - Name (Input, max 50 Zeichen)
+  - Anzahl Personen (Number Input, 1-10)
+  - Mit Auto? (Checkbox)
+  - Parkplatz benötigt? (Checkbox, nur sichtbar wenn "Mit Auto")
+  - Hotelzimmer benötigt? (Checkbox)
+  - Status: Zusagen / Absagen (Radio Buttons)
+- Anzeige: "Zuletzt geändert: [Datum]"
+- LocalStorage: guestId speichern wie bei playerId
+- Visuelles Feedback nach Speichern (Konfetti bei Zusage!)
 
-Jetzt kommt das Bonuslevel: Party! 🥳
-Kommt und feiert mit uns, wenn wir zusammen weiterleveln – mit Musik, Spaß und ganz viel Konfetti! 🎊
+### Phase 3: Gastgeber-Ansicht
+**Neue Route & Komponente:**
+- `src/party/PartyRSVPAdmin.vue` - Admin-Übersicht
+- Route: `/party/rsvp-admin` (mit Passwort-Schutz oder Query-Parameter)
 
-Wann: 04.07.2026
-Wo: Hotel Kramer´s Gasthof
-https://www.hotel-kramers-gasthof.de/
-Beginn: 16:00
+**Features:**
+- Tabelle mit allen Gästen
+- Filteroptionen:
+  - Nur Zusagen / Nur Absagen
+  - Braucht Parkplatz
+  - Braucht Hotelzimmer
+- Statistiken:
+  - Gesamt-Zusagen
+  - Gesamt-Personen
+  - Parkplätze benötigt
+  - Hotelzimmer benötigt
+- Export als CSV/Excel
+- Echtzeit-Updates (optional)
 
-Wir freuen uns auf euch!
+### Phase 4: Backend-Implementierung
+**Datei:** `public/api/rsvp.php`
+- SQLite oder JSON-Datei als Speicher (analog zu highscores.php)
+- Validierung der Eingaben
+- Rate Limiting gegen Spam
+- Optional: Email-Benachrichtigung an Gastgeber bei neuer Zusage
 
-Toni & Hauke
+### Phase 5: Styling & UX
+- Konsistentes Design mit bestehenden info-cards
+- Responsive für Mobile/Tablet/Desktop
+- Ladeanimationen
+- Error-Handling & User-Feedback
+- Formular-Validierung
 
-## Programm
+### Phase 6: Testing & Deployment
+- Test aller RSVP-Flows
+- Admin-Ansicht testen
+- Mobile-Tests
+- Performance-Tests bei vielen Gästen
 
-- Empfang: 16:00
-- Abendessen: 18:00
-- Party: 20:00
+---
 
-## Dresscode
-
-[Dresscode angeben]
-
-## RSVP
-
-Bitte bis zum [Datum] zusagen an: [Kontakt]
-
-## Kalender
-
-Lade den Termin direkt in deinen Kalender: [Kalender-Download Link]
-
-## Anfahrt
-
-[Anfahrtsinformationen]
-
-## Unterkunft
-
-[Hotel-Buchungsinformationen]
-
-## Kontakt
-
-Bei Fragen wende dich an: [Kontaktdaten]
+**Technische Details:**
+- Wiederverwendung der bestehenden API-Struktur (wie bei Highscores)
+- localStorage für guestId (analog zu playerId)
+- Refs & Composables für State-Management
+- Konfetti-Animation bei Zusage nutzen (bereits vorhanden!)
