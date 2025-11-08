@@ -1353,7 +1353,7 @@ const createConfetti = () => {
 						    />
 					    </div>
 
-					    <!-- Bemerkungen -->
+					    <!-- Bemerkungen (für Zusagen) -->
 					    <div class="form-group">
 						    <label for="rsvp-remarks">Bemerkungen</label>
 						    <textarea
@@ -1365,6 +1365,19 @@ const createConfetti = () => {
 							    rows="3"
 						    ></textarea>
 					    </div>
+				    </div>
+
+				    <!-- Bemerkungen für Absagen -->
+				    <div v-if="rsvpData.status === 'declined'" class="form-group">
+					    <label for="rsvp-remarks-declined">Grund für Absage (optional)</label>
+					    <textarea
+						    id="rsvp-remarks-declined"
+						    v-model="rsvpData.remarks"
+						    placeholder="z.B. Ich bin leider im Urlaub"
+						    class="form-textarea"
+						    maxlength="500"
+						    rows="3"
+					    ></textarea>
 				    </div>
 
 				    <!-- Submit Button -->

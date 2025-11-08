@@ -5,28 +5,31 @@
     "comingByCar": true,
     "needsParking": true,
     "needsHotelRoom": true,
+    "numberOfRooms": 2,
     "remarks": "Ein DZ und ein EZ bitte.",
     "status": "accepted",
-    "lastUpdated": "2025-11-08T14:09:29.024Z"
+    "lastUpdated": "2025-11-08T14:17:39.267Z"
   },
-  "82af051d-5710-484d-9d22-611518e1b212": {
-    "name": "Wursty",
+  "6b2efc73-a1f7-4960-885d-2656a0570c5a": {
+    "name": "Party Knödel",
+    "numberOfGuests": 3,
+    "comingByCar": false,
+    "needsParking": false,
+    "needsHotelRoom": true,
+    "numberOfRooms": 3,
+    "remarks": "Jajaja",
+    "status": "accepted",
+    "lastUpdated": "2025-11-08T14:18:31.801Z"
+  },
+  "cbebd90f-7ac1-4e15-ae61-31186503164f": {
+    "name": "Zombie 123",
     "numberOfGuests": 1,
     "comingByCar": false,
     "needsParking": false,
     "needsHotelRoom": false,
-    "remarks": "",
+    "numberOfRooms": 1,
+    "remarks": "Leider habe ich Urlaub und die Mutti von Gutti hat zwei Äpfel im Gepäck und das geht so gar nicht Alter Diggah!",
     "status": "declined",
-    "lastUpdated": "2025-11-08T14:01:53.168Z"
-  },
-  "6b2efc73-a1f7-4960-885d-2656a0570c5a": {
-    "name": "Party Knödel",
-    "numberOfGuests": 1,
-    "comingByCar": false,
-    "needsParking": false,
-    "needsHotelRoom": true,
-    "remarks": "",
-    "status": "accepted",
-    "lastUpdated": "2025-11-08T14:09:06.863Z"
+    "lastUpdated": "2025-11-08T14:26:21.954Z"
   }
 }

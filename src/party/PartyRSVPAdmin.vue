@@ -263,7 +263,11 @@ const goBackToParty = () => {
  * RSVP bearbeiten
  */
 const editRSVP = (rsvp) => {
-  editingRSVP.value = { ...rsvp }
+  editingRSVP.value = {
+    ...rsvp,
+    // Sicherstellen, dass numberOfRooms immer gesetzt ist
+    numberOfRooms: rsvp.numberOfRooms || 1
+  }
   showEditModal.value = true
 }
 
@@ -485,24 +489,24 @@ onMounted(() => {
                   {{ sortOrder === 'asc' ? '↑' : '↓' }}
                 </span>
               </th>
-              <th @click="changeSort('guests')" class="sortable">
-                Personen
+              <th @click="changeSort('guests')" class="sortable" title="Anzahl Personen">
+                👥
                 <span v-if="sortBy === 'guests'" class="sort-indicator">
                   {{ sortOrder === 'asc' ? '↑' : '↓' }}
                 </span>
               </th>
-              <th>Auto</th>
-              <th>Parkplatz</th>
-              <th>Hotel</th>
-              <th>Zimmer</th>
-              <th>Bemerkungen</th>
-              <th @click="changeSort('date')" class="sortable">
-                Aktualisiert
+              <th title="Mit Auto">🚗</th>
+              <th title="Parkplatz benötigt">🅿️</th>
+              <th title="Hotelzimmer benötigt">🏨</th>
+              <th title="Anzahl Zimmer">🛏️</th>
+              <th title="Bemerkungen">💬</th>
+              <th @click="changeSort('date')" class="sortable" title="Letzte Aktualisierung">
+                🕐
                 <span v-if="sortBy === 'date'" class="sort-indicator">
                   {{ sortOrder === 'asc' ? '↑' : '↓' }}
                 </span>
               </th>
-              <th>Aktionen</th>
+              <th title="Aktionen">⚙️</th>
             </tr>
           </thead>
           <tbody>
@@ -873,19 +877,25 @@ onMounted(() => {
 
 .name-cell {
   font-weight: var(--font-weight-medium);
+  min-width: 150px;
+  width: 20%;
 }
 
 .center-cell {
   text-align: center;
+  white-space: nowrap;
 }
 
 .date-cell {
   font-size: var(--font-size-sm);
   opacity: 0.8;
+  white-space: nowrap;
 }
 
 .remarks-cell {
-  max-width: 300px;
+  min-width: 200px;
+  width: 25%;
+  max-width: 400px;
   font-size: var(--font-size-sm);
   line-height: 1.4;
   white-space: pre-wrap;
