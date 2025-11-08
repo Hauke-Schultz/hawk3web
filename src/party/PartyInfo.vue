@@ -211,6 +211,12 @@ const rsvpData = ref({
 })
 const rsvpSaving = ref(false)
 const rsvpSaved = ref(false)
+const isEditingRSVP = ref(false) // Bearbeitungsmodus für RSVP
+
+// RSVP bearbeiten
+const editRSVP = () => {
+  isEditingRSVP.value = true
+}
 
 // Guest-ID aus localStorage laden oder neu generieren
 const loadOrCreateGuestId = () => {
@@ -353,6 +359,9 @@ const submitRSVP = async () => {
 
   // Daten speichern
   await saveRSVPData(rsvpData.value)
+
+  // Bearbeitungsmodus verlassen
+  isEditingRSVP.value = false
 }
 
 // RSVP Watcher - speichert Änderungen automatisch im localStorage
@@ -712,7 +721,7 @@ const partyDetails = ref({
   title: 'Toni & Hauke Ehe-Challenge Party',
   date: '2026-07-25', // Format: YYYY-MM-DD (Samstag, 25.07.2026)
   startTime: '16:00',
-  endTime: '02:00',
+  endTime: '03:00',
   hotelName: 'Hotel Hafen Hamburg',
   hotelWebsite: 'https://www.hotel-hafen-hamburg.de/',
   address: 'Seewartenstraße 9, 20459 Hamburg',
@@ -725,7 +734,7 @@ const partyDetails = ref({
     { time: '16:00', activity: 'Empfang' },
     { time: '18:00', activity: 'Abendessen' },
     { time: '20:00', activity: 'Party' },
-    { time: '02:00', activity: 'Ende' },
+    { time: '03:00', activity: 'Ende' },
   ]
 })
 
@@ -884,6 +893,14 @@ const sanitizeName = (name) => {
     .replace(/\-+/g, '-') // Replace multiple hyphens with single hyphen
     .substring(0, 20) // Limit to 20 characters
     .trim() // Final trim in case we cut off in the middle of spaces
+}
+
+// Scroll to RSVP Card
+const scrollToRSVP = () => {
+  const rsvpCard = document.querySelector('.rsvp-card')
+  if (rsvpCard) {
+    rsvpCard.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 }
 
 // Submit Score
@@ -1185,7 +1202,7 @@ const createConfetti = () => {
 								    <template v-else-if="currentPlayerScore.isImprovement">
 									    <div class="congratulations-text">
 										    <span>Du hast es geschafft! Neuer Highscore!</span>
-										    <span v-if="playerName.length === 0"> Jetzt Namen eintragen und Highscore senden.</span>
+										    <span v-if="playerName.length === 0"> Jetzt Namen eintragen und am Highscore mitmachen.</span>
 									    </div>
 									    <span class="rank-number">{{ currentPlayerScore.rank }}.</span>
 									    <span class="player-name">
@@ -1224,9 +1241,6 @@ const createConfetti = () => {
 								    }"
 							    >
 								    <span class="rank-number">{{ entry.rank }}.</span>
-								    <span v-if="entry.rank === 1" class="rank-medal">🥇</span>
-								    <span v-else-if="entry.rank === 2" class="rank-medal">🥈</span>
-								    <span v-else-if="entry.rank === 3" class="rank-medal">🥉</span>
 								    <span class="player-name">{{ entry.name }}</span>
 								    <span class="player-level">{{ entry.level }}</span>
 							    </div>
@@ -1242,166 +1256,25 @@ const createConfetti = () => {
 			    <h2>💌 Bist du dabei?</h2>
 		    </div>
 		    <div class="card-content">
-			    <p class="description">Wir würden uns riesig freuen, wenn du mit uns feierst!</p>
-			    <p class="description">Damit wir besser planen können, gib uns bitte bis zum <strong>{{ formatDate(partyDetails.rsvpDeadline) }}</strong> Bescheid.</p>
-			    <p class="description" style="margin-top: var(--space-4);">Melde dich bei uns!</p>
-		    </div>
-	    </section>
-
-	    <!-- RSVP Formular Card -->
-	    <section class="info-card rsvp-card">
-		    <div class="card-header">
-			    <h2>✉️ Deine Rückmeldung</h2>
-		    </div>
-		    <div class="card-content">
-			    <form @submit.prevent="submitRSVP" class="rsvp-form">
-				    <!-- Name Field -->
-				    <div class="form-group">
-					    <label for="rsvp-name">Dein Name *</label>
-					    <input
-						    type="text"
-						    id="rsvp-name"
-						    v-model="rsvpData.name"
-						    placeholder="Max Mustermann"
-						    class="form-input"
-						    maxlength="50"
-						    required
-					    />
-				    </div>
-
-				    <!-- Status Selection -->
-				    <div class="form-group">
-					    <label>Kommst du? *</label>
-					    <div class="status-buttons">
-						    <button
-							    type="button"
-							    class="status-btn"
-							    :class="{ 'active': rsvpData.status === 'accepted' }"
-							    @click="rsvpData.status = 'accepted'"
-						    >
-							    ✅ Ich komme!
-						    </button>
-						    <button
-							    type="button"
-							    class="status-btn"
-							    :class="{ 'active': rsvpData.status === 'declined' }"
-							    @click="rsvpData.status = 'declined'"
-						    >
-							    ❌ Kann leider nicht
-						    </button>
-					    </div>
-				    </div>
-
-				    <!-- Additional Fields (nur bei Zusage) -->
-				    <div v-if="rsvpData.status === 'accepted'" class="additional-fields">
-					    <!-- Anzahl Gäste -->
-					    <div class="form-group">
-						    <label for="rsvp-guests">Anzahl Personen (inkl. dir)</label>
-						    <input
-							    type="number"
-							    id="rsvp-guests"
-							    v-model.number="rsvpData.numberOfGuests"
-							    min="1"
-							    max="10"
-							    class="form-input"
-						    />
-					    </div>
-
-					    <!-- Checkboxen -->
-					    <div class="form-group">
-						    <label class="checkbox-label">
-							    <input
-								    type="checkbox"
-								    v-model="rsvpData.comingByCar"
-								    class="form-checkbox"
-							    />
-							    <span>Ich komme mit dem Auto</span>
-						    </label>
-					    </div>
-
-					    <div class="form-group" v-if="rsvpData.comingByCar">
-						    <label class="checkbox-label">
-							    <input
-								    type="checkbox"
-								    v-model="rsvpData.needsParking"
-								    class="form-checkbox"
-							    />
-							    <span>Ich brauche einen Parkplatz (ca. 25€/Tag)</span>
-						    </label>
-					    </div>
-
-					    <div class="form-group">
-						    <label class="checkbox-label">
-							    <input
-								    type="checkbox"
-								    v-model="rsvpData.needsHotelRoom"
-								    class="form-checkbox"
-							    />
-							    <span>Ich brauche ein Hotelzimmer</span>
-						    </label>
-					    </div>
-
-					    <div class="form-group" v-if="rsvpData.needsHotelRoom">
-						    <label for="rsvp-rooms">Anzahl Zimmer</label>
-						    <input
-							    type="number"
-							    id="rsvp-rooms"
-							    v-model.number="rsvpData.numberOfRooms"
-							    min="1"
-							    max="10"
-							    class="form-input"
-						    />
-					    </div>
-
-					    <!-- Bemerkungen (für Zusagen) -->
-					    <div class="form-group">
-						    <label for="rsvp-remarks">Bemerkungen</label>
-						    <textarea
-							    id="rsvp-remarks"
-							    v-model="rsvpData.remarks"
-							    placeholder="z.B. Ich brauche ein Doppelzimmer und ein Einzelzimmer"
-							    class="form-textarea"
-							    maxlength="500"
-							    rows="3"
-						    ></textarea>
-					    </div>
-				    </div>
-
-				    <!-- Bemerkungen für Absagen -->
-				    <div v-if="rsvpData.status === 'declined'" class="form-group">
-					    <label for="rsvp-remarks-declined">Grund für Absage (optional)</label>
-					    <textarea
-						    id="rsvp-remarks-declined"
-						    v-model="rsvpData.remarks"
-						    placeholder="z.B. Ich bin leider im Urlaub"
-						    class="form-textarea"
-						    maxlength="500"
-						    rows="3"
-					    ></textarea>
-				    </div>
-
-				    <!-- Submit Button -->
-				    <button
-					    type="submit"
-					    class="btn btn--primary btn--large rsvp-submit-btn"
-					    :disabled="rsvpSaving"
-				    >
-					    <span v-if="rsvpSaving">Wird gespeichert...</span>
-					    <span v-else-if="rsvpSaved">✓ Gespeichert!</span>
-					    <span v-else>Absenden</span>
-				    </button>
-
-				    <!-- Last Updated -->
-				    <div v-if="rsvpData.lastUpdated" class="last-updated">
-					    Zuletzt aktualisiert: {{ new Date(rsvpData.lastUpdated).toLocaleDateString('de-DE', {
-						    day: '2-digit',
-						    month: '2-digit',
-						    year: 'numeric',
-						    hour: '2-digit',
-						    minute: '2-digit'
-					    }) }}
-				    </div>
-			    </form>
+			    <p class="description" v-if="!rsvpData.lastUpdated">Wir würden uns riesig freuen, wenn du mit uns feierst!</p>
+			    <p class="description" v-if="!rsvpData.lastUpdated">Damit wir besser planen können, gib uns bitte Bescheid.</p>
+			    <p class="description" v-else>Vielen Dank für deine Rückmeldung! Du kannst sie jederzeit anpassen.</p>
+			    <button
+				    v-if="!rsvpData.lastUpdated"
+				    @click="scrollToRSVP"
+				    class="btn btn--primary btn--large"
+				    style="margin-top: var(--space-4); width: 100%;"
+			    >
+				    Jetzt antworten
+			    </button>
+			    <button
+				    v-else
+				    @click="scrollToRSVP"
+				    class="btn btn--secondary btn--large"
+				    style="margin-top: var(--space-4); width: 100%;"
+			    >
+				    Rückmeldung ansehen/ändern
+			    </button>
 		    </div>
 	    </section>
 
@@ -1488,7 +1361,210 @@ const createConfetti = () => {
 		    </div>
 	    </section>
 
-      <!-- Bilder Slider Card -->
+	    <!-- RSVP Formular Card -->
+	    <section class="info-card rsvp-card info-card--wide">
+		    <div class="card-header">
+			    <h2>✉️ Deine Rückmeldung</h2>
+		    </div>
+		    <div class="card-content">
+			    <!-- Zusammenfassung (nur wenn gespeichert und nicht im Bearbeitungsmodus) -->
+			    <div v-if="rsvpData.lastUpdated && !isEditingRSVP" class="rsvp-summary">
+				    <div class="summary-item">
+					    <strong>Name:</strong> {{ rsvpData.name }}
+				    </div>
+				    <div class="summary-item">
+					    <strong>Status:</strong>
+					    <span v-if="rsvpData.status === 'accepted'" class="status-badge status-badge--accepted">✅ Zugesagt</span>
+					    <span v-if="rsvpData.status === 'declined'" class="status-badge status-badge--declined">❌ Abgesagt</span>
+				    </div>
+
+				    <!-- Zusätzliche Infos bei Zusage -->
+				    <template v-if="rsvpData.status === 'accepted'">
+					    <div class="summary-item" v-if="rsvpData.numberOfGuests > 1">
+						    <strong>Anzahl Personen:</strong> {{ rsvpData.numberOfGuests }}
+					    </div>
+					    <div class="summary-item" v-if="rsvpData.comingByCar">
+						    <strong>Anreise:</strong> Mit dem Auto
+					    </div>
+					    <div class="summary-item" v-if="rsvpData.needsParking">
+						    <strong>Parkplatz:</strong> Ja
+					    </div>
+					    <div class="summary-item" v-if="rsvpData.needsHotelRoom">
+						    <strong>Hotelzimmer:</strong> {{ rsvpData.numberOfRooms }} {{ rsvpData.numberOfRooms === 1 ? 'Zimmer' : 'Zimmer' }}
+					    </div>
+					    <div class="summary-item" v-if="rsvpData.remarks">
+						    <strong>Bemerkungen:</strong> {{ rsvpData.remarks }}
+					    </div>
+				    </template>
+
+				    <!-- Bemerkungen bei Absage -->
+				    <div class="summary-item" v-if="rsvpData.status === 'declined' && rsvpData.remarks">
+					    <strong>Grund:</strong> {{ rsvpData.remarks }}
+				    </div>
+
+				    <!-- Last Updated -->
+				    <div class="last-updated">
+					    Zuletzt aktualisiert: {{ new Date(rsvpData.lastUpdated).toLocaleDateString('de-DE', {
+					    day: '2-digit',
+					    month: '2-digit',
+					    year: 'numeric',
+					    hour: '2-digit',
+					    minute: '2-digit'
+				    }) }}
+				    </div>
+
+				    <!-- Eingaben ändern Button -->
+				    <button
+						    @click="editRSVP"
+						    class="btn btn--secondary btn--large"
+						    style="width: 100%; margin-top: var(--space-4);"
+				    >
+					    Eingaben ändern
+				    </button>
+			    </div>
+
+			    <!-- Formular (wenn noch nicht gespeichert oder im Bearbeitungsmodus) -->
+			    <form v-if="!rsvpData.lastUpdated || isEditingRSVP" @submit.prevent="submitRSVP" class="rsvp-form">
+				    <!-- Name Field -->
+				    <div class="form-group">
+					    <label for="rsvp-name">Dein Name *</label>
+					    <input
+							    type="text"
+							    id="rsvp-name"
+							    v-model="rsvpData.name"
+							    placeholder="Max Mustermann"
+							    class="form-input"
+							    maxlength="50"
+							    required
+					    />
+				    </div>
+
+				    <!-- Status Selection -->
+				    <div class="form-group">
+					    <label>Kommst du? *</label>
+					    <div class="status-buttons">
+						    <button
+								    type="button"
+								    class="status-btn"
+								    :class="{ 'status-btn--accepted': rsvpData.status === 'accepted' }"
+								    @click="rsvpData.status = 'accepted'"
+						    >
+							    ✅ Ich komme!
+						    </button>
+						    <button
+								    type="button"
+								    class="status-btn"
+								    :class="{ 'status-btn--declined': rsvpData.status === 'declined' }"
+								    @click="rsvpData.status = 'declined'"
+						    >
+							    ❌ Kann leider nicht
+						    </button>
+					    </div>
+				    </div>
+
+				    <!-- Additional Fields (nur bei Zusage) -->
+				    <div v-if="rsvpData.status === 'accepted'" class="additional-fields">
+					    <!-- Anzahl Gäste -->
+					    <div class="form-group">
+						    <label for="rsvp-guests">Anzahl Personen (inkl. dir)</label>
+						    <input
+								    type="number"
+								    id="rsvp-guests"
+								    v-model.number="rsvpData.numberOfGuests"
+								    min="1"
+								    max="10"
+								    class="form-input"
+						    />
+					    </div>
+
+					    <!-- Checkboxen -->
+					    <div class="form-group">
+						    <label class="checkbox-label">
+							    <input
+									    type="checkbox"
+									    v-model="rsvpData.comingByCar"
+									    class="form-checkbox"
+							    />
+							    <span>Ich komme mit dem Auto</span>
+						    </label>
+					    </div>
+
+					    <div class="form-group" v-if="rsvpData.comingByCar">
+						    <label class="checkbox-label">
+							    <input
+									    type="checkbox"
+									    v-model="rsvpData.needsParking"
+									    class="form-checkbox"
+							    />
+							    <span>Ich brauche einen Parkplatz (ca. 25€/Tag)</span>
+						    </label>
+					    </div>
+
+					    <div class="form-group">
+						    <label class="checkbox-label">
+							    <input
+									    type="checkbox"
+									    v-model="rsvpData.needsHotelRoom"
+									    class="form-checkbox"
+							    />
+							    <span>Ich brauche ein Hotelzimmer</span>
+						    </label>
+					    </div>
+
+					    <div class="form-group" v-if="rsvpData.needsHotelRoom">
+						    <label for="rsvp-rooms">Anzahl Zimmer</label>
+						    <input
+								    type="number"
+								    id="rsvp-rooms"
+								    v-model.number="rsvpData.numberOfRooms"
+								    min="1"
+								    max="10"
+								    class="form-input"
+							    />
+					    </div>
+
+					    <!-- Bemerkungen (für Zusagen) -->
+					    <div class="form-group">
+						    <label for="rsvp-remarks">Bemerkungen</label>
+						    <textarea
+								    id="rsvp-remarks"
+								    v-model="rsvpData.remarks"
+								    placeholder="z.B. Ich brauche ein Doppelzimmer und ein Einzelzimmer"
+								    class="form-textarea"
+								    maxlength="500"
+								    rows="3"
+						    ></textarea>
+					    </div>
+				    </div>
+
+				    <!-- Bemerkungen für Absagen -->
+				    <div v-if="rsvpData.status === 'declined'" class="form-group">
+					    <label for="rsvp-remarks-declined">Grund für Absage (optional)</label>
+					    <textarea
+							    id="rsvp-remarks-declined"
+							    v-model="rsvpData.remarks"
+							    placeholder="z.B. Ich bin leider im Urlaub"
+							    class="form-textarea"
+							    maxlength="500"
+							    rows="3"
+					    ></textarea>
+				    </div>
+
+				    <!-- Submit Button -->
+				    <button
+						    type="submit"
+						    class="btn btn--primary btn--large rsvp-submit-btn"
+						    :disabled="rsvpSaving"
+				    >
+					    <span v-if="rsvpSaving">Wird gespeichert...</span>
+					    <span v-else-if="rsvpSaved">✓ Gespeichert!</span>
+					    <span v-else>Absenden</span>
+				    </button>
+			    </form>
+		    </div>
+	    </section>
+
+	    <!-- Bilder Slider Card -->
       <section class="info-card info-card--wide">
         <div class="card-content">
           <div class="image-slider">
@@ -1714,7 +1790,7 @@ body:has(.party-page) .container,
   align-items: center;
   gap: var(--space-2);
   margin-bottom: var(--space-3);
-  color: var(--warning-color);
+  color: var(--purple-color);
 
   h2 {
     font-size: var(--font-size-base);
@@ -1733,7 +1809,7 @@ body:has(.party-page) .container,
   }
 
   a {
-    color: var(--warning-color);
+    color: var(--purple-color);
     text-decoration: none;
     font-weight: var(--font-weight-medium);
 
@@ -1778,13 +1854,13 @@ body:has(.party-page) .container,
   display: flex;
   gap: var(--space-4);
   padding: var(--space-2);
-  border-left: 3px solid var(--warning-color);
+  border-left: 3px solid var(--purple-color);
   padding-left: var(--space-3);
 }
 
 .program-time {
   font-weight: var(--font-weight-bold);
-  color: var(--warning-color);
+  color: var(--purple-color);
   min-width: 60px;
 }
 
@@ -1795,7 +1871,7 @@ body:has(.party-page) .container,
 .dresscode {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
-  color: var(--warning-color);
+  color: var(--purple-color);
   padding: 0;
 
 	strong {
@@ -1909,7 +1985,7 @@ body:has(.party-page) .container,
   }
 
   &.active {
-    background: var(--warning-color);
+    background: var(--purple-color);
     width: 32px;
     border-radius: 6px;
   }
@@ -1929,11 +2005,23 @@ body:has(.party-page) .container,
   font-size: var(--font-size-base);
 
   &--primary {
-    background: var(--warning-color);
+    background: var(--purple-color);
     color: white;
 
     &:hover {
-      background: var(--warning-color);
+      background: var(--purple-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  &--secondary {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
@@ -2094,7 +2182,7 @@ body:has(.party-page) .container,
 	cursor: default;
 
 	&:hover {
-		border-color: var(--warning-color);
+		border-color: var(--purple-color);
 		color: var(--text-color);
 		transform: translateY(-2px);
 	}
@@ -2130,7 +2218,7 @@ body:has(.party-page) .container,
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: var(--warning-color);
+    border-color: var(--purple-color);
     color: var(--text-color);
     transform: translateY(-2px);
   }
@@ -2777,15 +2865,20 @@ body:has(.party-page) .container,
   transition: all 0.3s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.25);
     transform: translateY(-2px);
   }
 
-  &.active {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  &--declined {
+    background: linear-gradient(135deg, #ff9a9a 0%, #f5576c 100%);
     border-color: rgba(255, 255, 255, 0.8);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
+
+	&--accepted {
+		background: linear-gradient(135deg, #70b569 0%, #2da324 100%);
+		border-color: rgba(255, 255, 255, 0.8);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
 }
 
 .additional-fields {
@@ -2816,7 +2909,7 @@ body:has(.party-page) .container,
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: var(--warning-color);
+  accent-color: var(--success-color);
 }
 
 .rsvp-submit-btn {
@@ -2836,6 +2929,33 @@ body:has(.party-page) .container,
   text-align: center;
   margin-top: var(--space-2);
   font-style: italic;
+}
+
+// RSVP Summary Styles
+.rsvp-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.summary-item {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	padding: 0;
+	align-items: center;
+	gap: var(--space-4);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  strong {
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.8);
+	  width: 40%;
+	  max-width: 170px;
+  }
 }
 
 @media (max-width: 768px) {

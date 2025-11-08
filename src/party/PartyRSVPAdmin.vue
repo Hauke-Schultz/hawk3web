@@ -135,6 +135,15 @@ const statistics = computed(() => {
 })
 
 /**
+ * Modal-Titel (abhängig davon, ob es ein neuer oder bearbeiteter Gast ist)
+ */
+const modalTitle = computed(() => {
+  if (!editingRSVP.value) return 'RSVP bearbeiten'
+  // Prüfe ob es ein neuer Gast ist (kein lastUpdated)
+  return editingRSVP.value.lastUpdated ? 'RSVP bearbeiten' : 'Neuen Gast hinzufügen'
+})
+
+/**
  * Status-Badge-Klasse
  */
 const getStatusClass = (status) => {
@@ -260,6 +269,35 @@ const goBackToParty = () => {
 }
 
 /**
+ * UUID Generator (v4)
+ */
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
+/**
+ * Neuen Gast hinzufügen
+ */
+const addNewGuest = () => {
+  editingRSVP.value = {
+    guestId: generateUUID(),
+    name: '',
+    status: 'pending',
+    numberOfGuests: 1,
+    comingByCar: false,
+    needsParking: false,
+    needsHotelRoom: false,
+    numberOfRooms: 1,
+    remarks: ''
+  }
+  showEditModal.value = true
+}
+
+/**
  * RSVP bearbeiten
  */
 const editRSVP = (rsvp) => {
@@ -355,6 +393,9 @@ onMounted(() => {
         ← Zurück zur Party
       </button>
       <h1 class="admin-title">RSVP Verwaltung</h1>
+      <button @click="addNewGuest" class="btn btn--success add-btn">
+        ➕ Gast hinzufügen
+      </button>
       <button @click="refresh" class="btn btn--primary refresh-btn" :disabled="loading">
         🔄 Aktualisieren
       </button>
@@ -546,7 +587,7 @@ onMounted(() => {
     <!-- Edit Modal -->
     <div v-if="showEditModal && editingRSVP" class="modal-overlay" @click="cancelEdit">
       <div class="modal-content" @click.stop>
-        <h2 class="modal-title">RSVP bearbeiten</h2>
+        <h2 class="modal-title">{{ modalTitle }}</h2>
 
         <div class="form-group">
           <label>Name</label>

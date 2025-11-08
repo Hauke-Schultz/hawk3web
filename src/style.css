@@ -123,6 +123,8 @@
   --pink-hover: #DB2777;
   --pink-active: #BE185D;
 
+  --purple-color: #a78bfa;
+
   /* Button Colors */
   --button-bg: var(--primary-color);
   --button-bg-hover: var(--primary-hover);
