@@ -352,6 +352,34 @@ const cancelEdit = () => {
 }
 
 /**
+ * Personalisierten Link kopieren
+ */
+const copyGuestLink = async (rsvp) => {
+  const link = `${window.location.origin}/party?guestId=${rsvp.guestId}`
+
+  try {
+    await navigator.clipboard.writeText(link)
+    alert(`Link für ${rsvp.name} wurde in die Zwischenablage kopiert:\n${link}`)
+  } catch (err) {
+    console.error('Error copying link:', err)
+    // Fallback für ältere Browser
+    const textarea = document.createElement('textarea')
+    textarea.value = link
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      alert(`Link für ${rsvp.name} wurde in die Zwischenablage kopiert:\n${link}`)
+    } catch (fallbackErr) {
+      alert(`Konnte Link nicht kopieren. Bitte manuell kopieren:\n${link}`)
+    }
+    document.body.removeChild(textarea)
+  }
+}
+
+/**
  * RSVP löschen
  */
 const deleteRSVP = async (rsvp) => {
@@ -566,6 +594,9 @@ onMounted(() => {
               <td class="remarks-cell">{{ rsvp.remarks || '—' }}</td>
               <td class="date-cell">{{ formatDate(rsvp.lastUpdated) }}</td>
               <td class="actions-cell">
+                <button @click="copyGuestLink(rsvp)" class="action-btn copy-btn" title="Link kopieren">
+                  🔗
+                </button>
                 <button @click="editRSVP(rsvp)" class="action-btn edit-btn" title="Bearbeiten">
                   ✏️
                 </button>
@@ -987,6 +1018,10 @@ onMounted(() => {
   &:hover {
     transform: scale(1.1);
     background: rgba(255, 255, 255, 0.25);
+  }
+
+  &.copy-btn:hover {
+    background: rgba(16, 185, 129, 0.3);
   }
 
   &.edit-btn:hover {

@@ -64,5 +64,16 @@
     "remarks": "Supi",
     "status": "accepted",
     "lastUpdated": "2025-11-08T19:23:38.158Z"
+  },
+  "e380313f-3b0a-4558-8605-256da2f08609": {
+    "name": "Max",
+    "numberOfGuests": 2,
+    "comingByCar": false,
+    "needsParking": false,
+    "needsHotelRoom": false,
+    "numberOfRooms": 1,
+    "remarks": "Was kostet datt denn?",
+    "status": "accepted",
+    "lastUpdated": "2025-11-08T19:42:01.383Z"
   }
 }

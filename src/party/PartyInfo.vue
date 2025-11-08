@@ -218,8 +218,24 @@ const editRSVP = () => {
   isEditingRSVP.value = true
 }
 
-// Guest-ID aus localStorage laden oder neu generieren
+// Guest-ID aus URL, localStorage laden oder neu generieren
 const loadOrCreateGuestId = () => {
+  // 1. Zuerst URL-Parameter prüfen
+  const urlGuestId = route.query.guestId
+  if (urlGuestId && typeof urlGuestId === 'string') {
+    console.log('Loading guest ID from URL:', urlGuestId)
+    // Guest-ID im localStorage speichern für zukünftige Besuche
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(GUEST_ID_KEY, urlGuestId)
+      } catch (error) {
+        console.error('Error saving guest ID to localStorage:', error)
+      }
+    }
+    return urlGuestId
+  }
+
+  // 2. Sonst localStorage prüfen
   if (typeof localStorage === 'undefined') {
     return generateUUID()
   }
@@ -731,9 +747,9 @@ const partyDetails = ref({
   rsvpEmail: 'tonjaschultz@gmail.com',
   rsvpPhone: '+49 173 8934144',
   program: [
-    { time: '16:00', activity: 'Empfang' },
-    { time: '18:00', activity: 'Abendessen' },
-    { time: '20:00', activity: 'Party' },
+    { time: '16:00', activity: 'Sekt Empfang (oder Cola, Bier...)' },
+    { time: '17:00', activity: 'Dinner' },
+    { time: '19:00', activity: 'Party' },
     { time: '03:00', activity: 'Ende' },
   ]
 })
@@ -1307,8 +1323,8 @@ const createConfetti = () => {
 		    </div>
 		    <div class="card-content">
 			    <p class="description">Das größte Geschenk ist eure Anwesenheit!</p>
-			    <p class="description">Wir haben alles, was wir brauchen. Wenn ihr trotzdem etwas beisteuern möchtet, freuen wir uns über einen kleinen Beitrag im Umschlag.</p>
-			    <p class="description">Parkplätze und Zimmer sind schon teuer genug – und wir investieren kräftig in diese Party, damit ihr einen unvergesslichen Abend habt! 🎉</p>
+			    <p class="description">Wir haben alles, was wir brauchen. Wenn ihr etwas beisteuern möchtet, freuen wir uns über einen Beitrag im Umschlag.</p>
+			    <p class="description">Wir investieren kräftig in diese Party, damit wir einen unvergesslichen Abend haben! 🎉😁🫶</p>
 		    </div>
 	    </section>
 
@@ -1529,7 +1545,7 @@ const createConfetti = () => {
 						    <textarea
 								    id="rsvp-remarks"
 								    v-model="rsvpData.remarks"
-								    placeholder="z.B. Ich brauche ein Doppelzimmer und ein Einzelzimmer"
+								    placeholder="z.B. Ich brauche ein Doppelzimmer, oder ich bin Veganer, ..."
 								    class="form-textarea"
 								    maxlength="500"
 								    rows="3"
