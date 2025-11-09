@@ -17,10 +17,10 @@ const isPressingDown = ref(false)
 
 // Spieler (Boot)
 const player = {
-  x: 100,
+  x: 50,
   y: 0,
   width: 50,
-  height: 40,
+  height: 50,
   currentY: 0,
   velocityY: 0,
   upForce: -0.8,
@@ -30,9 +30,9 @@ const player = {
 
 // Hindernisse
 const obstacles = []
-let obstacleSpeed = 3
+let obstacleSpeed = 2
 let obstacleTimer = 0
-let obstacleInterval = 120 // Frames zwischen Hindernissen
+let obstacleInterval = 140 // Frames zwischen Hindernissen
 
 // Spielfeld-Dimensionen
 let canvasWidth = 800
@@ -103,8 +103,9 @@ const startGame = () => {
   gameOver.value = false
   score.value = 0
   obstacles.length = 0
-  obstacleSpeed = 3
+  obstacleSpeed = 2
   obstacleTimer = 0
+  obstacleInterval = 140
   player.velocityY = 0
   player.currentY = getYPosition(1)
 
@@ -157,12 +158,18 @@ const createObstacle = () => {
   const positions = [0, 1, 2]
   const position = positions[Math.floor(Math.random() * positions.length)]
 
+  // Emoji basierend auf Position
+  let emoji = '🦅' // Vogel (oben)
+  if (position === 1) emoji = '🏝️' // Ball (mitte)
+  if (position === 2) emoji = '🦈' // Fels (unten)
+
   obstacles.push({
     x: canvasWidth,
     y: getYPosition(position),
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     position: position,
+    emoji: emoji,
     passed: false
   })
 }
@@ -237,8 +244,8 @@ const updateObstacles = () => {
 
     // Schwierigkeit erhöhen
     if (score.value % 10 === 0 && score.value > 0) {
-      obstacleSpeed = Math.min(obstacleSpeed + 0.2, 8)
-      obstacleInterval = Math.max(obstacleInterval - 5, 60)
+      obstacleSpeed = Math.min(obstacleSpeed + 0.15, 6)
+      obstacleInterval = Math.max(obstacleInterval - 5, 70)
     }
   }
 }
@@ -293,60 +300,20 @@ const drawBackground = () => {
 
 // Boot zeichnen
 const drawPlayer = () => {
-  ctx.fillStyle = '#8B4513'
-
-  // Boot-Rumpf
-  ctx.beginPath()
-  ctx.moveTo(player.x, player.currentY + player.height * 0.7)
-  ctx.lineTo(player.x + player.width * 0.2, player.currentY + player.height)
-  ctx.lineTo(player.x + player.width * 0.8, player.currentY + player.height)
-  ctx.lineTo(player.x + player.width, player.currentY + player.height * 0.7)
-  ctx.lineTo(player.x + player.width, player.currentY + player.height * 0.3)
-  ctx.lineTo(player.x, player.currentY + player.height * 0.3)
-  ctx.closePath()
-  ctx.fill()
-
-  // Segel
-  ctx.fillStyle = '#FFFFFF'
-  ctx.beginPath()
-  ctx.moveTo(player.x + player.width * 0.5, player.currentY)
-  ctx.lineTo(player.x + player.width * 0.5, player.currentY + player.height * 0.3)
-  ctx.lineTo(player.x + player.width * 0.9, player.currentY + player.height * 0.15)
-  ctx.closePath()
-  ctx.fill()
+  ctx.font = `${player.height}px Arial`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('⛵', player.x + player.width / 2, player.currentY + player.height / 2)
 }
 
 // Hindernisse zeichnen
 const drawObstacles = () => {
+  ctx.font = '50px Arial'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+
   for (const obstacle of obstacles) {
-    // Unterschiedliche Farben je nach Position
-    if (obstacle.position === 0) {
-      // Vogel im Himmel
-      ctx.fillStyle = '#333333'
-      ctx.beginPath()
-      ctx.arc(obstacle.x + 10, obstacle.y + 15, 8, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.beginPath()
-      ctx.arc(obstacle.x + 30, obstacle.y + 15, 8, 0, Math.PI * 2)
-      ctx.fill()
-      // Flügel
-      ctx.fillStyle = '#555555'
-      ctx.fillRect(obstacle.x, obstacle.y + 20, obstacle.width, 8)
-    } else if (obstacle.position === 1) {
-      // Boje auf Wasserlinie
-      ctx.fillStyle = '#FF6B6B'
-      ctx.beginPath()
-      ctx.arc(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2, obstacle.width / 2, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.fillStyle = '#FFFFFF'
-      ctx.fillRect(obstacle.x + obstacle.width / 2 - 3, obstacle.y + 10, 6, 20)
-    } else {
-      // Fels unter Wasser
-      ctx.fillStyle = '#555555'
-      ctx.beginPath()
-      ctx.ellipse(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2, obstacle.width / 2, obstacle.height / 2, 0, 0, Math.PI * 2)
-      ctx.fill()
-    }
+    ctx.fillText(obstacle.emoji, obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2)
   }
 }
 
@@ -415,7 +382,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Game Canvas -->
-    <div v-else-if="!gameOver" class="game-canvas-wrapper">
+    <div v-else class="game-canvas-wrapper">
       <canvas
         ref="canvas"
         class="game-canvas"
@@ -426,17 +393,19 @@ onUnmounted(() => {
         @touchend="handleCanvasTouchEnd"
         @touchcancel="handleCanvasTouchEnd"
       ></canvas>
-    </div>
 
-    <!-- Game Over Screen -->
-    <div v-else class="game-over-screen">
-      <h2>Game Over!</h2>
-      <div class="final-score">
-        Dein Score: {{ score }}
+      <!-- Game Over Overlay -->
+      <div v-if="gameOver" class="game-over-overlay">
+        <div class="game-over-content">
+          <h2>Game Over!</h2>
+          <div class="final-score">
+            Dein Score: {{ score }}
+          </div>
+          <button class="restart-btn" @click="resetGame">
+            Nochmal spielen
+          </button>
+        </div>
       </div>
-      <button class="restart-btn" @click="resetGame">
-        Nochmal spielen
-      </button>
     </div>
   </div>
 </template>
@@ -454,6 +423,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+	padding: var(--space-4) var(--space-4) 0;
 
   h3 {
     margin: 0;
@@ -470,8 +440,7 @@ onUnmounted(() => {
   }
 }
 
-.start-screen,
-.game-over-screen {
+.start-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -555,10 +524,33 @@ onUnmounted(() => {
   user-select: none;
 }
 
-.game-over-screen {
+.game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.game-over-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--border-radius-xl);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+
   h2 {
     font-size: var(--font-size-3xl);
     margin: 0;
+    color: white;
   }
 
   .final-score {
@@ -567,6 +559,7 @@ onUnmounted(() => {
     padding: var(--space-4) var(--space-6);
     background: rgba(255, 255, 255, 0.2);
     border-radius: var(--border-radius-lg);
+    color: white;
   }
 }
 </style>

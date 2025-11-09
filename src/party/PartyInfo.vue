@@ -1836,6 +1836,11 @@ body:has(.party-page) .container,
 	  &--no-border {
 		  padding: 0;
 	  }
+
+	  &.jump-duck-card {
+		  padding: 0;
+		  overflow: hidden;
+	  }
   }
 }
 
