@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Icon from '../components/Icon.vue'
 import HotelFade from './HotelFade.vue'
+import JumpDuck from './JumpDuck.vue'
 
 // Router instance
 const route = useRoute()
@@ -1261,6 +1262,11 @@ const createConfetti = () => {
 				    </div>
 			    </div>
 		    </div>
+	    </section>
+
+	    <!-- Jump & Duck Game Card -->
+	    <section class="info-card jump-duck-card">
+		    <JumpDuck />
 	    </section>
 
 	    <section class="info-card">
