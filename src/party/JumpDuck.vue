@@ -160,8 +160,8 @@ const createObstacle = () => {
 
   // Emoji basierend auf Position
   let emoji = '🦅' // Vogel (oben)
-  if (position === 1) emoji = '🏝️' // Ball (mitte)
-  if (position === 2) emoji = '🦈' // Fels (unten)
+  if (position === 1) emoji = '🏝️' // mitte
+  if (position === 2) emoji = '🦈' // unten
 
   obstacles.push({
     x: canvasWidth,

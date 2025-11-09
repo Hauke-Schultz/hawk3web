@@ -91,5 +91,29 @@
     "remarks": "sdadsd ds ad sd",
     "status": "pending",
     "lastUpdated": "2025-11-09T00:19:54.453Z"
+  },
+  "4a3013fe-a007-4990-9ff1-049c96a9b598": {
+    "name": "Max",
+    "numberOfGuests": 1,
+    "comingByCar": false,
+    "needsParking": true,
+    "needsHotelRoom": true,
+    "numberOfRooms": 1,
+    "foodPreference": "allergien",
+    "remarks": "",
+    "status": "accepted",
+    "lastUpdated": "2025-11-09T15:30:36.017Z"
+  },
+  "95b599ed-ab44-47c6-bb8a-dbfa25bb8b3e": {
+    "name": "Floppppopopo",
+    "numberOfGuests": 1,
+    "comingByCar": false,
+    "needsParking": false,
+    "needsHotelRoom": false,
+    "numberOfRooms": 1,
+    "foodPreference": "",
+    "remarks": "",
+    "status": "pending",
+    "lastUpdated": "2025-11-09T18:48:51.711Z"
   }
 }

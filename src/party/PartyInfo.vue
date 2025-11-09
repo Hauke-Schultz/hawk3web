@@ -3,7 +3,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Icon from '../components/Icon.vue'
 import HotelFade from './HotelFade.vue'
-import JumpDuck from './JumpDuck.vue'
 
 // Router instance
 const route = useRoute()
@@ -208,7 +207,7 @@ const rsvpData = ref({
   numberOfRooms: 1,
   foodPreference: '', // Essensvorlieben
   remarks: '',
-  status: 'pending', // 'pending' | 'accepted' | 'declined'
+  status: '', // '' | 'pending' | 'accepted' | 'declined'
   lastUpdated: null
 })
 const rsvpSaving = ref(false)
@@ -744,10 +743,10 @@ const partyDetails = ref({
   rsvpEmail: 'tonjaschultz@gmail.com',
   rsvpPhone: '+49 173 8934144',
   program: [
-    { time: '16:00', activity: 'Sekt Empfang (oder Cola, Bier...)' },
-    { time: '17:00', activity: 'Dinner' },
-    { time: '19:00', activity: 'Party' },
-    { time: '03:00', activity: 'Ende' },
+    { time: '16:00', icon: '🍾', activity: 'Welcome-Drink & Anstoßen (Sekt, Bier oder Cola – Hauptsache Spaß!)' },
+    { time: '17:00', icon: '🍽️', activity: 'Feines Dinner mit guter Gesellschaft' },
+    { time: '19:00', icon: '🎶', activity: 'Let’s dance! Die Party startet' },
+    { time: '03:00', icon: '😎', activity: 'Last Call – wer bis hier bleibt, ist Legende' },
   ]
 })
 
@@ -1264,14 +1263,9 @@ const createConfetti = () => {
 		    </div>
 	    </section>
 
-	    <!-- Jump & Duck Game Card -->
-	    <section class="info-card jump-duck-card">
-		    <JumpDuck />
-	    </section>
-
 	    <section class="info-card">
 		    <div class="card-header">
-			    <h2 v-if="!rsvpData.lastUpdated">💌 Bist du dabei?</h2>
+			    <h2 v-if="!rsvpData.status">💌 Bist du dabei?</h2>
 			    <h2 v-if="rsvpData.status === 'accepted'">✅ Du bist dabei!</h2>
 			    <h2 v-if="rsvpData.status === 'pending'">⏳ Vielleicht dabei!</h2>
 			    <h2 v-if="rsvpData.status === 'declined'">❌ Leider nicht dabei!</h2>
@@ -1346,6 +1340,7 @@ const createConfetti = () => {
 						    class="program-item"
 				    >
 					    <span class="program-time">{{ item.time }}</span>
+					    <span class="program-icon">{{ item.icon }}</span>
 					    <span class="program-activity">{{ item.activity }}</span>
 				    </div>
 			    </div>
@@ -1559,6 +1554,18 @@ const createConfetti = () => {
 								    max="10"
 								    class="form-input"
 							    />
+
+						    <div class="hotel-info-text" v-if="rsvpData.needsHotelRoom">
+							    <p>
+								    Hotelzimmer könnt ihr auf der Webseite sehen und buchen.
+								    Wir brauchen nur die Info, ob ihr ein Zimmer braucht oder nicht.
+							    </p>
+							    <p>
+								    <a href="https://www.hotel-hafen-hamburg.de/de/galerie/zimmer" target="_blank" rel="noopener noreferrer">
+									    Zur Hotel-Webseite
+								    </a>
+							    </p>
+						    </div>
 					    </div>
 
 					    <!-- Essensvorlieben -->
@@ -1933,7 +1940,7 @@ body:has(.party-page) .container,
 .program-time {
   font-weight: var(--font-weight-bold);
   color: var(--purple-color);
-  min-width: 60px;
+  min-width: 38px;
 }
 
 .program-activity {
@@ -3075,6 +3082,36 @@ body:has(.party-page) .container,
 
   .status-btn {
     min-width: 100%;
+  }
+}
+
+// Hotel Info Text Styles
+.hotel-info-text {
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.1);
+  border-left: 3px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius-md);
+  margin: var(--space-2) 0;
+
+  p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+
+    &:not(:last-child) {
+      margin-bottom: var(--space-2);
+    }
+  }
+
+  a {
+    color: white;
+    font-weight: var(--font-weight-bold);
+    text-decoration: underline;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
   }
 }
 </style>
