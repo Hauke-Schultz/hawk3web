@@ -205,6 +205,7 @@ const rsvpData = ref({
   needsParking: false,
   needsHotelRoom: false,
   numberOfRooms: 1,
+  foodPreference: '', // Essensvorlieben
   remarks: '',
   status: 'pending', // 'pending' | 'accepted' | 'declined'
   lastUpdated: null
@@ -362,11 +363,6 @@ const submitRSVP = async () => {
   // Validierung
   if (!rsvpData.value.name || rsvpData.value.name.trim().length === 0) {
     alert('Bitte gib deinen Namen ein')
-    return
-  }
-
-  if (rsvpData.value.status === 'pending') {
-    alert('Bitte wähle aus, ob du zusagst oder absagst')
     return
   }
 
@@ -1269,7 +1265,10 @@ const createConfetti = () => {
 
 	    <section class="info-card">
 		    <div class="card-header">
-			    <h2>💌 Bist du dabei?</h2>
+			    <h2 v-if="!rsvpData.lastUpdated">💌 Bist du dabei?</h2>
+			    <h2 v-if="rsvpData.status === 'accepted'">✅ Du bist dabei!</h2>
+			    <h2 v-if="rsvpData.status === 'pending'">⏳ Vielleicht dabei!</h2>
+			    <h2 v-if="rsvpData.status === 'declined'">❌ Leider nicht dabei!</h2>
 		    </div>
 		    <div class="card-content">
 			    <p class="description" v-if="!rsvpData.lastUpdated">Wir würden uns riesig freuen, wenn du mit uns feierst!</p>
@@ -1390,8 +1389,9 @@ const createConfetti = () => {
 				    </div>
 				    <div class="summary-item">
 					    <strong>Status:</strong>
-					    <span v-if="rsvpData.status === 'accepted'" class="status-badge status-badge--accepted">✅ Zugesagt</span>
-					    <span v-if="rsvpData.status === 'declined'" class="status-badge status-badge--declined">❌ Abgesagt</span>
+					    <span v-if="rsvpData.status === 'accepted'" class="status-badge status-badge--accepted">✅ Dabei!</span>
+					    <span v-if="rsvpData.status === 'pending'" class="status-badge status-badge--pending">⏳ Vielleicht</span>
+					    <span v-if="rsvpData.status === 'declined'" class="status-badge status-badge--declined">❌ Leider nicht</span>
 				    </div>
 
 				    <!-- Zusätzliche Infos bei Zusage -->
@@ -1408,6 +1408,9 @@ const createConfetti = () => {
 					    <div class="summary-item" v-if="rsvpData.needsHotelRoom">
 						    <strong>Hotelzimmer:</strong> {{ rsvpData.numberOfRooms }} {{ rsvpData.numberOfRooms === 1 ? 'Zimmer' : 'Zimmer' }}
 					    </div>
+					    <div class="summary-item" v-if="rsvpData.foodPreference">
+						    <strong>Essensvorlieben:</strong> {{ rsvpData.foodPreference === 'standard' ? 'Mit Fleisch' : rsvpData.foodPreference === 'vegetarisch' ? 'Vegetarisch' : rsvpData.foodPreference === 'vegan' ? 'Vegan' : rsvpData.foodPreference === 'allergien' ? 'Ich habe Nahrungsunverträglichkeiten' : rsvpData.foodPreference }}
+					    </div>
 					    <div class="summary-item" v-if="rsvpData.remarks">
 						    <strong>Bemerkungen:</strong> {{ rsvpData.remarks }}
 					    </div>
@@ -1416,6 +1419,11 @@ const createConfetti = () => {
 				    <!-- Bemerkungen bei Absage -->
 				    <div class="summary-item" v-if="rsvpData.status === 'declined' && rsvpData.remarks">
 					    <strong>Grund:</strong> {{ rsvpData.remarks }}
+				    </div>
+
+				    <!-- Bemerkungen bei Pending -->
+				    <div class="summary-item" v-if="rsvpData.status === 'pending' && rsvpData.remarks">
+					    <strong>Bemerkung:</strong> {{ rsvpData.remarks }}
 				    </div>
 
 				    <!-- Last Updated -->
@@ -1465,7 +1473,15 @@ const createConfetti = () => {
 								    :class="{ 'status-btn--accepted': rsvpData.status === 'accepted' }"
 								    @click="rsvpData.status = 'accepted'"
 						    >
-							    ✅ Ich komme!
+							    ✅ Dabei!
+						    </button>
+						    <button
+								    type="button"
+								    class="status-btn"
+								    :class="{ 'status-btn--pending': rsvpData.status === 'pending' }"
+								    @click="rsvpData.status = 'pending'"
+						    >
+							    ⏳ Vielleicht
 						    </button>
 						    <button
 								    type="button"
@@ -1473,7 +1489,7 @@ const createConfetti = () => {
 								    :class="{ 'status-btn--declined': rsvpData.status === 'declined' }"
 								    @click="rsvpData.status = 'declined'"
 						    >
-							    ❌ Kann leider nicht
+							    ❌ Leider nicht
 						    </button>
 					    </div>
 				    </div>
@@ -1539,13 +1555,29 @@ const createConfetti = () => {
 							    />
 					    </div>
 
+					    <!-- Essensvorlieben -->
+					    <div class="form-group">
+						    <label for="rsvp-food">Essensvorlieben</label>
+						    <select
+								    id="rsvp-food"
+								    v-model="rsvpData.foodPreference"
+								    class="form-input"
+						    >
+							    <option value="">Bitte auswählen...</option>
+							    <option value="standard">Ich esse alles</option>
+							    <option value="vegetarisch">Ich esse vegetarisch</option>
+							    <option value="vegan">Ich esse vegan</option>
+							    <option value="allergien">Ich habe Allergien oder Unverträglichkeiten</option>
+						    </select>
+					    </div>
+
 					    <!-- Bemerkungen (für Zusagen) -->
 					    <div class="form-group">
-						    <label for="rsvp-remarks">Bemerkungen</label>
+						    <label for="rsvp-remarks">Anmerkungen zu deiner Zusage (optional)</label>
 						    <textarea
 								    id="rsvp-remarks"
 								    v-model="rsvpData.remarks"
-								    placeholder="z.B. Ich brauche ein Doppelzimmer, oder ich bin Veganer, ..."
+								    placeholder="z.B. Freue mich schon sehr! :-)"
 								    class="form-textarea"
 								    maxlength="500"
 								    rows="3"
@@ -1555,11 +1587,24 @@ const createConfetti = () => {
 
 				    <!-- Bemerkungen für Absagen -->
 				    <div v-if="rsvpData.status === 'declined'" class="form-group">
-					    <label for="rsvp-remarks-declined">Grund für Absage (optional)</label>
+					    <label for="rsvp-remarks-declined">Schade, dass du nicht kannst – magst du kurz sagen, warum? 😊</label>
 					    <textarea
 							    id="rsvp-remarks-declined"
 							    v-model="rsvpData.remarks"
-							    placeholder="z.B. Ich bin leider im Urlaub"
+							    placeholder="z.B. Ich bin leider im Urlaub :-("
+							    class="form-textarea"
+							    maxlength="500"
+							    rows="3"
+					    ></textarea>
+				    </div>
+
+				    <!-- Bemerkungen für Vielleicht -->
+				    <div v-if="rsvpData.status === 'pending'" class="form-group">
+					    <label for="rsvp-remarks-declined">Noch unsicher? Erzähl uns gern kurz warum 😊</label>
+					    <textarea
+							    id="rsvp-remarks-declined"
+							    v-model="rsvpData.remarks"
+							    placeholder="z.B. Ich weiß es erst im Januar ..."
 							    class="form-textarea"
 							    maxlength="500"
 							    rows="3"
@@ -2853,6 +2898,11 @@ body:has(.party-page) .container,
     border-color: rgba(255, 255, 255, 0.8);
     background: rgba(255, 255, 255, 0.2);
   }
+
+	option {
+		background: #764ba2;
+		color: white;
+	}
 }
 
 .form-textarea {
@@ -2868,15 +2918,14 @@ body:has(.party-page) .container,
 }
 
 .status-btn {
-  flex: 1;
-  min-width: 140px;
-  padding: var(--space-3) var(--space-4);
+	flex: 1;
+  min-width: 100px;
+  padding: var(--space-3);
   border-radius: var(--border-radius-lg);
   border: 2px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.15);
   color: white;
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: all 0.3s ease;
 
@@ -2892,6 +2941,12 @@ body:has(.party-page) .container,
 
 	&--accepted {
 		background: linear-gradient(135deg, #70b569 0%, #2da324 100%);
+		border-color: rgba(255, 255, 255, 0.8);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	&--pending {
+		background: linear-gradient(135deg, #fba403 0%, #df8106 100%);
 		border-color: rgba(255, 255, 255, 0.8);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 	}
@@ -2959,7 +3014,7 @@ body:has(.party-page) .container,
 	flex-direction: row;
 	justify-content: flex-start;
 	padding: 0;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-4);
 
   &:last-of-type {

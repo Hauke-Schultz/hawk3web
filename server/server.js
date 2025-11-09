@@ -218,7 +218,7 @@ app.get('/api/rsvp', async (req, res) => {
 // POST /api/rsvp - Submit or update RSVP
 app.post('/api/rsvp', async (req, res) => {
   try {
-    const { guestId, name, numberOfGuests, comingByCar, needsParking, needsHotelRoom, numberOfRooms, remarks, status, lastUpdated } = req.body
+    const { guestId, name, numberOfGuests, comingByCar, needsParking, needsHotelRoom, numberOfRooms, foodPreference, remarks, status, lastUpdated } = req.body
 
     // Validation
     if (!guestId) {
@@ -249,6 +249,7 @@ app.post('/api/rsvp', async (req, res) => {
       needsParking: needsParking || false,
       needsHotelRoom: needsHotelRoom || false,
       numberOfRooms: numberOfRooms || 1,
+      foodPreference: foodPreference || '',
       remarks: remarks || '',
       status,
       lastUpdated: timestamp

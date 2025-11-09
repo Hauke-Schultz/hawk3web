@@ -18,9 +18,16 @@ const sortOrder = ref('asc') // 'asc', 'desc'
 const showEditModal = ref(false)
 const editingRSVP = ref(null)
 
+// Password Protection State
+const isAuthenticated = ref(false)
+const showPasswordModal = ref(true)
+const passwordInput = ref('')
+const passwordError = ref('')
+const ADMIN_PASSWORD = 'ZombieBrain6' // Passwort hier ändern
+
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || (
-  import.meta.env.DEV ? '' : 'https://hauke-schultz.de'
+  import.meta.env.DEV ? '' : 'https://haukeschultz.com'
 )
 
 /**
@@ -122,6 +129,12 @@ const statistics = computed(() => {
     .filter(r => r.needsHotelRoom)
     .reduce((sum, r) => sum + (r.numberOfRooms || 1), 0)
 
+  // Essensvorlieben zählen (nur akzeptierte RSVPs)
+  const foodStandard = acceptedRSVPs.filter(r => r.foodPreference === 'standard').length
+  const foodVegetarian = acceptedRSVPs.filter(r => r.foodPreference === 'vegetarisch').length
+  const foodVegan = acceptedRSVPs.filter(r => r.foodPreference === 'vegan').length
+  const foodAllergies = acceptedRSVPs.filter(r => r.foodPreference === 'allergien').length
+
   return {
     total,
     accepted,
@@ -130,7 +143,11 @@ const statistics = computed(() => {
     totalGuests,
     carsCount,
     parkingCount,
-    hotelCount
+    hotelCount,
+    foodStandard,
+    foodVegetarian,
+    foodVegan,
+    foodAllergies
   }
 })
 
@@ -205,7 +222,6 @@ const changeSort = (field) => {
  */
 const exportToCSV = () => {
   if (rsvps.value.length === 0) {
-    alert('Keine Daten zum Exportieren vorhanden')
     return
   }
 
@@ -217,6 +233,7 @@ const exportToCSV = () => {
     'Mit Auto',
     'Parkplatz benötigt',
     'Hotelzimmer benötigt',
+    'Essensvorlieben',
     'Bemerkungen',
     'Letzte Aktualisierung'
   ]
@@ -229,6 +246,7 @@ const exportToCSV = () => {
     rsvp.comingByCar ? 'Ja' : 'Nein',
     rsvp.needsParking ? 'Ja' : 'Nein',
     rsvp.needsHotelRoom ? 'Ja' : 'Nein',
+    rsvp.foodPreference || '',
     rsvp.remarks || '',
     formatDate(rsvp.lastUpdated)
   ])
@@ -292,6 +310,7 @@ const addNewGuest = () => {
     needsParking: false,
     needsHotelRoom: false,
     numberOfRooms: 1,
+    foodPreference: '',
     remarks: ''
   }
   showEditModal.value = true
@@ -335,11 +354,8 @@ const saveEdit = async () => {
     // Close modal
     showEditModal.value = false
     editingRSVP.value = null
-
-    alert('RSVP erfolgreich aktualisiert')
   } catch (err) {
     console.error('Error saving RSVP:', err)
-    alert('Fehler beim Speichern. Bitte versuche es erneut.')
   }
 }
 
@@ -359,7 +375,6 @@ const copyGuestLink = async (rsvp) => {
 
   try {
     await navigator.clipboard.writeText(link)
-    alert(`Link für ${rsvp.name} wurde in die Zwischenablage kopiert:\n${link}`)
   } catch (err) {
     console.error('Error copying link:', err)
     // Fallback für ältere Browser
@@ -371,9 +386,7 @@ const copyGuestLink = async (rsvp) => {
     textarea.select()
     try {
       document.execCommand('copy')
-      alert(`Link für ${rsvp.name} wurde in die Zwischenablage kopiert:\n${link}`)
     } catch (fallbackErr) {
-      alert(`Konnte Link nicht kopieren. Bitte manuell kopieren:\n${link}`)
     }
     document.body.removeChild(textarea)
   }
@@ -399,40 +412,108 @@ const deleteRSVP = async (rsvp) => {
 
     // Reload data
     await loadAllRSVPs()
-
-    alert('RSVP erfolgreich gelöscht')
   } catch (err) {
     console.error('Error deleting RSVP:', err)
-    alert('Fehler beim Löschen. Bitte versuche es erneut.')
   }
+}
+
+/**
+ * Passwort überprüfen
+ */
+const checkPassword = () => {
+  if (passwordInput.value === ADMIN_PASSWORD) {
+    isAuthenticated.value = true
+    showPasswordModal.value = false
+    passwordError.value = ''
+    // Passwort in Session speichern
+    sessionStorage.setItem('partyAdminAuth', 'true')
+    // RSVPs laden
+    loadAllRSVPs()
+  } else {
+    passwordError.value = 'Falsches Passwort. Bitte versuche es erneut.'
+    passwordInput.value = ''
+  }
+}
+
+/**
+ * Logout-Funktion
+ */
+const logout = () => {
+  isAuthenticated.value = false
+  showPasswordModal.value = true
+  passwordInput.value = ''
+  passwordError.value = ''
+  sessionStorage.removeItem('partyAdminAuth')
+  rsvps.value = []
 }
 
 // Initiales Laden
 onMounted(() => {
-  loadAllRSVPs()
+  // Prüfen, ob bereits authentifiziert
+  const isAuth = sessionStorage.getItem('partyAdminAuth') === 'true'
+  if (isAuth) {
+    isAuthenticated.value = true
+    showPasswordModal.value = false
+    loadAllRSVPs()
+  }
 })
 </script>
 
 <template>
   <div class="admin-container">
-    <!-- Header -->
-    <header class="admin-header">
-      <button @click="goBackToParty" class="btn btn--secondary back-btn">
-        ← Zurück zur Party
-      </button>
-      <h1 class="admin-title">RSVP Verwaltung</h1>
-      <button @click="addNewGuest" class="btn btn--success add-btn">
-        ➕ Gast hinzufügen
-      </button>
-      <button @click="refresh" class="btn btn--primary refresh-btn" :disabled="loading">
-        🔄 Aktualisieren
-      </button>
-    </header>
+    <!-- Password Modal -->
+    <div v-if="showPasswordModal" class="modal-overlay password-modal">
+      <div class="modal-content password-content" @click.stop>
+        <h2 class="modal-title">🔒 Admin Bereich</h2>
+        <p class="password-description">Bitte gib das Admin-Passwort ein:</p>
+
+        <form @submit.prevent="checkPassword" class="password-form">
+          <div class="form-group">
+            <input
+              v-model="passwordInput"
+              type="password"
+              class="form-input password-input"
+              placeholder="Passwort eingeben..."
+              autofocus
+            />
+          </div>
+
+          <div v-if="passwordError" class="password-error">
+            {{ passwordError }}
+          </div>
+
+          <div class="modal-actions">
+            <button @click="goBackToParty" type="button" class="btn btn--secondary">
+              Abbrechen
+            </button>
+            <button type="submit" class="btn btn--primary">
+              Anmelden
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Content (nur wenn authentifiziert) -->
+    <template v-if="isAuthenticated">
+      <!-- Header -->
+      <header class="admin-header">
+        <button @click="goBackToParty" class="btn btn--secondary back-btn">
+          ← Zurück zur Party
+        </button>
+        <h1 class="admin-title">Party Verwaltung</h1>
+        <button @click="addNewGuest" class="btn btn--success add-btn">
+          ➕ Gast hinzufügen
+        </button>
+        <button @click="refresh" class="btn btn--primary refresh-btn" :disabled="loading">
+          🔄 Aktualisieren
+        </button>
+      </header>
 
     <!-- Loading State -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>Lade RSVPs...</p>
+      <p>Lade Liste...</p>
     </div>
 
     <!-- Error State -->
@@ -502,10 +583,20 @@ onMounted(() => {
         </div>
 
         <div class="stat-card stat-card--hotel">
-          <div class="stat-icon">🏨</div>
+          <div class="stat-icon">🛏️</div>
           <div class="stat-content">
-            <div class="stat-label">Hotelzimmer</div>
+            <div class="stat-label">Zimmer</div>
             <div class="stat-value">{{ statistics.hotelCount }}</div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card--foot">
+          <div class="stat-icon">🍽️</div>
+          <div class="stat-content">
+            <div class="stat-label">Standard: <strong>{{ statistics.foodStandard }}</strong></div>
+            <div class="stat-label">Vegetarisch: <strong>{{ statistics.foodVegetarian }}</strong></div>
+            <div class="stat-label">Vegan: <strong>{{ statistics.foodVegan }}</strong></div>
+            <div class="stat-label">Allergien: <strong>{{ statistics.foodAllergies }}</strong></div>
           </div>
         </div>
       </section>
@@ -540,7 +631,7 @@ onMounted(() => {
       <!-- RSVP Table -->
       <section class="rsvp-table-container">
         <div v-if="filteredRSVPs.length === 0" class="empty-state">
-          <p>Keine RSVPs gefunden</p>
+          <p>Keine Liste gefunden</p>
         </div>
 
         <table v-else class="rsvp-table">
@@ -568,6 +659,7 @@ onMounted(() => {
               <th title="Parkplatz benötigt">🅿️</th>
               <th title="Hotelzimmer benötigt">🏨</th>
               <th title="Anzahl Zimmer">🛏️</th>
+              <th title="Essensvorlieben">🍽️</th>
               <th title="Bemerkungen">💬</th>
               <th @click="changeSort('date')" class="sortable" title="Letzte Aktualisierung">
                 🕐
@@ -591,6 +683,7 @@ onMounted(() => {
               <td class="center-cell">{{ rsvp.needsParking ? '✅' : '—' }}</td>
               <td class="center-cell">{{ rsvp.needsHotelRoom ? '✅' : '—' }}</td>
               <td class="center-cell">{{ rsvp.needsHotelRoom ? (rsvp.numberOfRooms || 1) : '—' }}</td>
+              <td class="center-cell">{{ rsvp.foodPreference || '—' }}</td>
               <td class="remarks-cell">{{ rsvp.remarks || '—' }}</td>
               <td class="date-cell">{{ formatDate(rsvp.lastUpdated) }}</td>
               <td class="actions-cell">
@@ -611,7 +704,7 @@ onMounted(() => {
 
       <!-- Footer Info -->
       <footer class="admin-footer">
-        <p>Zeige {{ filteredRSVPs.length }} von {{ rsvps.length }} RSVPs</p>
+        <p>Zeige {{ filteredRSVPs.length }} von {{ rsvps.length }} Einträge</p>
       </footer>
     </div>
 
@@ -666,6 +759,17 @@ onMounted(() => {
         </div>
 
         <div class="form-group">
+          <label>Essensvorlieben</label>
+          <select v-model="editingRSVP.foodPreference" class="form-select">
+	          <option value="">Bitte auswählen...</option>
+	          <option value="standard">Ich esse alles</option>
+	          <option value="vegetarisch">Ich esse vegetarisch</option>
+	          <option value="vegan">Ich esse vegan</option>
+	          <option value="allergien">Ich habe Allergien oder Unverträglichkeiten</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label>Bemerkungen</label>
           <textarea v-model="editingRSVP.remarks" class="form-textarea" rows="3"></textarea>
         </div>
@@ -676,6 +780,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -685,6 +790,8 @@ onMounted(() => {
   background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
   padding: var(--space-6);
   color: white;
+	width: 100vw;
+	max-width: 1200px;
 }
 
 .admin-header {
@@ -771,23 +878,24 @@ onMounted(() => {
 .admin-content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-3);
 }
 
 .statistics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
 }
 
 .stat-card {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: var(--border-radius-xl);
-  padding: var(--space-5);
+  padding: var(--space-3);
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+	justify-content: space-between;
+  gap: var(--space-2);
   border: 2px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
 
@@ -796,23 +904,42 @@ onMounted(() => {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     border-color: rgba(255, 255, 255, 0.4);
   }
+
+	&--foot {
+		min-width: 200px;
+
+		.stat-label {
+			text-transform: inherit;
+			display: flex;
+			justify-content: space-between;
+			width: 100%;
+		}
+
+		.stat-content {
+			align-items: flex-start;
+			gap: 0;
+		}
+	}
 }
 
 .stat-icon {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-xl);
   line-height: 1;
 }
 
 .stat-content {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+	flex-direction: column;
+	width: 100%;
+	justify-content: center;
+	align-items: center;
+
+	gap: var(--space-1);
 }
 
 .stat-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   opacity: 0.8;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
@@ -823,12 +950,12 @@ onMounted(() => {
 
 .filters {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-2);
   flex-wrap: wrap;
   align-items: flex-end;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  padding: var(--space-5);
+  padding: var(--space-3);
   border-radius: var(--border-radius-xl);
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
@@ -886,7 +1013,6 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: var(--border-radius-xl);
-  padding: var(--space-5);
   border: 2px solid rgba(255, 255, 255, 0.2);
   overflow-x: auto;
 }
@@ -906,7 +1032,7 @@ onMounted(() => {
     background: rgba(255, 255, 255, 0.1);
 
     th {
-      padding: var(--space-4);
+      padding: var(--space-2);
       text-align: left;
       font-weight: var(--font-weight-bold);
       font-size: var(--font-size-sm);
@@ -937,7 +1063,8 @@ onMounted(() => {
     }
 
     td {
-      padding: var(--space-4);
+      padding: var(--space-2);
+	    vertical-align: baseline;
     }
   }
 }
@@ -968,7 +1095,7 @@ onMounted(() => {
   min-width: 200px;
   width: 25%;
   max-width: 400px;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   line-height: 1.4;
   white-space: pre-wrap;
   word-break: break-word;
@@ -976,7 +1103,7 @@ onMounted(() => {
 
 .status-badge {
   display: inline-block;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
@@ -1005,7 +1132,7 @@ onMounted(() => {
 }
 
 .action-btn {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1);
   margin: 0 var(--space-1);
   border: none;
   background: rgba(255, 255, 255, 0.15);
@@ -1136,38 +1263,38 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 768px) {
-  .admin-container {
-    padding: var(--space-4);
-  }
+// Password Modal Styles
+.password-modal {
+  z-index: 2000;
+}
 
-  .admin-header {
-    flex-direction: column;
-  }
+.password-content {
+  max-width: 450px;
+  text-align: center;
+}
 
-  .admin-title {
-    font-size: var(--font-size-2xl);
-  }
+.password-description {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-base);
+}
 
-  .statistics {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
+.password-form {
+  width: 100%;
+}
 
-  .filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.password-error {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: var(--space-3);
+  border-radius: var(--border-radius-md);
+  margin-top: var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
 
-  .export-btn {
-    align-self: stretch;
-  }
-
-  .rsvp-table {
-    font-size: var(--font-size-sm);
-
-    th, td {
-      padding: var(--space-2);
-    }
-  }
+.logout-btn {
+  flex-shrink: 0;
 }
 </style>

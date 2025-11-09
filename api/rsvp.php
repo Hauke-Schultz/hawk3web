@@ -169,6 +169,7 @@ switch ($method) {
             $needsParking = isset($data['needsParking']) ? (bool)$data['needsParking'] : false;
             $needsHotelRoom = isset($data['needsHotelRoom']) ? (bool)$data['needsHotelRoom'] : false;
             $numberOfRooms = isset($data['numberOfRooms']) ? (int)$data['numberOfRooms'] : 1;
+            $foodPreference = isset($data['foodPreference']) ? trim($data['foodPreference']) : '';
             $remarks = isset($data['remarks']) ? trim($data['remarks']) : '';
             $lastUpdated = isset($data['lastUpdated']) ? $data['lastUpdated'] : date('c');
 
@@ -187,6 +188,7 @@ switch ($method) {
                 'needsParking' => $needsParking,
                 'needsHotelRoom' => $needsHotelRoom,
                 'numberOfRooms' => $numberOfRooms,
+                'foodPreference' => $foodPreference,
                 'remarks' => $remarks,
                 'lastUpdated' => $lastUpdated
             ];
