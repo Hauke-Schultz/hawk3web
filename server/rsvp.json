@@ -1,14 +1,19 @@
 {
-  "e6f476a9-b9b0-48e7-9f20-ab48cc2984ff": {
-    "name": "Froppy",
+  "0fb08f1a-daa1-4653-bdf1-360f749ea31a": {
+    "name": "Lue",
     "numberOfGuests": 4,
-    "comingByCar": true,
-    "needsParking": true,
-    "needsHotelRoom": true,
-    "numberOfRooms": 2,
-    "foodPreference": "vegan",
-    "remarks": "Ein DZ und ein EZ bitte.",
+    "comingByCar": false,
+    "needsParking": false,
+    "needsHotelRoom": false,
+    "numberOfRooms": 1,
+    "foodPreferences": [
+      "allergien",
+      "standard",
+      "vegan",
+      "standard"
+    ],
+    "remarks": "Jappio",
     "status": "accepted",
-    "lastUpdated": "2025-11-09T00:08:57.140Z"
+    "lastUpdated": "2025-11-10T21:58:29.276Z"
   }
 }

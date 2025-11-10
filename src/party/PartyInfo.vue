@@ -206,7 +206,7 @@ const rsvpData = ref({
   needsParking: false,
   needsHotelRoom: false,
   numberOfRooms: 1,
-  foodPreference: '', // Essensvorlieben
+  foodPreferences: ['---'], // Array für Essensvorlieben pro Person
   remarks: '',
   status: '', // '' | 'pending' | 'accepted' | 'declined'
   lastUpdated: null
@@ -214,6 +214,20 @@ const rsvpData = ref({
 const rsvpSaving = ref(false)
 const rsvpSaved = ref(false)
 const isEditingRSVP = ref(false) // Bearbeitungsmodus für RSVP
+
+// Watch numberOfGuests und passe foodPreferences Array an
+watch(() => rsvpData.value.numberOfGuests, (newValue, oldValue) => {
+  const currentLength = rsvpData.value.foodPreferences.length
+  if (newValue > currentLength) {
+    // Füge leere Einträge hinzu
+    for (let i = currentLength; i < newValue; i++) {
+      rsvpData.value.foodPreferences.push('---')
+    }
+  } else if (newValue < currentLength) {
+    // Entferne überschüssige Einträge
+    rsvpData.value.foodPreferences = rsvpData.value.foodPreferences.slice(0, newValue)
+  }
+})
 
 // RSVP bearbeiten
 const editRSVP = () => {
@@ -306,6 +320,24 @@ const loadRSVPDataFromAPI = async (guestId) => {
       return null
     }
     const data = await response.json()
+
+    // Backwards compatibility: Convert old foodPreference to foodPreferences array
+    if (data && !Array.isArray(data.foodPreferences) && data.foodPreference) {
+      data.foodPreferences = [data.foodPreference]
+      delete data.foodPreference
+    }
+
+    // Ensure foodPreferences is an array with correct length
+    if (data && Array.isArray(data.foodPreferences)) {
+      const numberOfGuests = data.numberOfGuests || 1
+      while (data.foodPreferences.length < numberOfGuests) {
+        data.foodPreferences.push('')
+      }
+      if (data.foodPreferences.length > numberOfGuests) {
+        data.foodPreferences = data.foodPreferences.slice(0, numberOfGuests)
+      }
+    }
+
     return data
   } catch (error) {
     console.error('Error loading RSVP data from API:', error)
@@ -1594,18 +1626,27 @@ const createConfetti = () => {
 
 					    <!-- Essensvorlieben -->
 					    <div class="form-group">
-						    <label for="rsvp-food">Essensvorlieben</label>
-						    <select
-								    id="rsvp-food"
-								    v-model="rsvpData.foodPreference"
-								    class="form-input"
-						    >
-							    <option value="">Bitte auswählen...</option>
-							    <option value="standard">Ich esse alles</option>
-							    <option value="vegetarisch">Ich esse vegetarisch</option>
-							    <option value="vegan">Ich esse vegan</option>
-							    <option value="allergien">Ich habe Allergien oder Unverträglichkeiten</option>
-						    </select>
+						    <label>Essensvorlieben</label>
+						    <div class="food-preferences-list">
+							    <div
+								    v-for="(pref, index) in rsvpData.foodPreferences"
+								    :key="index"
+								    class="food-preference-item"
+							    >
+								    <label :for="`rsvp-food-${index}`" class="food-label">Person {{ index + 1 }}:</label>
+								    <select
+									    :id="`rsvp-food-${index}`"
+									    v-model="rsvpData.foodPreferences[index]"
+									    class="form-input food-select"
+								    >
+									    <option value="---">Bitte auswählen...</option>
+									    <option value="standard">Ich esse alles</option>
+									    <option value="vegetarisch">Ich esse vegetarisch</option>
+									    <option value="vegan">Ich esse vegan</option>
+									    <option value="allergien">Ich habe Allergien oder Unverträglichkeiten</option>
+								    </select>
+							    </div>
+						    </div>
 					    </div>
 
 					    <!-- Bemerkungen (für Zusagen) -->
@@ -3218,5 +3259,35 @@ body:has(.party-page) .container,
       color: rgba(255, 255, 255, 0.8);
     }
   }
+}
+
+// Food Preferences Styles
+.food-preferences-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.food-preference-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.food-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.food-select {
+  flex: 1;
+	padding: var(--space-2);
+	font-size: var(--font-size-sm);
 }
 </style>

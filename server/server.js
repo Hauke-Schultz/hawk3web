@@ -218,7 +218,7 @@ app.get('/api/rsvp', async (req, res) => {
 // POST /api/rsvp - Submit or update RSVP
 app.post('/api/rsvp', async (req, res) => {
   try {
-    const { guestId, name, numberOfGuests, comingByCar, needsParking, needsHotelRoom, numberOfRooms, foodPreference, remarks, status, lastUpdated } = req.body
+    const { guestId, name, numberOfGuests, comingByCar, needsParking, needsHotelRoom, numberOfRooms, foodPreference, foodPreferences, remarks, status, lastUpdated } = req.body
 
     // Validation
     if (!guestId) {
@@ -237,6 +237,15 @@ app.post('/api/rsvp', async (req, res) => {
       return res.status(400).json({ error: 'Name too long (max 50 characters)' })
     }
 
+    // Support for foodPreferences array (new) and foodPreference string (old)
+    let foodPrefs = []
+    if (Array.isArray(foodPreferences)) {
+      foodPrefs = foodPreferences
+    } else if (foodPreference && foodPreference.trim().length > 0) {
+      // Backwards compatibility: convert old foodPreference to array
+      foodPrefs = [foodPreference.trim()]
+    }
+
     // Read current RSVP data
     const allRSVPs = await readRSVPData()
 
@@ -249,7 +258,7 @@ app.post('/api/rsvp', async (req, res) => {
       needsParking: needsParking || false,
       needsHotelRoom: needsHotelRoom || false,
       numberOfRooms: numberOfRooms || 1,
-      foodPreference: foodPreference || '',
+      foodPreferences: foodPrefs,
       remarks: remarks || '',
       status,
       lastUpdated: timestamp

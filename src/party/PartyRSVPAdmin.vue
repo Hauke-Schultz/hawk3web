@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 // Router instance
@@ -130,10 +130,22 @@ const statistics = computed(() => {
     .reduce((sum, r) => sum + (r.numberOfRooms || 1), 0)
 
   // Essensvorlieben zählen (nur akzeptierte RSVPs)
-  const foodStandard = acceptedRSVPs.filter(r => r.foodPreference === 'standard').length
-  const foodVegetarian = acceptedRSVPs.filter(r => r.foodPreference === 'vegetarisch').length
-  const foodVegan = acceptedRSVPs.filter(r => r.foodPreference === 'vegan').length
-  const foodAllergies = acceptedRSVPs.filter(r => r.foodPreference === 'allergien').length
+  // Zähle alle foodPreferences aus dem Array
+  let foodStandard = 0
+  let foodVegetarian = 0
+  let foodVegan = 0
+  let foodAllergies = 0
+
+  acceptedRSVPs.forEach(r => {
+    const prefs = Array.isArray(r.foodPreferences) ? r.foodPreferences : (r.foodPreference ? [r.foodPreference] : [])
+    prefs.forEach(pref => {
+      if (pref === 'standard') foodStandard++
+      else if (pref === 'vegetarisch') foodVegetarian++
+      else if (pref === 'vegan') foodVegan++
+      else if (pref === 'allergien') foodAllergies++
+	    else foodStandard++
+    })
+  })
 
   return {
     total,
@@ -239,17 +251,23 @@ const exportToCSV = () => {
   ]
 
   // CSV Rows
-  const rows = rsvps.value.map(rsvp => [
-    rsvp.name,
-    getStatusText(rsvp.status),
-    rsvp.numberOfGuests || 1,
-    rsvp.comingByCar ? 'Ja' : 'Nein',
-    rsvp.needsParking ? 'Ja' : 'Nein',
-    rsvp.needsHotelRoom ? 'Ja' : 'Nein',
-    rsvp.foodPreference || '',
-    rsvp.remarks || '',
-    formatDate(rsvp.lastUpdated)
-  ])
+  const rows = rsvps.value.map(rsvp => {
+    // Food preferences handling
+    const prefs = Array.isArray(rsvp.foodPreferences) ? rsvp.foodPreferences : (rsvp.foodPreference ? [rsvp.foodPreference] : [])
+    const foodPrefsText = prefs.filter(p => p).join(' | ')
+
+    return [
+      rsvp.name,
+      getStatusText(rsvp.status),
+      rsvp.numberOfGuests || 1,
+      rsvp.comingByCar ? 'Ja' : 'Nein',
+      rsvp.needsParking ? 'Ja' : 'Nein',
+      rsvp.needsHotelRoom ? 'Ja' : 'Nein',
+      foodPrefsText || '',
+      (rsvp.remarks || '').replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim(),
+      formatDate(rsvp.lastUpdated)
+    ]
+  })
 
   // CSV String erstellen
   const csvContent = [
@@ -310,7 +328,7 @@ const addNewGuest = () => {
     needsParking: false,
     needsHotelRoom: false,
     numberOfRooms: 1,
-    foodPreference: '',
+    foodPreferences: [''],
     remarks: ''
   }
   showEditModal.value = true
@@ -320,10 +338,30 @@ const addNewGuest = () => {
  * RSVP bearbeiten
  */
 const editRSVP = (rsvp) => {
+  // Konvertiere alte foodPreference zu foodPreferences Array
+  let foodPreferences
+  if (Array.isArray(rsvp.foodPreferences)) {
+    foodPreferences = [...rsvp.foodPreferences]
+  } else if (rsvp.foodPreference) {
+    foodPreferences = [rsvp.foodPreference]
+  } else {
+    foodPreferences = ['']
+  }
+
+  // Stelle sicher, dass das Array die richtige Länge hat
+  const numberOfGuests = rsvp.numberOfGuests || 1
+  while (foodPreferences.length < numberOfGuests) {
+    foodPreferences.push('')
+  }
+  if (foodPreferences.length > numberOfGuests) {
+    foodPreferences = foodPreferences.slice(0, numberOfGuests)
+  }
+
   editingRSVP.value = {
     ...rsvp,
     // Sicherstellen, dass numberOfRooms immer gesetzt ist
-    numberOfRooms: rsvp.numberOfRooms || 1
+    numberOfRooms: rsvp.numberOfRooms || 1,
+    foodPreferences
   }
   showEditModal.value = true
 }
@@ -446,6 +484,30 @@ const logout = () => {
   sessionStorage.removeItem('partyAdminAuth')
   rsvps.value = []
 }
+
+/**
+ * Watch für numberOfGuests im Edit-Modal
+ * Passt das foodPreferences Array automatisch an
+ */
+watch(
+  () => editingRSVP.value?.numberOfGuests,
+  (newValue, oldValue) => {
+    if (!editingRSVP.value || !editingRSVP.value.foodPreferences) return
+
+    const currentLength = editingRSVP.value.foodPreferences.length
+    const targetLength = newValue || 1
+
+    if (targetLength > currentLength) {
+      // Füge leere Einträge hinzu
+      for (let i = currentLength; i < targetLength; i++) {
+        editingRSVP.value.foodPreferences.push('')
+      }
+    } else if (targetLength < currentLength) {
+      // Entferne überschüssige Einträge
+      editingRSVP.value.foodPreferences = editingRSVP.value.foodPreferences.slice(0, targetLength)
+    }
+  }
+)
 
 // Initiales Laden
 onMounted(() => {
@@ -683,7 +745,19 @@ onMounted(() => {
               <td class="center-cell">{{ rsvp.needsParking ? '✅' : '—' }}</td>
               <td class="center-cell">{{ rsvp.needsHotelRoom ? '✅' : '—' }}</td>
               <td class="center-cell">{{ rsvp.needsHotelRoom ? (rsvp.numberOfRooms || 1) : '—' }}</td>
-              <td class="center-cell">{{ rsvp.foodPreference || '—' }}</td>
+              <td class="food-cell">
+                <template v-if="Array.isArray(rsvp.foodPreferences) && rsvp.foodPreferences.some(p => p)">
+                  <div v-for="(pref, index) in rsvp.foodPreferences" :key="index" class="food-pref-line">
+                    <span v-if="pref">{{ index + 1 }}. {{ pref }}</span>
+                  </div>
+                </template>
+                <template v-else-if="rsvp.foodPreference">
+                  {{ rsvp.foodPreference }}
+                </template>
+                <template v-else>
+                  —
+                </template>
+              </td>
               <td class="remarks-cell">{{ rsvp.remarks || '—' }}</td>
               <td class="date-cell">{{ formatDate(rsvp.lastUpdated) }}</td>
               <td class="actions-cell">
@@ -760,13 +834,26 @@ onMounted(() => {
 
         <div class="form-group">
           <label>Essensvorlieben</label>
-          <select v-model="editingRSVP.foodPreference" class="form-select">
-	          <option value="">Bitte auswählen...</option>
-	          <option value="standard">Ich esse alles</option>
-	          <option value="vegetarisch">Ich esse vegetarisch</option>
-	          <option value="vegan">Ich esse vegan</option>
-	          <option value="allergien">Ich habe Allergien oder Unverträglichkeiten</option>
-          </select>
+          <div class="food-preferences-list">
+            <div
+              v-for="(pref, index) in editingRSVP.foodPreferences"
+              :key="index"
+              class="food-preference-item"
+            >
+              <label :for="`modal-food-${index}`" class="food-label-inline">Person {{ index + 1 }}:</label>
+              <select
+                :id="`modal-food-${index}`"
+                v-model="editingRSVP.foodPreferences[index]"
+                class="form-select"
+              >
+                <option value="">Bitte auswählen...</option>
+                <option value="standard">Ich esse alles</option>
+                <option value="vegetarisch">Ich esse vegetarisch</option>
+                <option value="vegan">Ich esse vegan</option>
+                <option value="allergien">Ich habe Allergien oder Unverträglichkeiten</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
@@ -1091,6 +1178,20 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.food-cell {
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  min-width: 120px;
+}
+
+.food-pref-line {
+  margin-bottom: var(--space-1);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
 .remarks-cell {
   min-width: 200px;
   width: 25%;
@@ -1251,6 +1352,33 @@ onMounted(() => {
 .form-checkbox {
   margin-right: var(--space-2);
   width: auto;
+}
+
+.food-preferences-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.food-preference-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.food-label-inline {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.9);
+  min-width: 100px;
+  display: inline-block;
+  text-transform: none;
+  margin-bottom: 0;
 }
 
 .modal-actions {
