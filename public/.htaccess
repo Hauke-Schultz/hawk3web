@@ -7,6 +7,11 @@
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+    # Remove trailing slash from URLs
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api/
+    RewriteRule ^(.+)/$ /$1 [L,R=301]
+
     # Handle Vue Router - SPA fallback
     # Don't rewrite files and directories that exist
     RewriteCond %{REQUEST_FILENAME} !-f

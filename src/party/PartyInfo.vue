@@ -1222,7 +1222,7 @@ const createConfetti = () => {
 								    <template v-else-if="currentPlayerScore.isImprovement">
 									    <div class="congratulations-text">
 										    <span>Du hast es geschafft! Neuer Highscore!</span>
-										    <span v-if="playerName.length === 0"> Jetzt Namen eintragen und am Highscore mitmachen.</span>
+										    <span v-if="playerName.length === 0"> Jetzt Namen eintragen und am Highscore teilnehmen.</span>
 									    </div>
 									    <span
 										    class="rank-number highscore-badge"
@@ -1243,7 +1243,7 @@ const createConfetti = () => {
 												    @blur="savePlayerNameOnChange"
 										    />
 									    </span>
-									    <span class="player-level">{{ currentPlayerScore.level }}</span>
+									    <span class="player-level">Level {{ currentPlayerScore.level }}</span>
 									    <button class="btn submit-btn" @click="submitScore" :disabled="playerName.length === 0">
 										    Highscore senden
 									    </button>
@@ -1252,7 +1252,7 @@ const createConfetti = () => {
 								    <!-- Kein Highscore (gleicher oder schlechterer Score) -->
 								    <template v-else>
 									    <div class="info-text-container">
-										    <div class="info-text">Highscore <strong>Platz {{ currentPlayerScore.rank }}</strong> mit Level {{ currentPlayerScore.level }} erreicht. Klicke den "LEVEL UP!" Button weiter!!</div>
+										    <div class="info-text">Highscore <strong>Platz {{ currentPlayerScore.rank }}</strong> mit <strong>Level {{ currentPlayerScore.level }}</strong> erreicht. Klicke den "LEVEL UP!" Button weiter!!</div>
 									    </div>
 								    </template>
 							    </div>

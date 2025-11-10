@@ -34,7 +34,7 @@ export const routes = [
     }
   },
   {
-    path: '/party/admin',
+    path: '/party-admin',
     name: 'PartyRSVPAdmin',
     component: PartyRSVPAdmin,
     meta: {
