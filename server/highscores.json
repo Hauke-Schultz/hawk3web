@@ -7,10 +7,10 @@
     "date": "2025-10-20"
   },
   {
-    "playerId": "49ace133-af22-486b-a761-ffbc76986c43",
-    "name": "Hauke",
-    "level": 265,
-    "date": "2025-11-08",
+    "playerId": "59eb1936-4d47-47cb-b686-65a3cf454110",
+    "name": "Kloppe333div",
+    "level": 211,
+    "date": "2025-11-10",
     "rank": 2
   },
   {
@@ -21,53 +21,53 @@
     "date": "2025-10-18"
   },
   {
-    "playerId": "2700224a-1b72-4851-86c7-fe36b685eb2c",
-    "name": "Hauke",
-    "level": 127,
-    "date": "2025-11-08",
-    "rank": 4
-  },
-  {
-    "rank": 5,
+    "rank": 4,
     "playerId": "dummy-3",
     "name": "ClickMaster",
     "level": 100,
     "date": "2025-10-15"
   },
   {
-    "rank": 6,
+    "rank": 5,
     "playerId": "dummy-4",
     "name": "PartyHero",
     "level": 90,
     "date": "2025-10-12"
   },
   {
-    "rank": 7,
+    "rank": 6,
     "playerId": "dummy-5",
     "name": "ButtonSmasher",
     "level": 80,
     "date": "2025-10-10"
   },
   {
-    "rank": 8,
+    "rank": 7,
     "playerId": "dummy-6",
     "name": "ProGamer",
     "level": 70,
     "date": "2025-10-08"
   },
   {
-    "rank": 9,
+    "rank": 8,
     "playerId": "dummy-7",
     "name": "SpeedClicker",
     "level": 60,
     "date": "2025-10-05"
   },
   {
-    "rank": 10,
+    "rank": 9,
     "playerId": "dummy-8",
     "name": "ChampionX",
     "level": 50,
     "date": "2025-10-02"
+  },
+  {
+    "playerId": "a3ba2114-4086-4791-ab2d-1750b07ac7e8",
+    "name": "Froppy",
+    "level": 42,
+    "date": "2025-11-09",
+    "rank": 10
   },
   {
     "rank": 11,

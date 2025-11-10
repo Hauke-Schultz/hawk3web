@@ -115,5 +115,17 @@
     "remarks": "",
     "status": "pending",
     "lastUpdated": "2025-11-09T18:48:51.711Z"
+  },
+  "beaf0868-5c2b-443d-8ba0-19257dd97ebd": {
+    "name": "Doofhui jhsad",
+    "numberOfGuests": 1,
+    "comingByCar": true,
+    "needsParking": true,
+    "needsHotelRoom": true,
+    "numberOfRooms": 1,
+    "foodPreference": "standard",
+    "remarks": "Nöö sach ich nicht.\n\nDoof du mann",
+    "status": "pending",
+    "lastUpdated": "2025-11-10T10:58:13.830Z"
   }
 }

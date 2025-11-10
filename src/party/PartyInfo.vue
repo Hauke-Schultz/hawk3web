@@ -56,6 +56,7 @@ const playerId = ref('')
 
 // Highscore Daten (werden von der API geladen)
 const highscores = ref([])
+const showAllHighscores = ref(false)
 
 // Level Titles
 const getLevelTitle = (level) => {
@@ -344,11 +345,6 @@ const saveRSVPData = async (data) => {
       rsvpSaved.value = false
     }, 3000)
 
-    // Konfetti bei Zusage
-    if (data.status === 'accepted') {
-      createConfetti()
-    }
-
     return result
   } catch (error) {
     console.error('Error saving RSVP to API:', error)
@@ -371,6 +367,9 @@ const submitRSVP = async () => {
 
   // Daten speichern
   await saveRSVPData(rsvpData.value)
+	setTimeout(() => {
+		scrollToRSVP()
+	}, 200)
 
   // Bearbeitungsmodus verlassen
   isEditingRSVP.value = false
@@ -445,10 +444,10 @@ const levelUp = (event) => {
     clearTimeout(comboTimeout.value)
   }
 
-  // Reset combo nach 200ms
+  // Reset combo nach 400ms
   comboTimeout.value = setTimeout(() => {
     comboCount.value = 0
-  }, 200)
+  }, 400)
 
   // Floating Number anzeigen
   showFloatingNumber(event)
@@ -467,17 +466,17 @@ const showFloatingNumber = (event) => {
 
   // Lustige Combo-Texte für verschiedene Stufen
   const comboTexts = {
-    1: ['👆', '👌', 'Click! ✌️', 'Nice! 🤘'],
-    3: ['Läuft! 🔥', 'Weiter so!', 'Go! 💪', 'Gut!'],
-    5: ['COMBO! 🎯', 'On Fire! 🔥', 'Stark! 💥', 'Top! ⭐'],
-    8: ['SUPER! 🚀', 'Krass! ⚡', 'Heftig! 💫', 'Wow! 🌟'],
-    12: ['MEGA! 🎆', 'Wahnsinn! 🎊', 'Irre! 🎨', 'Geil! 🎪'],
-    15: ['ULTRA! 🌈', 'Monster! 👾', 'Brutal! 💀', 'Hammer! 🔨'],
-    20: ['GIGANTISCH! 🦖', 'Legendär! 👑', 'Episch! ⚔️', 'Crazy! 🤪'],
-    25: ['UNGLAUBLICH! 🌠', 'Perfekt! 💎', 'Göttlich! ⚡', 'Irrsinn! 🎭'],
-    30: ['UNSTOPPABLE! 🔥', 'Phänomenal! 🎇', 'Meisterlich! 🏆', 'Fantastisch! 🎪'],
-    40: ['GODLIKE! 👼', 'Überirdisch! 🛸', 'Kosmisch! 🌌', 'Unreal! 🎮'],
-    50: ['LEGENDARY! 🐉', 'Mythisch! 🦄', 'Ewig! ♾️', 'Absolut! 💫']
+    1: ['👆', '👌', 'Click! ✌️', 'Nice! 🤘', 'Cool! 😎', '🤘', 'Yay! 🎉', '🚀', 'Yeah! ✨', '💥', 'Juhu! 🎈', 'Start! 🎯'],
+    3: ['Läuft! 🔥', 'Weiter so! 🫵', 'Go! 💪', 'Gut! 🙂', 'Stark! 💪', 'Prima! 👍', 'Weiter! 🔥', 'Push! ⚡', 'Mehr! 🎊', 'Zack! ⚡'],
+    5: ['COMBO! 🎯', 'On Fire! 🔥', 'Stark! 💥', 'Top! ⭐', 'Feuer! 🔥', 'Bombe! 💣', 'Kracher! 🎆', 'Super! 🌟', 'Hot! 🌶️'],
+    8: ['SUPER! 🚀', 'Krass! ⚡', 'Heftig! 💫', 'Wow! 🌟', 'Wild! 🦁', 'Power! ⚡', 'Beast! 🦁', 'Fire! 🔥'],
+    12: ['MEGA! 🎆', 'Wahnsinn! 🎊', 'Irre! 🎨', 'Crazy! 🤪', 'Hammer! 🔨', 'Mächtig! 💪', 'Banger! 💥', 'Killer! ⚔️'],
+    15: ['ULTRA! 🌈', 'Monster! 👾', 'Brutal! 💀', 'Hammer! 🔨', 'Gigant! 🦍', 'Titan! 🗿', 'Knaller! 🎇', 'Stark! 🦾'],
+    20: ['GIGANTISCH! 🦖', 'Legendär! 👑', 'Episch! ⚔️', 'Crazy! 🤪', 'Unreal! 🎮', 'Wahnsinn! 🌋', 'Bombastisch! 💣', 'Kolossal! 🗼', 'Grandios! 🎪', 'Monumental! 🏛️'],
+    25: ['UNGLAUBLICH! 🌠', 'Perfekt! 💎', 'Göttlich! ⚡', 'Irrsinn! 🎭', 'Spektakulär! 🎆', 'Magisch! ✨', 'Brilliant! 💫', 'Himmlisch! ☁️', 'Gnadenlos! 😤', 'Wunderbar! 🌟'],
+    30: ['UNSTOPPABLE! 🔥', 'Phänomenal! 🎇', 'Meisterlich! 🏆', 'Fantastisch! 🎪', 'Unbezwingbar! 🛡️', 'Unaufhaltsam! 🚂', 'Makellos! 👌', 'Exzellent! 🎯', 'Supreme! 👑', 'Virtuos! 🎻'],
+    40: ['GODLIKE! 👼', 'Überirdisch! 🛸', 'Kosmisch! 🌌', 'Unreal! 🎮', 'Allmächtig! ⚡', 'Unsterblich! ♾️', 'Galaktisch! 🌟', 'Dimensional! 🌀', 'Übermenschlich! 🦸'],
+    50: ['LEGENDARY! 🐉', 'Mythisch! 🦄', 'Ewig! ♾️', 'Absolut! 💫', 'UNFASSBAR! 🌌', 'Zeitlos! ⏳', 'Unendlich! 🌊', 'GODMODE! 🎆', 'GÖTTLICH! ⚡']
   }
 
   // Bestimme den Status basierend auf Combo
@@ -1170,10 +1169,26 @@ const createConfetti = () => {
 						    LEVEL UP!
 					    </button>
 
-					    <!-- Toggle Button -->
-					    <button class="flip-toggle-btn" @click="toggleFlip">
-						    🏆 Highscore
-					    </button>
+					    <!-- Toggle Button mit Highscore Badge -->
+					    <div class="highscore-toggle-container">
+						    <!-- Badge für neuen Highscore -->
+						    <div
+							    v-if="currentPlayerScore && currentPlayerScore.isImprovement && currentLevel > 0"
+							    class="highscore-badge"
+							    :class="{
+								    'highscore-badge--gold': currentPlayerScore.rank === 1,
+								    'highscore-badge--silver': currentPlayerScore.rank === 2,
+								    'highscore-badge--bronze': currentPlayerScore.rank === 3
+							    }"
+							    @click="toggleFlip"
+						    >
+							    <span class="badge-rank">#{{ currentPlayerScore.rank }}</span>
+						    </div>
+						    <!-- Toggle Button -->
+						    <button class="flip-toggle-btn" @click="toggleFlip">
+							    🏆 Highscore
+						    </button>
+					    </div>
 				    </div>
 			    </div>
 
@@ -1203,20 +1218,20 @@ const createConfetti = () => {
 									    </div>
 								    </template>
 
-								    <!-- Noch nicht in Top 10 (Rang > 10) -->
-								    <template v-else-if="currentPlayerScore.rank > 10">
-									    <div class="info-text-container">
-										    <div class="info-text">Noch kein Highscore erreicht! Klicke den "LEVEL UP!" Button weiter!! <strong>Level {{ currentPlayerScore.level }}</strong> erreicht.</div>
-									    </div>
-								    </template>
-
-								    <!-- Highscore erreicht (Rang <= 10) und Verbesserung -->
+								    <!-- Score kann gespeichert werden (neue oder bessere Score) -->
 								    <template v-else-if="currentPlayerScore.isImprovement">
 									    <div class="congratulations-text">
 										    <span>Du hast es geschafft! Neuer Highscore!</span>
 										    <span v-if="playerName.length === 0"> Jetzt Namen eintragen und am Highscore mitmachen.</span>
 									    </div>
-									    <span class="rank-number">{{ currentPlayerScore.rank }}.</span>
+									    <span
+										    class="rank-number highscore-badge"
+										    :class="{
+											    'highscore-badge--gold': currentPlayerScore.rank === 1,
+											    'highscore-badge--silver': currentPlayerScore.rank === 2,
+											    'highscore-badge--bronze': currentPlayerScore.rank === 3
+										    }"
+									    >#{{ currentPlayerScore.rank }}</span>
 									    <span class="player-name">
 										    <input
 												    v-model="playerName"
@@ -1243,7 +1258,7 @@ const createConfetti = () => {
 							    </div>
 							    <!-- Top 10 Liste -->
 							    <div
-									    v-for="entry in highscores.slice(0, 10)"
+									    v-for="entry in (showAllHighscores ? highscores : highscores.slice(0, 10))"
 									    :key="entry.rank"
 									    class="highscore-entry"
 									    :class="{
@@ -1256,6 +1271,15 @@ const createConfetti = () => {
 								    <span class="player-name">{{ entry.name }}</span>
 								    <span class="player-level">{{ entry.level }}</span>
 							    </div>
+
+							    <!-- Alle einblenden Button -->
+							    <button
+									    v-if="highscores.length > 10"
+									    class="show-all-btn"
+									    @click="showAllHighscores = !showAllHighscores"
+							    >
+								    {{ showAllHighscores ? 'Nur Top 10 anzeigen' : 'Alle einblenden' }}
+							    </button>
 						    </div>
 					    </div>
 				    </div>
@@ -2771,10 +2795,63 @@ body:has(.party-page) .container,
   }
 }
 
+// Highscore Toggle Container
+.highscore-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-end;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+// Highscore Badge
+.highscore-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(240, 147, 251, 0.6);
+  animation: pulse-badge 2s ease-in-out infinite;
+  transition: all 0.3s ease;
+
+  &--gold {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 1), rgba(255, 185, 0, 1));
+    border-color: rgba(255, 215, 0, 1);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  }
+
+  &--silver {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 1), rgba(169, 169, 169, 1));
+    border-color: rgba(192, 192, 192, 1);
+    box-shadow: 0 0 18px rgba(192, 192, 192, 0.7);
+  }
+
+  &--bronze {
+    background: linear-gradient(135deg, rgba(205, 127, 50, 1), rgba(184, 115, 51, 1));
+    border-color: rgba(205, 127, 50, 1);
+    box-shadow: 0 0 16px rgba(205, 127, 50, 0.6);
+  }
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(240, 147, 251, 0.9);
+  }
+
+  .badge-rank {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
 // Flip Toggle Button
 .flip-toggle-btn {
   width: auto;
-	align-self: flex-end;
   padding: var(--space-2);
   font-size: var(--font-size-xs);
   background: rgba(255, 255, 255, 0.2);
@@ -2786,6 +2863,34 @@ body:has(.party-page) .container,
 
   &:hover {
     background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Show All Highscores Button
+.show-all-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-3);
+  font-size: var(--font-size-base);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: var(--font-weight-medium);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.5);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);

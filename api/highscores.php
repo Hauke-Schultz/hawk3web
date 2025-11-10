@@ -107,14 +107,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        // GET /api/highscores - Lade alle Highscores (Top 10)
+        // GET /api/highscores - Lade alle Highscores
         try {
             $highscores = loadHighscores();
 
-            // Gib nur Top 10 zurück
-            $topTen = array_slice($highscores, 0, 10);
-
-            echo json_encode($topTen);
+            // Gib alle Highscores zurück
+            echo json_encode($highscores);
             http_response_code(200);
         } catch (Exception $e) {
             http_response_code(500);
@@ -174,13 +172,12 @@ switch ($method) {
                 } else {
                     // Bestehender Score ist besser
                     $rank = $existingIndex + 1;
-                    $topTen = array_slice($highscores, 0, 10);
 
                     http_response_code(200);
                     echo json_encode([
                         'message' => 'Existing score is better',
                         'rank' => $rank,
-                        'highscores' => $topTen
+                        'highscores' => $highscores
                     ]);
                     exit();
                 }
@@ -224,14 +221,12 @@ switch ($method) {
                 }
             }
 
-            // Gib Top 10 zurück
-            $topTen = array_slice($highscores, 0, 10);
-
+            // Gib alle Highscores zurück
             http_response_code(200);
             echo json_encode([
                 'message' => 'Highscore saved successfully',
                 'rank' => $playerRank,
-                'highscores' => $topTen
+                'highscores' => $highscores
             ]);
 
         } catch (Exception $e) {

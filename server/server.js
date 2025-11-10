@@ -133,7 +133,7 @@ app.post('/api/highscores', async (req, res) => {
         return res.json({
           message: 'Existing score is better',
           rank: highscores.findIndex(s => s.playerId === playerId) + 1,
-          highscores: highscores.slice(0, 10)
+          highscores: highscores
         })
       }
     } else {
@@ -171,7 +171,7 @@ app.post('/api/highscores', async (req, res) => {
     res.json({
       message: 'Highscore saved successfully',
       rank: playerRank,
-      highscores: highscores.slice(0, 10) // Return top 10
+      highscores: highscores // Return all highscores
     })
   } catch (error) {
     console.error('Error saving highscore:', error)
