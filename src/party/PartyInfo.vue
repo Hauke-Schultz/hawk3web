@@ -1313,6 +1313,7 @@ const createConfetti = () => {
 							    >
 								    <span class="rank-number">{{ entry.rank }}.</span>
 								    <span class="player-name">{{ entry.name }}</span>
+								    <span v-if="entry.emoji" class="level-emoji"> {{ entry.emoji }}</span>
 								    <span class="player-level">{{ entry.level }}</span>
 							    </div>
 
@@ -2711,6 +2712,10 @@ body:has(.party-page) .container,
   font-weight: var(--font-weight-bold);
   color: white;
   text-align: right;
+
+  .level-emoji {
+    font-size: var(--font-size-lg);
+  }
 }
 
 // Accordion Styles

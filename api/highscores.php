@@ -6,7 +6,7 @@
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: https://haukeschultz.com');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // OPTIONS Request für CORS
@@ -167,7 +167,8 @@ switch ($method) {
                         'playerId' => $playerId,
                         'name' => $name,
                         'level' => $level,
-                        'date' => $date
+                        'date' => $date,
+                        'emoji' => isset($highscores[$existingIndex]['emoji']) ? $highscores[$existingIndex]['emoji'] : '' // Keep existing emoji
                     ];
                 } else {
                     // Bestehender Score ist besser
@@ -187,7 +188,8 @@ switch ($method) {
                     'playerId' => $playerId,
                     'name' => $name,
                     'level' => $level,
-                    'date' => $date
+                    'date' => $date,
+                    'emoji' => '' // No emoji by default
                 ];
             }
 
@@ -233,6 +235,182 @@ switch ($method) {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to save highscore']);
             error_log('Error saving highscore: ' . $e->getMessage());
+        }
+        break;
+
+    case 'PUT':
+        // PUT /api/highscores - Update highscore
+        try {
+            // Lese POST-Daten
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true);
+
+            if ($data === null) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid JSON']);
+                exit();
+            }
+
+            // Validierung
+            if (!isset($data['playerId']) || empty(trim($data['playerId']))) {
+                http_response_code(400);
+                echo json_encode(['error' => 'playerId is required']);
+                exit();
+            }
+
+            if (!isset($data['name']) || empty(trim($data['name']))) {
+                http_response_code(400);
+                echo json_encode(['error' => 'name is required']);
+                exit();
+            }
+
+            if (!isset($data['level']) || !is_numeric($data['level'])) {
+                http_response_code(400);
+                echo json_encode(['error' => 'level must be a number']);
+                exit();
+            }
+
+            if ($data['level'] < 0) {
+                http_response_code(400);
+                echo json_encode(['error' => 'level must be positive']);
+                exit();
+            }
+
+            if (mb_strlen($data['name']) > 20) {
+                http_response_code(400);
+                echo json_encode(['error' => 'name too long (max 20 characters)']);
+                exit();
+            }
+
+            $playerId = trim($data['playerId']);
+            $name = trim($data['name']);
+            $level = (int)$data['level'];
+            $emoji = isset($data['emoji']) ? trim($data['emoji']) : '';
+
+            // Validate emoji (optional, max 10 characters for emoji)
+            if (mb_strlen($emoji) > 10) {
+                http_response_code(400);
+                echo json_encode(['error' => 'emoji too long (max 10 characters)']);
+                exit();
+            }
+
+            // Lade aktuelle Highscores
+            $highscores = loadHighscores();
+
+            // Finde den zu aktualisierenden Highscore
+            $existingIndex = -1;
+            foreach ($highscores as $index => $score) {
+                if ($score['playerId'] === $playerId) {
+                    $existingIndex = $index;
+                    break;
+                }
+            }
+
+            if ($existingIndex === -1) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Highscore not found']);
+                exit();
+            }
+
+            // Update highscore (behalte das originale Datum)
+            $highscores[$existingIndex] = [
+                'playerId' => $playerId,
+                'name' => $name,
+                'level' => $level,
+                'date' => $highscores[$existingIndex]['date'],
+                'emoji' => $emoji
+            ];
+
+            // Sortieren nach Level (höchste zuerst)
+            usort($highscores, function($a, $b) {
+                return $b['level'] - $a['level'];
+            });
+
+            // Nur Top 100 behalten
+            $highscores = array_slice($highscores, 0, MAX_HIGHSCORES);
+
+            // Ranks neu zuweisen
+            foreach ($highscores as $index => &$score) {
+                $score['rank'] = $index + 1;
+            }
+            unset($score);
+
+            // Speichern
+            if (!saveHighscores($highscores)) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to update highscore']);
+                exit();
+            }
+
+            http_response_code(200);
+            echo json_encode([
+                'message' => 'Highscore updated successfully',
+                'highscores' => $highscores
+            ]);
+
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to update highscore']);
+            error_log('Error updating highscore: ' . $e->getMessage());
+        }
+        break;
+
+    case 'DELETE':
+        // DELETE /api/highscores - Delete highscore
+        try {
+            // Lese playerId aus Query-Parameter
+            if (!isset($_GET['playerId']) || empty(trim($_GET['playerId']))) {
+                http_response_code(400);
+                echo json_encode(['error' => 'playerId parameter is required']);
+                exit();
+            }
+
+            $playerId = trim($_GET['playerId']);
+
+            // Lade aktuelle Highscores
+            $highscores = loadHighscores();
+
+            // Finde den zu löschenden Highscore
+            $existingIndex = -1;
+            foreach ($highscores as $index => $score) {
+                if ($score['playerId'] === $playerId) {
+                    $existingIndex = $index;
+                    break;
+                }
+            }
+
+            if ($existingIndex === -1) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Highscore not found']);
+                exit();
+            }
+
+            // Entferne den Highscore
+            array_splice($highscores, $existingIndex, 1);
+
+            // Ranks neu zuweisen
+            foreach ($highscores as $index => &$score) {
+                $score['rank'] = $index + 1;
+            }
+            unset($score);
+
+            // Speichern
+            if (!saveHighscores($highscores)) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to delete highscore']);
+                exit();
+            }
+
+            http_response_code(200);
+            echo json_encode([
+                'message' => 'Highscore deleted successfully',
+                'playerId' => $playerId
+            ]);
+
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to delete highscore']);
+            error_log('Error deleting highscore: ' . $e->getMessage());
         }
         break;
 

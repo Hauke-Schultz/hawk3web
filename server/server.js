@@ -275,7 +275,8 @@ app.post('/api/highscores', async (req, res) => {
           playerId,
           name: name.trim(),
           level,
-          date: date || new Date().toISOString().split('T')[0]
+          date: date || new Date().toISOString().split('T')[0],
+          emoji: highscores[existingIndex].emoji || '' // Keep existing emoji if any
         }
       } else {
         return res.json({
@@ -290,7 +291,8 @@ app.post('/api/highscores', async (req, res) => {
         playerId,
         name: name.trim(),
         level,
-        date: date || new Date().toISOString().split('T')[0]
+        date: date || new Date().toISOString().split('T')[0],
+        emoji: '' // No emoji by default
       })
     }
 
@@ -324,6 +326,126 @@ app.post('/api/highscores', async (req, res) => {
   } catch (error) {
     console.error('Error saving highscore:', error)
     res.status(500).json({ error: 'Failed to save highscore' })
+  }
+})
+
+// PUT /api/highscores/:playerId - Update a highscore
+app.put('/api/highscores/:playerId', async (req, res) => {
+  try {
+    const { playerId } = req.params
+    const { name, level, emoji } = req.body
+
+    if (!playerId) {
+      return res.status(400).json({ error: 'Missing playerId parameter' })
+    }
+
+    if (!name || name.trim().length === 0) {
+      return res.status(400).json({ error: 'Missing required field: name' })
+    }
+
+    if (typeof level !== 'number' || level < 0) {
+      return res.status(400).json({ error: 'Invalid level value' })
+    }
+
+    if (name.length > 20) {
+      return res.status(400).json({ error: 'Name too long (max 20 characters)' })
+    }
+
+    // Validate emoji (optional, max 10 characters for emoji)
+    if (emoji && emoji.length > 10) {
+      return res.status(400).json({ error: 'Emoji too long (max 10 characters)' })
+    }
+
+    // Read current highscores
+    let highscores = await readHighscores()
+
+    // Find the highscore to update
+    const existingIndex = highscores.findIndex(score => score.playerId === playerId)
+
+    if (existingIndex === -1) {
+      return res.status(404).json({ error: 'Highscore not found' })
+    }
+
+    // Update the highscore
+    highscores[existingIndex] = {
+      playerId,
+      name: name.trim(),
+      level,
+      date: highscores[existingIndex].date, // Keep original date
+      emoji: emoji || '' // Update emoji
+    }
+
+    // Sort by level (highest first)
+    highscores.sort((a, b) => b.level - a.level)
+
+    // Keep only top 100
+    highscores = highscores.slice(0, 100)
+
+    // Add ranks
+    highscores = highscores.map((score, index) => ({
+      ...score,
+      rank: index + 1
+    }))
+
+    // Save to file
+    const success = await writeHighscores(highscores)
+
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to update highscore' })
+    }
+
+    res.json({
+      message: 'Highscore updated successfully',
+      highscores: highscores
+    })
+  } catch (error) {
+    console.error('Error updating highscore:', error)
+    res.status(500).json({ error: 'Failed to update highscore' })
+  }
+})
+
+// DELETE /api/highscores/:playerId - Delete a highscore
+app.delete('/api/highscores/:playerId', async (req, res) => {
+  try {
+    const { playerId } = req.params
+
+    if (!playerId) {
+      return res.status(400).json({ error: 'Missing playerId parameter' })
+    }
+
+    // Read current highscores
+    let highscores = await readHighscores()
+
+    // Find the highscore to delete
+    const existingIndex = highscores.findIndex(score => score.playerId === playerId)
+
+    if (existingIndex === -1) {
+      return res.status(404).json({ error: 'Highscore not found' })
+    }
+
+    // Remove the highscore
+    highscores.splice(existingIndex, 1)
+
+    // Re-calculate ranks
+    highscores = highscores.map((score, index) => ({
+      ...score,
+      rank: index + 1
+    }))
+
+    // Save to file
+    const success = await writeHighscores(highscores)
+
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to delete highscore' })
+    }
+
+    res.json({
+      message: 'Highscore deleted successfully',
+      playerId: playerId
+    })
+  } catch (error) {
+    console.error('Error deleting highscore:', error)
+    res.status(500).json({ error: 'Failed to delete highscore' })
   }
 })
 

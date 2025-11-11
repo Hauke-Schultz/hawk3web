@@ -5,7 +5,10 @@ import { useRouter } from 'vue-router'
 // Router instance
 const router = useRouter()
 
-// State
+// Tab State
+const activeTab = ref('rsvp') // 'rsvp' or 'highscores'
+
+// RSVP State
 const rsvps = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -17,6 +20,18 @@ const sortOrder = ref('asc') // 'asc', 'desc'
 // Edit Modal State
 const showEditModal = ref(false)
 const editingRSVP = ref(null)
+
+// Highscore State
+const highscores = ref([])
+const highscoresLoading = ref(false)
+const highscoresError = ref(null)
+const highscoreSearchQuery = ref('')
+const highscoreSortBy = ref('level') // 'name', 'level', 'date'
+const highscoreSortOrder = ref('desc') // 'asc', 'desc'
+
+// Highscore Edit Modal State
+const showHighscoreEditModal = ref(false)
+const editingHighscore = ref(null)
 
 // Password Protection State
 const isAuthenticated = ref(false)
@@ -298,13 +313,6 @@ const refresh = () => {
 }
 
 /**
- * Zurück zur Party-Seite
- */
-const goBackToParty = () => {
-  router.push('/party')
-}
-
-/**
  * UUID Generator (v4)
  */
 const generateUUID = () => {
@@ -465,8 +473,9 @@ const checkPassword = () => {
     passwordError.value = ''
     // Passwort in Session speichern
     sessionStorage.setItem('partyAdminAuth', 'true')
-    // RSVPs laden
+    // Daten laden
     loadAllRSVPs()
+    loadAllHighscores()
   } else {
     passwordError.value = 'Falsches Passwort. Bitte versuche es erneut.'
     passwordInput.value = ''
@@ -483,6 +492,182 @@ const logout = () => {
   passwordError.value = ''
   sessionStorage.removeItem('partyAdminAuth')
   rsvps.value = []
+  highscores.value = []
+}
+
+// ========================================
+// HIGHSCORE FUNCTIONS
+// ========================================
+
+/**
+ * Lade alle Highscores von der API
+ */
+const loadAllHighscores = async () => {
+  try {
+    highscoresLoading.value = true
+    highscoresError.value = null
+
+    const highscoreEndpoint = import.meta.env.DEV ? '/api/highscores' : '/api/highscores.php'
+    const response = await fetch(`${API_BASE_URL}${highscoreEndpoint}`)
+
+    if (!response.ok) {
+      throw new Error('Failed to load highscores')
+    }
+
+    const data = await response.json()
+    highscores.value = Array.isArray(data) ? data : []
+
+  } catch (err) {
+    console.error('Error loading highscores:', err)
+    highscoresError.value = 'Fehler beim Laden der Highscores. Bitte versuche es später erneut.'
+    highscores.value = []
+  } finally {
+    highscoresLoading.value = false
+  }
+}
+
+/**
+ * Gefilterte und sortierte Highscores
+ */
+const filteredHighscores = computed(() => {
+  let filtered = highscores.value
+
+  // Filter nach Suchbegriff
+  if (highscoreSearchQuery.value.trim()) {
+    const query = highscoreSearchQuery.value.toLowerCase().trim()
+    filtered = filtered.filter(score =>
+      score.name.toLowerCase().includes(query)
+    )
+  }
+
+  // Sortieren
+  filtered = [...filtered].sort((a, b) => {
+    let aVal, bVal
+
+    switch (highscoreSortBy.value) {
+      case 'name':
+        aVal = a.name.toLowerCase()
+        bVal = b.name.toLowerCase()
+        break
+      case 'level':
+        aVal = a.level || 0
+        bVal = b.level || 0
+        break
+      case 'date':
+        aVal = new Date(a.date || 0)
+        bVal = new Date(b.date || 0)
+        break
+      default:
+        return 0
+    }
+
+    if (highscoreSortOrder.value === 'asc') {
+      return aVal > bVal ? 1 : aVal < bVal ? -1 : 0
+    } else {
+      return aVal < bVal ? 1 : aVal > bVal ? -1 : 0
+    }
+  })
+
+  return filtered
+})
+
+/**
+ * Sortierung für Highscores ändern
+ */
+const changeHighscoreSort = (field) => {
+  if (highscoreSortBy.value === field) {
+    highscoreSortOrder.value = highscoreSortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    highscoreSortBy.value = field
+    highscoreSortOrder.value = field === 'level' ? 'desc' : 'asc'
+  }
+}
+
+/**
+ * Highscore bearbeiten
+ */
+const editHighscore = (highscore) => {
+  editingHighscore.value = { ...highscore }
+  showHighscoreEditModal.value = true
+}
+
+/**
+ * Bearbeiteten Highscore speichern
+ */
+const saveHighscoreEdit = async () => {
+  if (!editingHighscore.value) return
+
+  try {
+    const highscoreEndpoint = import.meta.env.DEV
+      ? `/api/highscores/${editingHighscore.value.playerId}`
+      : '/api/highscores.php'
+
+    const response = await fetch(`${API_BASE_URL}${highscoreEndpoint}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(editingHighscore.value)
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to update highscore')
+    }
+
+    // Reload data
+    await loadAllHighscores()
+
+    // Close modal
+    showHighscoreEditModal.value = false
+    editingHighscore.value = null
+  } catch (err) {
+    console.error('Error updating highscore:', err)
+    alert('Fehler beim Aktualisieren des Highscores')
+  }
+}
+
+/**
+ * Highscore-Edit-Modal schließen
+ */
+const cancelHighscoreEdit = () => {
+  showHighscoreEditModal.value = false
+  editingHighscore.value = null
+}
+
+/**
+ * Highscore löschen
+ */
+const deleteHighscore = async (highscore) => {
+  if (!confirm(`Möchtest du den Highscore von "${highscore.name}" (Level ${highscore.level}) wirklich löschen?`)) {
+    return
+  }
+
+  try {
+    const highscoreEndpoint = import.meta.env.DEV
+      ? `/api/highscores/${highscore.playerId}`
+      : `/api/highscores.php?playerId=${highscore.playerId}`
+
+    const response = await fetch(`${API_BASE_URL}${highscoreEndpoint}`, {
+      method: 'DELETE'
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to delete highscore')
+    }
+
+    // Reload data
+    await loadAllHighscores()
+  } catch (err) {
+    console.error('Error deleting highscore:', err)
+    alert('Fehler beim Löschen des Highscores')
+  }
+}
+
+/**
+ * Refresh Highscores
+ */
+const refreshHighscores = () => {
+  loadAllHighscores()
 }
 
 /**
@@ -517,6 +702,7 @@ onMounted(() => {
     isAuthenticated.value = true
     showPasswordModal.value = false
     loadAllRSVPs()
+    loadAllHighscores()
   }
 })
 </script>
@@ -560,17 +746,38 @@ onMounted(() => {
     <template v-if="isAuthenticated">
       <!-- Header -->
       <header class="admin-header">
-        <button @click="goBackToParty" class="btn btn--secondary back-btn">
-          ← Zurück zur Party
-        </button>
         <h1 class="admin-title">Party Verwaltung</h1>
-        <button @click="addNewGuest" class="btn btn--success add-btn">
-          ➕ Gast hinzufügen
-        </button>
-        <button @click="refresh" class="btn btn--primary refresh-btn" :disabled="loading">
-          🔄 Aktualisieren
-        </button>
+
+	      <!-- Tabs -->
+	      <div class="tabs-container">
+		      <button
+				      class="tab-btn"
+				      :class="{ 'tab-btn--active': activeTab === 'rsvp' }"
+				      @click="activeTab = 'rsvp'"
+		      >
+			      📋 Gästeliste ({{ rsvps.length }})
+		      </button>
+		      <button
+				      class="tab-btn"
+				      :class="{ 'tab-btn--active': activeTab === 'highscores' }"
+				      @click="activeTab = 'highscores'"
+		      >
+			      🏆 Highscores ({{ highscores.length }})
+		      </button>
+	      </div>
       </header>
+
+
+      <!-- RSVP Tab Content -->
+      <div v-if="activeTab === 'rsvp'">
+        <div class="tab-actions">
+          <button @click="addNewGuest" class="btn btn--success add-btn">
+            ➕ Gast hinzufügen
+          </button>
+          <button @click="refresh" class="btn btn--primary refresh-btn" :disabled="loading">
+            🔄 Aktualisieren
+          </button>
+        </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="loading-state">
@@ -773,6 +980,108 @@ onMounted(() => {
         <p>Zeige {{ filteredRSVPs.length }} von {{ rsvps.length }} Einträge</p>
       </footer>
     </div>
+      </div>
+
+      <!-- Highscores Tab Content -->
+      <div v-if="activeTab === 'highscores'">
+        <div class="tab-actions">
+          <button @click="refreshHighscores" class="btn btn--primary refresh-btn" :disabled="highscoresLoading">
+            🔄 Aktualisieren
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="highscoresLoading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Lade Highscores...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="highscoresError" class="error-state">
+          <p>{{ highscoresError }}</p>
+          <button @click="refreshHighscores" class="btn btn--primary">Erneut versuchen</button>
+        </div>
+
+        <!-- Highscores Content -->
+        <div v-else class="admin-content">
+          <!-- Search -->
+          <section class="filters">
+            <div class="filter-group">
+              <label>Suche:</label>
+              <input
+                v-model="highscoreSearchQuery"
+                type="text"
+                placeholder="Name suchen..."
+                class="search-input"
+              />
+            </div>
+          </section>
+
+          <!-- Highscores Table -->
+          <section class="rsvp-table-container">
+            <div v-if="filteredHighscores.length === 0" class="empty-state">
+              <p>Keine Highscores gefunden</p>
+            </div>
+
+            <table v-else class="rsvp-table">
+              <thead>
+                <tr>
+                  <th @click="changeHighscoreSort('rank')" class="sortable" title="Rang">
+                    🏅
+                    <span v-if="highscoreSortBy === 'rank'" class="sort-indicator">
+                      {{ highscoreSortOrder === 'asc' ? '↑' : '↓' }}
+                    </span>
+                  </th>
+                  <th @click="changeHighscoreSort('name')" class="sortable">
+                    Name
+                    <span v-if="highscoreSortBy === 'name'" class="sort-indicator">
+                      {{ highscoreSortOrder === 'asc' ? '↑' : '↓' }}
+                    </span>
+                  </th>
+                  <th @click="changeHighscoreSort('level')" class="sortable">
+                    Level
+                    <span v-if="highscoreSortBy === 'level'" class="sort-indicator">
+                      {{ highscoreSortOrder === 'asc' ? '↑' : '↓' }}
+                    </span>
+                  </th>
+                  <th title="Emoji">🏷️</th>
+                  <th @click="changeHighscoreSort('date')" class="sortable">
+                    Datum
+                    <span v-if="highscoreSortBy === 'date'" class="sort-indicator">
+                      {{ highscoreSortOrder === 'asc' ? '↑' : '↓' }}
+                    </span>
+                  </th>
+                  <th title="Aktionen">⚙️</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="score in filteredHighscores" :key="score.playerId" class="rsvp-row">
+                  <td class="center-cell rank-cell">
+                    <span>{{ score.rank }}</span>
+                  </td>
+                  <td class="name-cell">{{ score.name }}</td>
+                  <td class="center-cell level-cell">{{ score.level }}</td>
+                  <td class="center-cell emoji-cell">{{ score.emoji || '—' }}</td>
+                  <td class="date-cell">{{ score.date }}</td>
+                  <td class="actions-cell">
+                    <button @click="editHighscore(score)" class="action-btn edit-btn" title="Bearbeiten">
+                      ✏️
+                    </button>
+                    <button @click="deleteHighscore(score)" class="action-btn delete-btn" title="Löschen">
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- Footer Info -->
+          <footer class="admin-footer">
+            <p>Zeige {{ filteredHighscores.length }} von {{ highscores.length }} Einträge</p>
+          </footer>
+        </div>
+      </div>
 
     <!-- Edit Modal -->
     <div v-if="showEditModal && editingRSVP" class="modal-overlay" @click="cancelEdit">
@@ -859,6 +1168,47 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Highscore Edit Modal -->
+    <div v-if="showHighscoreEditModal && editingHighscore" class="modal-overlay" @click="cancelHighscoreEdit">
+      <div class="modal-content" @click.stop>
+        <h2 class="modal-title">Highscore bearbeiten</h2>
+
+        <div class="form-group">
+          <label>Name</label>
+          <input v-model="editingHighscore.name" type="text" class="form-input" maxlength="20" />
+        </div>
+
+        <div class="form-group">
+          <label>Level</label>
+          <input v-model.number="editingHighscore.level" type="number" min="0" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Emoji (optional)</label>
+          <input
+            v-model="editingHighscore.emoji"
+            type="text"
+            class="form-input"
+            placeholder="z.B. 🚩⭐🎉"
+            maxlength="10"
+          />
+          <small style="opacity: 0.7; margin-top: var(--space-1); display: block;">
+            Wird nach dem Level in der öffentlichen Highscore-Liste angezeigt
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Datum</label>
+          <input v-model="editingHighscore.date" type="date" class="form-input" />
+        </div>
+
+        <div class="modal-actions">
+          <button @click="cancelHighscoreEdit" class="btn btn--secondary">Abbrechen</button>
+          <button @click="saveHighscoreEdit" class="btn btn--primary">Speichern</button>
+        </div>
+      </div>
+    </div>
     </template>
   </div>
 </template>
@@ -886,7 +1236,6 @@ onMounted(() => {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   margin: 0;
-  flex: 1;
   text-align: center;
 }
 
@@ -1416,5 +1765,60 @@ onMounted(() => {
 
 .logout-btn {
   flex-shrink: 0;
+}
+
+// Tabs Styling
+.tabs-container {
+  display: flex;
+  gap: var(--space-2);
+  background: rgba(255, 255, 255, 0.1);
+  padding: var(--space-2);
+  border-radius: var(--border-radius-xl);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn {
+  padding: var(--space-2);
+  border-radius: var(--border-radius-lg);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  &--active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(0);
+  }
+}
+
+.tab-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+// Highscore-specific styling
+.rank-cell {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+}
+
+.level-cell {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: #feca57;
+}
+
+.emoji-cell {
+  font-size: var(--font-size-xl);
 }
 </style>

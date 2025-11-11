@@ -1,24 +1,27 @@
 [
   {
-    "rank": 1,
+    "playerId": "62e9f8fa-e853-40e2-bb0b-aab936c2c674",
+    "name": "Froppyx",
+    "level": 1027,
+    "date": "2025-11-11",
+    "emoji": "💥",
+    "rank": 1
+  },
+  {
     "playerId": "dummy-1",
     "name": "KlickLord",
     "level": 100,
-    "date": "2025-10-20"
+    "date": "2025-10-20",
+    "emoji": "😍",
+    "rank": 2
   },
   {
-    "rank": 2,
     "playerId": "dummy-2",
     "name": "TapMaster",
     "level": 90,
-    "date": "2025-10-18"
-  },
-  {
-    "rank": 3,
-    "playerId": "dummy-3",
-    "name": "DonnerKlick",
-    "level": 80,
-    "date": "2025-10-15"
+    "date": "2025-10-18",
+    "emoji": "🚩",
+    "rank": 3
   },
   {
     "rank": 4,
@@ -47,26 +50,5 @@
     "name": "SpeedKlicker",
     "level": 40,
     "date": "2025-10-05"
-  },
-  {
-    "rank": 8,
-    "playerId": "dummy-8",
-    "name": "BeatKnacker",
-    "level": 30,
-    "date": "2025-10-02"
-  },
-  {
-    "rank": 9,
-    "playerId": "dummy-9",
-    "name": "KlickMonster",
-    "level": 20,
-    "date": "2025-09-28"
-  },
-  {
-    "rank": 10,
-    "playerId": "dummy-10",
-    "name": "MetalKrampf",
-    "level": 10,
-    "date": "2025-09-25"
   }
 ]
