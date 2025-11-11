@@ -1,19 +1,36 @@
 {
   "0fb08f1a-daa1-4653-bdf1-360f749ea31a": {
-    "name": "Lue",
-    "numberOfGuests": 4,
+    "name": "Lue Foémòo + Haus&-+Hlo_klößer",
+    "numberOfGuests": 5,
     "comingByCar": false,
     "needsParking": false,
     "needsHotelRoom": false,
     "numberOfRooms": 1,
     "foodPreferences": [
-      "allergien",
-      "standard",
       "vegan",
-      "standard"
+      "allergien",
+      "vegan",
+      "standard",
+      "---"
     ],
     "remarks": "Jappio",
     "status": "accepted",
-    "lastUpdated": "2025-11-10T21:58:29.276Z"
+    "lastUpdated": "2025-11-11T18:53:05.999Z"
+  },
+  "300fd22f-b46a-45b6-90d6-0c7bb4dc07e6": {
+    "name": "Froppy",
+    "numberOfGuests": 3,
+    "comingByCar": true,
+    "needsParking": true,
+    "needsHotelRoom": true,
+    "numberOfRooms": 1,
+    "foodPreferences": [
+      "standard",
+      "vegetarisch",
+      "allergien"
+    ],
+    "remarks": "Juhu dfg\nBin dabéi!",
+    "status": "accepted",
+    "lastUpdated": "2025-11-11T22:10:34.684Z"
   }
 }

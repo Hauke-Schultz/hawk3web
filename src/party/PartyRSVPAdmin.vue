@@ -588,13 +588,13 @@ onMounted(() => {
     <div v-else class="admin-content">
       <!-- Statistics Cards -->
       <section class="statistics">
-        <div class="stat-card stat-card--total">
-          <div class="stat-icon">📊</div>
-          <div class="stat-content">
-            <div class="stat-label">Gesamt</div>
-            <div class="stat-value">{{ statistics.total }}</div>
-          </div>
-        </div>
+	      <div class="stat-card stat-card--guests">
+		      <div class="stat-icon">👥</div>
+		      <div class="stat-content">
+			      <div class="stat-label">Gäste</div>
+			      <div class="stat-value">{{ statistics.totalGuests }}</div>
+		      </div>
+	      </div>
 
         <div class="stat-card stat-card--accepted">
           <div class="stat-icon">✅</div>
@@ -617,14 +617,6 @@ onMounted(() => {
           <div class="stat-content">
             <div class="stat-label">Ausstehend</div>
             <div class="stat-value">{{ statistics.pending }}</div>
-          </div>
-        </div>
-
-        <div class="stat-card stat-card--guests">
-          <div class="stat-icon">👥</div>
-          <div class="stat-content">
-            <div class="stat-label">Gäste</div>
-            <div class="stat-value">{{ statistics.totalGuests }}</div>
           </div>
         </div>
 

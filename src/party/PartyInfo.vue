@@ -395,7 +395,7 @@ const submitRSVP = async () => {
   }
 
   // Name sanitizen
-  rsvpData.value.name = sanitizeName(rsvpData.value.name)
+  rsvpData.value.name = sanitizeText(rsvpData.value.name)
 
   // Daten speichern
   await saveRSVPData(rsvpData.value)
@@ -925,14 +925,26 @@ const updateCountdown = () => {
   countdown.value = { days, hours, minutes, seconds }
 }
 
+const sanitizeText = (text) => {
+	if (!text || typeof text !== 'string') return ''
+
+	return text
+			.trim() // Remove whitespace from start/end
+			.replace(/[^\p{L}\p{N}\s\-?!_&*+]/gu, '') // Allow all letters (incl. accents), numbers, spaces, hyphens, punctuation
+			.replace(/\s+/g, ' ') // Replace multiple spaces with single space
+			.replace(/\-+/g, '-') // Replace multiple hyphens with single hyphen
+			.substring(0, 100)
+			.trim() // Final trim in case we cut off in the middle of spaces
+}
+
 // Name-Sanitization (nur Buchstaben, Zahlen, Leerzeichen, Bindestriche)
 const sanitizeName = (name) => {
   if (!name || typeof name !== 'string') return ''
 
   return name
     .trim() // Remove whitespace from start/end
-    .replace(/[^a-zA-Z0-9\s\-äöüÄÖÜß]/g, '') // Allow letters, numbers, spaces, hyphens, and German umlauts
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+	  .replace(/[^\p{L}\p{N}\s\-?!_&*+]/gu, '') // Allow all letters (incl. accents), numbers, spaces, hyphens, punctuation
+	  .replace(/\s+/g, ' ') // Replace multiple spaces with single space
     .replace(/\-+/g, '-') // Replace multiple hyphens with single hyphen
     .substring(0, 20) // Limit to 20 characters
     .trim() // Final trim in case we cut off in the middle of spaces
@@ -1465,8 +1477,15 @@ const createConfetti = () => {
 					    <div class="summary-item" v-if="rsvpData.needsHotelRoom">
 						    <strong>Hotelzimmer:</strong> {{ rsvpData.numberOfRooms }} {{ rsvpData.numberOfRooms === 1 ? 'Zimmer' : 'Zimmer' }}
 					    </div>
-					    <div class="summary-item" v-if="rsvpData.foodPreference">
-						    <strong>Essensvorlieben:</strong> {{ rsvpData.foodPreference === 'standard' ? 'Mit Fleisch' : rsvpData.foodPreference === 'vegetarisch' ? 'Vegetarisch' : rsvpData.foodPreference === 'vegan' ? 'Vegan' : rsvpData.foodPreference === 'allergien' ? 'Ich habe Nahrungsunverträglichkeiten' : rsvpData.foodPreference }}
+					    <div class="summary-item" v-if="rsvpData.foodPreferences && rsvpData.foodPreferences.some(p => p)">
+						    <strong>Essensvorlieben:</strong>
+						    <div class="food-prefs-list">
+							    <div v-for="(pref, index) in rsvpData.foodPreferences" :key="index" class="food-pref-entry">
+								    <template v-if="pref">
+									    Person {{ index + 1 }}: {{ pref === 'standard' ? 'Ich esse alles' : pref === 'vegetarisch' ? 'Vegetarisch' : pref === 'vegan' ? 'Vegan' : pref === 'allergien' ? 'Allergien/Unverträglichkeiten' : pref }}
+								    </template>
+							    </div>
+						    </div>
 					    </div>
 					    <div class="summary-item" v-if="rsvpData.remarks">
 						    <strong>Bemerkungen:</strong> {{ rsvpData.remarks }}
@@ -3289,5 +3308,18 @@ body:has(.party-page) .container,
   flex: 1;
 	padding: var(--space-2);
 	font-size: var(--font-size-sm);
+}
+
+// Food Preferences Summary Styles
+.food-prefs-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.food-pref-entry {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.4;
 }
 </style>
