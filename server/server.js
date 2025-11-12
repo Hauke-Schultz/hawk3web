@@ -276,7 +276,8 @@ app.post('/api/highscores', async (req, res) => {
           name: name.trim(),
           level,
           date: date || new Date().toISOString().split('T')[0],
-          emoji: highscores[existingIndex].emoji || '' // Keep existing emoji if any
+          emoji: highscores[existingIndex].emoji || '', // Keep existing emoji if any
+          status: highscores[existingIndex].status || 'normal' // Keep existing status
         }
       } else {
         return res.json({
@@ -292,7 +293,8 @@ app.post('/api/highscores', async (req, res) => {
         name: name.trim(),
         level,
         date: date || new Date().toISOString().split('T')[0],
-        emoji: '' // No emoji by default
+        emoji: '', // No emoji by default
+        status: 'normal' // Default status
       })
     }
 
@@ -333,7 +335,7 @@ app.post('/api/highscores', async (req, res) => {
 app.put('/api/highscores/:playerId', async (req, res) => {
   try {
     const { playerId } = req.params
-    const { name, level, emoji } = req.body
+    const { name, level, emoji, status } = req.body
 
     if (!playerId) {
       return res.status(400).json({ error: 'Missing playerId parameter' })
@@ -356,6 +358,12 @@ app.put('/api/highscores/:playerId', async (req, res) => {
       return res.status(400).json({ error: 'Emoji too long (max 10 characters)' })
     }
 
+    // Validate status (optional, must be one of the allowed values)
+    const allowedStatuses = ['normal', 'underReview', 'disqualified']
+    if (status && !allowedStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value. Must be one of: ' + allowedStatuses.join(', ') })
+    }
+
     // Read current highscores
     let highscores = await readHighscores()
 
@@ -372,7 +380,8 @@ app.put('/api/highscores/:playerId', async (req, res) => {
       name: name.trim(),
       level,
       date: highscores[existingIndex].date, // Keep original date
-      emoji: emoji || '' // Update emoji
+      emoji: emoji || '', // Update emoji
+      status: status || highscores[existingIndex].status || 'normal' // Update status
     }
 
     // Sort by level (highest first)

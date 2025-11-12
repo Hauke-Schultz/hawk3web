@@ -57,6 +57,7 @@ const playerId = ref('')
 // Highscore Daten (werden von der API geladen)
 const highscores = ref([])
 const showAllHighscores = ref(false)
+const showAllFlaggedHighscores = ref(false)
 
 // Level Titles
 const getLevelTitle = (level) => {
@@ -1006,6 +1007,39 @@ const savePlayerNameOnChange = () => {
   }
 }
 
+// Gefilterte Highscores: Normale Einträge (mit neu berechneten Rängen)
+const normalHighscores = computed(() => {
+  const normalEntries = highscores.value.filter(score => !score.status || score.status === 'normal')
+  // Ränge neu berechnen für normale Einträge (1, 2, 3, ...)
+  return normalEntries.map((score, index) => ({
+    ...score,
+    displayRank: index + 1
+  }))
+})
+
+// Gefilterte Highscores: Markierte Einträge (in Klärung oder disqualifiziert)
+const flaggedHighscores = computed(() => {
+  return highscores.value.filter(score => score.status && score.status !== 'normal')
+})
+
+// Status-Badge-Klasse für Highscores
+const getHighscoreStatusClass = (status) => {
+  switch (status) {
+    case 'underReview': return 'highscore-status-review'
+    case 'disqualified': return 'highscore-status-disqualified'
+    default: return ''
+  }
+}
+
+// Status-Text für Highscores
+const getHighscoreStatusText = (status) => {
+  switch (status) {
+    case 'underReview': return '⚠️ In Klärung'
+    case 'disqualified': return '🚫 Disqualifiziert'
+    default: return ''
+  }
+}
+
 // Aktuellen Spieler-Score berechnen
 const currentPlayerScore = computed(() => {
   // Erstelle eine temporäre Liste mit allen Scores inkl. aktuellem Spieler
@@ -1300,18 +1334,18 @@ const createConfetti = () => {
 									    </div>
 								    </template>
 							    </div>
-							    <!-- Top 10 Liste -->
+							    <!-- Top 10 Liste (nur normale Einträge) -->
 							    <div
-									    v-for="entry in (showAllHighscores ? highscores : highscores.slice(0, 10))"
-									    :key="entry.rank"
+									    v-for="entry in (showAllHighscores ? normalHighscores : normalHighscores.slice(0, 10))"
+									    :key="entry.playerId"
 									    class="highscore-entry"
 									    :class="{
-								      'top-1': entry.rank === 1,
-								      'top-2': entry.rank === 2,
-								      'top-3': entry.rank === 3
+								      'top-1': entry.displayRank === 1,
+								      'top-2': entry.displayRank === 2,
+								      'top-3': entry.displayRank === 3
 								    }"
 							    >
-								    <span class="rank-number">{{ entry.rank }}.</span>
+								    <span class="rank-number">{{ entry.displayRank }}.</span>
 								    <span class="player-name">{{ entry.name }}</span>
 								    <span v-if="entry.emoji" class="level-emoji"> {{ entry.emoji }}</span>
 								    <span class="player-level">{{ entry.level }}</span>
@@ -1319,12 +1353,44 @@ const createConfetti = () => {
 
 							    <!-- Alle einblenden Button -->
 							    <button
-									    v-if="highscores.length > 10"
+									    v-if="normalHighscores.length > 10"
 									    class="show-all-btn"
 									    @click="showAllHighscores = !showAllHighscores"
 							    >
 								    {{ showAllHighscores ? 'Nur Top 10 anzeigen' : 'Alle einblenden' }}
 							    </button>
+
+							    <!-- In Klärung / Disqualifiziert Bereich -->
+							    <div v-if="flaggedHighscores.length > 0" class="flagged-section">
+								    <div class="flagged-section-header">
+									    <h3>🚩 In Klärung 🧐</h3>
+									    <p class="flagged-section-description">
+										    Wir prüfen gerade ein paar verdächtig hohe Highscores.
+										    Wenn dein Eintrag dabei ist, meldet dich bitte kurz beim Gasgeber.
+									    </p>
+								    </div>
+
+								    <div
+										    v-for="entry in (showAllFlaggedHighscores ? flaggedHighscores : flaggedHighscores.slice(0, 5))"
+										    :key="entry.playerId"
+										    class="highscore-entry flagged-entry"
+										    :class="getHighscoreStatusClass(entry.status)"
+								    >
+									    <span v-if="entry.emoji" class="level-emoji"> {{ entry.emoji }}</span>
+									    <span class="player-name">{{ entry.name }}</span>
+									    <span class="player-level">{{ entry.level }}</span>
+									    <span class="status-label">{{ getHighscoreStatusText(entry.status) }}</span>
+								    </div>
+
+								    <!-- Alle einblenden Button für markierte Einträge -->
+								    <button
+										    v-if="flaggedHighscores.length > 5"
+										    class="show-all-btn"
+										    @click="showAllFlaggedHighscores = !showAllFlaggedHighscores"
+								    >
+									    {{ showAllFlaggedHighscores ? 'Weniger anzeigen' : 'Alle anzeigen' }}
+								    </button>
+							    </div>
 						    </div>
 					    </div>
 				    </div>
@@ -2686,6 +2752,29 @@ body:has(.party-page) .container,
     border: 2px solid rgba(205, 127, 50, 0.7);
     box-shadow: 0 0 10px rgba(205, 127, 50, 0.3);
   }
+
+  // Flagged entries (ausgegraut)
+  &.flagged-entry {
+    opacity: 0.6;
+    filter: grayscale(50%);
+    background: rgba(150, 150, 150, 0.15);
+    border-left: 3px solid rgba(255, 255, 255, 0.3);
+
+    &:hover {
+      opacity: 0.8;
+      background: rgba(150, 150, 150, 0.2);
+    }
+  }
+
+  // Status für "In Klärung"
+  &.highscore-status-review {
+    border-left-color: rgba(245, 158, 11, 0.6);
+  }
+
+  // Status für "Disqualifiziert"
+  &.highscore-status-disqualified {
+    border-left-color: rgba(239, 68, 68, 0.6);
+  }
 }
 
 .rank-number {
@@ -2716,6 +2805,41 @@ body:has(.party-page) .container,
   .level-emoji {
     font-size: var(--font-size-lg);
   }
+}
+
+.status-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  margin-left: auto;
+}
+
+// Flagged Section Styling
+.flagged-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.flagged-section-header {
+  margin-bottom: var(--space-4);
+
+  h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-2) 0;
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.flagged-section-description {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-style: italic;
 }
 
 // Accordion Styles

@@ -584,10 +584,37 @@ const changeHighscoreSort = (field) => {
 }
 
 /**
+ * Status-Badge-Klasse für Highscores
+ */
+const getHighscoreStatusClass = (status) => {
+  switch (status) {
+    case 'normal': return 'highscore-status-normal'
+    case 'underReview': return 'highscore-status-review'
+    case 'disqualified': return 'highscore-status-disqualified'
+    default: return 'highscore-status-normal'
+  }
+}
+
+/**
+ * Status-Text für Highscores
+ */
+const getHighscoreStatusText = (status) => {
+  switch (status) {
+    case 'normal': return 'Normal'
+    case 'underReview': return 'In Klärung'
+    case 'disqualified': return 'Disqualifiziert'
+    default: return 'Normal'
+  }
+}
+
+/**
  * Highscore bearbeiten
  */
 const editHighscore = (highscore) => {
-  editingHighscore.value = { ...highscore }
+  editingHighscore.value = {
+    ...highscore,
+    status: highscore.status || 'normal' // Ensure status is set
+  }
   showHighscoreEditModal.value = true
 }
 
@@ -1051,6 +1078,7 @@ onMounted(() => {
                       {{ highscoreSortOrder === 'asc' ? '↑' : '↓' }}
                     </span>
                   </th>
+                  <th title="Status">🚩</th>
                   <th title="Aktionen">⚙️</th>
                 </tr>
               </thead>
@@ -1063,6 +1091,11 @@ onMounted(() => {
                   <td class="center-cell level-cell">{{ score.level }}</td>
                   <td class="center-cell emoji-cell">{{ score.emoji || '—' }}</td>
                   <td class="date-cell">{{ score.date }}</td>
+                  <td class="center-cell">
+                    <span class="status-badge" :class="getHighscoreStatusClass(score.status || 'normal')">
+                      {{ getHighscoreStatusText(score.status || 'normal') }}
+                    </span>
+                  </td>
                   <td class="actions-cell">
                     <button @click="editHighscore(score)" class="action-btn edit-btn" title="Bearbeiten">
                       ✏️
@@ -1201,6 +1234,18 @@ onMounted(() => {
         <div class="form-group">
           <label>Datum</label>
           <input v-model="editingHighscore.date" type="date" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select v-model="editingHighscore.status" class="form-select">
+            <option value="normal">Normal</option>
+            <option value="underReview">In Klärung</option>
+            <option value="disqualified">Disqualifiziert</option>
+          </select>
+          <small style="opacity: 0.7; margin-top: var(--space-1); display: block;">
+            Markierte Einträge werden in der öffentlichen Highscore-Liste ausgegraut und unterhalb angezeigt
+          </small>
         </div>
 
         <div class="modal-actions">
@@ -1820,5 +1865,21 @@ onMounted(() => {
 
 .emoji-cell {
   font-size: var(--font-size-xl);
+}
+
+// Highscore Status Badge Styling
+.highscore-status-normal {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.highscore-status-review {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.highscore-status-disqualified {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
 }
 </style>

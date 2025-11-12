@@ -168,7 +168,8 @@ switch ($method) {
                         'name' => $name,
                         'level' => $level,
                         'date' => $date,
-                        'emoji' => isset($highscores[$existingIndex]['emoji']) ? $highscores[$existingIndex]['emoji'] : '' // Keep existing emoji
+                        'emoji' => isset($highscores[$existingIndex]['emoji']) ? $highscores[$existingIndex]['emoji'] : '', // Keep existing emoji
+                        'status' => isset($highscores[$existingIndex]['status']) ? $highscores[$existingIndex]['status'] : 'normal' // Keep existing status
                     ];
                 } else {
                     // Bestehender Score ist besser
@@ -189,7 +190,8 @@ switch ($method) {
                     'name' => $name,
                     'level' => $level,
                     'date' => $date,
-                    'emoji' => '' // No emoji by default
+                    'emoji' => '', // No emoji by default
+                    'status' => 'normal' // Default status
                 ];
             }
 
@@ -286,11 +288,20 @@ switch ($method) {
             $name = trim($data['name']);
             $level = (int)$data['level'];
             $emoji = isset($data['emoji']) ? trim($data['emoji']) : '';
+            $status = isset($data['status']) ? trim($data['status']) : '';
 
             // Validate emoji (optional, max 10 characters for emoji)
             if (mb_strlen($emoji) > 10) {
                 http_response_code(400);
                 echo json_encode(['error' => 'emoji too long (max 10 characters)']);
+                exit();
+            }
+
+            // Validate status (optional, must be one of the allowed values)
+            $allowedStatuses = ['normal', 'underReview', 'disqualified'];
+            if (!empty($status) && !in_array($status, $allowedStatuses)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid status value. Must be one of: ' . implode(', ', $allowedStatuses)]);
                 exit();
             }
 
@@ -318,7 +329,8 @@ switch ($method) {
                 'name' => $name,
                 'level' => $level,
                 'date' => $highscores[$existingIndex]['date'],
-                'emoji' => $emoji
+                'emoji' => $emoji,
+                'status' => !empty($status) ? $status : (isset($highscores[$existingIndex]['status']) ? $highscores[$existingIndex]['status'] : 'normal')
             ];
 
             // Sortieren nach Level (höchste zuerst)
