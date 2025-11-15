@@ -43,6 +43,7 @@ const isActive = ref(false)
 let moveInterval = null
 
 const maxDistance = 35 // Maximum distance stick can move from center
+const deadzone = 15 // Minimum distance before registering movement (deadzone)
 
 const calculateDirection = (x, y) => {
   const angle = Math.atan2(y, x) * (180 / Math.PI)
@@ -80,25 +81,41 @@ const updateStick = (clientX, clientY) => {
   stickPosition.x = deltaX
   stickPosition.y = deltaY
 
-  const newDirection = calculateDirection(deltaX, deltaY)
+  // Only register movement if distance is greater than deadzone
+  if (distance > deadzone) {
+    const newDirection = calculateDirection(deltaX, deltaY)
 
-  if (newDirection !== direction.value) {
-    direction.value = newDirection
+    if (newDirection !== direction.value) {
+      direction.value = newDirection
 
-    // Clear previous interval if direction changed
-    if (moveInterval) {
-      clearInterval(moveInterval)
-    }
-
-    // Send initial move
-    emit('move', newDirection)
-
-    // Start continuous move interval (every 100ms)
-    moveInterval = setInterval(() => {
-      if (direction.value) {
-        emit('move', direction.value)
+      // Clear previous interval if direction changed
+      if (moveInterval) {
+        clearInterval(moveInterval)
       }
-    }, 100)
+
+      // Send initial move
+      emit('move', newDirection)
+
+      // Start continuous move interval (every 100ms)
+      moveInterval = setInterval(() => {
+        if (direction.value) {
+          emit('move', direction.value)
+        }
+      }, 100)
+    }
+  } else {
+    // Inside deadzone - no movement
+    if (direction.value !== null) {
+      direction.value = null
+
+      // Clear move interval
+      if (moveInterval) {
+        clearInterval(moveInterval)
+        moveInterval = null
+      }
+
+      emit('stop')
+    }
   }
 }
 

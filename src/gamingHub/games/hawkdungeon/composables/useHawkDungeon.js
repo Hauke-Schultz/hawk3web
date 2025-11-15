@@ -37,7 +37,8 @@ export function useHawkDungeon() {
     screenY: 0,
     animationState: 'idle', // idle, walking, attacking
     animationFrame: 0,
-    facingDirection: 'right',
+    facingDirection: 'right', // Only left/right for sprite rendering
+    direction: 'right', // Last movement direction (up, down, left, right) - used for attacks
     isMoving: false,
     isAttacking: false,
     movementQueue: []
@@ -243,6 +244,9 @@ export function useHawkDungeon() {
       knight.facingDirection = direction
     }
 
+    // Update the last movement direction (for attacks in all 4 directions)
+    knight.direction = direction
+
     moveStartPos.x = knight.gridX
     moveStartPos.y = knight.gridY
 
@@ -398,8 +402,14 @@ export function useHawkDungeon() {
   }
 
   const handleMove = (direction) => {
-    // Add to movement queue if not already moving or queue is small
-    if (knight.movementQueue.length < 2) {
+    // If direction changed, clear queue and add new direction
+    const lastDirection = knight.movementQueue[knight.movementQueue.length - 1]
+
+    if (lastDirection && lastDirection !== direction) {
+      // Direction changed - clear queue and add new direction
+      knight.movementQueue = [direction]
+    } else if (knight.movementQueue.length < 2) {
+      // Same direction or empty queue - add to queue if not full
       knight.movementQueue.push(direction)
     }
   }
@@ -467,7 +477,8 @@ export function useHawkDungeon() {
   const getAttackHitboxPosition = () => {
     const pos = { x: knight.gridX, y: knight.gridY }
 
-    switch (knight.facingDirection) {
+    // Use last movement direction for attack direction
+    switch (knight.direction) {
       case 'up':
         pos.y -= 1
         break
@@ -486,10 +497,11 @@ export function useHawkDungeon() {
   }
 
   const getChargedAttackHitboxes = () => {
-    // Returns 3 hitbox positions in cross pattern based on facing direction
+    // Returns 3 hitbox positions in cross pattern based on last movement direction
     const hitboxes = []
 
-    switch (knight.facingDirection) {
+    // Use last movement direction for attack direction
+    switch (knight.direction) {
       case 'up':
         // Up: attack up, left, right
         hitboxes.push({ x: knight.gridX, y: knight.gridY - 1 })

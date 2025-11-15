@@ -50,7 +50,7 @@
         @attack="handleAttack"
       />
       <JoystickControl
-        :player-direction="knight.facingDirection"
+        :player-direction="knight.direction"
         @move="handleMove"
         @stop="handleStopMove"
       />
