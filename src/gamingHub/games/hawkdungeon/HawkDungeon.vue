@@ -56,6 +56,32 @@
       />
     </div>
 
+    <GameCompletedModal
+      :visible="showGameCompletedModal"
+      game-name="hawkDungeon"
+      :level="gameState.level"
+      :game-title="t('hawkDungeon.title')"
+      :final-score="gameState.kills"
+      :time-elapsed="0"
+      :show-stars="false"
+      :new-achievements="earnedAchievements"
+      :show-achievements="true"
+      :show-reward="true"
+      :reward="levelReward"
+      :show-completion-phases="true"
+      :enable-phase-transition="true"
+      :show-next-level="!isEndlessMode"
+      :next-level-label="isEndlessMode ? t('hawkDungeon.play_again') : t('hawkDungeon.next_level')"
+      :play-again-label="t('hawkDungeon.play_again')"
+      :back-to-games-label="t('hawkDungeon.back_to_levels')"
+      :show-reward-breakdown="true"
+      :reward-breakdown="rewardBreakdown"
+      @next-level="handleNextLevel"
+      @play-again="handleModalPlayAgain"
+      @back-to-games="handleModalBackToLevels"
+      @close="handleModalBackToLevels"
+    />
+
     <GameOverModal
       v-if="!isEndlessMode"
       :visible="showGameOverModal"
@@ -83,6 +109,7 @@ import GameCanvas from './components/GameCanvas.vue'
 import AttackButton from './components/AttackButton.vue'
 import JoystickControl from './components/JoystickControl.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
+import GameCompletedModal from '../../components/GameCompletedModal.vue'
 import { useHawkDungeon } from './composables/useHawkDungeon'
 
 // Props
@@ -114,7 +141,8 @@ const {
   handleStopMove,
   startGame,
   stopGame,
-  setGameOverCallback
+  setGameOverCallback,
+  setLevelCompletionCallback
 } = useHawkDungeon()
 
 // Set game over callback to show modal
@@ -124,12 +152,95 @@ if (setGameOverCallback) {
   })
 }
 
+// Set level completion callback
+if (setLevelCompletionCallback) {
+  setLevelCompletionCallback(() => {
+    // Calculate rewards
+    calculateLevelRewards()
+    // Show completion modal
+    showGameCompletedModal.value = true
+    // Stop game
+    stopGame()
+  })
+}
+
+// Calculate level rewards and achievements
+const calculateLevelRewards = () => {
+  const currentLevel = gameState.level
+  const levelConfig = getLevelConfig(currentLevel)
+
+  // Base reward per level
+  const baseReward = 50
+  const levelMultiplier = currentLevel * 10
+
+  // Calculate total reward
+  const totalReward = baseReward + levelMultiplier
+
+  // Build reward breakdown
+  const breakdown = [
+    {
+      label: t('common.level_completion'),
+      value: baseReward
+    },
+    {
+      label: t('common.level_bonus'),
+      value: levelMultiplier
+    }
+  ]
+
+  // Bonus for remaining health
+  const healthBonus = gameState.currentHealth * 5
+  if (healthBonus > 0) {
+    breakdown.push({
+      label: t('common.health_bonus'),
+      value: healthBonus
+    })
+  }
+
+  // Total kills bonus
+  const killsBonus = gameState.kills * 2
+  if (killsBonus > 0) {
+    breakdown.push({
+      label: t('common.kills_bonus'),
+      value: killsBonus
+    })
+  }
+
+  levelReward.value = totalReward + healthBonus + killsBonus
+  rewardBreakdown.value = breakdown
+
+  // Award coins to player
+  gameData.player.coins += levelReward.value
+
+  // Check for achievements
+  earnedAchievements.value = []
+
+  // Mark level as completed in game stats
+  if (!gameData.hawkDungeon) {
+    gameData.hawkDungeon = { levels: [] }
+  }
+  if (!gameData.hawkDungeon.levels[currentLevel - 1]) {
+    gameData.hawkDungeon.levels[currentLevel - 1] = {}
+  }
+  gameData.hawkDungeon.levels[currentLevel - 1].completed = true
+  gameData.hawkDungeon.levels[currentLevel - 1].highScore = Math.max(
+    gameData.hawkDungeon.levels[currentLevel - 1].highScore || 0,
+    gameState.kills
+  )
+}
+
 // Session timer for endless mode
 const sessionTime = ref(0)
 const sessionTimer = ref(null)
 
 // Modal state
 const showGameOverModal = ref(false)
+const showGameCompletedModal = ref(false)
+
+// Achievements and rewards
+const earnedAchievements = ref([])
+const levelReward = ref(0)
+const rewardBreakdown = ref([])
 
 // Computed
 const currentLevelConfig = computed(() => getLevelConfig(props.level || gameState.value?.level || 1))
@@ -166,12 +277,29 @@ const backToLevelSelection = () => {
 
 const handleModalPlayAgain = () => {
   showGameOverModal.value = false
+  showGameCompletedModal.value = false
   handleTryAgain()
 }
 
 const handleModalBackToLevels = () => {
   showGameOverModal.value = false
+  showGameCompletedModal.value = false
   backToLevelSelection()
+}
+
+const handleNextLevel = () => {
+  showGameCompletedModal.value = false
+
+  // Calculate next level
+  const nextLevelNum = gameState.level + 1
+
+  // Navigate to next level
+  router.push(`/games/hawkdungeon/level/${nextLevelNum}`)
+
+  // Reload the page to start the new level
+  setTimeout(() => {
+    window.location.reload()
+  }, 100)
 }
 
 const handleTryAgain = () => {

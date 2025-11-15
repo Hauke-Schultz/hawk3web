@@ -976,6 +976,9 @@ export default {
     // Instructions
     tapToAttack: 'Tippe zum Angreifen!',
     gameOver: 'Spiel Vorbei!',
+    back_to_levels: 'Zurück',
+    play_again: 'Nochmal spielen',
+    next_level: 'Nächstes Level',
 
     // Messages
     criticalHit: 'Kritischer Treffer!',

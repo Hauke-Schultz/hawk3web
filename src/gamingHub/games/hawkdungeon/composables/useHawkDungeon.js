@@ -201,6 +201,9 @@ export function useHawkDungeon() {
 
     // Check chest interactions
     checkChestInteractions()
+
+    // Check level completion
+    checkLevelCompletion()
   }
 
   const updateKnightMovement = (dt) => {
@@ -335,6 +338,7 @@ export function useHawkDungeon() {
   let monsterAI = null
   let collisionSystem = null
   let gameOverCallback = null
+  let levelCompletionCallback = null
 
   const initializeSystems = () => {
     // Load the level from levelConfig
@@ -369,6 +373,22 @@ export function useHawkDungeon() {
     // Reinitialize collision system with new callback if already initialized
     if (collisionSystem && monsterAI) {
       collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
+    }
+  }
+
+  const setLevelCompletionCallback = (callback) => {
+    levelCompletionCallback = callback
+  }
+
+  let levelCompleted = false
+
+  const checkLevelCompletion = () => {
+    // Check if level is completed (kills >= killGoal) and not already triggered
+    if (!levelCompleted && gameState.kills >= gameState.killGoal) {
+      levelCompleted = true
+      if (levelCompletionCallback) {
+        levelCompletionCallback()
+      }
     }
   }
 
@@ -548,7 +568,8 @@ export function useHawkDungeon() {
     handleStopMove,
     startGame,
     stopGame,
-    setGameOverCallback
+    setGameOverCallback,
+    setLevelCompletionCallback
   }
 }
 

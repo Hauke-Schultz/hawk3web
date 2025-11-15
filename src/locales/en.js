@@ -976,6 +976,9 @@ export default {
     // Instructions
     tapToAttack: 'Tap to Attack!',
     gameOver: 'Game Over!',
+    back_to_levels: 'Back',
+    play_again: 'Play Again',
+    next_level: 'Next Level',
 
     // Messages
     criticalHit: 'Critical Hit!',
