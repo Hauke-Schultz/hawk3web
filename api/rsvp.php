@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Konfiguration
 define('RSVP_FILE', __DIR__ . '/rsvp.json');
-define('ADMIN_EMAIL', 'haukeschultz@gmail.com'); // Admin E-Mail für Benachrichtigungen
+define('ADMIN_EMAIL', 'all@haukeschultz.com'); // Admin E-Mail für Benachrichtigungen
 
 /**
  * RSVPs aus JSON-Datei laden
@@ -212,7 +212,7 @@ function sendRSVPNotification($rsvpData, $isNew) {
     // E-Mail Headers
     $headers = "MIME-Version: 1.0" . "\r\n";
     $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-    $headers .= "From: Party RSVP <noreply@haukeschultz.com>" . "\r\n";
+    $headers .= "From: Party Einladung <all@haukeschultz.com>" . "\r\n";
 
     // E-Mail senden
     $result = mail($to, $subject, $message, $headers);

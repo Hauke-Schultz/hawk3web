@@ -1361,12 +1361,12 @@ const createConfetti = () => {
 							    </button>
 
 							    <!-- In Klärung / Disqualifiziert Bereich -->
-							    <div v-if="flaggedHighscores.length > 0" class="flagged-section">
+							    <!-- div v-if="flaggedHighscores.length > 0" class="flagged-section">
 								    <div class="flagged-section-header">
 									    <h3>🚩 In Klärung 🧐</h3>
 									    <p class="flagged-section-description">
 										    Wir prüfen gerade ein paar verdächtig hohe Highscores.
-										    Wenn dein Eintrag dabei ist, meldet dich bitte kurz beim Gasgeber.
+										    Wenn dein Eintrag dabei ist, meldet dich bitte kurz beim Gastgeber.
 									    </p>
 								    </div>
 
@@ -1381,16 +1381,7 @@ const createConfetti = () => {
 									    <span class="player-level">{{ entry.level }}</span>
 									    <span class="status-label">{{ getHighscoreStatusText(entry.status) }}</span>
 								    </div>
-
-								    <!-- Alle einblenden Button für markierte Einträge -->
-								    <button
-										    v-if="flaggedHighscores.length > 5"
-										    class="show-all-btn"
-										    @click="showAllFlaggedHighscores = !showAllFlaggedHighscores"
-								    >
-									    {{ showAllFlaggedHighscores ? 'Weniger anzeigen' : 'Alle anzeigen' }}
-								    </button>
-							    </div>
+							    </div -->
 						    </div>
 					    </div>
 				    </div>
