@@ -63,6 +63,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     // Draw knight (always at center)
     drawKnight(centerX, centerY)
 
+    // Draw attack direction indicator
+    drawAttackDirectionIndicator(centerX, centerY)
+
     // Draw damage effect if knight is hit
     if (knight.isHit) {
       drawDamageEffect(centerX, centerY)
@@ -198,6 +201,72 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         false
       )
     }
+  }
+
+  const drawAttackDirectionIndicator = (centerX, centerY) => {
+    // Don't show indicator during attack
+    if (knight.isAttacking) return
+
+    ctx.save()
+
+    // Calculate position based on attack direction
+    let indicatorX = centerX
+    let indicatorY = centerY
+
+    const offset = TILE_SIZE * 0.7 // Distance from knight center
+
+    switch (knight.direction) {
+      case 'up':
+        indicatorY -= offset
+        break
+      case 'down':
+        indicatorY += offset
+        break
+      case 'left':
+        indicatorX -= offset
+        break
+      case 'right':
+        indicatorX += offset
+        break
+    }
+
+    // Pulsing animation
+    const time = performance.now()
+    const pulseScale = 0.8 + Math.sin(time / 200) * 0.2 // Pulse between 0.6 and 1.0
+    const pulseAlpha = 0.6 + Math.sin(time / 200) * 0.3 // Alpha between 0.3 and 0.9
+
+    const baseRadius = 6
+    const radius = baseRadius * pulseScale
+
+    // Outer glow (yellow-white)
+    const outerGradient = ctx.createRadialGradient(
+      indicatorX, indicatorY, 0,
+      indicatorX, indicatorY, radius * 2.5
+    )
+    outerGradient.addColorStop(0, `rgba(255, 255, 150, ${pulseAlpha * 0.8})`)
+    outerGradient.addColorStop(0.4, `rgba(255, 230, 100, ${pulseAlpha * 0.5})`)
+    outerGradient.addColorStop(1, 'rgba(255, 200, 50, 0)')
+
+    ctx.fillStyle = outerGradient
+    ctx.beginPath()
+    ctx.arc(indicatorX, indicatorY, radius * 2.5, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Inner bright core (white)
+    const innerGradient = ctx.createRadialGradient(
+      indicatorX, indicatorY, 0,
+      indicatorX, indicatorY, radius
+    )
+    innerGradient.addColorStop(0, `rgba(255, 255, 255, ${pulseAlpha})`)
+    innerGradient.addColorStop(0.7, `rgba(255, 255, 200, ${pulseAlpha * 0.8})`)
+    innerGradient.addColorStop(1, `rgba(255, 230, 100, ${pulseAlpha * 0.3})`)
+
+    ctx.fillStyle = innerGradient
+    ctx.beginPath()
+    ctx.arc(indicatorX, indicatorY, radius, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.restore()
   }
 
   const drawMonsters = (centerX, centerY) => {
