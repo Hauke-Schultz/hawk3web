@@ -111,6 +111,12 @@ export const spriteConfig = {
       x: 304,
       y: 336
     },
+    key: {
+      width: 16,
+      height: 16,
+      x: 288,
+      y: 304
+    },
     chest_closed: {
       width: 16,
       height: 16,
@@ -128,7 +134,8 @@ export const spriteConfig = {
   // Dungeon tiles (16×16 px each)
   dungeon: {
     floor: { width: 16, height: 16, x: 16, y: 64 },
-    wall: { width: 16, height: 16, x: 16, y: 16 }
+    door: { width: 16, height: 16, x: 0, y: 48 },
+    wall: { width: 16, height: 16, x: 32 , y: 16 },
   }
 }
 

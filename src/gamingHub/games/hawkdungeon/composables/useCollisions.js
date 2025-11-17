@@ -204,6 +204,15 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
         console.log(`Mana Potion collected! Max Mana increased to: ${gameState.maxMana}, Mana: ${gameState.currentMana}/${gameState.maxMana}`)
         break
 
+      case 'key':
+        // Add key to inventory
+        if (!gameState.inventory) {
+          gameState.inventory = []
+        }
+        gameState.inventory.push({ type: 'key', name: item.keyName || 'key' })
+        console.log(`🔑 Key collected! You can now open doors.`)
+        break
+
       case 'weapon':
         if (item.weaponName && unlockWeapon) {
           const success = unlockWeapon(item.weaponName)

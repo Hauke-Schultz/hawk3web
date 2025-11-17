@@ -63,10 +63,11 @@
     </div>
 
     <div v-if="showWeaponSelector" class="weapon-selector-container">
-      <WeaponSelector
+      <InventoryPanel
         :weapons="gameState.weapons"
         :current-weapon="gameState.weapon"
-        @select="handleWeaponSwitch"
+        :inventory="gameState.inventory"
+        @select-weapon="handleWeaponSwitch"
       />
     </div>
 
@@ -124,6 +125,7 @@ import AttackButton from './components/AttackButton.vue'
 import ItemButton from './components/ItemButton.vue'
 import JoystickControl from './components/JoystickControl.vue'
 import WeaponSelector from './components/WeaponSelector.vue'
+import InventoryPanel from './components/InventoryPanel.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
 import GameCompletedModal from '../../components/GameCompletedModal.vue'
 import { useHawkDungeon } from './composables/useHawkDungeon'

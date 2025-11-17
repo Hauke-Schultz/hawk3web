@@ -111,7 +111,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const startTileX = knightWorldX - Math.ceil(tilesX / 2)
     const startTileY = knightWorldY - Math.ceil(tilesY / 2)
 
-    // First pass: Draw floors
+    // First pass: Draw floors and non-wall tiles
     for (let y = 0; y < tilesY; y++) {
       for (let x = 0; x < tilesX; x++) {
         const worldTileX = startTileX + x
@@ -129,12 +129,20 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
         const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
-        // Get floor tile from level
-        const floorType = levelLoader.getFloorTile(worldTileX, worldTileY)
+        // Get tile type and sprite
+        const tileType = levelLoader.getTileType(worldTileX, worldTileY)
 
-        // Only draw if it's not empty
-        if (floorType !== 'empty') {
-          drawTile(ctx, floorType, drawX, drawY)
+        // Skip walls (draw them in second pass) and empty tiles
+        if (tileType === 'wall' || tileType === 'empty') {
+          continue
+        }
+
+        // Get the sprite for this tile (considering its current state)
+        const sprite = levelLoader.getTileSpriteAt(worldTileX, worldTileY)
+
+        // Draw the tile
+        if (sprite) {
+          drawTile(ctx, sprite, drawX, drawY)
         }
       }
     }

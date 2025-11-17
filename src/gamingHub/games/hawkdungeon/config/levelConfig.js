@@ -29,9 +29,9 @@ export const levelConfig = {
         'WWWWWWWWWW',
         'W........W',
         'W..C.....W',
-        'W........W',
-        'W........W',
-        'W........W',
+        'W.....WWWW',
+        'W.....D..W',
+        'W.....WWWW',
         'W........W',
         'W.....C..W',
         'W........W',
@@ -42,7 +42,7 @@ export const levelConfig = {
           x: 3,
           y: 2,
           items: [
-            { type: 'weapon', name: 'axe' },
+            { type: 'key' },
             { type: 'health', count: 2 },
             { type: 'healthPotion', count: 1 },
           ]
@@ -51,6 +51,7 @@ export const levelConfig = {
           x: 6,
           y: 7,
           items: [
+            { type: 'weapon', name: 'axe' },
             { type: 'weapon', name: 'spear' },
             { type: 'mana', count: 2 },
             { type: 'manaPotion', count: 1 }

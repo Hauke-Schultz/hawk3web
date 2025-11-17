@@ -1,6 +1,7 @@
 // Level loader and manager for HawkDungeon
 import { ref, reactive } from 'vue'
 import { levelConfig } from '../config/levelConfig'
+import { getTileTypeFromChar, getTileConfig, getTileDefaultState, isTileWalkable, getTileSprite } from '../config/tileConfig'
 
 export function useLevelLoader() {
   const currentLevel = ref(null)
@@ -8,6 +9,8 @@ export function useLevelLoader() {
     tiles: [],
     walls: new Set(),
     floors: new Map(),
+    tileTypes: new Map(), // Map of position -> tile type
+    tileStates: new Map(), // Map of position -> current state (for stateful tiles)
     width: 0,
     height: 0,
     playerStart: { x: 0, y: 0 },
@@ -47,6 +50,8 @@ export function useLevelLoader() {
     // Clear previous data
     levelData.walls.clear()
     levelData.floors.clear()
+    levelData.tileTypes.clear()
+    levelData.tileStates.clear()
     levelData.chests = []
 
     // Parse tiles and collect 'C' positions
@@ -54,33 +59,34 @@ export function useLevelLoader() {
     for (let y = 0; y < level.tiles.length; y++) {
       const row = level.tiles[y]
       for (let x = 0; x < row.length; x++) {
-        const tile = row[x]
+        const char = row[x]
         const key = `${x},${y}`
 
-        switch (tile) {
-          case 'W':
-            levelData.walls.add(key)
-            break
-          case '.':
-            levelData.floors.set(key, 'floor')
-            break
-          case 'D':
-            // Door (currently treated as walkable)
-            levelData.floors.set(key, 'floor')
-            break
-          case 'G':
-            // Goblin spawn marker (floor underneath)
-            levelData.floors.set(key, 'floor')
-            break
-          case 'P':
-            // Player start marker (floor underneath)
-            levelData.floors.set(key, 'floor')
-            break
-          case 'C':
-            // Chest marker (floor underneath)
-            levelData.floors.set(key, 'floor')
-            chestPositionsFromMap.push({ x, y })
-            break
+        // Get tile type from character using tileConfig
+        const tileType = getTileTypeFromChar(char)
+        const tileConf = getTileConfig(tileType)
+
+        // Store tile type
+        levelData.tileTypes.set(key, tileType)
+
+        // Initialize state for stateful tiles
+        if (tileConf.hasState) {
+          const defaultState = getTileDefaultState(tileType)
+          levelData.tileStates.set(key, defaultState)
+        }
+
+        // Determine if this is a wall or floor for backward compatibility
+        if (tileType === 'wall') {
+          levelData.walls.add(key)
+        } else if (tileType !== 'empty') {
+          // Any non-empty, non-wall tile is considered "floor" for rendering
+          levelData.floors.set(key, tileType)
+        }
+
+        // Handle special markers
+        if (char === 'C') {
+          // Chest marker
+          chestPositionsFromMap.push({ x, y })
         }
       }
     }
@@ -131,8 +137,16 @@ export function useLevelLoader() {
       return false
     }
 
-    // Check if it's not a wall
-    return !isWall(gridX, gridY)
+    const key = `${gridX},${gridY}`
+    const tileType = levelData.tileTypes.get(key)
+
+    if (!tileType) return false
+
+    // Get current state for stateful tiles
+    const state = levelData.tileStates.get(key)
+
+    // Use tileConfig to determine walkability
+    return isTileWalkable(tileType, state)
   }
 
   /**
@@ -141,6 +155,48 @@ export function useLevelLoader() {
   const getFloorTile = (gridX, gridY) => {
     const key = `${gridX},${gridY}`
     return levelData.floors.get(key) || 'empty'
+  }
+
+  /**
+   * Get the tile type at a position
+   */
+  const getTileType = (gridX, gridY) => {
+    const key = `${gridX},${gridY}`
+    return levelData.tileTypes.get(key) || 'empty'
+  }
+
+  /**
+   * Get the current state of a tile at a position
+   */
+  const getTileState = (gridX, gridY) => {
+    const key = `${gridX},${gridY}`
+    return levelData.tileStates.get(key) || null
+  }
+
+  /**
+   * Set the state of a tile at a position
+   */
+  const setTileState = (gridX, gridY, state) => {
+    const key = `${gridX},${gridY}`
+    const tileType = levelData.tileTypes.get(key)
+    const tileConf = getTileConfig(tileType)
+
+    // Only allow state changes for stateful tiles
+    if (tileConf && tileConf.hasState && tileConf.states[state]) {
+      levelData.tileStates.set(key, state)
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * Get the sprite to render for a tile at a position
+   */
+  const getTileSpriteAt = (gridX, gridY) => {
+    const tileType = getTileType(gridX, gridY)
+    const state = getTileState(gridX, gridY)
+    return getTileSprite(tileType, state)
   }
 
   /**
@@ -195,7 +251,11 @@ export function useLevelLoader() {
     isWall,
     isWalkable,
     getFloorTile,
-    getVisibleTiles
+    getVisibleTiles,
+    getTileType,
+    getTileState,
+    setTileState,
+    getTileSpriteAt
   }
 }
 

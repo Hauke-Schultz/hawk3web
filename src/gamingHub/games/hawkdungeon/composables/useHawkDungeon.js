@@ -7,6 +7,7 @@ import { useMonsterAI } from './useMonsterAI'
 import { useCollisions } from './useCollisions'
 import { useLevelLoader } from './useLevelLoader'
 import { useChest } from './useChest'
+import { useTileInteractions } from './useTileInteractions'
 
 export function useHawkDungeon() {
   // Game state
@@ -23,6 +24,7 @@ export function useHawkDungeon() {
     experience: 0,
     weapon: 'sword', // Current equipped weapon
     weapons: ['sword'], // Weapon inventory - weapons player owns (starts with only sword)
+    inventory: [], // General inventory for keys, quest items, etc.
     facingDirection: 'right',
     isRunning: false,
     isPaused: false,
@@ -59,6 +61,9 @@ export function useHawkDungeon() {
   // Chest system
   const levelLoader = useLevelLoader()
   const chestSystem = useChest(items, levelLoader)
+
+  // Tile interaction system (initialized after levelLoader)
+  let tileInteractions = null
 
   // Attack cooldown
   const attackCooldown = ref(0)
@@ -106,6 +111,7 @@ export function useHawkDungeon() {
     gameState.bossKills = 0
     gameState.bossPhase = false
     gameState.killGoal = levelConfig[1].killGoal
+    gameState.inventory = [] // Reset inventory
 
     // Center knight on screen
     knight.gridX = 0
@@ -277,9 +283,33 @@ export function useHawkDungeon() {
         break
     }
 
-    // Check if target position has a wall
+    // Check if target position is walkable
     if (!levelLoader.isWalkable(targetX, targetY)) {
-      return
+      // Not walkable - check if it's a door that can be opened
+      if (tileInteractions) {
+        const tileType = levelLoader.getTileType(targetX, targetY)
+        const tileState = levelLoader.getTileState(targetX, targetY)
+
+        if (tileType === 'door' && tileState === 'closed') {
+          // Try to open the door with a key
+          const result = tileInteractions.openDoor(targetX, targetY, true)
+
+          if (result.success) {
+            console.log(result.message)
+            // Door was opened, now we can move through
+            // Continue with movement (fall through to movement code)
+          } else {
+            // No key or failed to open
+            console.log(result.message)
+            return
+          }
+        } else {
+          // Not a door or already open, just blocked
+          return
+        }
+      } else {
+        return
+      }
     }
 
     // Check if target position is occupied by a monster (current or target position)
@@ -357,6 +387,9 @@ export function useHawkDungeon() {
   const initializeSystems = () => {
     // Load the level from levelConfig
     levelLoader.loadLevel(gameState.level)
+
+    // Initialize tile interaction system
+    tileInteractions = useTileInteractions(levelLoader, gameState)
 
     // Set knight starting position from level data
     knight.gridX = levelLoader.levelData.playerStart.x
@@ -571,6 +604,32 @@ export function useHawkDungeon() {
     return true
   }
 
+  /**
+   * Example: Interact with a tile in front of the knight
+   * This can be called when the player presses an "interact" button (e.g., 'E' key)
+   */
+  const handleInteract = () => {
+    if (!tileInteractions) return
+
+    const result = tileInteractions.autoInteract(knight.gridX, knight.gridY, knight.direction)
+
+    if (result.success) {
+      console.log(result.message)
+    }
+
+    return result
+  }
+
+  /**
+   * Example: Open all doors when boss phase starts (without requiring keys)
+   */
+  const openAllDoors = () => {
+    if (!tileInteractions) return 0
+    const count = tileInteractions.openAllDoors(false) // false = no key required
+    console.log(`Opened ${count} doors`)
+    return count
+  }
+
   return {
     gameState,
     knight,
@@ -581,13 +640,16 @@ export function useHawkDungeon() {
     dungeonOffset,
     levelLoader,
     chestSystem,
+    tileInteractions,
     manaRegenProgress,
     healthRegenProgress,
     handleAttack,
     handleMove,
     handleStopMove,
+    handleInteract,
     switchWeapon,
     unlockWeapon,
+    openAllDoors,
     startGame,
     stopGame,
     setGameOverCallback,
