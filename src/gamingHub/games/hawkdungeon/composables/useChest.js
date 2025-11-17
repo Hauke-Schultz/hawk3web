@@ -196,10 +196,12 @@ export function useChest(items, levelLoader) {
     // Add weapon name for weapon items
     if (type === 'weapon' && weaponName) {
       item.weaponName = weaponName
+      // Weapons take 2 vertical tiles
+      item.weaponHeight = 2
     }
 
     items.value.push(item)
-    console.log(`Item spawned: ${type}${weaponName ? ` (${weaponName})` : ''} at (${gridX}, ${gridY})`)
+    console.log(`Item spawned: ${type}${weaponName ? ` (${weaponName})` : ''} at (${gridX}, ${gridY})${item.weaponHeight ? ` (height: ${item.weaponHeight})` : ''}`)
   }
 
   /**

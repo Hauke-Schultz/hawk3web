@@ -1,5 +1,5 @@
 // Collision detection system
-export function useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback = null, unlockWeapon = null) {
+export function useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback = null, unlockWeapon = null, switchWeapon = null) {
   let damageCooldown = 0
   const DAMAGE_COOLDOWN_TIME = 1 // 1 second invincibility after hit
 
@@ -134,8 +134,25 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
 
   const checkKnightItemCollisions = () => {
     items.value.forEach((item, index) => {
-      // Check if knight and item are on same grid tile
-      if (knight.gridX === item.gridX && knight.gridY === item.gridY) {
+      let isColliding = false
+
+      // Check if knight is on any of the item's occupied tiles
+      if (item.weaponHeight && item.weaponHeight > 1) {
+        // Multi-tile item (e.g., weapon taking 2 vertical tiles)
+        for (let dy = 0; dy < item.weaponHeight; dy++) {
+          if (knight.gridX === item.gridX && knight.gridY === item.gridY + dy) {
+            isColliding = true
+            break
+          }
+        }
+      } else {
+        // Single-tile item
+        if (knight.gridX === item.gridX && knight.gridY === item.gridY) {
+          isColliding = true
+        }
+      }
+
+      if (isColliding) {
         collectItem(item)
         items.value.splice(index, 1)
       }
@@ -192,6 +209,11 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
           const success = unlockWeapon(item.weaponName)
           if (success) {
             console.log(`🎉 New weapon unlocked: ${item.weaponName}!`)
+            // Auto-equip the weapon after unlocking
+            if (switchWeapon) {
+              switchWeapon(item.weaponName)
+              console.log(`Auto-equipped: ${item.weaponName}`)
+            }
           }
         }
         break

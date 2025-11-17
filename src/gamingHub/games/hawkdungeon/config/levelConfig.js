@@ -43,14 +43,16 @@ export const levelConfig = {
           y: 2,
           items: [
             { type: 'weapon', name: 'axe' },
-            { type: 'health', count: 2 }
+            { type: 'health', count: 2 },
+            { type: 'healthPotion', count: 1 },
           ]
         },
         {
           x: 6,
           y: 7,
           items: [
-            { type: 'mana', count: 1 },
+            { type: 'weapon', name: 'spear' },
+            { type: 'mana', count: 2 },
             { type: 'manaPotion', count: 1 }
           ]
         }

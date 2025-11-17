@@ -293,9 +293,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       // Adjust Y position for sprite height
       let offsetY = 0
       if (monster.type === 'goblin') {
-        offsetY = (TILE_SIZE - 20 * SPRITE_SCALE) / 2
+        offsetY = (TILE_SIZE - 24 * SPRITE_SCALE) / 2
       } else if (monster.type === 'orc') {
-        offsetY = (TILE_SIZE - 20 * SPRITE_SCALE) / 2
+        offsetY = (TILE_SIZE - 24 * SPRITE_SCALE) / 2
       } else if (monster.type === 'boss') {
         // Boss sprite is centered on the 2x2 grid
         offsetY = 0

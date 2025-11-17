@@ -26,7 +26,7 @@ export const spriteConfig = {
     width: 16,
     height: 24,
     walk: {
-      frames: 8,
+      frames: 4,
       frameWidth: 16,
       frameHeight: 24,
       frameDuration: 100,
@@ -40,7 +40,7 @@ export const spriteConfig = {
     width: 16,
     height: 24,
     walk: {
-      frames: 8,
+      frames: 4,
       frameWidth: 16,
       frameHeight: 24,
       frameDuration: 100,
