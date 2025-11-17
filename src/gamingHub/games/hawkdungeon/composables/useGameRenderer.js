@@ -421,7 +421,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
       const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
-      drawTile(ctx, item.type, drawX, drawY)
+      // For weapon items, use weaponName as tileType
+      const tileType = item.type === 'weapon' && item.weaponName ? item.weaponName : item.type
+      drawTile(ctx, tileType, drawX, drawY)
     })
   }
 

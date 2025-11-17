@@ -1,5 +1,5 @@
 // Collision detection system
-export function useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback = null) {
+export function useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback = null, unlockWeapon = null) {
   let damageCooldown = 0
   const DAMAGE_COOLDOWN_TIME = 1 // 1 second invincibility after hit
 
@@ -185,6 +185,15 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
         gameState.maxMana = Math.min(10, gameState.maxMana + 1)
         gameState.currentMana = Math.min(gameState.maxMana, gameState.currentMana + 1)
         console.log(`Mana Potion collected! Max Mana increased to: ${gameState.maxMana}, Mana: ${gameState.currentMana}/${gameState.maxMana}`)
+        break
+
+      case 'weapon':
+        if (item.weaponName && unlockWeapon) {
+          const success = unlockWeapon(item.weaponName)
+          if (success) {
+            console.log(`🎉 New weapon unlocked: ${item.weaponName}!`)
+          }
+        }
         break
     }
   }

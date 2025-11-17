@@ -25,11 +25,19 @@ export function useChest(items, levelLoader) {
       customItems = chestTypeOrItems
       config = {
         type: 'custom',
-        loot: customItems.map(item => ({
-          type: item.type,
-          count: item.count,
-          chance: 1.0 // 100% chance for custom items
-        })),
+        loot: customItems.map(item => {
+          const lootEntry = {
+            type: item.type,
+            chance: 1.0 // 100% chance for custom items
+          }
+          // For weapon items, use 'name' instead of 'count'
+          if (item.type === 'weapon' && item.name) {
+            lootEntry.name = item.name
+          } else {
+            lootEntry.count = item.count || 1
+          }
+          return lootEntry
+        }),
         spriteClosed: 'chest_closed',
         spriteOpen: 'chest_open'
       }
@@ -92,9 +100,14 @@ export function useChest(items, levelLoader) {
     // Roll for each loot entry
     lootTable.forEach(lootEntry => {
       if (Math.random() <= lootEntry.chance) {
-        // Add this many items
-        for (let i = 0; i < lootEntry.count; i++) {
-          itemsToSpawn.push(lootEntry.type)
+        // For weapon items, store both type and name
+        if (lootEntry.type === 'weapon' && lootEntry.name) {
+          itemsToSpawn.push({ type: 'weapon', name: lootEntry.name })
+        } else {
+          // Add this many items for non-weapon items
+          for (let i = 0; i < lootEntry.count; i++) {
+            itemsToSpawn.push(lootEntry.type)
+          }
         }
       }
     })
@@ -105,10 +118,15 @@ export function useChest(items, levelLoader) {
     const freePositions = findFreePositionsAroundChest(chest)
 
     // Spawn items on free tiles
-    itemsToSpawn.forEach((itemType, index) => {
+    itemsToSpawn.forEach((itemData, index) => {
       if (index < freePositions.length) {
         const pos = freePositions[index]
-        spawnItem(itemType, pos.x, pos.y)
+        // Handle both string (old format) and object (weapon format)
+        if (typeof itemData === 'object' && itemData.type === 'weapon') {
+          spawnItem(itemData.type, pos.x, pos.y, itemData.name)
+        } else {
+          spawnItem(itemData, pos.x, pos.y)
+        }
       } else {
         console.warn('Not enough free tiles around chest for all items')
       }
@@ -160,11 +178,12 @@ export function useChest(items, levelLoader) {
 
   /**
    * Spawn an item at a specific position
-   * @param {string} type - Item type (heart, manaPotion)
+   * @param {string} type - Item type (heart, manaPotion, weapon)
    * @param {number} gridX - Grid X position
    * @param {number} gridY - Grid Y position
+   * @param {string} weaponName - Weapon name (only for weapon type)
    */
-  const spawnItem = (type, gridX, gridY) => {
+  const spawnItem = (type, gridX, gridY, weaponName = null) => {
     const item = {
       id: `item-${Date.now()}-${Math.random()}`,
       type,
@@ -174,8 +193,13 @@ export function useChest(items, levelLoader) {
       lifetime: 60000 // 60 seconds
     }
 
+    // Add weapon name for weapon items
+    if (type === 'weapon' && weaponName) {
+      item.weaponName = weaponName
+    }
+
     items.value.push(item)
-    console.log(`Item spawned: ${type} at (${gridX}, ${gridY})`)
+    console.log(`Item spawned: ${type}${weaponName ? ` (${weaponName})` : ''} at (${gridX}, ${gridY})`)
   }
 
   /**

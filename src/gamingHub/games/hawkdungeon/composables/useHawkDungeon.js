@@ -379,14 +379,14 @@ export function useHawkDungeon() {
     }
 
     monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader)
-    collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
+    collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback, unlockWeapon)
   }
 
   const setGameOverCallback = (callback) => {
     gameOverCallback = callback
     // Reinitialize collision system with new callback if already initialized
     if (collisionSystem && monsterAI) {
-      collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback)
+      collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback, unlockWeapon)
     }
   }
 
