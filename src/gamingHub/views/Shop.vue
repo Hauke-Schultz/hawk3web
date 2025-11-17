@@ -620,7 +620,7 @@ watch(() => gameData, (newData) => {
 	</main>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 // Main Shop Container
 .shop {
 	display: flex;

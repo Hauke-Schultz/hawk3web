@@ -73,9 +73,15 @@ export const spriteConfig = {
     },
     axe: {
       width: 16,
-      height: 16,
-      x: 293,
-      y: 34
+      height: 28,
+      x: 336,
+      y: 68
+    },
+    spear: {
+      width: 16,
+      height: 32,
+      x: 304,
+      y: 160
     }
   },
 

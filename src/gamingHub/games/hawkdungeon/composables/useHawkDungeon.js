@@ -21,7 +21,8 @@ export function useHawkDungeon() {
     killGoal: 5,
     coins: 0,
     experience: 0,
-    weapon: 'sword',
+    weapon: 'sword', // Current equipped weapon
+    weapons: ['sword', 'axe', 'spear'], // Weapon inventory - weapons player owns
     facingDirection: 'right',
     isRunning: false,
     isPaused: false,
@@ -589,6 +590,16 @@ export function useHawkDungeon() {
     return hitboxes
   }
 
+  const switchWeapon = (weaponName) => {
+    // Check if weapon is in inventory
+    if (gameState.weapons.includes(weaponName)) {
+      gameState.weapon = weaponName
+      console.log(`Switched to ${weaponName}`)
+    } else {
+      console.warn(`Weapon ${weaponName} not in inventory`)
+    }
+  }
+
   return {
     gameState,
     knight,
@@ -604,6 +615,7 @@ export function useHawkDungeon() {
     handleAttack,
     handleMove,
     handleStopMove,
+    switchWeapon,
     startGame,
     stopGame,
     setGameOverCallback,

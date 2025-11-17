@@ -44,15 +44,29 @@
     </div>
 
     <div class="controls">
-      <AttackButton
-        :cooldown="attackCooldown"
-        :weapon="gameState.weapon"
-        @attack="handleAttack"
-      />
+      <div class="left-controls">
+        <AttackButton
+          :cooldown="attackCooldown"
+          :weapon="gameState.weapon"
+          @attack="handleAttack"
+        />
+	      <ItemButton
+		      :is-active="showWeaponSelector"
+		      @toggle="toggleWeaponSelector"
+	      />
+      </div>
       <JoystickControl
         :player-direction="knight.direction"
         @move="handleMove"
         @stop="handleStopMove"
+      />
+    </div>
+
+    <div v-if="showWeaponSelector" class="weapon-selector-container">
+      <WeaponSelector
+        :weapons="gameState.weapons"
+        :current-weapon="gameState.weapon"
+        @select="handleWeaponSwitch"
       />
     </div>
 
@@ -107,7 +121,9 @@ import Header from '../../components/Header.vue'
 import GameHUD from './components/GameHUD.vue'
 import GameCanvas from './components/GameCanvas.vue'
 import AttackButton from './components/AttackButton.vue'
+import ItemButton from './components/ItemButton.vue'
 import JoystickControl from './components/JoystickControl.vue'
+import WeaponSelector from './components/WeaponSelector.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
 import GameCompletedModal from '../../components/GameCompletedModal.vue'
 import { useHawkDungeon } from './composables/useHawkDungeon'
@@ -139,6 +155,7 @@ const {
   handleAttack,
   handleMove,
   handleStopMove,
+  switchWeapon,
   startGame,
   stopGame,
   setGameOverCallback,
@@ -237,6 +254,9 @@ const sessionTimer = ref(null)
 const showGameOverModal = ref(false)
 const showGameCompletedModal = ref(false)
 
+// Item menu state
+const showWeaponSelector = ref(false)
+
 // Achievements and rewards
 const earnedAchievements = ref([])
 const levelReward = ref(0)
@@ -320,6 +340,16 @@ const handleTryAgain = () => {
   }, 100)
 }
 
+const handleWeaponSwitch = (weaponName) => {
+  switchWeapon(weaponName)
+  // Auto-close weapon selector after selection
+  showWeaponSelector.value = false
+}
+
+const toggleWeaponSelector = () => {
+  showWeaponSelector.value = !showWeaponSelector.value
+}
+
 // Keyboard controls
 const activeKeys = ref(new Set())
 const spaceCharging = ref(false)
@@ -330,13 +360,30 @@ let currentDirection = ref(null)
 
 const handleKeyDown = (event) => {
   // Prevent default for game controls
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' '].includes(event.key)) {
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' ', '1', '2', '3', '4', 'i', 'I'].includes(event.key)) {
     event.preventDefault()
   }
 
   // Avoid key repeat
   if (activeKeys.value.has(event.key)) return
   activeKeys.value.add(event.key)
+
+  // Toggle weapon selector (i/I key)
+  if (event.key === 'i' || event.key === 'I') {
+    toggleWeaponSelector()
+    return
+  }
+
+  // Weapon switching (number keys 1-4)
+  if (['1', '2', '3', '4'].includes(event.key)) {
+    const weaponIndex = parseInt(event.key) - 1
+    if (gameState.weapons[weaponIndex]) {
+      switchWeapon(gameState.weapons[weaponIndex])
+      // Auto-close weapon selector after keyboard selection
+      showWeaponSelector.value = false
+    }
+    return
+  }
 
   // Movement keys
   let direction = null
@@ -536,13 +583,40 @@ onUnmounted(() => {
   right: 0;
   display: flex;
   justify-content: space-between;
-	align-items: center;
+  align-items: center;
   padding: 0 20px;
   pointer-events: none;
 }
 
 .controls > * {
   pointer-events: auto;
+}
+
+.left-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.weapon-selector-container {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  z-index: 10;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 // Animations
