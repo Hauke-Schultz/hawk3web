@@ -27,14 +27,32 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
     monsters.value.forEach(monster => {
       if (monster.state === 'dead') return
 
-      // Calculate Manhattan distance (distance in grid units)
-      const distanceX = Math.abs(knight.gridX - monster.gridX)
-      const distanceY = Math.abs(knight.gridY - monster.gridY)
-      const manhattanDistance = distanceX + distanceY
+      // Get monster grid size (default 1x1, boss is 2x2)
+      const monsterWidth = monster.gridWidth || 1
+      const monsterHeight = monster.gridHeight || 1
 
-      // Check if monster is within melee range (1 tile away in 4 directions)
-      // This includes: directly on same tile (0,0), or adjacent tiles (1,0), (0,1)
-      if (manhattanDistance <= 1) {
+      // Check if knight is within melee range of any of the monster's grid tiles
+      let inRange = false
+      for (let dy = 0; dy < monsterHeight; dy++) {
+        for (let dx = 0; dx < monsterWidth; dx++) {
+          const monsterTileX = monster.gridX + dx
+          const monsterTileY = monster.gridY + dy
+
+          const distanceX = Math.abs(knight.gridX - monsterTileX)
+          const distanceY = Math.abs(knight.gridY - monsterTileY)
+          const manhattanDistance = distanceX + distanceY
+
+          // Check if monster tile is within melee range (1 tile away in 4 directions)
+          // This includes: directly on same tile (0,0), or adjacent tiles (1,0), (0,1)
+          if (manhattanDistance <= 1) {
+            inRange = true
+            break
+          }
+        }
+        if (inRange) break
+      }
+
+      if (inRange) {
         // Check if it's time for an attack check (every attackCheckInterval)
         if (monster.attackTimer >= monster.attackCheckInterval) {
           // Reset timer
@@ -75,8 +93,26 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
         if (monster.state === 'dead') return
         if (hitbox.hitMonsters.has(monster.id)) return // Already hit by this attack
 
-        // Check if attack hitbox overlaps with monster
-        if (pos.x === monster.gridX && pos.y === monster.gridY) {
+        // Get monster grid size (default 1x1, boss is 2x2)
+        const monsterWidth = monster.gridWidth || 1
+        const monsterHeight = monster.gridHeight || 1
+
+        // Check if attack hitbox overlaps with any of the monster's grid tiles
+        let hit = false
+        for (let dy = 0; dy < monsterHeight; dy++) {
+          for (let dx = 0; dx < monsterWidth; dx++) {
+            const monsterTileX = monster.gridX + dx
+            const monsterTileY = monster.gridY + dy
+
+            if (pos.x === monsterTileX && pos.y === monsterTileY) {
+              hit = true
+              break
+            }
+          }
+          if (hit) break
+        }
+
+        if (hit) {
           const killed = monsterAI.damageMonster(monster, hitbox.damage)
           hitSomething = true
           hitbox.hitMonsters.add(monster.id)

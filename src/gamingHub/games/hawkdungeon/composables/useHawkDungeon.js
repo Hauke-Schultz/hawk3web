@@ -281,16 +281,25 @@ export function useHawkDungeon() {
     const isBlocked = monsters.value.some(monster => {
       if (monster.state === 'dead') return false
 
-      // Check monster's current position
-      if (monster.gridX === targetX && monster.gridY === targetY) {
-        return true
-      }
+      // Get monster grid size (default 1x1, boss is 2x2)
+      const monsterWidth = monster.gridWidth || 1
+      const monsterHeight = monster.gridHeight || 1
 
-      // Check monster's target position if it's moving
-      if (monster.isMovingToTarget &&
-          monster.targetGridX === targetX &&
-          monster.targetGridY === targetY) {
-        return true
+      // Check all tiles occupied by this monster
+      for (let dy = 0; dy < monsterHeight; dy++) {
+        for (let dx = 0; dx < monsterWidth; dx++) {
+          // Check monster's current position
+          if (monster.gridX + dx === targetX && monster.gridY + dy === targetY) {
+            return true
+          }
+
+          // Check monster's target position if it's moving
+          if (monster.isMovingToTarget &&
+              monster.targetGridX + dx === targetX &&
+              monster.targetGridY + dy === targetY) {
+            return true
+          }
+        }
       }
 
       return false

@@ -37,6 +37,8 @@ export const monsterConfig = {
     type: 'boss',
     width: 32,
     height: 32,
+    gridWidth: 2, // Boss occupies 2x2 grid tiles
+    gridHeight: 2,
     health: 15,
     damage: 3,
     moveSpeed: 0.5, // Slower than goblins

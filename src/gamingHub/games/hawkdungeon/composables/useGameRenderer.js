@@ -282,28 +282,44 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       const worldX = renderPosX * TILE_SIZE
       const worldY = renderPosY * TILE_SIZE
 
+      // Get sprite size - boss is 2x2 tiles
+      const spriteWidth = (monster.gridWidth || 1) * TILE_SIZE
+      const spriteHeight = (monster.gridHeight || 1) * TILE_SIZE
+
       // Convert world coordinates to screen coordinates using dungeonOffset
       const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
-      // Adjust Y position for sprite height (center sprite on tile bottom)
-      let spriteHeight = TILE_SIZE
+
+      // Adjust Y position for sprite height
+      let offsetY = 0
       if (monster.type === 'goblin') {
-        spriteHeight = 20 * SPRITE_SCALE // Goblin is 20px tall
+        offsetY = (TILE_SIZE - 20 * SPRITE_SCALE) / 2
       } else if (monster.type === 'orc') {
-        spriteHeight = 20 * SPRITE_SCALE // Orc is 28px tall, adjusted to 24 for positioning
+        offsetY = (TILE_SIZE - 20 * SPRITE_SCALE) / 2
+      } else if (monster.type === 'boss') {
+        // Boss sprite is centered on the 2x2 grid
+        offsetY = 0
       }
-      const drawY = centerY + worldY + dungeonOffset.y - (spriteHeight / 2) + ((TILE_SIZE - spriteHeight) / 2)
+      const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2) + offsetY
 
       const flipX = monster.facingDirection === 'left'
 
       // Calculate death animation offset and clip
-      let deathClipHeight = spriteHeight
+      // For death animation, use actual sprite height from config
+      let actualSpriteHeight = TILE_SIZE
+      if (monster.type === 'goblin' || monster.type === 'orc') {
+        actualSpriteHeight = 24 * SPRITE_SCALE
+      } else if (monster.type === 'boss') {
+        actualSpriteHeight = 46 * SPRITE_SCALE // Boss sprite height from spriteConfig
+      }
+
+      let deathClipHeight = actualSpriteHeight
       let deathClipOffsetY = 0
 
       if (monster.state === 'dead' && monster.deathAnimationProgress !== undefined) {
         // Shrink visible height from full to 0 (clips from bottom)
-        deathClipHeight = spriteHeight * (1 - monster.deathAnimationProgress)
+        deathClipHeight = actualSpriteHeight * (1 - monster.deathAnimationProgress)
         // Clip from bottom by moving clip rect down
-        deathClipOffsetY = spriteHeight * monster.deathAnimationProgress
+        deathClipOffsetY = actualSpriteHeight * monster.deathAnimationProgress
       }
 
       // Apply hit filter or death effect for monsters
@@ -318,7 +334,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
           if (deathClipHeight > 0) {
             ctx.beginPath()
             // Clip rect moves down as monster sinks
-            ctx.rect(drawX, drawY + deathClipOffsetY, TILE_SIZE, deathClipHeight)
+            // Use sprite width for clipping (boss is 2x wide)
+            const clipWidth = (monster.type === 'boss') ? spriteWidth : TILE_SIZE
+            ctx.rect(drawX, drawY + deathClipOffsetY, clipWidth, deathClipHeight)
             ctx.clip()
 
             drawSprite(
@@ -362,7 +380,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       // Don't draw health bar for dead monsters
       if (monster.state !== 'dead') {
         // Position health bar centered above the monster
-        drawHealthBar(drawX, drawY - 12, monster.health, monster.maxHealth)
+        // For boss (2x2), center the health bar over the 2-tile width
+        const healthBarX = monster.type === 'boss' ? drawX + TILE_SIZE / 2 : drawX
+        drawHealthBar(healthBarX, drawY - 12, monster.health, monster.maxHealth)
       }
     })
   }

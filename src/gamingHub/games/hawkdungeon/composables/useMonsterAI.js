@@ -36,16 +36,30 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
         return false
       }
 
-      // Check current position
-      if (monster.gridX === gridX && monster.gridY === gridY) {
-        return true
-      }
+      // Get monster grid size (default 1x1, boss is 2x2)
+      const monsterWidth = monster.gridWidth || 1
+      const monsterHeight = monster.gridHeight || 1
 
-      // Check target position (if monster is moving)
-      if (monster.isMovingToTarget &&
-          monster.targetGridX === gridX &&
-          monster.targetGridY === gridY) {
-        return true
+      // Check all tiles occupied by this monster
+      for (let dy = 0; dy < monsterHeight; dy++) {
+        for (let dx = 0; dx < monsterWidth; dx++) {
+          const monsterTileX = monster.gridX + dx
+          const monsterTileY = monster.gridY + dy
+
+          // Check current position
+          if (monsterTileX === gridX && monsterTileY === gridY) {
+            return true
+          }
+
+          // Check target position (if monster is moving)
+          if (monster.isMovingToTarget) {
+            const targetTileX = monster.targetGridX + dx
+            const targetTileY = monster.targetGridY + dy
+            if (targetTileX === gridX && targetTileY === gridY) {
+              return true
+            }
+          }
+        }
       }
 
       return false
@@ -83,6 +97,22 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
 
     const config = monsterConfig[monsterType]
 
+    // Get monster size (default 1x1, boss is 2x2)
+    const monsterWidth = config.gridWidth || 1
+    const monsterHeight = config.gridHeight || 1
+
+    // Helper to check if all tiles for a large monster are free
+    const isAreaFree = (x, y) => {
+      for (let dy = 0; dy < monsterHeight; dy++) {
+        for (let dx = 0; dx < monsterWidth; dx++) {
+          if (isPositionOccupied(x + dx, y + dy)) {
+            return false
+          }
+        }
+      }
+      return true
+    }
+
     // Try to find a free spawn position on a floor tile (max 20 attempts)
     let spawnX, spawnY
     let attempts = 0
@@ -94,10 +124,10 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       spawnX = Math.round(knight.gridX + Math.cos(angle) * spawnDistance)
       spawnY = Math.round(knight.gridY + Math.sin(angle) * spawnDistance)
       attempts++
-    } while (isPositionOccupied(spawnX, spawnY) && attempts < maxAttempts)
+    } while (!isAreaFree(spawnX, spawnY) && attempts < maxAttempts)
 
     // If we couldn't find a free position after max attempts, don't spawn
-    if (isPositionOccupied(spawnX, spawnY)) {
+    if (!isAreaFree(spawnX, spawnY)) {
       return
     }
 
@@ -106,6 +136,8 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       type: monsterType,
       gridX: spawnX,
       gridY: spawnY,
+      gridWidth: monsterWidth, // Grid size (1x1 for normal, 2x2 for boss)
+      gridHeight: monsterHeight,
       targetGridX: spawnX, // Target position for smooth movement
       targetGridY: spawnY,
       renderX: spawnX, // Interpolated rendering position
@@ -211,6 +243,22 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
     const dx = knight.gridX - monster.gridX
     const dy = knight.gridY - monster.gridY
 
+    // Get monster size (default 1x1, boss is 2x2)
+    const monsterWidth = monster.gridWidth || 1
+    const monsterHeight = monster.gridHeight || 1
+
+    // Helper to check if all tiles for the new position are free
+    const isTargetAreaFree = (targetX, targetY) => {
+      for (let dy = 0; dy < monsterHeight; dy++) {
+        for (let dx = 0; dx < monsterWidth; dx++) {
+          if (isPositionOccupied(targetX + dx, targetY + dy, monster)) {
+            return false
+          }
+        }
+      }
+      return true
+    }
+
     let newX = monster.gridX
     let newY = monster.gridY
     let newDirection = monster.facingDirection
@@ -227,7 +275,7 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       }
 
       // If horizontal move is blocked, try vertical move instead
-      if (isPositionOccupied(newX, newY, monster)) {
+      if (!isTargetAreaFree(newX, newY)) {
         newX = monster.gridX // Reset X
         if (dy > 0) {
           newY = monster.gridY + 1
@@ -248,7 +296,7 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       }
 
       // If vertical move is blocked, try horizontal move instead
-      if (isPositionOccupied(newX, newY, monster)) {
+      if (!isTargetAreaFree(newX, newY)) {
         newY = monster.gridY // Reset Y
         if (dx > 0) {
           newX = monster.gridX + 1
@@ -260,8 +308,8 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       }
     }
 
-    // Only move if the target position is free (excluding this monster) and not already at target
-    if (!isPositionOccupied(newX, newY, monster) && (newX !== monster.gridX || newY !== monster.gridY)) {
+    // Only move if the target area is free (excluding this monster) and not already at target
+    if (isTargetAreaFree(newX, newY) && (newX !== monster.gridX || newY !== monster.gridY)) {
       // Set target position for smooth interpolation
       monster.targetGridX = newX
       monster.targetGridY = newY
