@@ -7,7 +7,7 @@ export const SPRITE_SCALE = 4 // Scale factor for display
 export const TILE_SIZE = SPRITE_SIZE * SPRITE_SCALE // 64px display size
 
 export const spriteConfig = {
-  // Knight character (1 wide × 2 high = 16×32 px)
+  // Knight character (16×32 px)
   knight: {
     width: 16,
     height: 32,
@@ -21,7 +21,7 @@ export const spriteConfig = {
     }
   },
 
-  // Goblin enemy (1 wide × 1 high = 16×24 px)
+  // Goblin enemy (16×24 px)
   goblin: {
     width: 16,
     height: 24,
@@ -35,7 +35,7 @@ export const spriteConfig = {
     }
   },
 
-  // Orc enemy (1 wide × 1 high = 16×28 px)
+  // Orc enemy (16×24 px)
   orc: {
     width: 16,
     height: 24,
@@ -49,17 +49,17 @@ export const spriteConfig = {
     }
   },
 
-  // Boss enemy (1 wide × 1 high = 16×16 px)
+  // Boss enemy (32×46 px)
   boss: {
-    width: 16,
-    height: 16,
+    width: 32,
+    height: 46,
     walk: {
-      frames: 8,
-      frameWidth: 16,
-      frameHeight: 16,
+      frames: 4,
+      frameWidth: 32,
+      frameHeight: 46,
       frameDuration: 100,
-      startX: 368,
-      startY: 96
+      startX: 16,
+      startY: 337
     }
   },
 
