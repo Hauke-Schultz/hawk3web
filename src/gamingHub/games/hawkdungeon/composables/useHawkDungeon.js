@@ -22,7 +22,7 @@ export function useHawkDungeon() {
     coins: 0,
     experience: 0,
     weapon: 'sword', // Current equipped weapon
-    weapons: ['sword', 'axe', 'spear'], // Weapon inventory - weapons player owns
+    weapons: ['sword'], // Weapon inventory - weapons player owns (starts with only sword)
     facingDirection: 'right',
     isRunning: false,
     isPaused: false,
@@ -552,6 +552,25 @@ export function useHawkDungeon() {
     }
   }
 
+  const unlockWeapon = (weaponName) => {
+    // Check if weapon already unlocked
+    if (gameState.weapons.includes(weaponName)) {
+      console.log(`Weapon ${weaponName} already unlocked`)
+      return false
+    }
+
+    // Check if weapon exists in config
+    if (!weaponConfig[weaponName]) {
+      console.warn(`Weapon ${weaponName} does not exist`)
+      return false
+    }
+
+    // Add weapon to inventory
+    gameState.weapons.push(weaponName)
+    console.log(`🎉 Unlocked new weapon: ${weaponName}!`)
+    return true
+  }
+
   return {
     gameState,
     knight,
@@ -568,6 +587,7 @@ export function useHawkDungeon() {
     handleMove,
     handleStopMove,
     switchWeapon,
+    unlockWeapon,
     startGame,
     stopGame,
     setGameOverCallback,

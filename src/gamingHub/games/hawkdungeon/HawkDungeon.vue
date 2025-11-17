@@ -156,11 +156,27 @@ const {
   handleMove,
   handleStopMove,
   switchWeapon,
+  unlockWeapon,
   startGame,
   stopGame,
   setGameOverCallback,
   setLevelCompletionCallback
 } = useHawkDungeon()
+
+// For testing: Unlock weapons with keyboard shortcuts (Alt + 1/2/3)
+// Remove this in production
+const handleWeaponUnlock = (event) => {
+  if (event.altKey) {
+    switch(event.key) {
+      case '1':
+        unlockWeapon('axe')
+        break
+      case '2':
+        unlockWeapon('spear')
+        break
+    }
+  }
+}
 
 // Set game over callback to show modal
 if (setGameOverCallback) {
@@ -359,6 +375,9 @@ let movementInterval = null
 let currentDirection = ref(null)
 
 const handleKeyDown = (event) => {
+  // Check for weapon unlock shortcuts (Alt + 1/2)
+  handleWeaponUnlock(event)
+
   // Prevent default for game controls
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' ', '1', '2', '3', '4', 'i', 'I'].includes(event.key)) {
     event.preventDefault()
