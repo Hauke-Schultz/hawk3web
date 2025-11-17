@@ -43,7 +43,6 @@ export function useLevelLoader() {
     levelData.width = level.width
     levelData.height = level.height
     levelData.playerStart = level.playerStart
-    levelData.spawns = level.spawns || {}
 
     // Clear previous data
     levelData.walls.clear()

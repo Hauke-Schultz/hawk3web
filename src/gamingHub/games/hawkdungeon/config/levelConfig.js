@@ -4,11 +4,12 @@ export const levelConfig = {
     level: 1,
     name: 'Entrance Hall',
     description: 'First steps into the dungeon',
-    enemyTypes: ['boss'], // Mixed enemy types
+    enemyTypes: ['goblin', 'orc'], // Mixed enemy types
+    bossTypes: ['boss'],
     spawnRate: 5, // Seconds between spawns
     maxEnemies: 5,
-    killGoal: 5,
-    hasBoss: false,
+    killGoal: 1,
+    hasBoss: true, // Boss appears after killGoal reached
     timeLimit: 120, // 2 minutes
     difficulty: 'easy',
     rewards: {
@@ -36,16 +37,6 @@ export const levelConfig = {
         'W........W',
         'WWWWWWWWWW'
       ],
-      spawns: {
-        goblin: [
-          { x: 2, y: 3 },
-          { x: 4, y: 3 },
-          { x: 6, y: 3 }
-        ],
-        boss: [
-          { x: 4, y: 4 },
-        ]
-      },
       chests: [
         {
           x: 3,

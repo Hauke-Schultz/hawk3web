@@ -7,6 +7,7 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
   let nextMonsterId = 0
   let spawnTimer = 0
   let currentSpawnRate = 5
+  let bossPhaseActive = false
 
   // Helper function to check if a grid position is occupied
   const isPositionOccupied = (gridX, gridY, excludeMonster = null) => {
@@ -67,15 +68,18 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
   }
 
   const update = (deltaTime) => {
-    // Update spawn timer
-    spawnTimer += deltaTime
-
     const levelCfg = levelConfig[gameState.level]
 
-    if (spawnTimer >= currentSpawnRate && monsters.value.length < levelCfg.maxEnemies) {
-      spawnMonster()
-      spawnTimer = 0
-      currentSpawnRate = levelCfg.spawnRate
+    // Only spawn normal enemies if NOT in boss phase
+    if (!bossPhaseActive) {
+      // Update spawn timer
+      spawnTimer += deltaTime
+
+      if (spawnTimer >= currentSpawnRate && monsters.value.length < levelCfg.maxEnemies) {
+        spawnMonster()
+        spawnTimer = 0
+        currentSpawnRate = levelCfg.spawnRate
+      }
     }
 
     // Update all monsters
@@ -84,14 +88,20 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
     })
   }
 
-  const spawnMonster = () => {
+  const spawnMonster = (forceBoss = false) => {
     const levelCfg = levelConfig[gameState.level]
 
     // Determine which monster type to spawn
     let monsterType = levelCfg.enemyType
 
-    // If level has mixed enemies, randomly choose one
-    if (levelCfg.enemyTypes && Array.isArray(levelCfg.enemyTypes)) {
+    // If forcing boss spawn or in boss phase, spawn from bossTypes
+    if (forceBoss || bossPhaseActive) {
+      if (levelCfg.bossTypes && Array.isArray(levelCfg.bossTypes)) {
+        monsterType = levelCfg.bossTypes[Math.floor(Math.random() * levelCfg.bossTypes.length)]
+      }
+    }
+    // Otherwise, spawn normal enemies
+    else if (levelCfg.enemyTypes && Array.isArray(levelCfg.enemyTypes)) {
       monsterType = levelCfg.enemyTypes[Math.floor(Math.random() * levelCfg.enemyTypes.length)]
     }
 
@@ -134,6 +144,7 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
     const monster = {
       id: `monster-${nextMonsterId++}`,
       type: monsterType,
+      isBoss: forceBoss || bossPhaseActive, // Mark as boss if spawned in boss phase
       gridX: spawnX,
       gridY: spawnY,
       gridWidth: monsterWidth, // Grid size (1x1 for normal, 2x2 for boss)
@@ -338,7 +349,15 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       monster.state = 'dead'
       monster.deathAnimationStartTime = performance.now()
       monster.deathAnimationProgress = 0
-      gameState.kills += 1
+
+      // Track kills separately for bosses
+      if (monster.isBoss) {
+        gameState.bossKills += 1
+        console.log(`Boss defeated! Boss kills: ${gameState.bossKills}`)
+      } else {
+        gameState.kills += 1
+      }
+
       gameState.coins += monster.lootCoins
 
       // Drop items after 300ms delay (let death animation start first)
@@ -396,11 +415,36 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
     }
   }
 
+  const startBossPhase = () => {
+    bossPhaseActive = true
+
+    // Kill all non-boss monsters immediately
+    monsters.value.forEach(monster => {
+      if (!monster.isBoss && monster.state !== 'dead') {
+        monster.state = 'dead'
+        monster.deathAnimationStartTime = performance.now()
+        monster.deathAnimationProgress = 0
+
+        // Remove after death animation (1000ms)
+        setTimeout(() => {
+          removeMonster(monster.id)
+        }, 1000)
+      }
+    })
+
+    // Spawn the boss after a short delay (let normal monsters die first)
+    setTimeout(() => {
+      spawnMonster(true) // Force boss spawn
+      console.log('Boss has appeared!')
+    }, 1500)
+  }
+
   return {
     update,
     spawnMonster,
     removeMonster,
-    damageMonster
+    damageMonster,
+    startBossPhase
   }
 }
 

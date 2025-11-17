@@ -24,7 +24,9 @@ export function useHawkDungeon() {
     weapon: 'sword',
     facingDirection: 'right',
     isRunning: false,
-    isPaused: false
+    isPaused: false,
+    bossPhase: false, // True when boss phase is active
+    bossKills: 0 // Track boss kills separately
   })
 
   // Knight state
@@ -100,6 +102,8 @@ export function useHawkDungeon() {
     gameState.currentHealth = 10
     gameState.maxHealth = 10
     gameState.kills = 0
+    gameState.bossKills = 0
+    gameState.bossPhase = false
     gameState.killGoal = levelConfig[1].killGoal
 
     // Center knight on screen
@@ -390,13 +394,38 @@ export function useHawkDungeon() {
   }
 
   let levelCompleted = false
+  let bossPhaseTriggered = false
 
   const checkLevelCompletion = () => {
-    // Check if level is completed (kills >= killGoal) and not already triggered
-    if (!levelCompleted && gameState.kills >= gameState.killGoal) {
-      levelCompleted = true
-      if (levelCompletionCallback) {
-        levelCompletionCallback()
+    const levelCfg = levelConfig[gameState.level]
+
+    // Check if we should trigger boss phase
+    if (!bossPhaseTriggered && !gameState.bossPhase && levelCfg.hasBoss && gameState.kills >= gameState.killGoal) {
+      bossPhaseTriggered = true
+      gameState.bossPhase = true
+
+      // Kill all normal monsters and spawn boss
+      if (monsterAI) {
+        monsterAI.startBossPhase()
+      }
+
+      console.log('Boss phase started! All normal enemies eliminated.')
+      return
+    }
+
+    // Check if level is completed
+    // For levels with boss: need to kill boss
+    // For levels without boss: need to reach killGoal
+    if (!levelCompleted) {
+      const isComplete = levelCfg.hasBoss
+        ? (gameState.bossPhase && gameState.bossKills > 0) // Boss defeated
+        : (gameState.kills >= gameState.killGoal) // Normal level goal reached
+
+      if (isComplete) {
+        levelCompleted = true
+        if (levelCompletionCallback) {
+          levelCompletionCallback()
+        }
       }
     }
   }
