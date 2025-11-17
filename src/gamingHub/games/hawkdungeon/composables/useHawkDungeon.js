@@ -498,29 +498,15 @@ export function useHawkDungeon() {
     knight.isAttacking = true
     attackCooldown.value = weapon.cooldown
 
-    if (attackData.charged) {
-      // Charged attack: create 3 hitboxes in cross pattern
-      const hitboxes = getChargedAttackHitboxes()
+    // Get attack pattern based on weapon and direction
+    const hitboxes = getAttackHitboxes(attackData.charged)
 
-      attackHitbox.value = {
-        active: true,
-        charged: true,
-        hitboxes: hitboxes,
-        damage: weapon.damage,
-        weapon: gameState.weapon
-      }
-    } else {
-      // Normal attack: single hitbox
-      const hitboxPos = getAttackHitboxPosition()
-
-      attackHitbox.value = {
-        active: true,
-        charged: false,
-        gridX: hitboxPos.x,
-        gridY: hitboxPos.y,
-        damage: weapon.damage,
-        weapon: gameState.weapon
-      }
+    attackHitbox.value = {
+      active: true,
+      charged: attackData.charged,
+      hitboxes: hitboxes,
+      damage: weapon.damage,
+      weapon: gameState.weapon
     }
 
     console.log('Attack hitbox created:', attackHitbox.value)
@@ -533,59 +519,25 @@ export function useHawkDungeon() {
     }, 300)
   }
 
-  const getAttackHitboxPosition = () => {
-    const pos = { x: knight.gridX, y: knight.gridY }
+  const getAttackHitboxes = (isCharged = false) => {
+    const weapon = weaponConfig[gameState.weapon]
+    const direction = knight.direction
 
-    // Use last movement direction for attack direction
-    switch (knight.direction) {
-      case 'up':
-        pos.y -= 1
-        break
-      case 'down':
-        pos.y += 1
-        break
-      case 'left':
-        pos.x -= 1
-        break
-      case 'right':
-        pos.x += 1
-        break
+    // Get the appropriate pattern (charged or normal)
+    const pattern = isCharged
+      ? weapon.chargedAttackPattern?.[direction]
+      : weapon.attackPattern?.[direction]
+
+    if (!pattern) {
+      console.warn(`No attack pattern found for weapon ${gameState.weapon} in direction ${direction}`)
+      return []
     }
 
-    return pos
-  }
-
-  const getChargedAttackHitboxes = () => {
-    // Returns 3 hitbox positions in cross pattern based on last movement direction
-    const hitboxes = []
-
-    // Use last movement direction for attack direction
-    switch (knight.direction) {
-      case 'up':
-        // Up: attack up, left, right
-        hitboxes.push({ x: knight.gridX, y: knight.gridY - 1 })
-        hitboxes.push({ x: knight.gridX - 1, y: knight.gridY })
-        hitboxes.push({ x: knight.gridX + 1, y: knight.gridY })
-        break
-      case 'down':
-        // Down: attack down, left, right
-        hitboxes.push({ x: knight.gridX, y: knight.gridY + 1 })
-        hitboxes.push({ x: knight.gridX - 1, y: knight.gridY })
-        hitboxes.push({ x: knight.gridX + 1, y: knight.gridY })
-        break
-      case 'left':
-        // Left: attack left, up, down
-        hitboxes.push({ x: knight.gridX - 1, y: knight.gridY })
-        hitboxes.push({ x: knight.gridX, y: knight.gridY - 1 })
-        hitboxes.push({ x: knight.gridX, y: knight.gridY + 1 })
-        break
-      case 'right':
-        // Right: attack right, up, down
-        hitboxes.push({ x: knight.gridX + 1, y: knight.gridY })
-        hitboxes.push({ x: knight.gridX, y: knight.gridY - 1 })
-        hitboxes.push({ x: knight.gridX, y: knight.gridY + 1 })
-        break
-    }
+    // Convert pattern offsets to absolute grid positions
+    const hitboxes = pattern.map(offset => ({
+      x: knight.gridX + offset.dx,
+      y: knight.gridY + offset.dy
+    }))
 
     return hitboxes
   }

@@ -82,10 +82,8 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
 
     let hitSomething = false
 
-    // Get all hitbox positions (either single or multiple for charged attack)
-    const hitboxPositions = hitbox.charged
-      ? hitbox.hitboxes
-      : [{ x: hitbox.gridX, y: hitbox.gridY }]
+    // Get all hitbox positions (always an array now with new weapon system)
+    const hitboxPositions = hitbox.hitboxes || []
 
     // Check each hitbox position against all monsters
     hitboxPositions.forEach(pos => {

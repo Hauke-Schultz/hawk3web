@@ -73,26 +73,27 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
     // Draw attack hitbox(es) in foreground (after knight)
     const hitbox = attackHitbox()
-    if (hitbox?.active) {
-      if (hitbox.charged) {
-        // Calculate progress for charged attack animation
-        if (!hitbox.createdAt) {
-          hitbox.createdAt = performance.now()
-        }
-        const elapsed = performance.now() - hitbox.createdAt
-        const progress = Math.min(elapsed / 300, 1)
+    if (hitbox?.active && hitbox.hitboxes) {
+      // Calculate progress for attack animation
+      if (!hitbox.createdAt) {
+        hitbox.createdAt = performance.now()
+      }
+      const elapsed = performance.now() - hitbox.createdAt
+      const progress = Math.min(elapsed / 300, 1)
 
+      // Draw weapon animation
+      if (hitbox.charged) {
         // Draw spinning sword animation for charged attack
         drawSpinningSword(centerX, centerY, hitbox, progress)
-
-        // Draw multiple hitboxes for charged attack
-        hitbox.hitboxes.forEach(pos => {
-          drawAttackHitboxAt(centerX, centerY, hitbox, pos.x, pos.y)
-        })
       } else {
-        // Draw single hitbox for normal attack
-        drawAttackHitbox(centerX, centerY, hitbox)
+        // Draw sword swing animation for normal attack
+        drawSwordSwing(centerX, centerY, hitbox, progress)
       }
+
+      // Draw attack effects for all hitboxes
+      hitbox.hitboxes.forEach(pos => {
+        drawAttackHitboxAt(centerX, centerY, hitbox, pos.x, pos.y)
+      })
     }
   }
 
