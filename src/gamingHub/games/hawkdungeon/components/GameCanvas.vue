@@ -33,6 +33,10 @@ const props = defineProps({
     type: Object,
     required: true
   },
+  lockedDoorFlash: {
+    type: Object,
+    required: false
+  },
   levelLoader: {
     type: Object,
     required: false
@@ -66,6 +70,7 @@ const { initialize } = useGameRenderer(
   () => props.items,
   () => props.attackHitbox,
   props.dungeonOffset,
+  props.lockedDoorFlash,
   props.levelLoader,
   props.chestSystem
 )

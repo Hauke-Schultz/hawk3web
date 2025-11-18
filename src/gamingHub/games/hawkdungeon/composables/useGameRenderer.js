@@ -3,7 +3,7 @@ import { watch, onMounted } from 'vue'
 import { useSpriteManager } from './useSpriteManager'
 import { TILE_SIZE, SPRITE_SCALE } from '../config/spriteConfig'
 
-export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, levelLoader, chestSystem) {
+export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, lockedDoorFlash, levelLoader, chestSystem) {
   const { loadSpritesheet, drawSprite, drawTile, isLoaded } = useSpriteManager()
 
   let ctx = null
@@ -142,7 +142,23 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
         // Draw the tile
         if (sprite) {
-          drawTile(ctx, sprite, drawX, drawY)
+          // Check if this is a locked door that should flash red
+          const isLockedDoor = tileType === 'door' &&
+                               lockedDoorFlash &&
+                               lockedDoorFlash.active &&
+                               lockedDoorFlash.gridX === worldTileX &&
+                               lockedDoorFlash.gridY === worldTileY
+
+          if (isLockedDoor) {
+            // Draw locked door with red flash effect
+            ctx.save()
+            ctx.filter = 'brightness(1.5) saturate(3) hue-rotate(-60deg) contrast(1.5)'
+            drawTile(ctx, sprite, drawX, drawY)
+            ctx.restore()
+          } else {
+            // Draw normal tile
+            drawTile(ctx, sprite, drawX, drawY)
+          }
         }
       }
     }

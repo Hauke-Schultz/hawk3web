@@ -38,6 +38,7 @@
         :items="items"
         :attackHitbox="attackHitbox"
         :dungeonOffset="dungeonOffset"
+        :lockedDoorFlash="lockedDoorFlash"
         :levelLoader="levelLoader"
         :chestSystem="chestSystem"
       />
@@ -150,6 +151,7 @@ const {
   attackHitbox,
   attackCooldown,
   dungeonOffset,
+  lockedDoorFlash,
   levelLoader,
   chestSystem,
   manaRegenProgress,

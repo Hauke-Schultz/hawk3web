@@ -74,6 +74,13 @@ export function useHawkDungeon() {
     y: 0
   })
 
+  // Locked door flash effect
+  const lockedDoorFlash = reactive({
+    active: false,
+    gridX: -1,
+    gridY: -1
+  })
+
   // Game loop
   let gameLoopId = null
   let lastFrameTime = 0
@@ -301,6 +308,15 @@ export function useHawkDungeon() {
           } else {
             // No key or failed to open
             console.log(result.message)
+
+            // Trigger red flash effect on locked door
+            lockedDoorFlash.active = true
+            lockedDoorFlash.gridX = targetX
+            lockedDoorFlash.gridY = targetY
+            setTimeout(() => {
+              lockedDoorFlash.active = false
+            }, 300)
+
             return
           }
         } else {
@@ -638,6 +654,7 @@ export function useHawkDungeon() {
     attackHitbox,
     attackCooldown,
     dungeonOffset,
+    lockedDoorFlash,
     levelLoader,
     chestSystem,
     tileInteractions,
