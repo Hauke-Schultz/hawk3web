@@ -64,6 +64,24 @@ export const tileConfig = {
     }
   },
 
+  // Trap tile - has states (hidden/triggered)
+  trap: {
+    hasState: true,
+    defaultState: 'hidden',
+    states: {
+      hidden: {
+        sprite: '^', // Hidden trap (slightly visible)
+        walkable: true,
+        damage: 1 // Damage when stepped on
+      },
+      triggered: {
+        sprite: 'T', // Triggered trap shows spikes
+        walkable: true, // Player can walk over triggered trap
+        damage: 1 // Still deals damage after triggered (visible spikes)
+      }
+    }
+  },
+
   // Add more tile types here as needed
   // Example for future expansion:
   //
@@ -75,21 +93,6 @@ export const tileConfig = {
   // bridge: {
   //   sprite: 'bridge',
   //   walkable: true
-  // },
-  //
-  // trap: {
-  //   hasState: true,
-  //   defaultState: 'hidden',
-  //   states: {
-  //     hidden: {
-  //       sprite: 'floor',
-  //       walkable: true
-  //     },
-  //     triggered: {
-  //       sprite: 'trap_triggered',
-  //       walkable: true // Player can walk over triggered trap
-  //     }
-  //   }
   // }
 }
 
@@ -107,6 +110,9 @@ export const tileCharacterMap = {
   'W': 'wall',       // Wall
   'D': 'door',       // Door
 
+  // Traps
+  '^': 'trap',       // Trap (hidden by default)
+
   // Special markers (render as floor underneath)
   'C': 'floor1',     // Chest (floor underneath, chest is rendered separately)
   'P': 'floor1',     // Player start (floor underneath)
@@ -119,7 +125,6 @@ export const tileCharacterMap = {
   // Example:
   // '~': 'water',
   // '=': 'bridge',
-  // '^': 'trap',
 }
 
 /**

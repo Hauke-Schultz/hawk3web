@@ -145,6 +145,10 @@ export const spriteConfig = {
 
     // Objects
     'C': { width: 16, height: 16, x: 304, y: 400, name: 'chest' },    // Chest (closed)
+
+    // Traps
+    '^': { width: 16, height: 16, x: 16, y: 192, name: 'trap_hidden' },     // Hidden trap
+    'T': { width: 16, height: 16, x: 64, y: 192, name: 'trap_triggered' },  // Triggered trap (visible spikes)
   }
 }
 

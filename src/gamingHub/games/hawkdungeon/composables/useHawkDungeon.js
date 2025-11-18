@@ -248,6 +248,9 @@ export function useHawkDungeon() {
         knight.isMoving = false
         knight.animationState = 'idle'
         knight.animationFrame = 0
+
+        // Check for traps after movement is complete
+        checkForTraps()
       } else {
         // Smooth interpolation
         const eased = easeInOutQuad(moveProgress)
@@ -255,6 +258,32 @@ export function useHawkDungeon() {
         const currentY = moveStartPos.y + (moveTargetPos.y - moveStartPos.y) * eased
         dungeonOffset.x = -currentX * TILE_SIZE
         dungeonOffset.y = -currentY * TILE_SIZE
+      }
+    }
+  }
+
+  // Check if player stepped on a trap and trigger damage
+  const checkForTraps = () => {
+    if (!levelLoader) return
+
+    const tileType = levelLoader.getTileType(knight.gridX, knight.gridY)
+    const tileState = levelLoader.getTileState(knight.gridX, knight.gridY)
+
+    // Check if player is standing on any trap (hidden or triggered)
+    if (tileType === 'trap') {
+      // Apply damage to player (1 damage for traps)
+      const damage = 1
+
+      if (collisionSystem) {
+        collisionSystem.damageKnight(damage)
+      }
+
+      // If trap was hidden, reveal it (change state to triggered, so it shows spikes)
+      if (tileState === 'hidden') {
+        levelLoader.setTileState(knight.gridX, knight.gridY, 'triggered')
+        console.log(`Player stepped on hidden trap! Revealed and took ${damage} damage`)
+      } else {
+        console.log(`Player stepped on visible trap! Took ${damage} damage`)
       }
     }
   }
