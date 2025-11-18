@@ -97,6 +97,45 @@ export function useSpriteManager() {
     }
   }
 
+  // Draw an animated tile with scaling
+  const drawAnimatedTile = (ctx, tileType, frame, x, y) => {
+    if (!isLoaded.value || !spritesheet.value) return
+
+    const config = getAnimatedTileConfig(tileType)
+    if (!config) return
+
+    const { frameWidth, frameHeight, startX, startY } = config
+    const sourceX = startX + (frame * frameWidth)
+    const sourceY = startY
+
+    // Calculate scaled dimensions
+    const scaledWidth = frameWidth * SPRITE_SCALE
+    const scaledHeight = frameHeight * SPRITE_SCALE
+
+    ctx.drawImage(
+      spritesheet.value,
+      sourceX, sourceY, frameWidth, frameHeight,
+      x, y, scaledWidth, scaledHeight
+    )
+  }
+
+  // Get animated tile configuration from spriteConfig
+  const getAnimatedTileConfig = (tileType) => {
+    if (spriteConfig.animatedTiles && spriteConfig.animatedTiles[tileType]) {
+      const config = spriteConfig.animatedTiles[tileType]
+      return {
+        frameWidth: config.animation.frameWidth,
+        frameHeight: config.animation.frameHeight,
+        startX: config.animation.startX,
+        startY: config.animation.startY,
+        frames: config.animation.frames,
+        frameDuration: config.animation.frameDuration
+      }
+    }
+
+    return null
+  }
+
   // Get tile configuration from spriteConfig
   const getTileConfig = (tileType) => {
     // Check tiles (map characters like '.', ',', ':', 'W', 'D', 'C')
@@ -123,7 +162,9 @@ export function useSpriteManager() {
     isLoaded,
     loadSpritesheet,
     drawSprite,
-    drawTile
+    drawTile,
+    drawAnimatedTile,
+    getAnimatedTileConfig
   }
 }
 

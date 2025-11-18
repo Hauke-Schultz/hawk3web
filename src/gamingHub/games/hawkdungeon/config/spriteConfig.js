@@ -131,6 +131,58 @@ export const spriteConfig = {
     }
   },
 
+  // Animated tiles (16×16 px each)
+  animatedTiles: {
+    manaFountain: {
+      width: 16,
+      height: 16,
+      animation: {
+        frames: 3,
+        frameWidth: 16,
+        frameHeight: 16,
+        frameDuration: 200, // milliseconds per frame (slower animation)
+        startX: 64,
+        startY: 64
+      }
+    },
+    healthFountain: {
+      width: 16,
+      height: 16,
+      animation: {
+        frames: 3,
+        frameWidth: 16,
+        frameHeight: 16,
+        frameDuration: 200,
+        startX: 64,
+        startY: 32
+      }
+    },
+    manaWall: {
+      width: 16,
+      height: 16,
+      animation: {
+        frames: 3,
+        frameWidth: 16,
+        frameHeight: 16,
+        frameDuration: 200,
+        startX: 64,
+        startY: 48
+      }
+    },
+    healthWall: {
+      width: 16,
+      height: 16,
+      animation: {
+        frames: 3,
+        frameWidth: 16,
+        frameHeight: 16,
+        frameDuration: 200,
+        startX: 64,
+        startY: 16
+      }
+    }
+  },
+
   // Dungeon tiles (16×16 px each)
   // Map characters are used as keys for easy mapping
   tiles: {

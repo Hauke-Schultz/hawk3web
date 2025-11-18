@@ -26,8 +26,8 @@ export const levelConfig = {
         y: 4
       },
       tiles: [
-        'WWWWWWWWWWW',
-        'W.,.,:...:W',
+        'WWWWWWAWWWW',
+        'W.,.,:M..:W',
         'W.:C.,:,:.W',
         'W,:.^.WWWWW',
         'W:.,..W,.:W',
@@ -35,8 +35,8 @@ export const levelConfig = {
         'W,:^..W.,:W',
         'W.:.:.WWWWW',
         'W,:..:,.^.W',
-        'W:^,,.:.,:W',
-        'W.,:.:,.:,W',
+        'W:^,,.B.,:W',
+        'W.,:.:H.:,W',
         'WWWWWWWWWWW'
       ],
       chests: [

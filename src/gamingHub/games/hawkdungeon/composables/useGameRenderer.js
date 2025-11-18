@@ -4,13 +4,17 @@ import { useSpriteManager } from './useSpriteManager'
 import { TILE_SIZE, SPRITE_SCALE } from '../config/spriteConfig'
 
 export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, lockedDoorFlash, levelLoader, chestSystem) {
-  const { loadSpritesheet, drawSprite, drawTile, isLoaded } = useSpriteManager()
+  const { loadSpritesheet, drawSprite, drawTile, drawAnimatedTile, getAnimatedTileConfig, isLoaded } = useSpriteManager()
 
   let ctx = null
   let canvasWidth = 0
   let canvasHeight = 0
 
   let animationFrameId = null
+
+  // Animation state for fountains
+  let fountainAnimationFrame = 0
+  let fountainAnimationTimer = 0
 
   const initialize = async () => {
     if (!canvasRef.value) return
@@ -32,7 +36,19 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     renderLoop()
   }
 
-  const renderLoop = () => {
+  let lastRenderTime = 0
+
+  const renderLoop = (currentTime = 0) => {
+    const deltaTime = currentTime - lastRenderTime
+    lastRenderTime = currentTime
+
+    // Update fountain animation (200ms per frame)
+    fountainAnimationTimer += deltaTime
+    if (fountainAnimationTimer >= 200) {
+      fountainAnimationFrame = (fountainAnimationFrame + 1) % 3 // 3 frames
+      fountainAnimationTimer = 0
+    }
+
     render()
     animationFrameId = requestAnimationFrame(renderLoop)
   }
@@ -142,22 +158,30 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
         // Draw the tile
         if (sprite) {
-          // Check if this is a locked door that should flash red
-          const isLockedDoor = tileType === 'door' &&
-                               lockedDoorFlash &&
-                               lockedDoorFlash.active &&
-                               lockedDoorFlash.gridX === worldTileX &&
-                               lockedDoorFlash.gridY === worldTileY
+          // Check if this tile type is animated (fountain)
+          const isAnimatedFountain = tileType === 'manaFountain' || tileType === 'healthFountain'
 
-          if (isLockedDoor) {
-            // Draw locked door with red flash effect
-            ctx.save()
-            ctx.filter = 'brightness(1.5) saturate(3) hue-rotate(-60deg) contrast(1.5)'
-            drawTile(ctx, sprite, drawX, drawY)
-            ctx.restore()
+          if (isAnimatedFountain) {
+            // Draw animated fountain
+            drawAnimatedTile(ctx, sprite, fountainAnimationFrame, drawX, drawY)
           } else {
-            // Draw normal tile
-            drawTile(ctx, sprite, drawX, drawY)
+            // Check if this is a locked door that should flash red
+            const isLockedDoor = tileType === 'door' &&
+                                 lockedDoorFlash &&
+                                 lockedDoorFlash.active &&
+                                 lockedDoorFlash.gridX === worldTileX &&
+                                 lockedDoorFlash.gridY === worldTileY
+
+            if (isLockedDoor) {
+              // Draw locked door with red flash effect
+              ctx.save()
+              ctx.filter = 'brightness(1.5) saturate(3) hue-rotate(-60deg) contrast(1.5)'
+              drawTile(ctx, sprite, drawX, drawY)
+              ctx.restore()
+            } else {
+              // Draw normal tile
+              drawTile(ctx, sprite, drawX, drawY)
+            }
           }
         }
       }
@@ -182,8 +206,15 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
         // Draw wall if present
-        if (levelLoader.isWall(worldTileX, worldTileY)) {
+        const tileType = levelLoader.getTileType(worldTileX, worldTileY)
+        if (tileType === 'wall') {
           drawTile(ctx, 'W', drawX, drawY)
+        } else if (tileType === 'manaWall') {
+          // Draw animated mana wall
+          drawAnimatedTile(ctx, 'manaWall', fountainAnimationFrame, drawX, drawY)
+        } else if (tileType === 'healthWall') {
+          // Draw animated health wall
+          drawAnimatedTile(ctx, 'healthWall', fountainAnimationFrame, drawX, drawY)
         }
       }
     }

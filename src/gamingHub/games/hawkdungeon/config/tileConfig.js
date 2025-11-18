@@ -48,6 +48,20 @@ export const tileConfig = {
     walkable: false
   },
 
+  // Mana Wall tile (animated)
+  manaWall: {
+    sprite: 'manaWall',
+    walkable: false,
+    animated: true
+  },
+
+  // Health Wall tile (animated)
+  healthWall: {
+    sprite: 'healthWall',
+    walkable: false,
+    animated: true
+  },
+
   // Door tile - has states (closed/open)
   door: {
     hasState: true,
@@ -82,6 +96,24 @@ export const tileConfig = {
     }
   },
 
+  // Mana Fountain - animated, restores mana
+  manaFountain: {
+    sprite: 'manaFountain', // Animated sprite
+    walkable: true,
+    animated: true,
+    restoresMana: true, // Special property
+    manaRestore: 'full' // Restores full mana
+  },
+
+  // Health Fountain - animated, restores health
+  healthFountain: {
+    sprite: 'healthFountain', // Animated sprite
+    walkable: true,
+    animated: true,
+    restoresHealth: true, // Special property
+    healthRestore: 'full' // Restores full health
+  },
+
   // Add more tile types here as needed
   // Example for future expansion:
   //
@@ -107,11 +139,17 @@ export const tileCharacterMap = {
   ':': 'floor3',     // Floor type 3
 
   // Walls and doors
-  'W': 'wall',       // Wall
-  'D': 'door',       // Door
+  'W': 'wall',         // Wall
+  'A': 'manaWall',     // Mana Wall (animated)
+  'B': 'healthWall',   // Health Wall (animated)
+  'D': 'door',         // Door
 
   // Traps
   '^': 'trap',       // Trap (hidden by default)
+
+  // Fountains
+  'M': 'manaFountain',    // Mana fountain (restores mana)
+  'H': 'healthFountain',  // Health fountain (restores health)
 
   // Special markers (render as floor underneath)
   'C': 'floor1',     // Chest (floor underneath, chest is rendered separately)

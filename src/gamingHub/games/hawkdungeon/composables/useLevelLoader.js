@@ -76,7 +76,7 @@ export function useLevelLoader() {
         }
 
         // Determine if this is a wall or floor for backward compatibility
-        if (tileType === 'wall') {
+        if (tileType === 'wall' || tileType === 'manaWall' || tileType === 'healthWall') {
           levelData.walls.add(key)
         } else if (tileType !== 'empty') {
           // Any non-empty, non-wall tile is considered "floor" for rendering

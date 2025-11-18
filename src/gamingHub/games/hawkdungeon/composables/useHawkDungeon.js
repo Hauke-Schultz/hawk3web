@@ -249,8 +249,9 @@ export function useHawkDungeon() {
         knight.animationState = 'idle'
         knight.animationFrame = 0
 
-        // Check for traps after movement is complete
+        // Check for traps and fountains after movement is complete
         checkForTraps()
+        checkForFountains()
       } else {
         // Smooth interpolation
         const eased = easeInOutQuad(moveProgress)
@@ -284,6 +285,31 @@ export function useHawkDungeon() {
         console.log(`Player stepped on hidden trap! Revealed and took ${damage} damage`)
       } else {
         console.log(`Player stepped on visible trap! Took ${damage} damage`)
+      }
+    }
+  }
+
+  // Check if player stepped on a fountain and restore mana/health
+  const checkForFountains = () => {
+    if (!levelLoader) return
+
+    const tileType = levelLoader.getTileType(knight.gridX, knight.gridY)
+
+    // Check if player is standing on a mana fountain
+    if (tileType === 'manaFountain') {
+      // Restore mana to max
+      if (gameState.currentMana < gameState.maxMana) {
+        gameState.currentMana = gameState.maxMana
+        console.log('Mana fully restored by fountain!')
+      }
+    }
+
+    // Check if player is standing on a health fountain
+    if (tileType === 'healthFountain') {
+      // Restore health to max
+      if (gameState.currentHealth < gameState.maxHealth) {
+        gameState.currentHealth = gameState.maxHealth
+        console.log('Health fully restored by fountain!')
       }
     }
   }
