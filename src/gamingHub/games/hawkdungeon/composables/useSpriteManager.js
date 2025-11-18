@@ -99,23 +99,18 @@ export function useSpriteManager() {
 
   // Get tile configuration from spriteConfig
   const getTileConfig = (tileType) => {
-    // Check dungeon tiles
-    if (spriteConfig.dungeon[tileType]) {
-      return spriteConfig.dungeon[tileType]
-    }
-
-    // Check dungeon tiles with floor variants
-    if (tileType.startsWith('floor')) {
-      return spriteConfig.dungeon[tileType] || spriteConfig.dungeon.floor
+    // Check tiles (map characters like '.', ',', ':', 'W', 'D', 'C')
+    if (spriteConfig.tiles && spriteConfig.tiles[tileType]) {
+      return spriteConfig.tiles[tileType]
     }
 
     // Check weapons
-    if (spriteConfig.weapons[tileType]) {
+    if (spriteConfig.weapons && spriteConfig.weapons[tileType]) {
       return spriteConfig.weapons[tileType]
     }
 
     // Check items
-    if (spriteConfig.items[tileType]) {
+    if (spriteConfig.items && spriteConfig.items[tileType]) {
       return spriteConfig.items[tileType]
     }
 

@@ -132,10 +132,19 @@ export const spriteConfig = {
   },
 
   // Dungeon tiles (16×16 px each)
-  dungeon: {
-    floor: { width: 16, height: 16, x: 16, y: 64 },
-    door: { width: 16, height: 16, x: 0, y: 48 },
-    wall: { width: 16, height: 16, x: 32 , y: 16 },
+  // Map characters are used as keys for easy mapping
+  tiles: {
+    // Floor variations
+    '.': { width: 16, height: 16, x: 16, y: 64, name: 'floor1' },     // Floor type 1
+    ',': { width: 16, height: 16, x: 32, y: 64, name: 'floor2' },     // Floor type 2
+    ':': { width: 16, height: 16, x: 48, y: 64, name: 'floor3' },     // Floor type 3
+
+    // Walls and doors
+    'W': { width: 16, height: 16, x: 32, y: 16, name: 'wall' },       // Wall
+    'D': { width: 16, height: 16, x: 0, y: 48, name: 'door' },        // Door
+
+    // Objects
+    'C': { width: 16, height: 16, x: 304, y: 400, name: 'chest' },    // Chest (closed)
   }
 }
 

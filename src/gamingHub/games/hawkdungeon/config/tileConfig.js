@@ -20,15 +20,31 @@ export const tileConfig = {
     walkable: false
   },
 
-  // Basic floor tile
+  // Basic floor tile (fallback)
   floor: {
-    sprite: 'floor',
+    sprite: '.',
+    walkable: true
+  },
+
+  // Floor variations
+  floor1: {
+    sprite: '.',
+    walkable: true
+  },
+
+  floor2: {
+    sprite: ',',
+    walkable: true
+  },
+
+  floor3: {
+    sprite: ':',
     walkable: true
   },
 
   // Wall tile
   wall: {
-    sprite: 'wall',
+    sprite: 'W',
     walkable: false
   },
 
@@ -38,11 +54,11 @@ export const tileConfig = {
     defaultState: 'closed',
     states: {
       closed: {
-        sprite: 'door',
+        sprite: 'D',
         walkable: false
       },
       open: {
-        sprite: 'floor', // Open door looks like floor
+        sprite: '.', // Open door looks like floor
         walkable: true
       }
     }
@@ -82,12 +98,21 @@ export const tileConfig = {
  * This allows the level designer to use simple characters in the map string
  */
 export const tileCharacterMap = {
-  '.': 'floor',      // Floor
+  // Floor variations
+  '.': 'floor1',     // Floor type 1
+  ',': 'floor2',     // Floor type 2
+  ':': 'floor3',     // Floor type 3
+
+  // Walls and doors
   'W': 'wall',       // Wall
   'D': 'door',       // Door
-  'C': 'floor',      // Chest (floor underneath, chest is rendered separately)
-  'P': 'floor',      // Player start (floor underneath)
-  'G': 'floor',      // Goblin spawn (floor underneath)
+
+  // Special markers (render as floor underneath)
+  'C': 'floor1',     // Chest (floor underneath, chest is rendered separately)
+  'P': 'floor1',     // Player start (floor underneath)
+  'G': 'floor1',     // Goblin spawn (floor underneath)
+
+  // Empty space
   ' ': 'empty',      // Empty/void
 
   // Add more character mappings here as needed

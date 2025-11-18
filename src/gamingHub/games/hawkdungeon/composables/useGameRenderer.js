@@ -167,7 +167,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
         // Draw wall if present
         if (levelLoader.isWall(worldTileX, worldTileY)) {
-          drawTile(ctx, 'wall', drawX, drawY)
+          drawTile(ctx, 'W', drawX, drawY)
         }
       }
     }
