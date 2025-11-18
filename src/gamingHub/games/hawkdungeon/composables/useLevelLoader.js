@@ -7,6 +7,8 @@ export function useLevelLoader() {
   const currentLevel = ref(null)
   const levelData = reactive({
     tiles: [],
+    underLayer: [],
+    overLayer: [],
     walls: new Set(),
     floors: new Map(),
     tileTypes: new Map(), // Map of position -> tile type
@@ -43,6 +45,8 @@ export function useLevelLoader() {
    */
   const parseLevel = (level) => {
     levelData.tiles = level.tiles
+    levelData.underLayer = level.underLayer || []
+    levelData.overLayer = level.overLayer || []
     levelData.width = level.width
     levelData.height = level.height
     levelData.playerStart = level.playerStart

@@ -60,10 +60,10 @@ export function useSpriteManager() {
   }
 
   // Draw a tile (non-animated sprite) with scaling
-  const drawTile = (ctx, tileType, x, y) => {
+  const drawTile = (ctx, tileType, x, y, layer = 'main') => {
     if (!isLoaded.value || !spritesheet.value) return
 
-    const config = getTileConfig(tileType)
+    const config = getTileConfig(tileType, layer)
     if (!config) return
 
     const { width, height, x: sourceX, y: sourceY } = config
@@ -137,7 +137,16 @@ export function useSpriteManager() {
   }
 
   // Get tile configuration from spriteConfig
-  const getTileConfig = (tileType) => {
+  const getTileConfig = (tileType, layer = 'main') => {
+    // Check layer-specific decorations first
+    if (layer === 'underLayer' && spriteConfig.underLayerDecorations && spriteConfig.underLayerDecorations[tileType]) {
+      return spriteConfig.underLayerDecorations[tileType]
+    }
+
+    if (layer === 'overLayer' && spriteConfig.overLayerDecorations && spriteConfig.overLayerDecorations[tileType]) {
+      return spriteConfig.overLayerDecorations[tileType]
+    }
+
     // Check tiles (map characters like '.', ',', ':', 'W', 'D', 'C')
     if (spriteConfig.tiles && spriteConfig.tiles[tileType]) {
       return spriteConfig.tiles[tileType]
@@ -153,7 +162,7 @@ export function useSpriteManager() {
       return spriteConfig.items[tileType]
     }
 
-    console.warn(`Tile type "${tileType}" not found in spriteConfig`)
+    console.warn(`Tile type "${tileType}" not found in spriteConfig for layer "${layer}"`)
     return null
   }
 

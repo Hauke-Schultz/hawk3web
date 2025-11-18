@@ -201,6 +201,26 @@ export const spriteConfig = {
     // Traps
     '^': { width: 16, height: 16, x: 16, y: 192, name: 'trap_hidden' },     // Hidden trap
     'T': { width: 16, height: 16, x: 64, y: 192, name: 'trap_triggered' },  // Triggered trap (visible spikes)
+  },
+
+  // Under Layer decorations (rendered BELOW player/enemies)
+  // These are transparent tiles that appear on the floor
+  underLayerDecorations: {
+    's': { width: 16, height: 16, x: 288, y: 432, name: 'skull' },         // Skull (Totenschädel)
+    '.': null  // Transparent/empty
+  },
+
+  // Over Layer decorations (rendered ABOVE player/enemies)
+  // These are transparent tiles like cobwebs, hanging decorations
+  overLayerDecorations: {
+    'w': { width: 16, height: 16, x: 304, y: 400, name: 'cobweb' },        // Cobweb (Spinnennetz)
+    'a': { width: 16, height: 16, x: 64, y: 0, name: 'healthHead' },       // HealthHorns (Hörner)
+    'b': { width: 16, height: 16, x: 80, y: 0, name: 'manaHead' },         // ManaHorns (Hörner)
+    't': { width: 16, height: 16, x: 48, y: 0, name: 'wallTop' },          // WallTop (Mauer oben)
+    'v': { width: 16, height: 16, x: 32, y: 128, name: 'vines' },          // Vines (Ranken)
+    'h': { width: 16, height: 16, x: 48, y: 128, name: 'hanging_deco' },   // Hanging decoration
+    'l': { width: 16, height: 16, x: 64, y: 128, name: 'light_beam' },     // Light beam (Lichtstrahl)
+    '.': null  // Transparent/empty
   }
 }
 

@@ -149,6 +149,7 @@ export const tileCharacterMap = {
 
   // Fountains
   'M': 'manaFountain',    // Mana fountain (restores mana)
+  'Q': 'manaFountain',    // Mana fountain (alternative mapping)
   'H': 'healthFountain',  // Health fountain (restores health)
 
   // Special markers (render as floor underneath)
@@ -231,6 +232,80 @@ export const getTileSprite = (tileType, state = null) => {
 export const getTileDefaultState = (tileType) => {
   const config = getTileConfig(tileType)
   return config?.defaultState ?? null
+}
+
+/**
+ * Layer type enumeration
+ */
+export const LayerType = {
+  MAIN: 'main',
+  UNDER: 'under',
+  OVER: 'over'
+}
+
+/**
+ * Get all layers from a map configuration
+ * @param {object} mapConfig - The map configuration from levelConfig
+ * @returns {object} Object containing all layer arrays
+ */
+export const getMapLayers = (mapConfig) => {
+  return {
+    main: mapConfig.tiles || [],
+    under: mapConfig.underLayer || [],
+    over: mapConfig.overLayer || []
+  }
+}
+
+/**
+ * Get a tile character from a specific layer at coordinates
+ * @param {object} mapConfig - The map configuration from levelConfig
+ * @param {number} x - The x coordinate
+ * @param {number} y - The y coordinate
+ * @param {string} layerType - The layer type (use LayerType enum)
+ * @returns {string|null} The character at that position, or null if out of bounds
+ */
+export const getTileAtPosition = (mapConfig, x, y, layerType = LayerType.MAIN) => {
+  let layer
+
+  switch (layerType) {
+    case LayerType.MAIN:
+      layer = mapConfig.tiles
+      break
+    case LayerType.UNDER:
+      layer = mapConfig.underLayer
+      break
+    case LayerType.OVER:
+      layer = mapConfig.overLayer
+      break
+    default:
+      return null
+  }
+
+  if (!layer || y < 0 || y >= layer.length) return null
+
+  const row = layer[y]
+  if (!row || x < 0 || x >= row.length) return null
+
+  return row[x]
+}
+
+/**
+ * Check if a layer has any decorations
+ * @param {object} mapConfig - The map configuration from levelConfig
+ * @param {string} layerType - The layer type to check
+ * @returns {boolean} True if the layer exists and has decorations
+ */
+export const hasLayer = (mapConfig, layerType) => {
+  switch (layerType) {
+    case LayerType.UNDER:
+      return !!mapConfig.underLayer
+    case LayerType.OVER:
+      return !!mapConfig.overLayer
+    case LayerType.MAIN:
+      return !!mapConfig.tiles
+    default:
+      return false
+  }
 }
 
 export default tileConfig

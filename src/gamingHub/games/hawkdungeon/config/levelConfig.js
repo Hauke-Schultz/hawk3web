@@ -1,3 +1,35 @@
+/**
+ * TILE LEGEND:
+ *
+ * Main Layer (tiles):
+ * W = Wall
+ * . = Floor (light)
+ * , = Floor (variant 1)
+ * : = Floor (variant 2)
+ * ^ = Floor (variant 3)
+ * A = Archway/Door
+ * C = Chest
+ * M = Monster spawn
+ * Q = Mana fountain (Mana-Quelle)
+ * D = Decoration (pillar/statue)
+ * B = Boss spawn area
+ * H = Healing shrine
+ *
+ * Under Layer (unterLayer) - rendered BELOW player/enemies:
+ * . = Transparent/empty
+ * s = Skull (Totenschädel)
+ * b = Blood stain (Blutfleck)
+ * r = Rubble (Schutt)
+ * c = Crack (Riss)
+ *
+ * Over Layer (overLayer) - rendered ABOVE player/enemies:
+ * . = Transparent/empty
+ * w = Cobweb (Spinnennetz)
+ * o = Horns (Hörner - über Mana-Quelle)
+ * v = Vines (Ranken)
+ * h = Hanging decoration (hängende Deko)
+ * l = Light beam (Lichtstrahl)
+ */
 
 export const levelConfig = {
   1: {
@@ -20,29 +52,64 @@ export const levelConfig = {
       name: 'Entrance Hall',
       description: 'A simple rectangular room with some obstacles',
       width: 11,
-      height: 11,
+      height: 14,
       playerStart: {
         x: 4,
         y: 4
       },
       tiles: [
+        '           ',
         'WWWWWWAWWWW',
         'W.,.,:M..:W',
         'W.:C.,:,:.W',
-        'W,:.^.WWWWW',
+        'W,:^,.WWWWW',
         'W:.,..W,.:W',
         'W.,:,.D:.,W',
         'W,:^..W.,:W',
-        'W.:.:.WWWWW',
-        'W,:..:,.^.W',
-        'W:^,,.B.,:W',
-        'W.,:.:H.:,W',
+        'W.:.:.WBWWW',
+        'W,:..:,H^.W',
+        'W:^,,.,.,:W',
+        'W.,:.:..:,W',
         'WWWWWWWWWWW'
+      ],
+      // Layer unter Spieler/Feinden (z.B. Bodendeko wie Totenschädel, Blutflecken)
+      // '.' = transparent/leer, andere Zeichen = Deko-Tiles
+      underLayer: [
+        '...........',
+        '...........',
+        '.s.........',
+        '...........',
+        '....s......',
+        '...........',
+        '...........',
+        '...........',
+        '...........',
+        '...........',
+        '...........',
+        '...........',
+        '...........'
+      ],
+      // Layer über Spieler/Feinden (z.B. Spinnenweben, hängende Deko)
+      // '.' = transparent/leer, andere Zeichen = Deko-Tiles
+      overLayer: [
+        'ttttttatttt',
+        '...........',
+        '...........',
+        '......tttt.',
+        '...........',
+        '...........',
+        '...........',
+        '.......btt.',
+        '...........',
+        '...........',
+        '...........',
+        '.ttttttttt.',
+        '...........'
       ],
       chests: [
         {
           x: 3,
-          y: 2,
+          y: 3,
           items: [
             { type: 'key' },
             { type: 'health', count: 2 },
@@ -51,7 +118,7 @@ export const levelConfig = {
         },
         {
           x: 8,
-          y: 5,
+          y: 6,
           items: [
             { type: 'weapon', name: 'axe' },
             { type: 'weapon', name: 'spear' },

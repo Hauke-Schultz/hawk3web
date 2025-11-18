@@ -1,7 +1,7 @@
 // Game renderer composable
 import { watch, onMounted } from 'vue'
 import { useSpriteManager } from './useSpriteManager'
-import { TILE_SIZE, SPRITE_SCALE } from '../config/spriteConfig'
+import { TILE_SIZE, SPRITE_SCALE, spriteConfig } from '../config/spriteConfig'
 
 export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, lockedDoorFlash, levelLoader, chestSystem) {
   const { loadSpritesheet, drawSprite, drawTile, drawAnimatedTile, getAnimatedTileConfig, isLoaded } = useSpriteManager()
@@ -67,6 +67,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     // Draw dungeon background
     drawDungeon(centerX, centerY)
 
+    // Draw under layer decorations (below player/enemies)
+    drawUnderLayer(centerX, centerY)
+
     // Draw chests
     drawChests(centerX, centerY)
 
@@ -81,6 +84,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
     // Draw attack direction indicator
     drawAttackDirectionIndicator(centerX, centerY)
+
+    // Draw over layer decorations (above player/enemies)
+    drawOverLayer(centerX, centerY)
 
     // Draw damage effect if knight is hit
     if (knight.isHit) {
@@ -216,6 +222,106 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
           // Draw animated health wall
           drawAnimatedTile(ctx, 'healthWall', fountainAnimationFrame, drawX, drawY)
         }
+      }
+    }
+  }
+
+  const drawUnderLayer = (centerX, centerY) => {
+    if (!levelLoader || !levelLoader.levelData.underLayer) return
+
+    // Calculate visible tile range
+    const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 2
+    const tilesY = Math.ceil(canvasHeight / TILE_SIZE) + 2
+
+    const knightWorldX = knight.gridX
+    const knightWorldY = knight.gridY
+
+    const startTileX = knightWorldX - Math.ceil(tilesX / 2)
+    const startTileY = knightWorldY - Math.ceil(tilesY / 2)
+
+    // Draw under layer decorations
+    for (let y = 0; y < tilesY; y++) {
+      for (let x = 0; x < tilesX; x++) {
+        const worldTileX = startTileX + x
+        const worldTileY = startTileY + y
+
+        // Skip tiles outside level bounds
+        if (worldTileX < 0 || worldTileX >= levelLoader.levelData.width ||
+            worldTileY < 0 || worldTileY >= levelLoader.levelData.height) {
+          continue
+        }
+
+        // Get character from underLayer
+        const underLayer = levelLoader.levelData.underLayer
+        if (!underLayer[worldTileY]) continue
+
+        const tileChar = underLayer[worldTileY][worldTileX]
+
+        // Skip empty/transparent tiles
+        if (!tileChar || tileChar === '.') continue
+
+        // Get sprite config for this decoration
+        const decoSprite = spriteConfig.underLayerDecorations[tileChar]
+        if (!decoSprite) continue
+
+        // Calculate screen position
+        const worldX = worldTileX * TILE_SIZE
+        const worldY = worldTileY * TILE_SIZE
+        const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+        const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
+
+        // Draw the decoration sprite
+        drawTile(ctx, tileChar, drawX, drawY, 'underLayer')
+      }
+    }
+  }
+
+  const drawOverLayer = (centerX, centerY) => {
+    if (!levelLoader || !levelLoader.levelData.overLayer) return
+
+    // Calculate visible tile range
+    const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 2
+    const tilesY = Math.ceil(canvasHeight / TILE_SIZE) + 2
+
+    const knightWorldX = knight.gridX
+    const knightWorldY = knight.gridY
+
+    const startTileX = knightWorldX - Math.ceil(tilesX / 2)
+    const startTileY = knightWorldY - Math.ceil(tilesY / 2)
+
+    // Draw over layer decorations
+    for (let y = 0; y < tilesY; y++) {
+      for (let x = 0; x < tilesX; x++) {
+        const worldTileX = startTileX + x
+        const worldTileY = startTileY + y
+
+        // Skip tiles outside level bounds
+        if (worldTileX < 0 || worldTileX >= levelLoader.levelData.width ||
+            worldTileY < 0 || worldTileY >= levelLoader.levelData.height) {
+          continue
+        }
+
+        // Get character from overLayer
+        const overLayer = levelLoader.levelData.overLayer
+        if (!overLayer[worldTileY]) continue
+
+        const tileChar = overLayer[worldTileY][worldTileX]
+
+        // Skip empty/transparent tiles
+        if (!tileChar || tileChar === '.') continue
+
+        // Get sprite config for this decoration
+        const decoSprite = spriteConfig.overLayerDecorations[tileChar]
+        if (!decoSprite) continue
+
+        // Calculate screen position
+        const worldX = worldTileX * TILE_SIZE
+        const worldY = worldTileY * TILE_SIZE
+        const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+        const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
+
+        // Draw the decoration sprite
+        drawTile(ctx, tileChar, drawX, drawY, 'overLayer')
       }
     }
   }
