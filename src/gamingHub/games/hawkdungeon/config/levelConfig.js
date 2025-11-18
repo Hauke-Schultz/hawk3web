@@ -19,23 +19,25 @@ export const levelConfig = {
     map: {
       name: 'Entrance Hall',
       description: 'A simple rectangular room with some obstacles',
-      width: 10,
-      height: 10,
+      width: 11,
+      height: 11,
       playerStart: {
         x: 4,
         y: 4
       },
       tiles: [
-        'WWWWWWWWWW',
-        'W........W',
-        'W..C.....W',
-        'W.....WWWW',
-        'W.....D..W',
-        'W.....WWWW',
-        'W........W',
-        'W.....C..W',
-        'W........W',
-        'WWWWWWWWWW'
+        'WWWWWWWWWWW',
+        'W.........W',
+        'W..C......W',
+        'W.....WWWWW',
+        'W.....W...W',
+        'W.....D...W',
+        'W.....W...W',
+        'W.....WWWWW',
+        'W.........W',
+        'W.........W',
+        'W.........W',
+        'WWWWWWWWWWW'
       ],
       chests: [
         {
@@ -48,8 +50,8 @@ export const levelConfig = {
           ]
         },
         {
-          x: 6,
-          y: 7,
+          x: 8,
+          y: 5,
           items: [
             { type: 'weapon', name: 'axe' },
             { type: 'weapon', name: 'spear' },

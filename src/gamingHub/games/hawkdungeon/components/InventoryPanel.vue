@@ -2,10 +2,6 @@
   <div class="inventory-panel">
     <!-- Weapons Section -->
     <div class="inventory-section">
-      <div class="section-header">
-        <span class="section-icon">⚔️</span>
-        <span class="section-title">Weapons</span>
-      </div>
       <div class="inventory-grid">
         <div
           v-for="(weaponName, index) in weapons"
@@ -24,16 +20,6 @@
           <div class="item-name">{{ weaponConfig[weaponName]?.name || weaponName }}</div>
           <div v-if="weaponName === currentWeapon" class="item-active-indicator">✓</div>
         </div>
-      </div>
-    </div>
-
-    <!-- Items Section -->
-    <div class="inventory-section">
-      <div class="section-header">
-        <span class="section-icon">🎒</span>
-        <span class="section-title">Items</span>
-      </div>
-      <div class="inventory-grid">
         <!-- Group items by type and count them -->
         <div
           v-for="itemGroup in groupedInventory"
@@ -48,12 +34,6 @@
           />
           <div class="item-name">{{ getItemDisplayName(itemGroup.type) }}</div>
           <div v-if="itemGroup.count > 1" class="item-count">{{ itemGroup.count }}</div>
-        </div>
-
-        <!-- Empty state if no items -->
-        <div v-if="groupedInventory.length === 0" class="inventory-empty">
-          <span class="empty-icon">📦</span>
-          <span class="empty-text">No items</span>
         </div>
       </div>
     </div>
@@ -234,14 +214,15 @@ watch(isLoaded, (loaded) => {
 <style scoped>
 .inventory-panel {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 20px;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 20px;
   border: 2px solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(15px);
   max-width: 800px;
+	min-width: 340px;
   max-height: 70vh;
   overflow-y: auto;
 }
@@ -250,6 +231,7 @@ watch(isLoaded, (loaded) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+	width: 100%;
 }
 
 .section-header {
