@@ -40,7 +40,7 @@ export const levelConfig = {
     bossTypes: ['boss'],
     spawnRate: 5, // Seconds between spawns
     maxEnemies: 5,
-    killGoal: 1,
+    killGoal: 5,
     hasBoss: true, // Boss appears after killGoal reached
     timeLimit: 120, // 2 minutes
     difficulty: 'easy',
@@ -77,9 +77,9 @@ export const levelConfig = {
       underLayer: [
         '...........',
         '...........',
-        '.s.........',
         '...........',
-        '....s......',
+        '...........',
+        '...........',
         '...........',
         '...........',
         '...........',

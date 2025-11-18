@@ -227,7 +227,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawUnderLayer = (centerX, centerY) => {
-    if (!levelLoader || !levelLoader.levelData.underLayer) return
+    if (!levelLoader) return
 
     // Calculate visible tile range
     const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 2
@@ -251,11 +251,19 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
           continue
         }
 
-        // Get character from underLayer
-        const underLayer = levelLoader.levelData.underLayer
-        if (!underLayer[worldTileY]) continue
+        let tileChar = null
 
-        const tileChar = underLayer[worldTileY][worldTileX]
+        // First check for dynamic decorations (they override static ones)
+        const dynamicDeco = levelLoader.getDynamicUnderDecoration(worldTileX, worldTileY)
+        if (dynamicDeco) {
+          tileChar = dynamicDeco
+        } else {
+          // Get character from static underLayer
+          const underLayer = levelLoader.levelData.underLayer
+          if (underLayer && underLayer[worldTileY]) {
+            tileChar = underLayer[worldTileY][worldTileX]
+          }
+        }
 
         // Skip empty/transparent tiles
         if (!tileChar || tileChar === '.') continue
@@ -277,7 +285,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
   }
 
   const drawOverLayer = (centerX, centerY) => {
-    if (!levelLoader || !levelLoader.levelData.overLayer) return
+    if (!levelLoader) return
 
     // Calculate visible tile range
     const tilesX = Math.ceil(canvasWidth / TILE_SIZE) + 2
@@ -301,11 +309,19 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
           continue
         }
 
-        // Get character from overLayer
-        const overLayer = levelLoader.levelData.overLayer
-        if (!overLayer[worldTileY]) continue
+        let tileChar = null
 
-        const tileChar = overLayer[worldTileY][worldTileX]
+        // First check for dynamic decorations (they override static ones)
+        const dynamicDeco = levelLoader.getDynamicOverDecoration(worldTileX, worldTileY)
+        if (dynamicDeco) {
+          tileChar = dynamicDeco
+        } else {
+          // Get character from static overLayer
+          const overLayer = levelLoader.levelData.overLayer
+          if (overLayer && overLayer[worldTileY]) {
+            tileChar = overLayer[worldTileY][worldTileX]
+          }
+        }
 
         // Skip empty/transparent tiles
         if (!tileChar || tileChar === '.') continue

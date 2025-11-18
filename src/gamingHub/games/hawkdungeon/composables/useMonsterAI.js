@@ -350,6 +350,14 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
       monster.deathAnimationStartTime = performance.now()
       monster.deathAnimationProgress = 0
 
+      // Add blood stain at monster's death position
+      if (levelLoader && levelLoader.addBloodStain) {
+        // Round to grid position to ensure it's placed correctly
+        const bloodX = Math.round(monster.gridX)
+        const bloodY = Math.round(monster.gridY)
+        levelLoader.addBloodStain(bloodX, bloodY)
+      }
+
       // Track kills separately for bosses
       if (monster.isBoss) {
         gameState.bossKills += 1

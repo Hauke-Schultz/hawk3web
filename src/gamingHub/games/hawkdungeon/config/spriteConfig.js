@@ -206,6 +206,7 @@ export const spriteConfig = {
   // Under Layer decorations (rendered BELOW player/enemies)
   // These are transparent tiles that appear on the floor
   underLayerDecorations: {
+    'b': { width: 16, height: 16, x: 288, y: 432, name: 'blood' },         // Blood (Blutfleck)
     's': { width: 16, height: 16, x: 288, y: 432, name: 'skull' },         // Skull (Totenschädel)
     '.': null  // Transparent/empty
   },

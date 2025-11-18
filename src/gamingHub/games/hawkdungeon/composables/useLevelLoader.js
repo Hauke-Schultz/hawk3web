@@ -9,6 +9,8 @@ export function useLevelLoader() {
     tiles: [],
     underLayer: [],
     overLayer: [],
+    dynamicUnderLayer: new Map(), // Dynamic decorations added during gameplay (e.g., blood stains)
+    dynamicOverLayer: new Map(),  // Dynamic over-layer decorations
     walls: new Set(),
     floors: new Map(),
     tileTypes: new Map(), // Map of position -> tile type
@@ -56,6 +58,8 @@ export function useLevelLoader() {
     levelData.floors.clear()
     levelData.tileTypes.clear()
     levelData.tileStates.clear()
+    levelData.dynamicUnderLayer.clear()
+    levelData.dynamicOverLayer.clear()
     levelData.chests = []
 
     // Parse tiles and collect 'C' positions
@@ -248,6 +252,71 @@ export function useLevelLoader() {
     }
   }
 
+  /**
+   * Add a dynamic decoration to the under layer (e.g., blood stain)
+   * @param {number} gridX - X coordinate
+   * @param {number} gridY - Y coordinate
+   * @param {string} decoChar - The decoration character (e.g., 'b' for blood)
+   */
+  const addDynamicUnderDecoration = (gridX, gridY, decoChar) => {
+    // Check if within bounds
+    if (gridX < 0 || gridX >= levelData.width || gridY < 0 || gridY >= levelData.height) {
+      return false
+    }
+
+    const key = `${gridX},${gridY}`
+    levelData.dynamicUnderLayer.set(key, decoChar)
+    return true
+  }
+
+  /**
+   * Add a dynamic decoration to the over layer
+   * @param {number} gridX - X coordinate
+   * @param {number} gridY - Y coordinate
+   * @param {string} decoChar - The decoration character
+   */
+  const addDynamicOverDecoration = (gridX, gridY, decoChar) => {
+    // Check if within bounds
+    if (gridX < 0 || gridX >= levelData.width || gridY < 0 || gridY >= levelData.height) {
+      return false
+    }
+
+    const key = `${gridX},${gridY}`
+    levelData.dynamicOverLayer.set(key, decoChar)
+    return true
+  }
+
+  /**
+   * Add a blood stain at the specified position
+   * @param {number} gridX - X coordinate
+   * @param {number} gridY - Y coordinate
+   */
+  const addBloodStain = (gridX, gridY) => {
+    return addDynamicUnderDecoration(gridX, gridY, 'b')
+  }
+
+  /**
+   * Get dynamic under decoration at position
+   * @param {number} gridX - X coordinate
+   * @param {number} gridY - Y coordinate
+   * @returns {string|null} The decoration character or null
+   */
+  const getDynamicUnderDecoration = (gridX, gridY) => {
+    const key = `${gridX},${gridY}`
+    return levelData.dynamicUnderLayer.get(key) || null
+  }
+
+  /**
+   * Get dynamic over decoration at position
+   * @param {number} gridX - X coordinate
+   * @param {number} gridY - Y coordinate
+   * @returns {string|null} The decoration character or null
+   */
+  const getDynamicOverDecoration = (gridX, gridY) => {
+    const key = `${gridX},${gridY}`
+    return levelData.dynamicOverLayer.get(key) || null
+  }
+
   return {
     currentLevel,
     levelData,
@@ -259,7 +328,12 @@ export function useLevelLoader() {
     getTileType,
     getTileState,
     setTileState,
-    getTileSpriteAt
+    getTileSpriteAt,
+    addBloodStain,
+    addDynamicUnderDecoration,
+    addDynamicOverDecoration,
+    getDynamicUnderDecoration,
+    getDynamicOverDecoration
   }
 }
 
