@@ -109,6 +109,9 @@ export function useHawkDungeon() {
   let healthRegenTimer = 0
   const healthRegenProgress = ref(0)
 
+  // Blood splatter callback
+  let bloodSplatterCallback = null
+
   const startGame = () => {
     gameState.isRunning = true
     gameState.level = 1
@@ -482,7 +485,7 @@ export function useHawkDungeon() {
       console.log(`Spawned ${levelLoader.levelData.chests.length} chests from level data`)
     }
 
-    monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader)
+    monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback)
     collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback, unlockWeapon, switchWeapon)
   }
 
@@ -496,6 +499,14 @@ export function useHawkDungeon() {
 
   const setLevelCompletionCallback = (callback) => {
     levelCompletionCallback = callback
+  }
+
+  const setBloodSplatterCallback = (callback) => {
+    bloodSplatterCallback = callback
+    // Reinitialize monster AI with new callback if already initialized
+    if (monsterAI) {
+      monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback)
+    }
   }
 
   let levelCompleted = false
@@ -725,7 +736,8 @@ export function useHawkDungeon() {
     startGame,
     stopGame,
     setGameOverCallback,
-    setLevelCompletionCallback
+    setLevelCompletionCallback,
+    setBloodSplatterCallback
   }
 }
 

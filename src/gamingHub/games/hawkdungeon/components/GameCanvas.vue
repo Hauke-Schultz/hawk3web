@@ -56,9 +56,59 @@ const TILE_SIZE = 64 // 16px * 4 scale
 const canvasWidth = ref(GRID_SIZE * TILE_SIZE)
 const canvasHeight = ref(GRID_SIZE * TILE_SIZE)
 
+// Blood splatter array - each splatter has gridX, gridY, pixels array, and timestamp
+const bloodSplatters = ref([])
+
 const updateCanvasSize = () => {
   // Canvas size is fixed to 7x7 grid
   // No need to update dynamically
+}
+
+// Generate random blood splatter pixels and store in array
+const generateBloodSplatter = (gridX, gridY, isBoss = false) => {
+  // Boss has 2x2 grid, so we create 4 splatters (one per tile)
+  if (isBoss) {
+    // Create splatters for each tile of the 2x2 boss
+    for (let offsetY = 0; offsetY < 2; offsetY++) {
+      for (let offsetX = 0; offsetX < 2; offsetX++) {
+        createSingleSplatter(gridX + offsetX, gridY + offsetY, true)
+      }
+    }
+  } else {
+    createSingleSplatter(gridX, gridY, false)
+  }
+}
+
+const createSingleSplatter = (gridX, gridY, isBoss) => {
+  // More pixels for boss splatters
+  const pixelCount = isBoss ? 25 + Math.floor(Math.random() * 16) : 15 + Math.floor(Math.random() * 11)
+  const pixels = []
+
+  for (let i = 0; i < pixelCount; i++) {
+    // Random position within tile (spread around center)
+    const spread = TILE_SIZE * 0.95
+    const x = (Math.random() - 0.5) * spread
+    const y = (Math.random() - 0.5) * spread
+
+    // Random red shade
+    const red = 180 + Math.floor(Math.random() * 75) // 180-255
+    const green = Math.floor(Math.random() * 20) // 0-20
+    const blue = Math.floor(Math.random() * 20) // 0-20
+    const alpha = 0.7 + Math.random() * 0.3 // 0.7-1.0
+
+    // Fixed pixel size: 4px
+    const size = 8
+
+    pixels.push({ x, y, red, green, blue, alpha, size })
+  }
+
+  // Add splatter to array with timestamp
+  bloodSplatters.value.push({
+    gridX,
+    gridY,
+    pixels,
+    createdAt: performance.now()
+  })
 }
 
 // Initialize renderer
@@ -72,7 +122,8 @@ const { initialize } = useGameRenderer(
   props.dungeonOffset,
   props.lockedDoorFlash,
   props.levelLoader,
-  props.chestSystem
+  props.chestSystem,
+  bloodSplatters
 )
 
 onMounted(async () => {
@@ -88,7 +139,8 @@ onUnmounted(() => {
 })
 
 defineExpose({
-  canvas
+  canvas,
+  generateBloodSplatter
 })
 </script>
 
@@ -114,4 +166,5 @@ canvas {
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
 }
+
 </style>

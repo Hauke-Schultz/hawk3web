@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { monsterConfig } from '../config/monsterConfig'
 import { levelConfig } from '../config/levelConfig'
 
-export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
+export function useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback = null) {
   let nextMonsterId = 0
   let spawnTimer = 0
   let currentSpawnRate = 5
@@ -355,7 +355,22 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader) {
         // Round to grid position to ensure it's placed correctly
         const bloodX = Math.round(monster.gridX)
         const bloodY = Math.round(monster.gridY)
-        levelLoader.addBloodStain(bloodX, bloodY)
+
+        // For bosses (2x2), add blood stains to all 4 tiles
+        if (monster.isBoss) {
+          for (let offsetY = 0; offsetY < 2; offsetY++) {
+            for (let offsetX = 0; offsetX < 2; offsetX++) {
+              levelLoader.addBloodStain(bloodX + offsetX, bloodY + offsetY)
+            }
+          }
+        } else {
+          levelLoader.addBloodStain(bloodX, bloodY)
+        }
+
+        // Trigger animated blood splatter effect
+        if (bloodSplatterCallback) {
+          bloodSplatterCallback(bloodX, bloodY, monster.isBoss)
+        }
       }
 
       // Track kills separately for bosses

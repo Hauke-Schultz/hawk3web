@@ -3,7 +3,7 @@ import { watch, onMounted } from 'vue'
 import { useSpriteManager } from './useSpriteManager'
 import { TILE_SIZE, SPRITE_SCALE, spriteConfig } from '../config/spriteConfig'
 
-export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, lockedDoorFlash, levelLoader, chestSystem) {
+export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, lockedDoorFlash, levelLoader, chestSystem, bloodSplatters) {
   const { loadSpritesheet, drawSprite, drawTile, drawAnimatedTile, getAnimatedTileConfig, isLoaded } = useSpriteManager()
 
   let ctx = null
@@ -282,6 +282,54 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         drawTile(ctx, tileChar, drawX, drawY, 'underLayer')
       }
     }
+
+    // Draw blood splatters after under layer decorations
+    drawBloodSplatters(centerX, centerY)
+  }
+
+  const drawBloodSplatters = (centerX, centerY) => {
+    if (!bloodSplatters || !bloodSplatters.value) return
+
+    const currentTime = performance.now()
+    const fadeOutDuration = 10000 // 10 seconds
+
+    // Remove expired splatters (older than fadeOutDuration)
+    bloodSplatters.value = bloodSplatters.value.filter(splatter => {
+      const age = currentTime - splatter.createdAt
+      return age < fadeOutDuration
+    })
+
+    // Draw each active splatter
+    bloodSplatters.value.forEach(splatter => {
+      const age = currentTime - splatter.createdAt
+
+      // Calculate opacity (stay at 1.0 for first 7 seconds, then fade out over 3 seconds)
+      let opacity = 1.0
+      if (age > 7000) {
+        opacity = 1.0 - ((age - 7000) / 3000)
+      }
+      opacity = Math.max(0, Math.min(1, opacity))
+
+      // Calculate screen position
+      const worldX = splatter.gridX * TILE_SIZE
+      const worldY = splatter.gridY * TILE_SIZE
+      const drawX = centerX + worldX + dungeonOffset.x
+      const drawY = centerY + worldY + dungeonOffset.y
+
+      // Draw each pixel in the splatter
+      splatter.pixels.forEach(pixel => {
+        const pixelX = drawX + pixel.x
+        const pixelY = drawY + pixel.y
+
+        ctx.fillStyle = `rgba(${pixel.red}, ${pixel.green}, ${pixel.blue}, ${pixel.alpha * opacity})`
+        ctx.fillRect(
+          Math.round(pixelX - pixel.size / 2),
+          Math.round(pixelY - pixel.size / 2),
+          pixel.size,
+          pixel.size
+        )
+      })
+    })
   }
 
   const drawOverLayer = (centerX, centerY) => {

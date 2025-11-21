@@ -33,6 +33,7 @@
       />
 
       <GameCanvas
+        ref="gameCanvas"
         :knight="knight"
         :monsters="monsters"
         :items="items"
@@ -143,6 +144,9 @@ const router = useRouter()
 const { t } = useI18n()
 const { gameData } = useLocalStorage()
 
+// GameCanvas ref for blood splatter effects
+const gameCanvas = ref(null)
+
 const {
   gameState,
   knight,
@@ -164,7 +168,8 @@ const {
   startGame,
   stopGame,
   setGameOverCallback,
-  setLevelCompletionCallback
+  setLevelCompletionCallback,
+  setBloodSplatterCallback
 } = useHawkDungeon()
 
 // For testing: Unlock weapons with keyboard shortcuts (Alt + 1/2/3)
@@ -200,6 +205,7 @@ if (setLevelCompletionCallback) {
     stopGame()
   })
 }
+
 
 // Calculate level rewards and achievements
 const calculateLevelRewards = () => {
@@ -503,6 +509,15 @@ const handleKeyUp = (event) => {
 }
 
 onMounted(() => {
+  // Set blood splatter callback after canvas is mounted
+  if (setBloodSplatterCallback) {
+    setBloodSplatterCallback((gridX, gridY, isBoss = false) => {
+      if (gameCanvas.value && gameCanvas.value.generateBloodSplatter) {
+        gameCanvas.value.generateBloodSplatter(gridX, gridY, isBoss)
+      }
+    })
+  }
+
   startGame()
 
   if (isEndlessMode.value) {
