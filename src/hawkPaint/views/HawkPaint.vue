@@ -13,7 +13,8 @@ const TOOLS = {
 	PENCIL: 'pencil',
 	FILL: 'fill',
 	ERASER: 'eraser',
-	PICKER: 'picker'
+	PICKER: 'picker',
+	SELECT: 'select'
 }
 
 // 8-Bit Color Palette
@@ -41,6 +42,10 @@ const currentTool = ref(TOOLS.PENCIL)
 const foregroundColor = ref('#000000')
 const backgroundColor = ref('#FFFFFF')
 const isDrawing = ref(false)
+
+// Selection state
+const selection = ref(null) // { startRow, startCol, endRow, endCol, data, offsetRow, offsetCol, isDragging }
+const selectionStart = ref(null)
 
 // Initialize grid with transparent
 const grid = reactive(
@@ -88,9 +93,95 @@ const redo = () => {
 	}
 }
 
+// Selection functions
+const isInsideSelection = (row, col) => {
+	if (!selection.value) return false
+	const { startRow, startCol, endRow, endCol } = selection.value
+	return row >= startRow && row <= endRow && col >= startCol && col <= endCol
+}
+
+const cutSelection = () => {
+	if (!selection.value) return
+
+	saveToHistory()
+	const { startRow, startCol, endRow, endCol } = selection.value
+	const data = []
+
+	// Extract pixels
+	for (let row = startRow; row <= endRow; row++) {
+		for (let col = startCol; col <= endCol; col++) {
+			const index = getPixelIndex(row, col)
+			data.push(grid[index])
+			grid[index] = 'transparent' // Clear original area
+		}
+	}
+
+	selection.value.data = data
+}
+
+const copySelection = () => {
+	if (!selection.value) return
+
+	const { startRow, startCol, endRow, endCol } = selection.value
+	const data = []
+
+	// Copy pixels without clearing
+	for (let row = startRow; row <= endRow; row++) {
+		for (let col = startCol; col <= endCol; col++) {
+			const index = getPixelIndex(row, col)
+			data.push(grid[index])
+		}
+	}
+
+	selection.value.data = data
+}
+
+const applySelectionMove = () => {
+	if (!selection.value || !selection.value.data) return
+
+	saveToHistory()
+
+	const { startRow, startCol, endRow, endCol, data, offsetRow, offsetCol } = selection.value
+	const width = endCol - startCol + 1
+	const height = endRow - startRow + 1
+
+	// Apply the moved selection
+	let dataIndex = 0
+	for (let row = 0; row < height; row++) {
+		for (let col = 0; col < width; col++) {
+			const newRow = startRow + row + offsetRow
+			const newCol = startCol + col + offsetCol
+
+			// Only paste if within bounds
+			if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
+				const gridIndex = getPixelIndex(newRow, newCol)
+				grid[gridIndex] = data[dataIndex]
+			}
+			dataIndex++
+		}
+	}
+
+	// Update selection position
+	selection.value.startRow += offsetRow
+	selection.value.endRow += offsetRow
+	selection.value.startCol += offsetCol
+	selection.value.endCol += offsetCol
+	selection.value.offsetRow = 0
+	selection.value.offsetCol = 0
+	selection.value.isDragging = false
+}
+
+const cancelSelection = () => {
+	selection.value = null
+	selectionStart.value = null
+}
+
 // Tool functions
 const selectTool = (tool) => {
 	currentTool.value = tool
+	if (tool !== TOOLS.SELECT) {
+		cancelSelection()
+	}
 }
 
 const selectColor = (color) => {
@@ -108,19 +199,76 @@ const getPixelIndex = (row, col) => {
 }
 
 const handlePixelMouseDown = (row, col) => {
-	isDrawing.value = true
-	saveToHistory()
-	applyTool(row, col)
+	if (currentTool.value === TOOLS.SELECT) {
+		// Check if clicking inside existing selection
+		if (selection.value && isInsideSelection(row, col) && !selection.value.data) {
+			// Auto-cut the selection when clicking on it
+			cutSelection()
+			selection.value.isDragging = true
+			selection.value.dragStartRow = row
+			selection.value.dragStartCol = col
+			selection.value.offsetRow = 0
+			selection.value.offsetCol = 0
+		} else if (selection.value && isInsideSelection(row, col) && selection.value.data) {
+			// Already cut, just start dragging
+			selection.value.isDragging = true
+			selection.value.dragStartRow = row
+			selection.value.dragStartCol = col
+			selection.value.offsetRow = 0
+			selection.value.offsetCol = 0
+		} else {
+			// Start new selection
+			selectionStart.value = { row, col }
+			selection.value = null
+		}
+	} else {
+		isDrawing.value = true
+		saveToHistory()
+		applyTool(row, col)
+	}
 }
 
 const handlePixelMouseEnter = (row, col) => {
-	if (isDrawing.value && currentTool.value === TOOLS.PENCIL) {
+	if (currentTool.value === TOOLS.SELECT) {
+		if (selectionStart.value && !selection.value?.isDragging) {
+			// Drawing selection rectangle
+			const startRow = Math.min(selectionStart.value.row, row)
+			const endRow = Math.max(selectionStart.value.row, row)
+			const startCol = Math.min(selectionStart.value.col, col)
+			const endCol = Math.max(selectionStart.value.col, col)
+
+			selection.value = {
+				startRow,
+				startCol,
+				endRow,
+				endCol,
+				data: null,
+				offsetRow: 0,
+				offsetCol: 0,
+				isDragging: false
+			}
+		} else if (selection.value?.isDragging) {
+			// Dragging existing selection
+			const deltaRow = row - selection.value.dragStartRow
+			const deltaCol = col - selection.value.dragStartCol
+			selection.value.offsetRow = deltaRow
+			selection.value.offsetCol = deltaCol
+		}
+	} else if (isDrawing.value && currentTool.value === TOOLS.PENCIL) {
 		applyTool(row, col)
 	}
 }
 
 const handlePixelMouseUp = () => {
-	isDrawing.value = false
+	if (currentTool.value === TOOLS.SELECT) {
+		if (selection.value?.isDragging) {
+			// Apply the move
+			applySelectionMove()
+		}
+		selectionStart.value = null
+	} else {
+		isDrawing.value = false
+	}
 }
 
 const applyTool = (row, col) => {
@@ -319,6 +467,13 @@ const handleMenuClick = () => {
 			>
 				🎨
 			</button>
+			<button
+				@click="selectTool(TOOLS.SELECT)"
+				:class="['tool-btn', { active: currentTool === TOOLS.SELECT }]"
+				title="Auswählen & Verschieben"
+			>
+				✂️
+			</button>
 
 			<!-- Active Colors -->
 			<div class="active-colors">
@@ -341,21 +496,35 @@ const handleMenuClick = () => {
 
 		<!-- Canvas -->
 		<section class="canvas-container" @mouseup="handlePixelMouseUp" @mouseleave="handlePixelMouseUp">
-			<div class="canvas">
-				<div
-					v-for="row in GRID_SIZE"
-					:key="`row-${row}`"
-					class="pixel-row"
-				>
+			<div class="canvas-wrapper">
+				<div class="canvas">
 					<div
-						v-for="col in GRID_SIZE"
-						:key="`pixel-${row}-${col}`"
-						class="pixel"
-						:style="{ backgroundColor: grid[getPixelIndex(row - 1, col - 1)] }"
-						@mousedown="handlePixelMouseDown(row - 1, col - 1)"
-						@mouseenter="handlePixelMouseEnter(row - 1, col - 1)"
-					></div>
+						v-for="row in GRID_SIZE"
+						:key="`row-${row}`"
+						class="pixel-row"
+					>
+						<div
+							v-for="col in GRID_SIZE"
+							:key="`pixel-${row}-${col}`"
+							class="pixel"
+							:style="{ backgroundColor: grid[getPixelIndex(row - 1, col - 1)] }"
+							@mousedown="handlePixelMouseDown(row - 1, col - 1)"
+							@mouseenter="handlePixelMouseEnter(row - 1, col - 1)"
+						></div>
+					</div>
 				</div>
+
+				<!-- Selection Overlay -->
+				<div
+					v-if="selection"
+					class="selection-overlay"
+					:style="{
+						top: (selection.startRow + selection.offsetRow) * 20 + 'px',
+						left: (selection.startCol + selection.offsetCol) * 20 + 'px',
+						width: (selection.endCol - selection.startCol + 1) * 20 + 'px',
+						height: (selection.endRow - selection.startRow + 1) * 20 + 'px'
+					}"
+				></div>
 			</div>
 		</section>
 
@@ -510,6 +679,11 @@ const handleMenuClick = () => {
 	padding: var(--space-4);
 }
 
+.canvas-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
 .canvas {
 	display: inline-block;
 	background-color: white;
@@ -522,6 +696,15 @@ const handleMenuClick = () => {
 	background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 	border: 2px solid var(--card-border);
 	user-select: none;
+}
+
+.selection-overlay {
+	position: absolute;
+	border: 2px dashed var(--primary-color);
+	background-color: rgba(0, 123, 255, 0.1);
+	pointer-events: none;
+	box-sizing: border-box;
+	z-index: 10;
 }
 
 .pixel-row {
