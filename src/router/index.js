@@ -18,6 +18,7 @@ import HawkGymTimer from '../hawkGym/views/HawkGymTimer.vue'
 import HawkGymSettings from "../hawkGym/views/HawkGymSettings.vue";
 import PartyInfo from '../party/PartyInfo.vue'
 import PartyRSVPAdmin from '../party/PartyRSVPAdmin.vue'
+import HawkPaint from '../hawkPaint/views/HawkPaint.vue'
 
 export const routes = [
   {
@@ -192,6 +193,11 @@ export const routes = [
     meta: {
       title: 'Hawk Gym Settings'
     }
+  },
+  {
+    path: '/hawkPaint',
+    name: 'HawkPaint',
+    component: HawkPaint
   },
   {
     path: '/:pathMatch(.*)*',
