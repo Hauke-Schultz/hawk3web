@@ -6,6 +6,10 @@
  * Each tile type can have the following properties:
  * - sprite: The sprite key from spriteConfig to use for rendering
  * - walkable: Boolean - whether the player/monsters can walk through this tile
+ * - blockType: String - categorizes the tile's blocking behavior:
+ *   - 'permanent': Cannot be changed or removed (walls, pillars)
+ *   - 'interactive': Can change state between blocking/non-blocking (doors)
+ *   - 'hazard': Walkable but deals damage (traps)
  * - hasState: Boolean - whether this tile can have different states (e.g., open/closed)
  * - states: Object - different states the tile can be in (if hasState is true)
  *   - Each state has:
@@ -45,13 +49,22 @@ export const tileConfig = {
   // Wall tile
   wall: {
     sprite: 'W',
-    walkable: false
+    walkable: false,
+    blockType: 'permanent' // Cannot be changed or removed
+  },
+
+  // Pillar tile
+  pillar: {
+    sprite: 'K',
+    walkable: false,
+    blockType: 'permanent' // Cannot be changed or removed
   },
 
   // Mana Wall tile (animated)
   manaWall: {
     sprite: 'manaWall',
     walkable: false,
+    blockType: 'permanent',
     animated: true
   },
 
@@ -59,6 +72,7 @@ export const tileConfig = {
   healthWall: {
     sprite: 'healthWall',
     walkable: false,
+    blockType: 'permanent',
     animated: true
   },
 
@@ -66,6 +80,7 @@ export const tileConfig = {
   door: {
     hasState: true,
     defaultState: 'closed',
+    blockType: 'interactive', // Can change state between blocking and non-blocking
     states: {
       closed: {
         sprite: 'D',
@@ -82,6 +97,7 @@ export const tileConfig = {
   trap: {
     hasState: true,
     defaultState: 'hidden',
+    blockType: 'hazard', // Walkable but deals damage
     states: {
       hidden: {
         sprite: '^', // Hidden trap (slightly visible)
@@ -140,6 +156,7 @@ export const tileCharacterMap = {
 
   // Walls and doors
   'W': 'wall',         // Wall
+  'K': 'pillar',       // Pillar (permanent blocking)
   'A': 'manaWall',     // Mana Wall (animated)
   'B': 'healthWall',   // Health Wall (animated)
   'D': 'door',         // Door
@@ -232,6 +249,43 @@ export const getTileSprite = (tileType, state = null) => {
 export const getTileDefaultState = (tileType) => {
   const config = getTileConfig(tileType)
   return config?.defaultState ?? null
+}
+
+/**
+ * Get the block type for a tile type
+ * @param {string} tileType - The tile type identifier
+ * @returns {string|null} The block type ('permanent', 'interactive', 'hazard'), or null
+ */
+export const getTileBlockType = (tileType) => {
+  const config = getTileConfig(tileType)
+  return config?.blockType ?? null
+}
+
+/**
+ * Check if a tile is permanently blocking (cannot be changed)
+ * @param {string} tileType - The tile type identifier
+ * @returns {boolean} True if tile is permanently blocking
+ */
+export const isPermanentBlock = (tileType) => {
+  return getTileBlockType(tileType) === 'permanent'
+}
+
+/**
+ * Check if a tile is interactive (can change state)
+ * @param {string} tileType - The tile type identifier
+ * @returns {boolean} True if tile is interactive
+ */
+export const isInteractiveTile = (tileType) => {
+  return getTileBlockType(tileType) === 'interactive'
+}
+
+/**
+ * Check if a tile is a hazard (walkable but deals damage)
+ * @param {string} tileType - The tile type identifier
+ * @returns {boolean} True if tile is a hazard
+ */
+export const isHazardTile = (tileType) => {
+  return getTileBlockType(tileType) === 'hazard'
 }
 
 /**
