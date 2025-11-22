@@ -17,25 +17,87 @@ const TOOLS = {
 	SELECT: 'select'
 }
 
-// 8-Bit Color Palette
-const COLOR_PALETTE = [
-	'#000000', // Black
-	'#FFFFFF', // White
-	'#FF0000', // Red
-	'#00FF00', // Green
-	'#0000FF', // Blue
-	'#FFFF00', // Yellow
-	'#FF00FF', // Magenta
-	'#00FFFF', // Cyan
-	'#FF8800', // Orange
-	'#8800FF', // Purple
-	'#00FF88', // Mint
-	'#FF0088', // Pink
-	'#888888', // Gray
-	'#444444', // Dark Gray
-	'#CCCCCC', // Light Gray
-	'#884400', // Brown
-]
+// Color Themes
+const COLOR_THEMES = {
+	classic: {
+		name: '8-Bit Classic',
+		colors: [
+			'#000000', '#FFFFFF', '#FF0000', '#00FF00',
+			'#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+			'#FF8800', '#8800FF', '#00FF88', '#FF0088',
+			'#888888', '#444444', '#CCCCCC', '#884400'
+		]
+	},
+	pastell: {
+		name: 'Pastell',
+		colors: [
+			'#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
+			'#BAE1FF', '#E0BBE4', '#FFDFD3', '#FEC8D8',
+			'#D4F1F4', '#C9E4CA', '#F9E5D8', '#E8D5C4',
+			'#F5E6E8', '#D5AAFF', '#FFD3E1', '#C7CEEA'
+		]
+	},
+	retro: {
+		name: 'Retro Gaming',
+		colors: [
+			'#000000', '#FFFFFF', '#880000', '#AAFFEE',
+			'#CC44CC', '#00CC55', '#0000AA', '#EEEE77',
+			'#DD8855', '#664400', '#FF7777', '#333333',
+			'#777777', '#AAFF66', '#0088FF', '#BBBBBB'
+		]
+	},
+	neon: {
+		name: 'Neon',
+		colors: [
+			'#FF006E', '#FB5607', '#FFBE0B', '#8338EC',
+			'#3A86FF', '#06FFA5', '#FF00FF', '#00FFFF',
+			'#FF1744', '#76FF03', '#FFEA00', '#00E5FF',
+			'#E040FB', '#FF6E40', '#69F0AE', '#FFFFFF'
+		]
+	},
+	earth: {
+		name: 'Earth Tones',
+		colors: [
+			'#3E2723', '#5D4037', '#6D4C41', '#795548',
+			'#8D6E63', '#A1887F', '#BCAAA4', '#D7CCC8',
+			'#4E342E', '#6F4E37', '#8B4513', '#A0522D',
+			'#CD853F', '#DEB887', '#F5DEB3', '#FFF8DC'
+		]
+	},
+	ocean: {
+		name: 'Ocean',
+		colors: [
+			'#001f3f', '#0074D9', '#7FDBFF', '#39CCCC',
+			'#3D9970', '#2ECC40', '#01FF70', '#FFDC00',
+			'#4A90E2', '#50E3C2', '#B8E986', '#F5A623',
+			'#AAAAAA', '#DDDDDD', '#FFFFFF', '#000000'
+		]
+	},
+	monochrome: {
+		name: 'Monochrome',
+		colors: [
+			'#000000', '#1A1A1A', '#333333', '#4D4D4D',
+			'#666666', '#808080', '#999999', '#B3B3B3',
+			'#CCCCCC', '#E6E6E6', '#F2F2F2', '#FFFFFF',
+			'#0D0D0D', '#262626', '#404040', '#595959'
+		]
+	},
+	candy: {
+		name: 'Candy',
+		colors: [
+			'#FF69B4', '#FF1493', '#FFB6C1', '#FFC0CB',
+			'#FF6EB4', '#FF85C1', '#FF9ECE', '#FFB7DB',
+			'#87CEEB', '#98D8E8', '#B0E0E6', '#AFEEEE',
+			'#FFE4E1', '#FFF0F5', '#FFDAB9', '#FFEFD5'
+		]
+	}
+}
+
+// Active color palette (reactive)
+const currentTheme = ref('classic')
+const colorPalette = ref([...COLOR_THEMES.classic.colors])
+const customColor = ref('#FF0000')
+const hasCustomColorSelected = ref(false)
 
 // State
 const currentTool = ref(TOOLS.PENCIL)
@@ -184,8 +246,24 @@ const selectTool = (tool) => {
 	}
 }
 
-const selectColor = (color) => {
-	foregroundColor.value = color
+const selectColor = (color, index) => {
+	if (hasCustomColorSelected.value) {
+		// Replace this palette color with custom color
+		colorPalette.value[index] = customColor.value
+		hasCustomColorSelected.value = false
+	} else {
+		// Normal color selection
+		foregroundColor.value = color
+	}
+}
+
+const changeTheme = (themeKey) => {
+	currentTheme.value = themeKey
+	colorPalette.value = [...COLOR_THEMES[themeKey].colors]
+}
+
+const openCustomColorPicker = () => {
+	hasCustomColorSelected.value = true
 }
 
 const swapColors = () => {
@@ -254,7 +332,7 @@ const handlePixelMouseEnter = (row, col) => {
 			selection.value.offsetRow = deltaRow
 			selection.value.offsetCol = deltaCol
 		}
-	} else if (isDrawing.value && currentTool.value === TOOLS.PENCIL) {
+	} else if (isDrawing.value && (currentTool.value === TOOLS.PENCIL || currentTool.value === TOOLS.ERASER)) {
 		applyTool(row, col)
 	}
 }
@@ -528,16 +606,49 @@ const handleMenuClick = () => {
 			</div>
 		</section>
 
-		<!-- Color Palette -->
-		<section class="color-palette">
-			<div
-				v-for="color in COLOR_PALETTE"
-				:key="color"
-				class="palette-color"
-				:class="{ active: color === foregroundColor }"
-				:style="{ backgroundColor: color }"
-				@click="selectColor(color)"
-			></div>
+		<!-- Color Palette Section -->
+		<section class="palette-section">
+			<!-- Palette Header -->
+			<div class="palette-header">
+				<div class="theme-selector">
+					<label for="theme-select">Theme:</label>
+					<select id="theme-select" v-model="currentTheme" @change="changeTheme(currentTheme)" class="theme-select">
+						<option v-for="(theme, key) in COLOR_THEMES" :key="key" :value="key">
+							{{ theme.name }}
+						</option>
+					</select>
+				</div>
+				<div class="custom-color-picker">
+					<label class="color-picker-btn" :class="{ active: hasCustomColorSelected }">
+						<input
+							type="color"
+							v-model="customColor"
+							@input="openCustomColorPicker"
+							class="color-input"
+						/>
+						<span class="color-preview" :style="{ backgroundColor: customColor }"></span>
+						<span class="color-label">{{ hasCustomColorSelected ? 'Farbe wählen...' : 'Farbe' }}</span>
+					</label>
+				</div>
+			</div>
+
+			<!-- Color Palette Grid -->
+			<div class="color-palette" :class="{ 'replace-mode': hasCustomColorSelected }">
+				<div
+					v-for="(color, index) in colorPalette"
+					:key="index"
+					class="palette-color-wrapper"
+				>
+					<div
+						class="palette-color"
+						:class="{
+							active: color === foregroundColor && !hasCustomColorSelected
+						}"
+						:style="{ backgroundColor: color }"
+						@click="selectColor(color, index)"
+					></div>
+				</div>
+			</div>
 		</section>
 	</main>
 </template>
@@ -724,15 +835,149 @@ const handleMenuClick = () => {
 	}
 }
 
+// Color Palette Section
+.palette-section {
+	background-color: var(--card-bg);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.palette-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.theme-selector {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	flex: 1;
+
+	label {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color);
+	}
+}
+
+.theme-select {
+	flex: 1;
+	padding: var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	cursor: pointer;
+	transition: all 0.2s;
+
+	&:hover {
+		background-color: var(--primary-color);
+		color: white;
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+	}
+}
+
+.custom-color-picker {
+	display: flex;
+	align-items: center;
+}
+
+.color-picker-btn {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-2) var(--space-3);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-sm);
+	cursor: pointer;
+	transition: all 0.2s;
+	white-space: nowrap;
+
+	&:hover {
+		background-color: var(--primary-color);
+		color: white;
+
+		.color-preview {
+			border-color: white;
+		}
+	}
+
+	&.active {
+		background-color: var(--success-color);
+		color: white;
+		border-color: var(--success-color);
+		animation: pulse 1.5s ease-in-out infinite;
+
+		.color-preview {
+			border-color: white;
+		}
+	}
+}
+
+.color-input {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.color-preview {
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	transition: all 0.2s;
+}
+
+.color-label {
+	user-select: none;
+}
+
+@keyframes pulse {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.05);
+	}
+}
+
 // Color Palette
 .color-palette {
 	display: grid;
 	grid-template-columns: repeat(8, 1fr);
 	gap: var(--space-2);
-	padding: var(--space-3);
-	background-color: var(--card-bg);
-	border: 2px solid var(--card-border);
-	border-radius: var(--border-radius-md);
+
+	&.replace-mode {
+		.palette-color {
+			cursor: crosshair;
+
+			&:hover {
+				transform: scale(1.2);
+				box-shadow: 0 0 0 3px var(--success-color);
+			}
+		}
+	}
+}
+
+.palette-color-wrapper {
+	position: relative;
 }
 
 .palette-color {
@@ -742,13 +987,16 @@ const handleMenuClick = () => {
 	border-radius: var(--border-radius-sm);
 	cursor: pointer;
 	transition: all 0.2s;
+	position: relative;
 
 	&:hover {
 		transform: scale(1.1);
+		z-index: 1;
 	}
 
 	&.active {
 		box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--primary-color);
+		z-index: 2;
 	}
 
 	&:active {
@@ -775,6 +1023,29 @@ const handleMenuClick = () => {
 	.pixel {
 		width: 15px;
 		height: 15px;
+	}
+
+	.palette-header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.theme-selector {
+		flex-direction: column;
+		align-items: stretch;
+
+		label {
+			text-align: left;
+		}
+	}
+
+	.custom-color-picker {
+		width: 100%;
+
+		.color-picker-btn {
+			width: 100%;
+			justify-content: center;
+		}
 	}
 
 	.color-palette {
