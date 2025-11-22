@@ -1,21 +1,20 @@
 // Tile configuration for HawkDungeon
 // Defines all tile types, their properties, and behaviors
 
+import { spriteConfig } from './spriteConfig.js'
+
 /**
  * Tile configuration object
  * Each tile type can have the following properties:
  * - sprite: The sprite key from spriteConfig to use for rendering
  * - walkable: Boolean - whether the player/monsters can walk through this tile
- * - blockType: String - categorizes the tile's blocking behavior:
- *   - 'permanent': Cannot be changed or removed (walls, pillars)
- *   - 'interactive': Can change state between blocking/non-blocking (doors)
- *   - 'hazard': Walkable but deals damage (traps)
- * - hasState: Boolean - whether this tile can have different states (e.g., open/closed)
- * - states: Object - different states the tile can be in (if hasState is true)
- *   - Each state has:
- *     - sprite: The sprite to use for this state
- *     - walkable: Whether this tile is walkable in this state
- * - defaultState: String - the initial state for tiles with states
+ *
+ * Note: Tile types (barrier, interactive, hazard, etc.) and states are now
+ * centrally defined in spriteConfig.js for better extensibility:
+ * - Tile types can be accessed via getTileSpriteType() function
+ * - Tile states are defined in the sprite's 'states' property
+ * - Use tileHasStates(), getTileStates(), getTileState() to work with states
+ * - Use getTileDamage() to get damage values for hazard tiles
  */
 export const tileConfig = {
   // Empty/void tile
@@ -49,22 +48,19 @@ export const tileConfig = {
   // Wall tile
   wall: {
     sprite: 'W',
-    walkable: false,
-    blockType: 'permanent' // Cannot be changed or removed
+    walkable: false
   },
 
   // Pillar tile
   pillar: {
     sprite: 'K',
-    walkable: false,
-    blockType: 'permanent' // Cannot be changed or removed
+    walkable: false
   },
 
   // Mana Wall tile (animated)
   manaWall: {
     sprite: 'manaWall',
     walkable: false,
-    blockType: 'permanent',
     animated: true
   },
 
@@ -72,44 +68,17 @@ export const tileConfig = {
   healthWall: {
     sprite: 'healthWall',
     walkable: false,
-    blockType: 'permanent',
     animated: true
   },
 
-  // Door tile - has states (closed/open)
+  // Door tile - states defined in spriteConfig.js
   door: {
-    hasState: true,
-    defaultState: 'closed',
-    blockType: 'interactive', // Can change state between blocking and non-blocking
-    states: {
-      closed: {
-        sprite: 'D',
-        walkable: false
-      },
-      open: {
-        sprite: '.', // Open door looks like floor
-        walkable: true
-      }
-    }
+    sprite: 'D'
   },
 
-  // Trap tile - has states (hidden/triggered)
+  // Trap tile - states defined in spriteConfig.js
   trap: {
-    hasState: true,
-    defaultState: 'hidden',
-    blockType: 'hazard', // Walkable but deals damage
-    states: {
-      hidden: {
-        sprite: '^', // Hidden trap (slightly visible)
-        walkable: true,
-        damage: 1 // Damage when stepped on
-      },
-      triggered: {
-        sprite: 'T', // Triggered trap shows spikes
-        walkable: true, // Player can walk over triggered trap
-        damage: 1 // Still deals damage after triggered (visible spikes)
-      }
-    }
+    sprite: '^'
   },
 
   // Mana Fountain - animated, restores mana
@@ -212,33 +181,123 @@ export const isTileWalkable = (tileType, state = null) => {
 
   if (!config) return false
 
-  // For stateful tiles, check the specific state
-  if (config.hasState && state) {
-    return config.states[state]?.walkable ?? false
+  // Check if tile has states defined in spriteConfig
+  if (state && tileHasStates(tileType)) {
+    const stateConfig = getTileState(tileType, state)
+    if (stateConfig && stateConfig.walkable !== undefined) {
+      return stateConfig.walkable
+    }
   }
 
-  // For non-stateful tiles, check the walkable property
+  // For non-stateful tiles, check the walkable property in tileConfig
   return config.walkable ?? false
+}
+
+/**
+ * Resolve a sprite reference (could be a string key or coordinates object)
+ * @param {string|object} sprite - The sprite (string key like '.' or object like {x: 0, y: 48})
+ * @returns {string|object} Resolved sprite (string key or coordinates object)
+ */
+const resolveSpriteReference = (sprite) => {
+  // If it's an object with coordinates, return it as-is
+  if (typeof sprite === 'object' && sprite !== null && sprite.x !== undefined && sprite.y !== undefined) {
+    return sprite
+  }
+
+  // If it's a string, it might be a reference to another tile
+  // Check if we can find it in spriteConfig
+  if (typeof sprite === 'string') {
+    const spriteDefinition = getSpriteDefinition(sprite)
+    if (spriteDefinition) {
+      // Return the string key so it can be looked up during rendering
+      return sprite
+    }
+  }
+
+  return sprite
 }
 
 /**
  * Get the sprite for a tile
  * @param {string} tileType - The tile type identifier
  * @param {string} state - The current state (for stateful tiles)
- * @returns {string|null} The sprite key from spriteConfig, or null if no sprite
+ * @returns {string|object|null} The sprite key from spriteConfig, coordinates {x, y}, or null if no sprite
  */
 export const getTileSprite = (tileType, state = null) => {
   const config = getTileConfig(tileType)
 
   if (!config) return null
 
-  // For stateful tiles, get the sprite from the specific state
-  if (config.hasState && state) {
-    return config.states[state]?.sprite ?? null
+  // Check if tile has states defined in spriteConfig
+  if (state && tileHasStates(tileType)) {
+    const stateConfig = getTileState(tileType, state)
+    if (stateConfig && stateConfig.sprite) {
+      return resolveSpriteReference(stateConfig.sprite)
+    }
   }
 
   // For non-stateful tiles, return the sprite directly
   return config.sprite ?? null
+}
+
+/**
+ * Get the sprite definition from spriteConfig
+ * @param {string} spriteKey - The sprite key (can be a tile character or animated sprite name)
+ * @returns {object|null} The sprite definition, or null
+ */
+export const getSpriteDefinition = (spriteKey) => {
+  // Check in tiles
+  if (spriteConfig.tiles[spriteKey]) {
+    return spriteConfig.tiles[spriteKey]
+  }
+
+  // Check in animated tiles
+  if (spriteConfig.animatedTiles[spriteKey]) {
+    return spriteConfig.animatedTiles[spriteKey]
+  }
+
+  return null
+}
+
+/**
+ * Check if a sprite has states defined in spriteConfig
+ * @param {string} spriteKey - The sprite key
+ * @returns {boolean} True if sprite has states
+ */
+export const spriteHasStates = (spriteKey) => {
+  const sprite = getSpriteDefinition(spriteKey)
+  return !!(sprite?.states)
+}
+
+/**
+ * Get the default state for a sprite from spriteConfig
+ * @param {string} spriteKey - The sprite key
+ * @returns {string|null} The default state, or null if no states
+ */
+export const getSpriteDefaultState = (spriteKey) => {
+  const sprite = getSpriteDefinition(spriteKey)
+  return sprite?.defaultState ?? null
+}
+
+/**
+ * Get all states for a sprite from spriteConfig
+ * @param {string} spriteKey - The sprite key
+ * @returns {object|null} The states object, or null if no states
+ */
+export const getSpriteStates = (spriteKey) => {
+  const sprite = getSpriteDefinition(spriteKey)
+  return sprite?.states ?? null
+}
+
+/**
+ * Get a specific state definition for a sprite from spriteConfig
+ * @param {string} spriteKey - The sprite key
+ * @param {string} stateName - The state name
+ * @returns {object|null} The state definition, or null
+ */
+export const getSpriteState = (spriteKey, stateName) => {
+  const states = getSpriteStates(spriteKey)
+  return states?.[stateName] ?? null
 }
 
 /**
@@ -248,35 +307,109 @@ export const getTileSprite = (tileType, state = null) => {
  */
 export const getTileDefaultState = (tileType) => {
   const config = getTileConfig(tileType)
-  return config?.defaultState ?? null
+  if (!config?.sprite) return null
+
+  // Check if sprite has states defined
+  return getSpriteDefaultState(config.sprite)
 }
 
 /**
- * Get the block type for a tile type
+ * Check if a tile type has states
  * @param {string} tileType - The tile type identifier
- * @returns {string|null} The block type ('permanent', 'interactive', 'hazard'), or null
+ * @returns {boolean} True if tile has states
  */
-export const getTileBlockType = (tileType) => {
+export const tileHasStates = (tileType) => {
   const config = getTileConfig(tileType)
-  return config?.blockType ?? null
+  if (!config?.sprite) return false
+
+  return spriteHasStates(config.sprite)
 }
 
 /**
- * Check if a tile is permanently blocking (cannot be changed)
+ * Get all states for a tile type
  * @param {string} tileType - The tile type identifier
- * @returns {boolean} True if tile is permanently blocking
+ * @returns {object|null} The states object from spriteConfig, or null
  */
-export const isPermanentBlock = (tileType) => {
-  return getTileBlockType(tileType) === 'permanent'
+export const getTileStates = (tileType) => {
+  const config = getTileConfig(tileType)
+  if (!config?.sprite) return null
+
+  return getSpriteStates(config.sprite)
 }
 
 /**
- * Check if a tile is interactive (can change state)
+ * Get a specific state for a tile type
+ * @param {string} tileType - The tile type identifier
+ * @param {string} stateName - The state name
+ * @returns {object|null} The state definition, or null
+ */
+export const getTileState = (tileType, stateName) => {
+  const config = getTileConfig(tileType)
+  if (!config?.sprite) return null
+
+  return getSpriteState(config.sprite, stateName)
+}
+
+/**
+ * Get damage value for a tile in a specific state
+ * @param {string} tileType - The tile type identifier
+ * @param {string} stateName - The state name
+ * @returns {number} The damage value, or 0 if none
+ */
+export const getTileDamage = (tileType, stateName = null) => {
+  if (!stateName) return 0
+
+  const stateConfig = getTileState(tileType, stateName)
+  return stateConfig?.damage ?? 0
+}
+
+/**
+ * Get the sprite type from spriteConfig for a sprite key
+ * @param {string} spriteKey - The sprite key (can be a tile character or animated sprite name)
+ * @returns {string|null} The sprite type ('barrier', 'interactive', 'hazard', 'floor', 'container'), or null
+ */
+export const getSpriteType = (spriteKey) => {
+  // Check in tiles
+  if (spriteConfig.tiles[spriteKey]) {
+    return spriteConfig.tiles[spriteKey].type ?? null
+  }
+
+  // Check in animated tiles
+  if (spriteConfig.animatedTiles[spriteKey]) {
+    return spriteConfig.animatedTiles[spriteKey].type ?? null
+  }
+
+  return null
+}
+
+/**
+ * Get the sprite-defined type for a tile (looks up the sprite and returns its type)
+ * @param {string} tileType - The tile type identifier
+ * @returns {string|null} The sprite type ('barrier', 'interactive', 'hazard', 'floor', 'container'), or null
+ */
+export const getTileSpriteType = (tileType) => {
+  const config = getTileConfig(tileType)
+  if (!config || !config.sprite) return null
+
+  return getSpriteType(config.sprite)
+}
+
+/**
+ * Check if a tile is a barrier (permanently blocking)
+ * @param {string} tileType - The tile type identifier
+ * @returns {boolean} True if tile is a barrier
+ */
+export const isBarrierTile = (tileType) => {
+  return getTileSpriteType(tileType) === 'barrier'
+}
+
+/**
+ * Check if a tile is interactive (can change state or be interacted with)
  * @param {string} tileType - The tile type identifier
  * @returns {boolean} True if tile is interactive
  */
 export const isInteractiveTile = (tileType) => {
-  return getTileBlockType(tileType) === 'interactive'
+  return getTileSpriteType(tileType) === 'interactive'
 }
 
 /**
@@ -285,7 +418,16 @@ export const isInteractiveTile = (tileType) => {
  * @returns {boolean} True if tile is a hazard
  */
 export const isHazardTile = (tileType) => {
-  return getTileBlockType(tileType) === 'hazard'
+  return getTileSpriteType(tileType) === 'hazard'
+}
+
+/**
+ * Check if a tile is a container (like chests)
+ * @param {string} tileType - The tile type identifier
+ * @returns {boolean} True if tile is a container
+ */
+export const isContainerTile = (tileType) => {
+  return getTileSpriteType(tileType) === 'container'
 }
 
 /**

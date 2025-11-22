@@ -174,6 +174,32 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
     }
   }
 
+  /**
+   * Add a stackable item to inventory
+   * @param {string} type - Item type (diamond, ruby, emerald, sapphire, coin)
+   * @param {number} amount - Amount to add (default 1)
+   */
+  const addStackableItem = (type, amount = 1) => {
+    if (!gameState.inventory) {
+      gameState.inventory = []
+    }
+
+    // Find existing item in inventory
+    const existingItem = gameState.inventory.find(invItem => invItem.type === type && invItem.stackable)
+
+    if (existingItem) {
+      // Item exists, increase count
+      existingItem.count = (existingItem.count || 1) + amount
+    } else {
+      // Item doesn't exist, add new stack
+      gameState.inventory.push({
+        type: type,
+        stackable: true,
+        count: amount
+      })
+    }
+  }
+
   const collectItem = (item) => {
     switch (item.type) {
       case 'health':
@@ -225,6 +251,32 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
             }
           }
         }
+        break
+
+      case 'diamond':
+        addStackableItem('diamond', item.amount || 1)
+        console.log(`💎 Diamond collected!`)
+        break
+
+      case 'ruby':
+        addStackableItem('ruby', item.amount || 1)
+        console.log(`💎 Ruby collected!`)
+        break
+
+      case 'emerald':
+        addStackableItem('emerald', item.amount || 1)
+        console.log(`💎 Emerald collected!`)
+        break
+
+      case 'sapphire':
+        addStackableItem('sapphire', item.amount || 1)
+        console.log(`💎 Sapphire collected!`)
+        break
+
+      case 'coin':
+        addStackableItem('coin', item.amount || 1)
+        gameState.coins = (gameState.coins || 0) + (item.amount || 1)
+        console.log(`🪙 Coin collected! Total: ${gameState.coins}`)
         break
     }
   }

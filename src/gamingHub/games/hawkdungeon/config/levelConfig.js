@@ -67,7 +67,7 @@ export const levelConfig = {
         'W.K:,.D:.,W',
         'W,:^..W.,:W',
         'W.:.:.WBWWW',
-        'W,:..:,H^.W',
+        'W,C..:,H^.W',
         'W:^,,.,.,:W',
         'W.,:.:..:,W',
         'WWWWWWWWWWW'
@@ -124,6 +124,17 @@ export const levelConfig = {
             { type: 'weapon', name: 'spear' },
             { type: 'mana', count: 2 },
             { type: 'manaPotion', count: 1 }
+          ]
+        },
+        {
+          x: 4,
+          y: 6,
+          items: [
+            { type: 'diamond', count: 1 },
+            { type: 'ruby', count: 1 },
+            { type: 'emerald', count: 1 },
+            { type: 'sapphire', count: 1 },
+            { type: 'coin', count: 1 }
           ]
         }
       ],

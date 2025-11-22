@@ -154,8 +154,8 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         // Get tile type and sprite
         const tileType = levelLoader.getTileType(worldTileX, worldTileY)
 
-        // Skip walls (draw them in second pass) and empty tiles
-        if (tileType === 'wall' || tileType === 'empty') {
+        // Skip walls and barriers (draw them in second pass) and empty tiles
+        if (tileType === 'wall' || tileType === 'pillar' || tileType === 'manaWall' || tileType === 'healthWall' || tileType === 'empty') {
           continue
         }
 
@@ -211,10 +211,12 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
         const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
-        // Draw wall if present
+        // Draw barriers (walls, pillars) if present
         const tileType = levelLoader.getTileType(worldTileX, worldTileY)
         if (tileType === 'wall') {
           drawTile(ctx, 'W', drawX, drawY)
+        } else if (tileType === 'pillar') {
+          drawTile(ctx, 'K', drawX, drawY)
         } else if (tileType === 'manaWall') {
           // Draw animated mana wall
           drawAnimatedTile(ctx, 'manaWall', fountainAnimationFrame, drawX, drawY)

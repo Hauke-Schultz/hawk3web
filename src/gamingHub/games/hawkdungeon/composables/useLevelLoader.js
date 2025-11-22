@@ -1,7 +1,7 @@
 // Level loader and manager for HawkDungeon
 import { ref, reactive } from 'vue'
 import { levelConfig } from '../config/levelConfig'
-import { getTileTypeFromChar, getTileConfig, getTileDefaultState, isTileWalkable, getTileSprite } from '../config/tileConfig'
+import { getTileTypeFromChar, getTileConfig, getTileDefaultState, isTileWalkable, getTileSprite, tileHasStates, getTileStates } from '../config/tileConfig'
 
 export function useLevelLoader() {
   const currentLevel = ref(null)
@@ -77,14 +77,16 @@ export function useLevelLoader() {
         // Store tile type
         levelData.tileTypes.set(key, tileType)
 
-        // Initialize state for stateful tiles
-        if (tileConf.hasState) {
+        // Initialize state for stateful tiles (now defined in spriteConfig)
+        if (tileHasStates(tileType)) {
           const defaultState = getTileDefaultState(tileType)
-          levelData.tileStates.set(key, defaultState)
+          if (defaultState) {
+            levelData.tileStates.set(key, defaultState)
+          }
         }
 
         // Determine if this is a wall or floor for backward compatibility
-        if (tileType === 'wall' || tileType === 'manaWall' || tileType === 'healthWall') {
+        if (tileType === 'wall' || tileType === 'pillar' || tileType === 'manaWall' || tileType === 'healthWall') {
           levelData.walls.add(key)
         } else if (tileType !== 'empty') {
           // Any non-empty, non-wall tile is considered "floor" for rendering
@@ -187,12 +189,22 @@ export function useLevelLoader() {
   const setTileState = (gridX, gridY, state) => {
     const key = `${gridX},${gridY}`
     const tileType = levelData.tileTypes.get(key)
-    const tileConf = getTileConfig(tileType)
 
-    // Only allow state changes for stateful tiles
-    if (tileConf && tileConf.hasState && tileConf.states[state]) {
-      levelData.tileStates.set(key, state)
-      return true
+    console.log(`setTileState: (${gridX}, ${gridY}), tileType: ${tileType}, target state: ${state}`)
+
+    // Only allow state changes for stateful tiles (now defined in spriteConfig)
+    if (tileHasStates(tileType)) {
+      const states = getTileStates(tileType)
+      console.log(`Tile has states:`, states)
+      if (states && states[state]) {
+        levelData.tileStates.set(key, state)
+        console.log(`State successfully set to: ${state}`)
+        return true
+      } else {
+        console.log(`State '${state}' not found in available states`)
+      }
+    } else {
+      console.log(`Tile type '${tileType}' has no states`)
     }
 
     return false

@@ -63,7 +63,24 @@ export function useSpriteManager() {
   const drawTile = (ctx, tileType, x, y, layer = 'main') => {
     if (!isLoaded.value || !spritesheet.value) return
 
-    const config = getTileConfig(tileType, layer)
+    let config = null
+
+    // Handle different sprite formats:
+    // 1. String like '.' or 'W' - look up in spriteConfig
+    // 2. Object like {x: 0, y: 48} - use as direct coordinates
+    if (typeof tileType === 'object' && tileType !== null && tileType.x !== undefined && tileType.y !== undefined) {
+      // Direct coordinates from state sprite definition
+      config = {
+        width: 16,  // Default tile size
+        height: 16,
+        x: tileType.x,
+        y: tileType.y
+      }
+    } else if (typeof tileType === 'string') {
+      // Look up sprite by key
+      config = getTileConfig(tileType, layer)
+    }
+
     if (!config) return
 
     const { width, height, x: sourceX, y: sourceY } = config

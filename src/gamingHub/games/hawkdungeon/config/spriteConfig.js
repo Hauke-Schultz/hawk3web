@@ -1,6 +1,25 @@
 // Sprite sheet configuration for HawkDungeon
 // All sprites are based on 16x16 pixel tiles in the spritesheet
 // But displayed at 4x scale (64x64) for better visibility
+//
+// TILE TYPE SYSTEM:
+// Each tile sprite can have a 'type' property that defines its behavior:
+// - 'floor': Walkable floor tiles
+// - 'barrier': Permanently blocking tiles (walls, pillars)
+// - 'interactive': Tiles that can be interacted with or change state (doors, fountains)
+// - 'hazard': Walkable tiles that deal damage (traps)
+// - 'container': Objects that can be opened/looted (chests)
+//
+// TILE STATES SYSTEM:
+// Interactive tiles can have multiple states defined via the 'states' property:
+// - states: Object with state names as keys
+//   - Each state contains:
+//     - sprite: Either a sprite reference (string like '.') or coordinates {x, y}
+//     - walkable: (optional) Whether this state is walkable
+//     - damage: (optional) Damage dealt in this state
+// - defaultState: String - the initial state
+//
+// These types and states are used by tileConfig.js to determine tile behavior
 
 export const SPRITE_SIZE = 16 // Original sprite size in spritesheet
 export const SPRITE_SCALE = 4 // Scale factor for display
@@ -128,6 +147,37 @@ export const spriteConfig = {
       height: 16,
       x: 336,
       y: 400
+    },
+    // Gems and valuables
+    diamond: {
+      width: 16,
+      height: 16,
+      x: 288,
+      y: 464
+    },
+    ruby: {
+      width: 16,
+      height: 16,
+      x: 320,
+      y: 448
+    },
+    emerald: {
+      width: 16,
+      height: 16,
+      x: 336,
+      y: 448
+    },
+    sapphire: {
+      width: 16,
+      height: 16,
+      x: 304,
+      y: 448
+    },
+    coin: {
+      width: 16,
+      height: 16,
+      x: 320,
+      y: 384
     }
   },
 
@@ -136,6 +186,7 @@ export const spriteConfig = {
     manaFountain: {
       width: 16,
       height: 16,
+      type: 'interactive',
       animation: {
         frames: 3,
         frameWidth: 16,
@@ -148,6 +199,7 @@ export const spriteConfig = {
     healthFountain: {
       width: 16,
       height: 16,
+      type: 'interactive',
       animation: {
         frames: 3,
         frameWidth: 16,
@@ -160,6 +212,7 @@ export const spriteConfig = {
     manaWall: {
       width: 16,
       height: 16,
+      type: 'barrier',
       animation: {
         frames: 3,
         frameWidth: 16,
@@ -172,6 +225,7 @@ export const spriteConfig = {
     healthWall: {
       width: 16,
       height: 16,
+      type: 'barrier',
       animation: {
         frames: 3,
         frameWidth: 16,
@@ -187,21 +241,102 @@ export const spriteConfig = {
   // Map characters are used as keys for easy mapping
   tiles: {
     // Floor variations
-    '.': { width: 16, height: 16, x: 16, y: 64, name: 'floor1' },     // Floor type 1
-    ',': { width: 16, height: 16, x: 32, y: 64, name: 'floor2' },     // Floor type 2
-    ':': { width: 16, height: 16, x: 48, y: 64, name: 'floor3' },     // Floor type 3
+    '.': { width: 16, height: 16, x: 16, y: 64, name: 'floor1', type: 'floor' },     // Floor type 1
+    ',': { width: 16, height: 16, x: 32, y: 64, name: 'floor2', type: 'floor' },     // Floor type 2
+    ':': { width: 16, height: 16, x: 48, y: 64, name: 'floor3', type: 'floor' },     // Floor type 3
 
     // Walls and doors
-    'W': { width: 16, height: 16, x: 32, y: 16, name: 'wall' },       // Wall
-    'K': { width: 16, height: 16, x: 96, y: 96, name: 'pillar' },     // Pillar
-    'D': { width: 16, height: 16, x: 0, y: 48, name: 'door' },        // Door
+    'W': { width: 16, height: 16, x: 32, y: 16, name: 'wall', type: 'barrier' },       // Wall
+    'K': { width: 16, height: 16, x: 96, y: 96, name: 'pillar', type: 'barrier' },     // Pillar
+    'D': {
+      width: 16,
+      height: 16,
+      x: 0,
+      y: 48,
+      name: 'door',
+      type: 'interactive',
+      states: {
+        closed: {
+          sprite: { x: 0, y: 48 },  // Door sprite
+          walkable: false
+        },
+        open: {
+          sprite: '.',  // Reference to floor tile
+          walkable: true
+        }
+      },
+      defaultState: 'closed'
+    },
 
     // Objects
-    'C': { width: 16, height: 16, x: 304, y: 400, name: 'chest' },    // Chest (closed)
+    'C': {
+      width: 16,
+      height: 16,
+      x: 304,
+      y: 400,
+      name: 'chest',
+      type: 'container',
+      states: {
+        closed: {
+          sprite: { x: 304, y: 400 },  // Closed chest sprite
+          walkable: false
+        },
+        open: {
+          sprite: { x: 336, y: 400 },  // Open chest sprite
+          walkable: true
+        }
+      },
+      defaultState: 'closed'
+    },
 
     // Traps
-    '^': { width: 16, height: 16, x: 16, y: 192, name: 'trap_hidden' },     // Hidden trap
-    'T': { width: 16, height: 16, x: 64, y: 192, name: 'trap_triggered' },  // Triggered trap (visible spikes)
+    '^': {
+      width: 16,
+      height: 16,
+      x: 16,
+      y: 192,
+      name: 'trap',
+      type: 'hazard',
+      states: {
+        hidden: {
+          sprite: { x: 16, y: 192 },  // Hidden trap sprite
+          walkable: true,
+          damage: 1
+        },
+        triggered: {
+          sprite: { x: 64, y: 192 },  // Triggered trap sprite (visible spikes)
+          walkable: true,
+          damage: 1
+        }
+      },
+      defaultState: 'hidden'
+    },
+    'T': { width: 16, height: 16, x: 64, y: 192, name: 'trap_triggered', type: 'hazard' },  // Triggered trap (for backwards compatibility)
+
+    // Example: How to add a new interactive tile with states
+    // 'X': {
+    //   width: 16,
+    //   height: 16,
+    //   x: 32,
+    //   y: 48,
+    //   name: 'gate',
+    //   type: 'interactive',
+    //   states: {
+    //     locked: {
+    //       sprite: { x: 32, y: 48 },  // Locked gate sprite
+    //       walkable: false
+    //     },
+    //     unlocked: {
+    //       sprite: { x: 48, y: 48 },  // Unlocked gate sprite
+    //       walkable: false
+    //     },
+    //     open: {
+    //       sprite: '.',  // Open gate shows floor
+    //       walkable: true
+    //     }
+    //   },
+    //   defaultState: 'locked'
+    // },
   },
 
   // Under Layer decorations (rendered BELOW player/enemies)

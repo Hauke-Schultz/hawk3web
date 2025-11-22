@@ -78,11 +78,14 @@ export function useTileInteractions(levelLoader, gameState) {
   const openDoor = (gridX, gridY, requireKey = true) => {
     const tileType = levelLoader.getTileType(gridX, gridY)
 
+    console.log(`openDoor called for (${gridX}, ${gridY}), tileType: ${tileType}`)
+
     if (tileType !== 'door') {
       return { success: false, message: 'Not a door' }
     }
 
     const currentState = levelLoader.getTileState(gridX, gridY)
+    console.log(`Current door state: ${currentState}`)
 
     // Check if already open
     if (currentState === 'open') {
@@ -90,16 +93,25 @@ export function useTileInteractions(levelLoader, gameState) {
     }
 
     // Check if key is required and if player has one
-    if (requireKey && !hasKey()) {
+    const hasKeyInInventory = hasKey()
+    console.log(`Require key: ${requireKey}, Has key: ${hasKeyInInventory}`)
+
+    if (requireKey && !hasKeyInInventory) {
       return { success: false, message: 'You need a key to open this door!' }
     }
 
     // Use the key if required
     if (requireKey) {
-      useKey()
+      const keyUsed = useKey()
+      console.log(`Key used: ${keyUsed}`)
     }
 
     const success = levelLoader.setTileState(gridX, gridY, 'open')
+    console.log(`setTileState result: ${success}`)
+
+    const newState = levelLoader.getTileState(gridX, gridY)
+    console.log(`New door state after setTileState: ${newState}`)
+
     return { success, message: success ? '🔑 Door unlocked and opened!' : 'Failed to open door' }
   }
 

@@ -349,19 +349,32 @@ export function useHawkDungeon() {
     }
 
     // Check if target position is walkable
-    if (!levelLoader.isWalkable(targetX, targetY)) {
+    const isWalkableInitial = levelLoader.isWalkable(targetX, targetY)
+
+    if (!isWalkableInitial) {
       // Not walkable - check if it's a door that can be opened
       if (tileInteractions) {
         const tileType = levelLoader.getTileType(targetX, targetY)
         const tileState = levelLoader.getTileState(targetX, targetY)
 
+        console.log(`Blocked position: (${targetX}, ${targetY}), Type: ${tileType}, State: ${tileState}`)
+
         if (tileType === 'door' && tileState === 'closed') {
           // Try to open the door with a key
           const result = tileInteractions.openDoor(targetX, targetY, true)
 
+          console.log(`Door open attempt result:`, result)
+
           if (result.success) {
             console.log(result.message)
-            // Door was opened, now we can move through
+            // Door was opened, verify it's now walkable
+            const nowWalkable = levelLoader.isWalkable(targetX, targetY)
+            console.log(`After opening, door is walkable: ${nowWalkable}`)
+
+            if (!nowWalkable) {
+              console.error('Door opened but still not walkable!')
+              return
+            }
             // Continue with movement (fall through to movement code)
           } else {
             // No key or failed to open
@@ -379,6 +392,7 @@ export function useHawkDungeon() {
           }
         } else {
           // Not a door or already open, just blocked
+          console.log(`Not a closable door, blocked by: ${tileType}`)
           return
         }
       } else {
