@@ -114,7 +114,7 @@ export const spriteConfig = {
     key: {
       width: 16,
       height: 16,
-      x: 288,
+      x: 320,
       y: 304
     },
     chest_closed: {
@@ -193,6 +193,7 @@ export const spriteConfig = {
 
     // Walls and doors
     'W': { width: 16, height: 16, x: 32, y: 16, name: 'wall' },       // Wall
+    'K': { width: 16, height: 16, x: 96, y: 96, name: 'pillar' },     // Pillar
     'D': { width: 16, height: 16, x: 0, y: 48, name: 'door' },        // Door
 
     // Objects
@@ -207,7 +208,9 @@ export const spriteConfig = {
   // These are transparent tiles that appear on the floor
   underLayerDecorations: {
     'b': { width: 16, height: 16, x: 288, y: 432, name: 'blood' },         // Blood (Blutfleck)
-    's': { width: 16, height: 16, x: 288, y: 432, name: 'skull' },         // Skull (Totenschädel)
+    's': { width: 16, height: 16, x: 288, y: 432, name: 'skull1' },        // Skull (Totenschädel)
+    'o': { width: 16, height: 16, x: 272, y: 416, name: 'skull2' },        // Skull two
+    'k': { width: 16, height: 16, x: 96, y: 112, name: 'pillar_bottom' },
     '.': null  // Transparent/empty
   },
 
@@ -218,9 +221,13 @@ export const spriteConfig = {
     'a': { width: 16, height: 16, x: 64, y: 0, name: 'healthHead' },       // HealthHorns (Hörner)
     'b': { width: 16, height: 16, x: 80, y: 0, name: 'manaHead' },         // ManaHorns (Hörner)
     't': { width: 16, height: 16, x: 48, y: 0, name: 'wallTop' },          // WallTop (Mauer oben)
-    'v': { width: 16, height: 16, x: 32, y: 128, name: 'vines' },          // Vines (Ranken)
+    'd': { width: 16, height: 16, x: 80, y: 160, name: 'spider1' },        // spider web more
+    'f': { width: 16, height: 16, x: 96, y: 160, name: 'spider2' },        // spider web less
+    'v': { width: 16, height: 16, x: 48, y: 144, name: 'vines1' },          // Vines (Ranken)
+    'r': { width: 16, height: 16, x: 64, y: 144, name: 'vines2' },          // Vines (Ranken)
     'h': { width: 16, height: 16, x: 48, y: 128, name: 'hanging_deco' },   // Hanging decoration
     'l': { width: 16, height: 16, x: 64, y: 128, name: 'light_beam' },     // Light beam (Lichtstrahl)
+    'n': { width: 16, height: 16, x: 96, y: 80, name: 'pillar_top' },
     '.': null  // Transparent/empty
   }
 }

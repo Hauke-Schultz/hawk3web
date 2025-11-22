@@ -356,17 +356,6 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader, bl
         const bloodX = Math.round(monster.gridX)
         const bloodY = Math.round(monster.gridY)
 
-        // For bosses (2x2), add blood stains to all 4 tiles
-        if (monster.isBoss) {
-          for (let offsetY = 0; offsetY < 2; offsetY++) {
-            for (let offsetX = 0; offsetX < 2; offsetX++) {
-              levelLoader.addBloodStain(bloodX + offsetX, bloodY + offsetY)
-            }
-          }
-        } else {
-          levelLoader.addBloodStain(bloodX, bloodY)
-        }
-
         // Trigger animated blood splatter effect
         if (bloodSplatterCallback) {
           bloodSplatterCallback(bloodX, bloodY, monster.isBoss)
