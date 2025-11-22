@@ -105,6 +105,10 @@ const foregroundColor = ref('#000000')
 const backgroundColor = ref('#FFFFFF')
 const isDrawing = ref(false)
 
+// Brush settings
+const brushSize = ref(1)
+const brushShape = ref('square')
+
 // Selection state
 const selection = ref(null) // { startRow, startCol, endRow, endCol, data, offsetRow, offsetCol, isDragging }
 const selectionStart = ref(null)
@@ -349,15 +353,75 @@ const handlePixelMouseUp = () => {
 	}
 }
 
+// Brush patterns
+const getBrushPattern = (size, shape) => {
+	const pattern = []
+	const halfSize = Math.floor(size / 2)
+	const isEven = size % 2 === 0
+	const start = isEven ? -halfSize + 1 : -halfSize
+	const end = halfSize
+
+	for (let y = start; y <= end; y++) {
+		for (let x = start; x <= end; x++) {
+			let shouldInclude = false
+
+			switch (shape) {
+				case 'square':
+					shouldInclude = true
+					break
+				case 'circle':
+					shouldInclude = (x * x + y * y) <= (halfSize * halfSize)
+					break
+				case 'diamond':
+					shouldInclude = Math.abs(x) + Math.abs(y) <= halfSize
+					break
+				case 'horizontal':
+					shouldInclude = y === 0 || (isEven && y === -1)
+					break
+				case 'vertical':
+					shouldInclude = x === 0 || (isEven && x === -1)
+					break
+				case 'cross':
+					shouldInclude = x === 0 || y === 0 || (isEven && (x === -1 || y === -1))
+					break
+				case 'plus':
+					shouldInclude = (x === 0 && Math.abs(y) <= 1) || (y === 0 && Math.abs(x) <= 1)
+					break
+			}
+
+			if (shouldInclude) {
+				pattern.push({ x, y })
+			}
+		}
+	}
+
+	return pattern
+}
+
+const applyBrush = (row, col, color) => {
+	const pattern = getBrushPattern(brushSize.value, brushShape.value)
+
+	pattern.forEach(({ x, y }) => {
+		const targetRow = row + y
+		const targetCol = col + x
+
+		// Check bounds
+		if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
+			const index = getPixelIndex(targetRow, targetCol)
+			grid[index] = color
+		}
+	})
+}
+
 const applyTool = (row, col) => {
 	const index = getPixelIndex(row, col)
 
 	switch (currentTool.value) {
 		case TOOLS.PENCIL:
-			grid[index] = foregroundColor.value
+			applyBrush(row, col, foregroundColor.value)
 			break
 		case TOOLS.ERASER:
-			grid[index] = 'transparent'
+			applyBrush(row, col, 'transparent')
 			break
 		case TOOLS.PICKER:
 			foregroundColor.value = grid[index]
@@ -553,6 +617,28 @@ const handleMenuClick = () => {
 				✂️
 			</button>
 
+			<!-- Brush Settings -->
+			<div class="brush-settings">
+				<div class="brush-setting">
+					<label for="brush-size">Größe:</label>
+					<select id="brush-size" v-model.number="brushSize" class="brush-select">
+						<option v-for="size in 16" :key="size" :value="size">{{ size }}px</option>
+					</select>
+				</div>
+				<div class="brush-setting">
+					<label for="brush-shape">Form:</label>
+					<select id="brush-shape" v-model="brushShape" class="brush-select">
+						<option value="square">■ Quadrat</option>
+						<option value="circle">● Kreis</option>
+						<option value="diamond">◆ Raute</option>
+						<option value="horizontal">━ Horizontal</option>
+						<option value="vertical">┃ Vertikal</option>
+						<option value="cross">✛ Kreuz</option>
+						<option value="plus">✚ Plus</option>
+					</select>
+				</div>
+			</div>
+
 			<!-- Active Colors -->
 			<div class="active-colors">
 				<div class="color-display">
@@ -741,6 +827,51 @@ const handleMenuClick = () => {
 
 	&:active {
 		transform: scale(0.95);
+	}
+}
+
+// Brush Settings
+.brush-settings {
+	display: flex;
+	gap: var(--space-2);
+	padding-left: var(--space-2);
+	margin-left: var(--space-2);
+	border-left: 2px solid var(--card-border);
+}
+
+.brush-setting {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+
+	label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-secondary);
+		text-transform: uppercase;
+	}
+}
+
+.brush-select {
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-sm);
+	cursor: pointer;
+	transition: all 0.2s;
+
+	&:hover {
+		background-color: var(--primary-color);
+		color: white;
+		border-color: var(--primary-color);
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
 	}
 }
 
@@ -1009,6 +1140,32 @@ const handleMenuClick = () => {
 	.toolbar {
 		flex-wrap: wrap;
 		justify-content: center;
+	}
+
+	.brush-settings {
+		width: 100%;
+		justify-content: center;
+		border-left: none;
+		border-top: 2px solid var(--card-border);
+		padding-left: 0;
+		padding-top: var(--space-2);
+		margin-left: 0;
+		margin-top: var(--space-2);
+	}
+
+	.brush-setting {
+		flex: 1;
+		min-width: 0;
+
+		label {
+			font-size: 10px;
+		}
+	}
+
+	.brush-select {
+		width: 100%;
+		padding: var(--space-1);
+		font-size: 11px;
 	}
 
 	.canvas {
