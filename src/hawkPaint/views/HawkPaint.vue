@@ -644,37 +644,11 @@ const resizeCanvas = () => {
 	<main class="content">
 		<!-- Menu Bar -->
 		<section class="menu-bar">
-			<button @click="clearCanvas" class="menu-btn">Neu</button>
-			<button @click="loadImage" class="menu-btn">Laden</button>
-			<button @click="saveImage" class="menu-btn">Speichern</button>
+			<button @click="clearCanvas" class="menu-btn">new</button>
+			<button @click="loadImage" class="menu-btn">load</button>
+			<button @click="saveImage" class="menu-btn">save</button>
 			<button @click="undo" :disabled="history.length === 0" class="menu-btn menu-btn--icon" title="Rückgängig">↶</button>
 			<button @click="redo" :disabled="redoHistory.length === 0" class="menu-btn menu-btn--icon" title="Wiederherstellen">↷</button>
-
-			<!-- Canvas Size Controls -->
-			<div class="canvas-size-controls">
-				<label>
-					Breite:
-					<input
-						type="number"
-						v-model.number="canvasWidth"
-						@change="resizeCanvas"
-						min="16"
-						max="256"
-						class="size-input"
-					/>
-				</label>
-				<label>
-					Höhe:
-					<input
-						type="number"
-						v-model.number="canvasHeight"
-						@change="resizeCanvas"
-						min="16"
-						max="256"
-						class="size-input"
-					/>
-				</label>
-			</div>
 		</section>
 
 		<!-- Toolbar -->
@@ -883,6 +857,32 @@ const resizeCanvas = () => {
 				</div>
 			</div>
 		</section>
+
+		<!-- Canvas Size Controls -->
+		<div class="canvas-size-controls">
+			<label>
+				width:
+				<input
+						type="number"
+						v-model.number="canvasWidth"
+						@change="resizeCanvas"
+						min="16"
+						max="256"
+						class="size-input"
+				/>
+			</label>
+			<label>
+				height:
+				<input
+						type="number"
+						v-model.number="canvasHeight"
+						@change="resizeCanvas"
+						min="16"
+						max="256"
+						class="size-input"
+				/>
+			</label>
+		</div>
 	</main>
 </template>
 
