@@ -257,12 +257,14 @@ const selectTool = (tool) => {
 
 const selectColor = (color, index) => {
 	if (hasCustomColorSelected.value) {
+		foregroundColor.value = customColor.value
 		// Replace this palette color with custom color
 		colorPalette.value[index] = customColor.value
 		hasCustomColorSelected.value = false
 	} else {
 		// Normal color selection
 		foregroundColor.value = color
+		customColor.value = color
 	}
 }
 
