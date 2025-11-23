@@ -1,9 +1,12 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '../../gamingHub/components/Header.vue'
 
 const router = useRouter()
+
+// Minimap ref
+const minimapCanvas = ref(null)
 
 // Grid size
 const VIEWPORT_SIZE = 16 // Always show 16x16
@@ -360,6 +363,47 @@ const handlePixelMouseUp = () => {
 	}
 }
 
+// Touch event handlers for canvas
+const getTouchPixelCoords = (touch, canvasElement) => {
+	const rect = canvasElement.getBoundingClientRect()
+	const pixelSize = 20 // Size of each pixel in the grid
+
+	const x = touch.clientX - rect.left
+	const y = touch.clientY - rect.top
+
+	const col = Math.floor(x / pixelSize)
+	const row = Math.floor(y / pixelSize)
+
+	return { row, col }
+}
+
+const handleCanvasTouchStart = (event) => {
+	event.preventDefault()
+	const touch = event.touches[0]
+	const canvas = event.currentTarget.querySelector('.canvas')
+	const { row, col } = getTouchPixelCoords(touch, canvas)
+
+	if (row >= 0 && row < VIEWPORT_SIZE && col >= 0 && col < VIEWPORT_SIZE) {
+		handlePixelMouseDown(viewportY.value + row, viewportX.value + col)
+	}
+}
+
+const handleCanvasTouchMove = (event) => {
+	event.preventDefault()
+	const touch = event.touches[0]
+	const canvas = event.currentTarget.querySelector('.canvas')
+	const { row, col } = getTouchPixelCoords(touch, canvas)
+
+	if (row >= 0 && row < VIEWPORT_SIZE && col >= 0 && col < VIEWPORT_SIZE) {
+		handlePixelMouseEnter(viewportY.value + row, viewportX.value + col)
+	}
+}
+
+const handleCanvasTouchEnd = (event) => {
+	event.preventDefault()
+	handlePixelMouseUp()
+}
+
 // Brush patterns
 const getBrushPattern = (size, shape) => {
 	const pattern = []
@@ -584,6 +628,103 @@ const handleMenuClick = () => {
 	router.push('/gaming')
 }
 
+// Draw minimap
+const drawMinimap = () => {
+	if (!minimapCanvas.value) return
+
+	const canvas = minimapCanvas.value
+	const ctx = canvas.getContext('2d')
+
+	// Set canvas size to match canvas dimensions
+	const scale = 4 // Each pixel is 4x4 on minimap
+	canvas.width = canvasWidth.value * scale
+	canvas.height = canvasHeight.value * scale
+
+	// Clear canvas
+	ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+	// Draw grid pixels
+	for (let row = 0; row < canvasHeight.value; row++) {
+		for (let col = 0; col < canvasWidth.value; col++) {
+			const index = getPixelIndex(row, col)
+			const color = grid[index]
+
+			if (color !== 'transparent') {
+				ctx.fillStyle = color
+				ctx.fillRect(col * scale, row * scale, scale, scale)
+			}
+		}
+	}
+
+	// Draw viewport rectangle
+	ctx.strokeStyle = '#FF0000'
+	ctx.lineWidth = 2
+	ctx.strokeRect(
+		viewportX.value * scale,
+		viewportY.value * scale,
+		VIEWPORT_SIZE * scale,
+		VIEWPORT_SIZE * scale
+	)
+}
+
+// Click on minimap to jump to position
+const handleMinimapClick = (event) => {
+	if (!minimapCanvas.value) return
+
+	const canvas = minimapCanvas.value
+	const rect = canvas.getBoundingClientRect()
+	const scale = 4
+
+	// Calculate click position in canvas coordinates
+	const clickX = Math.floor((event.clientX - rect.left) / scale)
+	const clickY = Math.floor((event.clientY - rect.top) / scale)
+
+	// Center viewport on clicked position
+	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_SIZE / 2), canvasWidth.value - VIEWPORT_SIZE))
+	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_SIZE / 2), canvasHeight.value - VIEWPORT_SIZE))
+
+	viewportX.value = newX
+	viewportY.value = newY
+
+	drawMinimap()
+}
+
+// Touch handler for minimap
+const handleMinimapTouch = (event) => {
+	event.preventDefault()
+	if (!minimapCanvas.value) return
+
+	const touch = event.touches[0]
+	const canvas = minimapCanvas.value
+	const rect = canvas.getBoundingClientRect()
+	const scale = 4
+
+	// Calculate touch position in canvas coordinates
+	const clickX = Math.floor((touch.clientX - rect.left) / scale)
+	const clickY = Math.floor((touch.clientY - rect.top) / scale)
+
+	// Center viewport on touched position
+	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_SIZE / 2), canvasWidth.value - VIEWPORT_SIZE))
+	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_SIZE / 2), canvasHeight.value - VIEWPORT_SIZE))
+
+	viewportX.value = newX
+	viewportY.value = newY
+
+	drawMinimap()
+}
+
+// Watch for changes and update minimap
+watch([grid, viewportX, viewportY, canvasWidth, canvasHeight], () => {
+	nextTick(() => {
+		drawMinimap()
+	})
+}, { deep: true })
+
+// Initial draw after component mount
+nextTick(() => {
+	drawMinimap()
+})
+
 // Store previous dimensions
 let previousWidth = canvasWidth.value
 let previousHeight = canvasHeight.value
@@ -733,7 +874,15 @@ const resizeCanvas = () => {
 		</section>
 
 		<!-- Canvas -->
-		<section class="canvas-container" @mouseup="handlePixelMouseUp" @mouseleave="handlePixelMouseUp">
+		<section
+			class="canvas-container"
+			@mouseup="handlePixelMouseUp"
+			@mouseleave="handlePixelMouseUp"
+			@touchstart="handleCanvasTouchStart"
+			@touchmove="handleCanvasTouchMove"
+			@touchend="handleCanvasTouchEnd"
+			@touchcancel="handleCanvasTouchEnd"
+		>
 			<div class="canvas-wrapper">
 				<div class="canvas">
 					<div
@@ -767,6 +916,11 @@ const resizeCanvas = () => {
 		</section>
 
 		<section class="viewport-section">
+
+		</section>
+
+		<!-- Minimap Section -->
+		<section class="minimap-section">
 			<div class="viewport-navigation">
 				<label class="viewport-step-label">
 					Schritt:
@@ -812,6 +966,14 @@ const resizeCanvas = () => {
 						→
 					</button>
 				</div>
+			</div>
+			<div class="minimap-container">
+				<canvas
+					ref="minimapCanvas"
+					@click="handleMinimapClick"
+					@touchstart="handleMinimapTouch"
+					class="minimap-canvas"
+				></canvas>
 			</div>
 		</section>
 
@@ -938,6 +1100,50 @@ const resizeCanvas = () => {
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
+}
+
+// Minimap Section
+.minimap-section {
+	background-color: var(--card-bg);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.minimap-title {
+	font-size: var(--font-size-md);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.minimap-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	padding: var(--space-2);
+	min-height: 100px;
+}
+
+.minimap-canvas {
+	cursor: crosshair;
+	image-rendering: pixelated;
+	border: 1px solid var(--card-border);
+	background-color: white;
+	background-image:
+		linear-gradient(45deg, #eee 25%, transparent 25%),
+		linear-gradient(-45deg, #eee 25%, transparent 25%),
+		linear-gradient(45deg, transparent 75%, #eee 75%),
+		linear-gradient(-45deg, transparent 75%, #eee 75%);
+	background-size: 8px 8px;
+	background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+	touch-action: none; // Prevent scrolling/zooming during touch
 }
 
 .size-input {
@@ -1185,6 +1391,7 @@ const resizeCanvas = () => {
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-md);
 	padding: var(--space-4);
+	touch-action: none; // Prevent scrolling/zooming during touch drawing
 }
 
 .canvas-wrapper {
