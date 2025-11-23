@@ -11,6 +11,7 @@ const canvasWidth = ref(16)
 const canvasHeight = ref(16)
 const viewportX = ref(0)
 const viewportY = ref(0)
+const viewportStep = ref(16) // Step size for viewport movement
 
 // Tools
 const TOOLS = {
@@ -585,6 +586,21 @@ const handleMenuClick = () => {
 let previousWidth = canvasWidth.value
 let previousHeight = canvasHeight.value
 
+// Move viewport
+const moveViewport = (deltaX, deltaY) => {
+	const stepSize = viewportStep.value
+	const newX = viewportX.value + (deltaX * stepSize)
+	const newY = viewportY.value + (deltaY * stepSize)
+
+	// Check bounds and clamp to valid range
+	if (deltaX !== 0) {
+		viewportX.value = Math.max(0, Math.min(newX, canvasWidth.value - VIEWPORT_SIZE))
+	}
+	if (deltaY !== 0) {
+		viewportY.value = Math.max(0, Math.min(newY, canvasHeight.value - VIEWPORT_SIZE))
+	}
+}
+
 // Resize canvas function
 const resizeCanvas = () => {
 	const oldGrid = [...grid]
@@ -774,6 +790,55 @@ const resizeCanvas = () => {
 			</div>
 		</section>
 
+		<section class="viewport-section">
+			<div class="viewport-navigation">
+				<label class="viewport-step-label">
+					Schritt:
+					<input
+							type="number"
+							v-model.number="viewportStep"
+							min="1"
+							max="64"
+							class="size-input"
+					/>
+				</label>
+				<div class="nav-row">
+					<button
+							@click="moveViewport(-1, 0)"
+							:disabled="viewportX === 0"
+							class="nav-btn"
+							title="Links"
+					>
+						←
+					</button>
+					<button
+							@click="moveViewport(0, -1)"
+							:disabled="viewportY === 0"
+							class="nav-btn"
+							title="Hoch"
+					>
+						↑
+					</button>
+					<button
+							@click="moveViewport(0, 1)"
+							:disabled="viewportY + VIEWPORT_SIZE >= canvasHeight"
+							class="nav-btn"
+							title="Runter"
+					>
+						↓
+					</button>
+					<button
+							@click="moveViewport(1, 0)"
+							:disabled="viewportX + VIEWPORT_SIZE >= canvasWidth"
+							class="nav-btn"
+							title="Rechts"
+					>
+						→
+					</button>
+				</div>
+			</div>
+		</section>
+
 		<!-- Color Palette Section -->
 		<section class="palette-section">
 			<!-- Palette Header -->
@@ -855,6 +920,22 @@ const resizeCanvas = () => {
 		font-weight: var(--font-weight-bold);
 		color: var(--text-color);
 	}
+}
+
+.viewport-navigation {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.viewport-step-label {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
 }
 
 .size-input {
