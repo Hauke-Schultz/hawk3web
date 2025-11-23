@@ -6,7 +6,11 @@ import Header from '../../gamingHub/components/Header.vue'
 const router = useRouter()
 
 // Grid size
-const GRID_SIZE = 16
+const VIEWPORT_SIZE = 16 // Always show 16x16
+const canvasWidth = ref(16)
+const canvasHeight = ref(16)
+const viewportX = ref(0)
+const viewportY = ref(0)
 
 // Tools
 const TOOLS = {
@@ -115,7 +119,7 @@ const selectionStart = ref(null)
 
 // Initialize grid with transparent
 const grid = reactive(
-	Array(GRID_SIZE * GRID_SIZE).fill('transparent')
+	Array(canvasWidth.value * canvasHeight.value).fill('transparent')
 )
 
 // History for undo/redo
@@ -219,7 +223,7 @@ const applySelectionMove = () => {
 			const newCol = startCol + col + offsetCol
 
 			// Only paste if within bounds
-			if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
+			if (newRow >= 0 && newRow < canvasHeight.value && newCol >= 0 && newCol < canvasWidth.value) {
 				const gridIndex = getPixelIndex(newRow, newCol)
 				grid[gridIndex] = data[dataIndex]
 			}
@@ -277,7 +281,7 @@ const swapColors = () => {
 }
 
 const getPixelIndex = (row, col) => {
-	return row * GRID_SIZE + col
+	return row * canvasWidth.value + col
 }
 
 const handlePixelMouseDown = (row, col) => {
@@ -405,8 +409,8 @@ const applyBrush = (row, col, color) => {
 		const targetRow = row + y
 		const targetCol = col + x
 
-		// Check bounds
-		if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
+		// Check bounds (use canvas size, not viewport)
+		if (targetRow >= 0 && targetRow < canvasHeight.value && targetCol >= 0 && targetCol < canvasWidth.value) {
 			const index = getPixelIndex(targetRow, targetCol)
 			grid[index] = color
 		}
@@ -443,7 +447,7 @@ const floodFill = (row, col, targetColor, fillColor) => {
 		const key = `${r},${c}`
 
 		if (visited.has(key)) continue
-		if (r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE) continue
+		if (r < 0 || r >= canvasHeight.value || c < 0 || c >= canvasWidth.value) continue
 
 		const index = getPixelIndex(r, c)
 		if (grid[index] !== targetColor) continue
@@ -467,18 +471,18 @@ const clearCanvas = () => {
 }
 
 const saveImage = () => {
-	// Create canvas
+	// Create canvas with actual canvas size
 	const canvas = document.createElement('canvas')
-	canvas.width = GRID_SIZE
-	canvas.height = GRID_SIZE
+	canvas.width = canvasWidth.value
+	canvas.height = canvasHeight.value
 	const ctx = canvas.getContext('2d')
 
 	// Clear canvas (transparent by default)
-	ctx.clearRect(0, 0, GRID_SIZE, GRID_SIZE)
+	ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
 
 	// Draw each pixel
-	for (let row = 0; row < GRID_SIZE; row++) {
-		for (let col = 0; col < GRID_SIZE; col++) {
+	for (let row = 0; row < canvasHeight.value; row++) {
+		for (let col = 0; col < canvasWidth.value; col++) {
 			const index = getPixelIndex(row, col)
 			const color = grid[index]
 
@@ -495,7 +499,7 @@ const saveImage = () => {
 		const url = URL.createObjectURL(blob)
 		const link = document.createElement('a')
 		link.href = url
-		link.download = 'hawk-paint.png'
+		link.download = `hawk-paint-${canvasWidth.value}x${canvasHeight.value}.png`
 		link.click()
 		URL.revokeObjectURL(url)
 	}, 'image/png')
@@ -515,22 +519,33 @@ const loadImage = () => {
 			img.onload = () => {
 				saveToHistory()
 
+				// Adjust canvas size to match image
+				canvasWidth.value = img.width
+				canvasHeight.value = img.height
+
+				// Resize grid to match new canvas size
+				const newSize = img.width * img.height
+				grid.length = 0
+				for (let i = 0; i < newSize; i++) {
+					grid.push('transparent')
+				}
+
 				// Create temporary canvas to read pixels
 				const canvas = document.createElement('canvas')
-				canvas.width = GRID_SIZE
-				canvas.height = GRID_SIZE
+				canvas.width = img.width
+				canvas.height = img.height
 				const ctx = canvas.getContext('2d')
 
-				// Draw image scaled to 16x16
-				ctx.drawImage(img, 0, 0, GRID_SIZE, GRID_SIZE)
+				// Draw image at actual size
+				ctx.drawImage(img, 0, 0)
 
 				// Read pixel data
-				const imageData = ctx.getImageData(0, 0, GRID_SIZE, GRID_SIZE)
+				const imageData = ctx.getImageData(0, 0, img.width, img.height)
 
 				// Convert to hex colors with alpha support
-				for (let row = 0; row < GRID_SIZE; row++) {
-					for (let col = 0; col < GRID_SIZE; col++) {
-						const pixelIndex = (row * GRID_SIZE + col) * 4
+				for (let row = 0; row < img.height; row++) {
+					for (let col = 0; col < img.width; col++) {
+						const pixelIndex = (row * img.width + col) * 4
 						const r = imageData.data[pixelIndex]
 						const g = imageData.data[pixelIndex + 1]
 						const b = imageData.data[pixelIndex + 2]
@@ -550,6 +565,10 @@ const loadImage = () => {
 						}
 					}
 				}
+
+				// Reset viewport to origin
+				viewportX.value = 0
+				viewportY.value = 0
 			}
 			img.src = event.target.result
 		}
@@ -560,6 +579,43 @@ const loadImage = () => {
 
 const handleMenuClick = () => {
 	router.push('/gaming')
+}
+
+// Store previous dimensions
+let previousWidth = canvasWidth.value
+let previousHeight = canvasHeight.value
+
+// Resize canvas function
+const resizeCanvas = () => {
+	const oldGrid = [...grid]
+	const oldWidth = previousWidth
+	const oldHeight = previousHeight
+
+	// Create new grid with new dimensions
+	const newSize = canvasWidth.value * canvasHeight.value
+	grid.length = 0
+	for (let i = 0; i < newSize; i++) {
+		grid.push('transparent')
+	}
+
+	// Copy old content to new grid (top-left aligned)
+	for (let row = 0; row < Math.min(oldHeight, canvasHeight.value); row++) {
+		for (let col = 0; col < Math.min(oldWidth, canvasWidth.value); col++) {
+			const oldIndex = row * oldWidth + col
+			const newIndex = row * canvasWidth.value + col
+			if (oldIndex < oldGrid.length) {
+				grid[newIndex] = oldGrid[oldIndex]
+			}
+		}
+	}
+
+	// Update previous dimensions
+	previousWidth = canvasWidth.value
+	previousHeight = canvasHeight.value
+
+	// Reset viewport to origin
+	viewportX.value = 0
+	viewportY.value = 0
 }
 </script>
 
@@ -577,6 +633,32 @@ const handleMenuClick = () => {
 			<button @click="saveImage" class="menu-btn">Speichern</button>
 			<button @click="undo" :disabled="history.length === 0" class="menu-btn menu-btn--icon" title="Rückgängig">↶</button>
 			<button @click="redo" :disabled="redoHistory.length === 0" class="menu-btn menu-btn--icon" title="Wiederherstellen">↷</button>
+
+			<!-- Canvas Size Controls -->
+			<div class="canvas-size-controls">
+				<label>
+					Breite:
+					<input
+						type="number"
+						v-model.number="canvasWidth"
+						@change="resizeCanvas"
+						min="16"
+						max="256"
+						class="size-input"
+					/>
+				</label>
+				<label>
+					Höhe:
+					<input
+						type="number"
+						v-model.number="canvasHeight"
+						@change="resizeCanvas"
+						min="16"
+						max="256"
+						class="size-input"
+					/>
+				</label>
+			</div>
 		</section>
 
 		<!-- Toolbar -->
@@ -663,17 +745,17 @@ const handleMenuClick = () => {
 			<div class="canvas-wrapper">
 				<div class="canvas">
 					<div
-						v-for="row in GRID_SIZE"
+						v-for="row in VIEWPORT_SIZE"
 						:key="`row-${row}`"
 						class="pixel-row"
 					>
 						<div
-							v-for="col in GRID_SIZE"
+							v-for="col in VIEWPORT_SIZE"
 							:key="`pixel-${row}-${col}`"
 							class="pixel"
-							:style="{ backgroundColor: grid[getPixelIndex(row - 1, col - 1)] }"
-							@mousedown="handlePixelMouseDown(row - 1, col - 1)"
-							@mouseenter="handlePixelMouseEnter(row - 1, col - 1)"
+							:style="{ backgroundColor: grid[getPixelIndex(viewportY + row - 1, viewportX + col - 1)] }"
+							@mousedown="handlePixelMouseDown(viewportY + row - 1, viewportX + col - 1)"
+							@mouseenter="handlePixelMouseEnter(viewportY + row - 1, viewportX + col - 1)"
 						></div>
 					</div>
 				</div>
@@ -755,6 +837,40 @@ const handleMenuClick = () => {
 	background-color: var(--card-bg);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-md);
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.canvas-size-controls {
+	display: flex;
+	gap: var(--space-2);
+	margin-left: auto;
+	align-items: center;
+
+	label {
+		display: flex;
+		align-items: center;
+		gap: var(--space-1);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color);
+	}
+}
+
+.size-input {
+	width: 60px;
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-sm);
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+	}
 }
 
 .menu-btn {
@@ -799,6 +915,7 @@ const handleMenuClick = () => {
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-md);
 	align-items: center;
+	flex-wrap: wrap;
 }
 
 .tool-btn {
@@ -907,6 +1024,72 @@ const handleMenuClick = () => {
 		bottom: 0;
 		right: 0;
 		z-index: 1;
+	}
+}
+
+// Canvas Section
+.canvas-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.viewport-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--space-2) var(--space-3);
+	background-color: var(--card-bg);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	gap: var(--space-3);
+}
+
+.viewport-info {
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-secondary);
+}
+
+.viewport-nav {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-1);
+}
+
+.nav-row {
+	display: flex;
+	gap: var(--space-1);
+}
+
+.nav-btn {
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	cursor: pointer;
+	transition: all 0.2s;
+	color: var(--text-color);
+
+	&:hover:not(:disabled) {
+		background-color: var(--primary-color);
+		color: white;
+		transform: scale(1.05);
+	}
+
+	&:active:not(:disabled) {
+		transform: scale(0.95);
+	}
+
+	&:disabled {
+		opacity: 0.3;
+		cursor: not-allowed;
 	}
 }
 
@@ -1137,6 +1320,16 @@ const handleMenuClick = () => {
 
 // Responsive
 @media (max-width: 768px) {
+	.menu-bar {
+		justify-content: flex-start;
+	}
+
+	.canvas-size-controls {
+		margin-left: 0;
+		width: 100%;
+		justify-content: center;
+	}
+
 	.toolbar {
 		flex-wrap: wrap;
 		justify-content: center;
@@ -1166,6 +1359,15 @@ const handleMenuClick = () => {
 		width: 100%;
 		padding: var(--space-1);
 		font-size: 11px;
+	}
+
+	.viewport-controls {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.viewport-info {
+		text-align: center;
 	}
 
 	.canvas {
