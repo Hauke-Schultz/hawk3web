@@ -37,67 +37,116 @@ const COLOR_THEMES = {
 			'#888888', '#444444', '#CCCCCC', '#884400'
 		]
 	},
-	pastell: {
-		name: 'Pastell',
+	grey: {
+		name: 'Grau',
 		colors: [
-			'#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
-			'#BAE1FF', '#E0BBE4', '#FFDFD3', '#FEC8D8',
-			'#D4F1F4', '#C9E4CA', '#F9E5D8', '#E8D5C4',
-			'#F5E6E8', '#D5AAFF', '#FFD3E1', '#C7CEEA'
+			'#F2F2F2', '#E6E6E6', '#D9D9D9', '#CCCCCC', '#BFBFBF', '#B3B3B3', '#A6A6A6', '#999999',
+			'#8C8C8C', '#737373', '#5C5C5C', '#474747', '#333333', '#1F1F1F', '#141414', '#0A0A0A'
 		]
 	},
-	retro: {
-		name: 'Retro Gaming',
+	yellow: {
+		name: 'Gelb',
 		colors: [
-			'#000000', '#FFFFFF', '#880000', '#AAFFEE',
-			'#CC44CC', '#00CC55', '#0000AA', '#EEEE77',
-			'#DD8855', '#664400', '#FF7777', '#333333',
-			'#777777', '#AAFF66', '#0088FF', '#BBBBBB'
+			'#FFFBEA', '#FFF3C4', '#FCE588', '#FADB5F', '#F7C948', '#F0B429', '#DE911D', '#CB6E17',
+			'#B44D12', '#8D3613', '#7A2E0E', '#6B270C', '#5A1F0A', '#491908', '#381306', '#280D04'
 		]
 	},
-	neon: {
-		name: 'Neon',
+	orange: {
+		name: 'Orange',
 		colors: [
-			'#FF006E', '#FB5607', '#FFBE0B', '#8338EC',
-			'#3A86FF', '#06FFA5', '#FF00FF', '#00FFFF',
-			'#FF1744', '#76FF03', '#FFEA00', '#00E5FF',
-			'#E040FB', '#FF6E40', '#69F0AE', '#FFFFFF'
+			'#FFF4E5', '#FFE8CC', '#FFD4A8', '#FFBB77', '#FFA94D', '#FF922B', '#FD7E14', '#E86A0C',
+			'#CC580A', '#B04708', '#933606', '#7A2C05', '#662403', '#521D03', '#3D1502', '#2A0E01'
 		]
 	},
-	earth: {
-		name: 'Earth Tones',
+	red: {
+		name: 'Rot',
 		colors: [
-			'#3E2723', '#5D4037', '#6D4C41', '#795548',
-			'#8D6E63', '#A1887F', '#BCAAA4', '#D7CCC8',
-			'#4E342E', '#6F4E37', '#8B4513', '#A0522D',
-			'#CD853F', '#DEB887', '#F5DEB3', '#FFF8DC'
+			'#FFE5E5', '#FFC9C9', '#FFA8A8', '#FF8787', '#FF6B6B', '#FA5252', '#F03E3E', '#E03131',
+			'#C92A2A', '#B02525', '#962020', '#7D1A1A', '#661515', '#4E1010', '#370B0B', '#210606'
 		]
 	},
-	ocean: {
-		name: 'Ocean',
+	pink: {
+		name: 'Pink',
 		colors: [
-			'#001f3f', '#0074D9', '#7FDBFF', '#39CCCC',
-			'#3D9970', '#2ECC40', '#01FF70', '#FFDC00',
-			'#4A90E2', '#50E3C2', '#B8E986', '#F5A623',
-			'#AAAAAA', '#DDDDDD', '#FFFFFF', '#000000'
+			'#FFE6F0', '#FFCBE1', '#FFADD1', '#FF8FC1', '#FF70B1', '#F55DA3', '#E64992', '#D1387F',
+			'#B62E6B', '#9C2659', '#821F48', '#6A1839', '#54132D', '#3D0D20', '#270915', '#15040A'
 		]
 	},
-	monochrome: {
-		name: 'Monochrome',
+	purple: {
+		name: 'Violett',
 		colors: [
-			'#000000', '#1A1A1A', '#333333', '#4D4D4D',
-			'#666666', '#808080', '#999999', '#B3B3B3',
-			'#CCCCCC', '#E6E6E6', '#F2F2F2', '#FFFFFF',
-			'#0D0D0D', '#262626', '#404040', '#595959'
+			'#F3E8FF', '#E5D4FF', '#D0B6FF', '#BB98FF', '#A678FF', '#925EFF', '#7D47F0', '#6935D1',
+			'#562AB6', '#452399', '#361C7D', '#2A1763', '#20124E', '#160D39', '#0E0826', '#070413'
 		]
 	},
-	candy: {
-		name: 'Candy',
+	blue: {
+		name: 'Blau',
 		colors: [
-			'#FF69B4', '#FF1493', '#FFB6C1', '#FFC0CB',
-			'#FF6EB4', '#FF85C1', '#FF9ECE', '#FFB7DB',
-			'#87CEEB', '#98D8E8', '#B0E0E6', '#AFEEEE',
-			'#FFE4E1', '#FFF0F5', '#FFDAB9', '#FFEFD5'
+			'#E6F0FF', '#CCE1FF', '#A8CCFF', '#85B6FF', '#5FA0FF', '#3D8BFF', '#1E78FF', '#0F66E6',
+			'#0A55C2', '#0846A3', '#063985', '#052E6A', '#042452', '#031B3D', '#021227', '#010A14'
+		]
+	},
+	cyan: {
+		name: 'Cyan',
+		colors: [
+			'#E6FBFF', '#C6F5FF', '#9DEFFF', '#74E8FF', '#4DE2FF', '#29DAF8', '#14C7E6', '#0FB0CC',
+			'#0C96AF', '#0A7D92', '#086678', '#065262', '#053F4A', '#032D36', '#021E25', '#011215'
+		]
+	},
+	green: {
+		name: 'Grün',
+		colors: [
+			'#E6FFE9', '#C9FFD1', '#A6F7B3', '#85EF96', '#62E679', '#48D565', '#36C153', '#2EA047',
+			'#27833B', '#216930', '#1B5125', '#153E1C', '#102F15', '#0B2110', '#07160A', '#040D06'
+		]
+	},
+	brown: {
+		name: 'Braun',
+		colors: [
+			'#F7EFE7', '#EBDCCB', '#DCC5AC', '#CCA98A', '#BD8E6C', '#AD7752', '#9C633F', '#875333',
+			'#734628', '#613A1F', '#503017', '#402612', '#321E0D', '#241608', '#170E05', '#0D0803'
+		]
+	},
+	lime: {
+		name: 'Lime',
+		colors: [
+			'#F2FFE6', '#E2FFC6', '#CCFF99', '#B3FF66', '#99FF33', '#80FF00', '#6CD100', '#59B300',
+			'#4A9600', '#3C7A00', '#2E6000', '#244D00', '#1B3A00', '#142A00', '#0C1B00', '#071000'
+		]
+	},
+	teal: {
+		name: 'Teal',
+		colors: [
+			'#E6FFFB', '#C4FFF4', '#99FFE9', '#6DF5DC', '#48E8CF', '#2DD3BA', '#1EB8A3', '#14998A',
+			'#107D72', '#0D665E', '#0A504A', '#083E3A', '#062F2C', '#04211F', '#031614', '#010A09'
+		]
+	},
+	olive: {
+		name: 'Oliv',
+		colors: [
+			'#F5F7E6', '#E8ECC3', '#DCE0A1', '#CCD07E', '#BCBF5D', '#A8AA48', '#979840', '#807F33',
+			'#696728', '#545120', '#434019', '#342F13', '#26220E', '#1A1709', '#120F06', '#090803'
+		]
+	},
+	gold: {
+		name: 'Gold',
+		colors: [
+			'#FFF9E6', '#FFF1C7', '#FFE8A1', '#FFDD77', '#FFD24D', '#FFC72A', '#F2B615', '#D9990F',
+			'#BF810A', '#A66A07', '#8A5605', '#704504', '#593603', '#422802', '#2C1B01', '#170E00'
+		]
+	},
+	silver: {
+		name: 'Silber',
+		colors: [
+			'#F9FAFB', '#F1F3F5', '#E6E9ED', '#D9DDE3', '#C8CCD2', '#B7BDC2', '#A5ABB0', '#8E959B',
+			'#787E85', '#62686E', '#4F5458', '#3E4245', '#2F3234', '#222325', '#171718', '#0C0C0D'
+		]
+	},
+	magenta: {
+		name: 'Magenta',
+		colors: [
+			'#FFE6FA', '#FFC7F2', '#FFA3E8', '#FF7FDE', '#FF59D3', '#FF33C7', '#EB1DB2', '#C91695',
+			'#A7127B', '#890F65', '#6C0B4F', '#53093D', '#3C072C', '#27051D', '#180312', '#0A0208'
 		]
 	}
 }
@@ -427,47 +476,6 @@ const handlePixelMouseUp = () => {
 	} else {
 		isDrawing.value = false
 	}
-}
-
-// Touch event handlers for canvas
-const getTouchPixelCoords = (touch, canvasElement) => {
-	const rect = canvasElement.getBoundingClientRect()
-	const pixelSize = 20 // Size of each pixel in the grid
-
-	const x = touch.clientX - rect.left
-	const y = touch.clientY - rect.top
-
-	const col = Math.floor(x / pixelSize)
-	const row = Math.floor(y / pixelSize)
-
-	return { row, col }
-}
-
-const handleCanvasTouchStart = (event) => {
-	event.preventDefault()
-	const touch = event.touches[0]
-	const canvas = event.currentTarget.querySelector('.canvas')
-	const { row, col } = getTouchPixelCoords(touch, canvas)
-
-	if (row >= 0 && row < VIEWPORT_SIZE && col >= 0 && col < VIEWPORT_SIZE) {
-		handlePixelMouseDown(viewportY.value + row, viewportX.value + col)
-	}
-}
-
-const handleCanvasTouchMove = (event) => {
-	event.preventDefault()
-	const touch = event.touches[0]
-	const canvas = event.currentTarget.querySelector('.canvas')
-	const { row, col } = getTouchPixelCoords(touch, canvas)
-
-	if (row >= 0 && row < VIEWPORT_SIZE && col >= 0 && col < VIEWPORT_SIZE) {
-		handlePixelMouseEnter(viewportY.value + row, viewportX.value + col)
-	}
-}
-
-const handleCanvasTouchEnd = (event) => {
-	event.preventDefault()
-	handlePixelMouseUp()
 }
 
 // Brush patterns
@@ -951,10 +959,6 @@ const resizeCanvas = () => {
 			class="canvas-container"
 			@mouseup="handlePixelMouseUp"
 			@mouseleave="handlePixelMouseUp"
-			@touchstart="handleCanvasTouchStart"
-			@touchmove="handleCanvasTouchMove"
-			@touchend="handleCanvasTouchEnd"
-			@touchcancel="handleCanvasTouchEnd"
 		>
 			<div class="canvas-wrapper">
 				<div class="canvas">
@@ -979,8 +983,8 @@ const resizeCanvas = () => {
 					v-if="selection"
 					class="selection-overlay"
 					:style="{
-						top: (selection.startRow + selection.offsetRow) * 20 + 'px',
-						left: (selection.startCol + selection.offsetCol) * 20 + 'px',
+						top: (selection.startRow - viewportY + selection.offsetRow) * 20 + 'px',
+						left: (selection.startCol - viewportX + selection.offsetCol) * 20 + 'px',
 						width: (selection.endCol - selection.startCol + 1) * 20 + 'px',
 						height: (selection.endRow - selection.startRow + 1) * 20 + 'px'
 					}"
