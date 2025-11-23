@@ -22,7 +22,8 @@ const TOOLS = {
 	FILL: 'fill',
 	ERASER: 'eraser',
 	PICKER: 'picker',
-	SELECT: 'select'
+	SELECT: 'select',
+	COPY: 'copy'
 }
 
 // Color Themes
@@ -120,6 +121,9 @@ const brushShape = ref('square')
 // Selection state
 const selection = ref(null) // { startRow, startCol, endRow, endCol, data, offsetRow, offsetCol, isDragging }
 const selectionStart = ref(null)
+
+// Clipboard for copy/paste
+const clipboard = ref(null) // { width, height, data }
 
 // Initialize grid with transparent
 const grid = reactive(
@@ -250,10 +254,52 @@ const cancelSelection = () => {
 	selectionStart.value = null
 }
 
+// Copy to clipboard
+const copyToClipboard = () => {
+	if (!selection.value) return
+
+	const { startRow, startCol, endRow, endCol } = selection.value
+	const width = endCol - startCol + 1
+	const height = endRow - startRow + 1
+	const data = []
+
+	// Copy pixels without clearing
+	for (let row = startRow; row <= endRow; row++) {
+		for (let col = startCol; col <= endCol; col++) {
+			const index = getPixelIndex(row, col)
+			data.push(grid[index])
+		}
+	}
+
+	clipboard.value = { width, height, data }
+}
+
+// Paste from clipboard
+const pasteFromClipboard = (targetRow, targetCol) => {
+	if (!clipboard.value) return
+
+	const { width, height, data } = clipboard.value
+	let dataIndex = 0
+
+	for (let row = 0; row < height; row++) {
+		for (let col = 0; col < width; col++) {
+			const newRow = targetRow + row
+			const newCol = targetCol + col
+
+			// Only paste if within bounds
+			if (newRow >= 0 && newRow < canvasHeight.value && newCol >= 0 && newCol < canvasWidth.value) {
+				const gridIndex = getPixelIndex(newRow, newCol)
+				grid[gridIndex] = data[dataIndex]
+			}
+			dataIndex++
+		}
+	}
+}
+
 // Tool functions
 const selectTool = (tool) => {
 	currentTool.value = tool
-	if (tool !== TOOLS.SELECT) {
+	if (tool !== TOOLS.SELECT && tool !== TOOLS.COPY) {
 		cancelSelection()
 	}
 }
@@ -313,6 +359,23 @@ const handlePixelMouseDown = (row, col) => {
 			selectionStart.value = { row, col }
 			selection.value = null
 		}
+	} else if (currentTool.value === TOOLS.COPY) {
+		// If we have clipboard data, paste it at clicked position
+		if (clipboard.value) {
+			saveToHistory()
+			pasteFromClipboard(row, col)
+			clipboard.value = null
+			selection.value = null
+			selectionStart.value = null
+		} else if (selection.value && !selectionStart.value) {
+			// Already have a selection, copy it to clipboard
+			copyToClipboard()
+			selection.value = null
+		} else {
+			// Start new selection for copying
+			selectionStart.value = { row, col }
+			selection.value = null
+		}
 	} else {
 		isDrawing.value = true
 		saveToHistory()
@@ -321,7 +384,7 @@ const handlePixelMouseDown = (row, col) => {
 }
 
 const handlePixelMouseEnter = (row, col) => {
-	if (currentTool.value === TOOLS.SELECT) {
+	if (currentTool.value === TOOLS.SELECT || currentTool.value === TOOLS.COPY) {
 		if (selectionStart.value && !selection.value?.isDragging) {
 			// Drawing selection rectangle
 			const startRow = Math.min(selectionStart.value.row, row)
@@ -357,6 +420,9 @@ const handlePixelMouseUp = () => {
 			// Apply the move
 			applySelectionMove()
 		}
+		selectionStart.value = null
+	} else if (currentTool.value === TOOLS.COPY) {
+		// Finish selection drawing
 		selectionStart.value = null
 	} else {
 		isDrawing.value = false
@@ -831,6 +897,13 @@ const resizeCanvas = () => {
 			>
 				✂️
 			</button>
+			<button
+				@click="selectTool(TOOLS.COPY)"
+				:class="['tool-btn', { active: currentTool === TOOLS.COPY }]"
+				title="Kopieren & Einfügen"
+			>
+				📋
+			</button>
 
 			<!-- Brush Settings -->
 			<div class="brush-settings">
@@ -1240,9 +1313,6 @@ const resizeCanvas = () => {
 .brush-settings {
 	display: flex;
 	gap: var(--space-2);
-	padding-left: var(--space-2);
-	margin-left: var(--space-2);
-	border-left: 2px solid var(--card-border);
 }
 
 .brush-setting {
