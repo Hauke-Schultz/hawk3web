@@ -23,18 +23,17 @@ const TOOLS = {
 	ERASER: 'eraser',
 	PICKER: 'picker',
 	SELECT: 'select',
-	COPY: 'copy'
+	MOVE: 'move',
+	PASTE: 'paste'
 }
 
 // Color Themes
 const COLOR_THEMES = {
 	classic: {
-		name: '8-Bit Classic',
+		name: 'Theme',
 		colors: [
-			'#000000', '#FFFFFF', '#FF0000', '#00FF00',
-			'#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
-			'#FF8800', '#8800FF', '#00FF88', '#FF0088',
-			'#888888', '#444444', '#CCCCCC', '#884400'
+			'#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+			'#FF8800', '#8800FF', '#00FF88', '#FF0088', '#888888', '#444444', '#CCCCCC', '#884400'
 		]
 	},
 	grey: {
@@ -162,6 +161,7 @@ const currentTool = ref(TOOLS.PENCIL)
 const foregroundColor = ref('#000000')
 const backgroundColor = ref('#FFFFFF')
 const isDrawing = ref(false)
+const imageName = ref('hawk-paint')
 
 // Brush settings
 const brushSize = ref(1)
@@ -173,6 +173,7 @@ const selectionStart = ref(null)
 
 // Clipboard for copy/paste
 const clipboard = ref(null) // { width, height, data }
+const pastePreview = ref(null) // { row, col, width, height } - for showing paste preview
 
 // Initialize grid with transparent
 const grid = reactive(
@@ -348,8 +349,11 @@ const pasteFromClipboard = (targetRow, targetCol) => {
 // Tool functions
 const selectTool = (tool) => {
 	currentTool.value = tool
-	if (tool !== TOOLS.SELECT && tool !== TOOLS.COPY) {
+	if (tool !== TOOLS.SELECT && tool !== TOOLS.MOVE) {
 		cancelSelection()
+	}
+	if (tool !== TOOLS.PASTE) {
+		pastePreview.value = null
 	}
 }
 
@@ -386,7 +390,15 @@ const getPixelIndex = (row, col) => {
 }
 
 const handlePixelMouseDown = (row, col) => {
+	if (hasCustomColorSelected.value) {
+		foregroundColor.value = customColor.value
+		hasCustomColorSelected.value = false
+	}
 	if (currentTool.value === TOOLS.SELECT) {
+		// Start new selection
+		selectionStart.value = { row, col }
+		selection.value = null
+	} else if (currentTool.value === TOOLS.MOVE) {
 		// Check if clicking inside existing selection
 		if (selection.value && isInsideSelection(row, col) && !selection.value.data) {
 			// Auto-cut the selection when clicking on it
@@ -403,27 +415,16 @@ const handlePixelMouseDown = (row, col) => {
 			selection.value.dragStartCol = col
 			selection.value.offsetRow = 0
 			selection.value.offsetCol = 0
-		} else {
-			// Start new selection
-			selectionStart.value = { row, col }
-			selection.value = null
 		}
-	} else if (currentTool.value === TOOLS.COPY) {
-		// If we have clipboard data, paste it at clicked position
+	} else if (currentTool.value === TOOLS.PASTE) {
+		// Show paste preview at clicked position
 		if (clipboard.value) {
-			saveToHistory()
-			pasteFromClipboard(row, col)
-			clipboard.value = null
-			selection.value = null
-			selectionStart.value = null
-		} else if (selection.value && !selectionStart.value) {
-			// Already have a selection, copy it to clipboard
-			copyToClipboard()
-			selection.value = null
-		} else {
-			// Start new selection for copying
-			selectionStart.value = { row, col }
-			selection.value = null
+			pastePreview.value = {
+				row,
+				col,
+				width: clipboard.value.width,
+				height: clipboard.value.height
+			}
 		}
 	} else {
 		isDrawing.value = true
@@ -433,7 +434,7 @@ const handlePixelMouseDown = (row, col) => {
 }
 
 const handlePixelMouseEnter = (row, col) => {
-	if (currentTool.value === TOOLS.SELECT || currentTool.value === TOOLS.COPY) {
+	if (currentTool.value === TOOLS.SELECT) {
 		if (selectionStart.value && !selection.value?.isDragging) {
 			// Drawing selection rectangle
 			const startRow = Math.min(selectionStart.value.row, row)
@@ -451,12 +452,20 @@ const handlePixelMouseEnter = (row, col) => {
 				offsetCol: 0,
 				isDragging: false
 			}
-		} else if (selection.value?.isDragging) {
+		}
+	} else if (currentTool.value === TOOLS.MOVE) {
+		if (selection.value?.isDragging) {
 			// Dragging existing selection
 			const deltaRow = row - selection.value.dragStartRow
 			const deltaCol = col - selection.value.dragStartCol
 			selection.value.offsetRow = deltaRow
 			selection.value.offsetCol = deltaCol
+		}
+	} else if (currentTool.value === TOOLS.PASTE) {
+		// Update paste preview position while hovering
+		if (pastePreview.value && clipboard.value) {
+			pastePreview.value.row = row
+			pastePreview.value.col = col
 		}
 	} else if (isDrawing.value && (currentTool.value === TOOLS.PENCIL || currentTool.value === TOOLS.ERASER)) {
 		applyTool(row, col)
@@ -465,14 +474,23 @@ const handlePixelMouseEnter = (row, col) => {
 
 const handlePixelMouseUp = () => {
 	if (currentTool.value === TOOLS.SELECT) {
+		// Automatically copy the selection to clipboard
+		if (selection.value && selectionStart.value) {
+			copyToClipboard()
+		}
+		selectionStart.value = null
+	} else if (currentTool.value === TOOLS.MOVE) {
 		if (selection.value?.isDragging) {
 			// Apply the move
 			applySelectionMove()
 		}
-		selectionStart.value = null
-	} else if (currentTool.value === TOOLS.COPY) {
-		// Finish selection drawing
-		selectionStart.value = null
+	} else if (currentTool.value === TOOLS.PASTE) {
+		// Perform paste at preview position
+		if (pastePreview.value && clipboard.value) {
+			saveToHistory()
+			pasteFromClipboard(pastePreview.value.row, pastePreview.value.col)
+			pastePreview.value = null
+		}
 	} else {
 		isDrawing.value = false
 	}
@@ -620,7 +638,7 @@ const saveImage = () => {
 		const url = URL.createObjectURL(blob)
 		const link = document.createElement('a')
 		link.href = url
-		link.download = `hawk-paint-${canvasWidth.value}x${canvasHeight.value}.png`
+		link.download = `${imageName.value}.png`
 		link.click()
 		URL.revokeObjectURL(url)
 	}, 'image/png')
@@ -633,6 +651,10 @@ const loadImage = () => {
 	input.onchange = (e) => {
 		const file = e.target.files[0]
 		if (!file) return
+
+		// Extract filename without extension
+		const fileName = file.name.replace(/\.[^/.]+$/, '')
+		imageName.value = fileName
 
 		const reader = new FileReader()
 		reader.onload = (event) => {
@@ -864,8 +886,43 @@ const resizeCanvas = () => {
 			<button @click="clearCanvas" class="menu-btn">new</button>
 			<button @click="loadImage" class="menu-btn">load</button>
 			<button @click="saveImage" class="menu-btn">save</button>
-			<button @click="undo" :disabled="history.length === 0" class="menu-btn menu-btn--icon" title="Rückgängig">↶</button>
-			<button @click="redo" :disabled="redoHistory.length === 0" class="menu-btn menu-btn--icon" title="Wiederherstellen">↷</button>
+
+			<div class="image-name-container">
+				<label for="image-name">Name:</label>
+				<input
+					id="image-name"
+					type="text"
+					v-model="imageName"
+					class="image-name-input"
+					placeholder="Bildname"
+				/>
+			</div>
+
+			<!-- Canvas Size Controls -->
+			<div class="canvas-size-controls">
+				<label>
+					width:
+					<input
+							type="number"
+							v-model.number="canvasWidth"
+							@change="resizeCanvas"
+							min="16"
+							max="256"
+							class="size-input"
+					/>
+				</label>
+				<label>
+					height:
+					<input
+							type="number"
+							v-model.number="canvasHeight"
+							@change="resizeCanvas"
+							min="16"
+							max="256"
+							class="size-input"
+					/>
+				</label>
+			</div>
 		</section>
 
 		<!-- Toolbar -->
@@ -901,36 +958,51 @@ const resizeCanvas = () => {
 			<button
 				@click="selectTool(TOOLS.SELECT)"
 				:class="['tool-btn', { active: currentTool === TOOLS.SELECT }]"
-				title="Auswählen & Verschieben"
+				title="Auswählen"
 			>
-				✂️
+				🔳
 			</button>
 			<button
-				@click="selectTool(TOOLS.COPY)"
-				:class="['tool-btn', { active: currentTool === TOOLS.COPY }]"
-				title="Kopieren & Einfügen"
+				@click="selectTool(TOOLS.MOVE)"
+				:class="['tool-btn', { active: currentTool === TOOLS.MOVE }]"
+				title="Verschieben"
+			>
+				✋
+			</button>
+			<button
+				@click="selectTool(TOOLS.PASTE)"
+				:class="['tool-btn', { active: currentTool === TOOLS.PASTE }]"
+				title="Einfügen"
 			>
 				📋
 			</button>
 
+			<button @click="undo" :disabled="history.length === 0" class="menu-btn menu-btn--icon" title="Rückgängig">↶</button>
+			<button @click="redo" :disabled="redoHistory.length === 0" class="menu-btn menu-btn--icon" title="Wiederherstellen">↷</button>
+
 			<!-- Brush Settings -->
 			<div class="brush-settings">
 				<div class="brush-setting">
-					<label for="brush-size">Größe:</label>
 					<select id="brush-size" v-model.number="brushSize" class="brush-select">
 						<option v-for="size in 16" :key="size" :value="size">{{ size }}px</option>
 					</select>
 				</div>
 				<div class="brush-setting">
-					<label for="brush-shape">Form:</label>
 					<select id="brush-shape" v-model="brushShape" class="brush-select">
-						<option value="square">■ Quadrat</option>
-						<option value="circle">● Kreis</option>
-						<option value="diamond">◆ Raute</option>
-						<option value="horizontal">━ Horizontal</option>
-						<option value="vertical">┃ Vertikal</option>
-						<option value="cross">✛ Kreuz</option>
-						<option value="plus">✚ Plus</option>
+						<option value="square">■</option>
+						<option value="circle">●</option>
+						<option value="diamond">◆</option>
+						<option value="horizontal">━</option>
+						<option value="vertical">┃</option>
+						<option value="cross">✛</option>
+						<option value="plus">✚</option>
+					</select>
+				</div>
+				<div class="theme-selector">
+					<select id="theme-select" v-model="currentTheme" @change="changeTheme(currentTheme)" class="theme-select">
+						<option v-for="(theme, key) in COLOR_THEMES" :key="key" :value="key">
+							{{ theme.name }}
+						</option>
 					</select>
 				</div>
 			</div>
@@ -938,17 +1010,40 @@ const resizeCanvas = () => {
 			<!-- Active Colors -->
 			<div class="active-colors">
 				<div class="color-display">
-					<div
-						class="color-box foreground"
-						:style="{ backgroundColor: foregroundColor }"
-						@click="swapColors"
-						title="Vordergrund"
-					></div>
+					<label class="color-box foreground color-picker-btn" :class="{ active: hasCustomColorSelected }">
+						<input
+								type="color"
+								v-model="customColor"
+								@input="openCustomColorPicker"
+								class="color-input"
+						/>
+						<span class="color-box foreground" :style="{ backgroundColor: customColor }"></span>
+					</label>
 					<div
 						class="color-box background"
 						:style="{ backgroundColor: backgroundColor }"
 						@click="swapColors"
 						title="Hintergrund"
+					></div>
+				</div>
+			</div>
+		</section>
+		<!-- Color Palette Section -->
+		<section>
+			<!-- Color Palette Grid -->
+			<div class="color-palette" :class="{ 'replace-mode': hasCustomColorSelected }">
+				<div
+						v-for="(color, index) in colorPalette"
+						:key="index"
+						class="palette-color-wrapper"
+				>
+					<div
+							class="palette-color"
+							:class="{
+							active: color === foregroundColor && !hasCustomColorSelected
+						}"
+							:style="{ backgroundColor: color }"
+							@click="selectColor(color, index)"
 					></div>
 				</div>
 			</div>
@@ -990,10 +1085,6 @@ const resizeCanvas = () => {
 					}"
 				></div>
 			</div>
-		</section>
-
-		<section class="viewport-section">
-
 		</section>
 
 		<!-- Minimap Section -->
@@ -1053,77 +1144,6 @@ const resizeCanvas = () => {
 				></canvas>
 			</div>
 		</section>
-
-		<!-- Color Palette Section -->
-		<section class="palette-section">
-			<!-- Palette Header -->
-			<div class="palette-header">
-				<div class="theme-selector">
-					<label for="theme-select">Theme:</label>
-					<select id="theme-select" v-model="currentTheme" @change="changeTheme(currentTheme)" class="theme-select">
-						<option v-for="(theme, key) in COLOR_THEMES" :key="key" :value="key">
-							{{ theme.name }}
-						</option>
-					</select>
-				</div>
-				<div class="custom-color-picker">
-					<label class="color-picker-btn" :class="{ active: hasCustomColorSelected }">
-						<input
-							type="color"
-							v-model="customColor"
-							@input="openCustomColorPicker"
-							class="color-input"
-						/>
-						<span class="color-preview" :style="{ backgroundColor: customColor }"></span>
-						<span class="color-label">{{ hasCustomColorSelected ? 'Farbe wählen...' : 'Farbe' }}</span>
-					</label>
-				</div>
-			</div>
-
-			<!-- Color Palette Grid -->
-			<div class="color-palette" :class="{ 'replace-mode': hasCustomColorSelected }">
-				<div
-					v-for="(color, index) in colorPalette"
-					:key="index"
-					class="palette-color-wrapper"
-				>
-					<div
-						class="palette-color"
-						:class="{
-							active: color === foregroundColor && !hasCustomColorSelected
-						}"
-						:style="{ backgroundColor: color }"
-						@click="selectColor(color, index)"
-					></div>
-				</div>
-			</div>
-		</section>
-
-		<!-- Canvas Size Controls -->
-		<div class="canvas-size-controls">
-			<label>
-				width:
-				<input
-						type="number"
-						v-model.number="canvasWidth"
-						@change="resizeCanvas"
-						min="16"
-						max="256"
-						class="size-input"
-				/>
-			</label>
-			<label>
-				height:
-				<input
-						type="number"
-						v-model.number="canvasHeight"
-						@change="resizeCanvas"
-						min="16"
-						max="256"
-						class="size-input"
-				/>
-			</label>
-		</div>
 	</main>
 </template>
 
@@ -1145,6 +1165,39 @@ const resizeCanvas = () => {
 	border-radius: var(--border-radius-md);
 	flex-wrap: wrap;
 	align-items: center;
+}
+
+.image-name-container {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+
+	label {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color);
+		white-space: nowrap;
+	}
+}
+
+.image-name-input {
+	min-width: 150px;
+	padding: var(--space-1) var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-sm);
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+	}
 }
 
 .canvas-size-controls {
@@ -1276,10 +1329,6 @@ const resizeCanvas = () => {
 	display: flex;
 	flex-direction: row;
 	gap: var(--space-2);
-	padding: var(--space-3);
-	background-color: var(--card-bg);
-	border: 2px solid var(--card-border);
-	border-radius: var(--border-radius-md);
 	align-items: center;
 	flex-wrap: wrap;
 }
@@ -1595,15 +1644,9 @@ const resizeCanvas = () => {
 		}
 	}
 
-	&.active {
-		background-color: var(--success-color);
-		color: white;
-		border-color: var(--success-color);
+	&.active .color-box {
+		border: 2px solid var(--success-color);
 		animation: pulse 1.5s ease-in-out infinite;
-
-		.color-preview {
-			border-color: white;
-		}
 	}
 }
 
