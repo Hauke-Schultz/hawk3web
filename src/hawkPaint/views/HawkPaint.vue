@@ -46,8 +46,8 @@ const COLOR_THEMES = {
 	yellow: {
 		name: 'Gelb',
 		colors: [
-			'#FFFBEA', '#FFF3C4', '#FCE588', '#FADB5F', '#F7C948', '#F0B429', '#DE911D', '#CB6E17',
-			'#B44D12', '#8D3613', '#7A2E0E', '#6B270C', '#5A1F0A', '#491908', '#381306', '#280D04'
+			'#FFFEEA', '#FFFCC4', '#FFF99E', '#FFF678', '#FFF252', '#FFEF2C', '#F7E500', '#E1CE00',
+			'#CBB800', '#B3A300', '#9A8C00', '#817600', '#695F00', '#524900', '#3A3300', '#241F00'
 		]
 	},
 	orange: {
@@ -162,6 +162,32 @@ const foregroundColor = ref('#000000')
 const backgroundColor = ref('#FFFFFF')
 const isDrawing = ref(false)
 const imageName = ref('hawk-paint')
+
+// API-Endpunkt: Node.js für Dev, PHP für Production
+const SPRITE_SHEETS_API = import.meta.env.DEV
+	? 'http://localhost:3000/api/sprite-sheets'
+	: '/api/sprite-sheets.php'
+
+// Sprite-Sheet Loader - Lade alle verfügbaren Sprite-Sheets vom Server
+const availableSpriteSheets = ref([])
+const selectedSpriteSheet = ref('')
+
+const loadAvailableSpriteSheets = async () => {
+	try {
+		const response = await fetch(SPRITE_SHEETS_API)
+		if (response.ok) {
+			const sheets = await response.json()
+			availableSpriteSheets.value = sheets
+		} else {
+			console.warn('⚠️ Server läuft, aber API-Endpoint nicht verfügbar. Bitte starte den Server neu.')
+		}
+	} catch (error) {
+		console.warn('⚠️ Server nicht erreichbar. Sprite-Sheet Dropdown ist leer. Starte den Server mit "npm start" im server/ Ordner.')
+	}
+}
+
+// Lade Sprite-Sheets beim Start
+loadAvailableSpriteSheets()
 
 // Brush settings
 const brushSize = ref(1)
@@ -609,7 +635,8 @@ const clearCanvas = () => {
 	}
 }
 
-const saveImage = () => {
+// Download image to user's device
+const downloadImage = () => {
 	// Create canvas with actual canvas size
 	const canvas = document.createElement('canvas')
 	canvas.width = canvasWidth.value
@@ -641,7 +668,72 @@ const saveImage = () => {
 		link.download = `${imageName.value}.png`
 		link.click()
 		URL.revokeObjectURL(url)
+
+		console.log(`Heruntergeladen: ${imageName.value}.png`)
 	}, 'image/png')
+}
+
+// Save image to server in public/dungeon/items/ folder
+const saveImage = async () => {
+	// Create canvas with actual canvas size
+	const canvas = document.createElement('canvas')
+	canvas.width = canvasWidth.value
+	canvas.height = canvasHeight.value
+	const ctx = canvas.getContext('2d')
+
+	// Clear canvas (transparent by default)
+	ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
+
+	// Draw each pixel
+	for (let row = 0; row < canvasHeight.value; row++) {
+		for (let col = 0; col < canvasWidth.value; col++) {
+			const index = getPixelIndex(row, col)
+			const color = grid[index]
+
+			// Only draw if not transparent
+			if (color !== 'transparent') {
+				ctx.fillStyle = color
+				ctx.fillRect(col, row, 1, 1)
+			}
+		}
+	}
+
+	// Convert canvas to base64
+	const imageData = canvas.toDataURL('image/png')
+	const fileName = `${imageName.value}.png`
+
+	try {
+		// Send to server API
+		const response = await fetch(SPRITE_SHEETS_API, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				imageData,
+				fileName
+			})
+		})
+
+		const result = await response.json()
+
+		if (response.ok) {
+			console.log(`✅ Sprite-Sheet gespeichert: ${fileName}`)
+
+			// Reload available sprite sheets to show new file in dropdown
+			await loadAvailableSpriteSheets()
+
+			// Select the saved file in dropdown (without .png extension)
+			selectedSpriteSheet.value = imageName.value
+		} else {
+			console.error('Fehler beim Speichern:', result.error)
+			alert(`❌ Fehler beim Speichern:\n${result.error}`)
+		}
+	} catch (error) {
+		console.error('Fehler beim Speichern:', error)
+		const serverType = import.meta.env.DEV ? 'Node.js Server' : 'PHP Server'
+		alert(`❌ Fehler beim Speichern:\n${serverType} nicht erreichbar.`)
+	}
 }
 
 const loadImage = () => {
@@ -712,12 +804,90 @@ const loadImage = () => {
 				// Reset viewport to origin
 				viewportX.value = 0
 				viewportY.value = 0
+
+				console.log(`Geladen: ${fileName}`)
 			}
 			img.src = event.target.result
 		}
 		reader.readAsDataURL(file)
 	}
 	input.click()
+}
+
+// Load Sprite-Sheet from dropdown selection
+const loadSpriteSheet = () => {
+	if (!selectedSpriteSheet.value) return
+
+	const spriteSheet = availableSpriteSheets.value.find(s => s.name === selectedSpriteSheet.value)
+	if (!spriteSheet) return
+
+	const img = new Image()
+	img.onload = () => {
+		saveToHistory()
+
+		// Set image name from sprite sheet name
+		imageName.value = spriteSheet.name
+
+		// Adjust canvas size to match image
+		canvasWidth.value = img.width
+		canvasHeight.value = img.height
+
+		// Resize grid to match new canvas size
+		const newSize = img.width * img.height
+		grid.length = 0
+		for (let i = 0; i < newSize; i++) {
+			grid.push('transparent')
+		}
+
+		// Create temporary canvas to read pixels
+		const canvas = document.createElement('canvas')
+		canvas.width = img.width
+		canvas.height = img.height
+		const ctx = canvas.getContext('2d')
+
+		// Draw image at actual size
+		ctx.drawImage(img, 0, 0)
+
+		// Read pixel data
+		const imageData = ctx.getImageData(0, 0, img.width, img.height)
+
+		// Convert to hex colors with alpha support
+		for (let row = 0; row < img.height; row++) {
+			for (let col = 0; col < img.width; col++) {
+				const pixelIndex = (row * img.width + col) * 4
+				const r = imageData.data[pixelIndex]
+				const g = imageData.data[pixelIndex + 1]
+				const b = imageData.data[pixelIndex + 2]
+				const a = imageData.data[pixelIndex + 3]
+
+				const gridIndex = getPixelIndex(row, col)
+
+				// If alpha is below threshold, treat as transparent
+				if (a < 128) {
+					grid[gridIndex] = 'transparent'
+				} else {
+					const hex = '#' + [r, g, b].map(x => {
+						const hex = x.toString(16)
+						return hex.length === 1 ? '0' + hex : hex
+					}).join('').toUpperCase()
+					grid[gridIndex] = hex
+				}
+			}
+		}
+
+		// Reset viewport to origin
+		viewportX.value = 0
+		viewportY.value = 0
+
+		console.log(`Sprite-Sheet geladen: ${spriteSheet.name}`)
+	}
+
+	img.onerror = () => {
+		console.error(`Fehler beim Laden von: ${spriteSheet.path}`)
+	}
+
+	// Load from public path or relative path
+	img.src = spriteSheet.path
 }
 
 const handleMenuClick = () => {
@@ -894,7 +1064,23 @@ const resizeCanvas = () => {
 			<div v-show="isMenuBarOpen" class="section-content">
 				<button @click="clearCanvas" class="menu-btn">new</button>
 				<button @click="loadImage" class="menu-btn">load</button>
-				<button @click="saveImage" class="menu-btn">save</button>
+				<button @click="downloadImage" class="menu-btn">download</button>
+				<button @click="saveImage" class="menu-btn menu-btn--save">save</button>
+
+				<div class="sprite-sheet-loader">
+					<label for="sprite-sheet-select">Sprite:</label>
+					<select
+						id="sprite-sheet-select"
+						v-model="selectedSpriteSheet"
+						@change="loadSpriteSheet"
+						class="sprite-select"
+					>
+						<option value="">-- Wähle Sprite-Sheet --</option>
+						<option v-for="sheet in availableSpriteSheets" :key="sheet.name" :value="sheet.name">
+							{{ sheet.name }}
+						</option>
+					</select>
+				</div>
 
 				<div class="image-name-container">
 					<label for="image-name">Name:</label>
@@ -1225,6 +1411,47 @@ const resizeCanvas = () => {
 	}
 }
 
+.sprite-sheet-loader {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-1);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+
+	label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color);
+		white-space: nowrap;
+	}
+}
+
+.sprite-select {
+	min-width: 150px;
+	padding: var(--space-1);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-xs);
+	cursor: pointer;
+	transition: all 0.2s;
+
+	&:hover {
+		background-color: var(--primary-color);
+		color: white;
+		border-color: var(--primary-color);
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+	}
+}
+
 .image-name-container {
 	display: flex;
 	align-items: center;
@@ -1380,6 +1607,17 @@ const resizeCanvas = () => {
 		font-size: 20px;
 		padding: var(--space-1) var(--space-2);
 		min-width: 40px;
+	}
+
+	&--save {
+		background-color: #4CAF50;
+		color: white;
+		border-color: #45a049;
+
+		&:hover:not(:disabled) {
+			background-color: #45a049;
+			border-color: #3d8b40;
+		}
 	}
 }
 

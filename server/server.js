@@ -12,11 +12,12 @@ const app = express()
 const PORT = process.env.PORT || 3000
 const HIGHSCORES_FILE = path.join(__dirname, 'highscores.json')
 const RSVP_FILE = path.join(__dirname, 'rsvp.json')
+const SPRITE_SHEETS_DIR = path.join(__dirname, '../public/dungeon/items')
 const ADMIN_EMAIL = 'haukeschultz@gmail.com'
 
 // Middleware
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '10mb' })) // Increase limit for base64 images
 
 // Initialize highscores file if it doesn't exist
 async function initHighscoresFile() {
@@ -602,6 +603,79 @@ app.delete('/api/rsvp', async (req, res) => {
   }
 })
 
+// ========================================
+// Sprite Sheet API Routes
+// ========================================
+
+// GET /api/sprite-sheets - Get list of available sprite sheets
+app.get('/api/sprite-sheets', async (req, res) => {
+  try {
+    // Ensure sprite sheets directory exists
+    await fs.mkdir(SPRITE_SHEETS_DIR, { recursive: true })
+
+    // Read all files in the directory
+    const files = await fs.readdir(SPRITE_SHEETS_DIR)
+
+    // Filter only PNG files
+    const pngFiles = files
+      .filter(file => file.toLowerCase().endsWith('.png'))
+      .map(file => {
+        const fileName = file.replace('.png', '')
+        return {
+          name: fileName,
+          path: `/dungeon/items/${file}`,
+          gridSize: 16
+        }
+      })
+
+    res.json(pngFiles)
+  } catch (error) {
+    console.error('Error reading sprite sheets:', error)
+    res.status(500).json({ error: 'Failed to read sprite sheets' })
+  }
+})
+
+// POST /api/sprite-sheets - Save a sprite sheet image
+app.post('/api/sprite-sheets', async (req, res) => {
+  try {
+    const { imageData, fileName } = req.body
+
+    // Validation
+    if (!imageData || !fileName) {
+      return res.status(400).json({ error: 'Missing required fields: imageData, fileName' })
+    }
+
+    // Validate filename (should end with .png and no path traversal)
+    if (!fileName.endsWith('.png') || fileName.includes('/') || fileName.includes('\\')) {
+      return res.status(400).json({ error: 'Invalid filename. Must be a .png file without path separators.' })
+    }
+
+    // Remove data:image/png;base64, prefix if present
+    const base64Data = imageData.replace(/^data:image\/png;base64,/, '')
+
+    // Convert base64 to buffer
+    const imageBuffer = Buffer.from(base64Data, 'base64')
+
+    // Ensure sprite sheets directory exists
+    await fs.mkdir(SPRITE_SHEETS_DIR, { recursive: true })
+
+    // Save the file
+    const filePath = path.join(SPRITE_SHEETS_DIR, fileName)
+    await fs.writeFile(filePath, imageBuffer)
+
+    console.log(`✅ Sprite sheet saved: ${fileName}`)
+
+    res.json({
+      message: 'Sprite sheet saved successfully',
+      fileName: fileName,
+      path: `/dungeon/items/${fileName}`
+    })
+  } catch (error) {
+    console.error('Error saving sprite sheet:', error)
+    res.status(500).json({ error: 'Failed to save sprite sheet' })
+  }
+})
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
@@ -615,6 +689,7 @@ async function startServer() {
     console.log(`🚀 Server running on http://localhost:${PORT}`)
     console.log(`📊 Highscores API: http://localhost:${PORT}/api/highscores`)
     console.log(`💌 RSVP API: http://localhost:${PORT}/api/rsvp`)
+    console.log(`🎨 Sprite Sheets API: http://localhost:${PORT}/api/sprite-sheets`)
   })
 }
 
