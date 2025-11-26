@@ -153,7 +153,7 @@ const COLOR_THEMES = {
 // Active color palette (reactive)
 const currentTheme = ref('classic')
 const colorPalette = ref([...COLOR_THEMES.classic.colors])
-const customColor = ref('#FF0000')
+const customColor = ref('#000000')
 const hasCustomColorSelected = ref(false)
 
 // State
@@ -825,6 +825,11 @@ nextTick(() => {
 let previousWidth = canvasWidth.value
 let previousHeight = canvasHeight.value
 
+// Accordion states for collapsible sections
+const isMenuBarOpen = ref(true)
+const isToolbarOpen = ref(true)
+const isColorPaletteOpen = ref(true)
+
 // Move viewport
 const moveViewport = (deltaX, deltaY) => {
 	const stepSize = viewportStep.value
@@ -882,169 +887,184 @@ const resizeCanvas = () => {
 	/>
 	<main class="content">
 		<!-- Menu Bar -->
-		<section class="menu-bar">
-			<button @click="clearCanvas" class="menu-btn">new</button>
-			<button @click="loadImage" class="menu-btn">load</button>
-			<button @click="saveImage" class="menu-btn">save</button>
-
-			<div class="image-name-container">
-				<label for="image-name">Name:</label>
-				<input
-					id="image-name"
-					type="text"
-					v-model="imageName"
-					class="image-name-input"
-					placeholder="Bildname"
-				/>
+		<section class="menu-bar collapsible-section">
+			<div class="section-header" @click="isMenuBarOpen = !isMenuBarOpen">
+				<h3 class="section-title">{{ isMenuBarOpen ? '▼' : '▶' }} Menu</h3>
 			</div>
+			<div v-show="isMenuBarOpen" class="section-content">
+				<button @click="clearCanvas" class="menu-btn">new</button>
+				<button @click="loadImage" class="menu-btn">load</button>
+				<button @click="saveImage" class="menu-btn">save</button>
 
-			<!-- Canvas Size Controls -->
-			<div class="canvas-size-controls">
-				<label>
-					width:
+				<div class="image-name-container">
+					<label for="image-name">Name:</label>
 					<input
-							type="number"
-							v-model.number="canvasWidth"
-							@change="resizeCanvas"
-							min="16"
-							max="256"
-							class="size-input"
+						id="image-name"
+						type="text"
+						v-model="imageName"
+						class="image-name-input"
+						placeholder="Bildname"
 					/>
-				</label>
-				<label>
-					height:
-					<input
-							type="number"
-							v-model.number="canvasHeight"
-							@change="resizeCanvas"
-							min="16"
-							max="256"
-							class="size-input"
-					/>
-				</label>
+				</div>
+
+				<!-- Canvas Size Controls -->
+				<div class="canvas-size-controls">
+					<label>
+						W:
+						<input
+								type="number"
+								v-model.number="canvasWidth"
+								@change="resizeCanvas"
+								min="16"
+								max="256"
+								class="size-input"
+						/>
+					</label>
+					<label>
+						H:
+						<input
+								type="number"
+								v-model.number="canvasHeight"
+								@change="resizeCanvas"
+								min="16"
+								max="256"
+								class="size-input"
+						/>
+					</label>
+				</div>
 			</div>
 		</section>
 
 		<!-- Toolbar -->
-		<section class="toolbar">
-			<button
-				@click="selectTool(TOOLS.PENCIL)"
-				:class="['tool-btn', { active: currentTool === TOOLS.PENCIL }]"
-				title="Bleistift"
-			>
-				✏️
-			</button>
-			<button
-				@click="selectTool(TOOLS.FILL)"
-				:class="['tool-btn', { active: currentTool === TOOLS.FILL }]"
-				title="Füllen"
-			>
-				🪣
-			</button>
-			<button
-				@click="selectTool(TOOLS.ERASER)"
-				:class="['tool-btn', { active: currentTool === TOOLS.ERASER }]"
-				title="Radierer"
-			>
-				🧹
-			</button>
-			<button
-				@click="selectTool(TOOLS.PICKER)"
-				:class="['tool-btn', { active: currentTool === TOOLS.PICKER }]"
-				title="Farbwähler"
-			>
-				🎨
-			</button>
-			<button
-				@click="selectTool(TOOLS.SELECT)"
-				:class="['tool-btn', { active: currentTool === TOOLS.SELECT }]"
-				title="Auswählen"
-			>
-				🔳
-			</button>
-			<button
-				@click="selectTool(TOOLS.MOVE)"
-				:class="['tool-btn', { active: currentTool === TOOLS.MOVE }]"
-				title="Verschieben"
-			>
-				✋
-			</button>
-			<button
-				@click="selectTool(TOOLS.PASTE)"
-				:class="['tool-btn', { active: currentTool === TOOLS.PASTE }]"
-				title="Einfügen"
-			>
-				📋
-			</button>
-
-			<button @click="undo" :disabled="history.length === 0" class="menu-btn menu-btn--icon" title="Rückgängig">↶</button>
-			<button @click="redo" :disabled="redoHistory.length === 0" class="menu-btn menu-btn--icon" title="Wiederherstellen">↷</button>
-
-			<!-- Brush Settings -->
-			<div class="brush-settings">
-				<div class="brush-setting">
-					<select id="brush-size" v-model.number="brushSize" class="brush-select">
-						<option v-for="size in 16" :key="size" :value="size">{{ size }}px</option>
-					</select>
-				</div>
-				<div class="brush-setting">
-					<select id="brush-shape" v-model="brushShape" class="brush-select">
-						<option value="square">■</option>
-						<option value="circle">●</option>
-						<option value="diamond">◆</option>
-						<option value="horizontal">━</option>
-						<option value="vertical">┃</option>
-						<option value="cross">✛</option>
-						<option value="plus">✚</option>
-					</select>
-				</div>
-				<div class="theme-selector">
-					<select id="theme-select" v-model="currentTheme" @change="changeTheme(currentTheme)" class="theme-select">
-						<option v-for="(theme, key) in COLOR_THEMES" :key="key" :value="key">
-							{{ theme.name }}
-						</option>
-					</select>
-				</div>
+		<section class="toolbar collapsible-section">
+			<div class="section-header" @click="isToolbarOpen = !isToolbarOpen">
+				<h3 class="section-title">{{ isToolbarOpen ? '▼' : '▶' }} Tools</h3>
 			</div>
+			<div v-show="isToolbarOpen" class="section-content toolbar-content">
+				<button
+					@click="selectTool(TOOLS.PENCIL)"
+					:class="['tool-btn', { active: currentTool === TOOLS.PENCIL }]"
+					title="Bleistift"
+				>
+					✏️
+				</button>
+				<button
+					@click="selectTool(TOOLS.FILL)"
+					:class="['tool-btn', { active: currentTool === TOOLS.FILL }]"
+					title="Füllen"
+				>
+					🪣
+				</button>
+				<button
+					@click="selectTool(TOOLS.ERASER)"
+					:class="['tool-btn', { active: currentTool === TOOLS.ERASER }]"
+					title="Radierer"
+				>
+					🧹
+				</button>
+				<button
+					@click="selectTool(TOOLS.PICKER)"
+					:class="['tool-btn', { active: currentTool === TOOLS.PICKER }]"
+					title="Farbwähler"
+				>
+					🎨
+				</button>
+				<button
+					@click="selectTool(TOOLS.SELECT)"
+					:class="['tool-btn', { active: currentTool === TOOLS.SELECT }]"
+					title="Auswählen"
+				>
+					🔳
+				</button>
+				<button
+					@click="selectTool(TOOLS.MOVE)"
+					:class="['tool-btn', { active: currentTool === TOOLS.MOVE }]"
+					title="Verschieben"
+				>
+					✋
+				</button>
+				<button
+					@click="selectTool(TOOLS.PASTE)"
+					:class="['tool-btn', { active: currentTool === TOOLS.PASTE }]"
+					title="Einfügen"
+				>
+					📋
+				</button>
 
-			<!-- Active Colors -->
-			<div class="active-colors">
-				<div class="color-display">
-					<label class="color-box foreground color-picker-btn" :class="{ active: hasCustomColorSelected }">
-						<input
-								type="color"
-								v-model="customColor"
-								@input="openCustomColorPicker"
-								class="color-input"
-						/>
-						<span class="color-box foreground" :style="{ backgroundColor: customColor }"></span>
-					</label>
-					<div
-						class="color-box background"
-						:style="{ backgroundColor: backgroundColor }"
-						@click="swapColors"
-						title="Hintergrund"
-					></div>
+				<button @click="undo" :disabled="history.length === 0" class="menu-btn menu-btn--icon" title="Rückgängig">↶</button>
+				<button @click="redo" :disabled="redoHistory.length === 0" class="menu-btn menu-btn--icon" title="Wiederherstellen">↷</button>
+
+				<!-- Brush Settings -->
+				<div class="brush-settings">
+					<div class="brush-setting">
+						<select id="brush-size" v-model.number="brushSize" class="brush-select">
+							<option v-for="size in 16" :key="size" :value="size">{{ size }}px</option>
+						</select>
+					</div>
+					<div class="brush-setting">
+						<select id="brush-shape" v-model="brushShape" class="brush-select">
+							<option value="square">■</option>
+							<option value="circle">●</option>
+							<option value="diamond">◆</option>
+							<option value="horizontal">━</option>
+							<option value="vertical">┃</option>
+							<option value="cross">✛</option>
+							<option value="plus">✚</option>
+						</select>
+					</div>
+					<div class="theme-selector">
+						<select id="theme-select" v-model="currentTheme" @change="changeTheme(currentTheme)" class="theme-select">
+							<option v-for="(theme, key) in COLOR_THEMES" :key="key" :value="key">
+								{{ theme.name }}
+							</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- Active Colors -->
+				<div class="active-colors">
+					<div class="color-display">
+						<label class="color-box foreground color-picker-btn" :class="{ active: hasCustomColorSelected }">
+							<input
+									type="color"
+									v-model="customColor"
+									@input="openCustomColorPicker"
+									class="color-input"
+							/>
+							<span class="color-box foreground" :style="{ backgroundColor: customColor }"></span>
+						</label>
+						<div
+							class="color-box background"
+							:style="{ backgroundColor: backgroundColor }"
+							@click="swapColors"
+							title="Hintergrund"
+						></div>
+					</div>
 				</div>
 			</div>
 		</section>
 		<!-- Color Palette Section -->
-		<section>
-			<!-- Color Palette Grid -->
-			<div class="color-palette" :class="{ 'replace-mode': hasCustomColorSelected }">
-				<div
-						v-for="(color, index) in colorPalette"
-						:key="index"
-						class="palette-color-wrapper"
-				>
+		<section class="collapsible-section">
+			<div class="section-header" @click="isColorPaletteOpen = !isColorPaletteOpen">
+				<h3 class="section-title">{{ isColorPaletteOpen ? '▼' : '▶' }} Farben</h3>
+			</div>
+			<div v-show="isColorPaletteOpen" class="section-content">
+				<!-- Color Palette Grid -->
+				<div class="color-palette" :class="{ 'replace-mode': hasCustomColorSelected }">
 					<div
-							class="palette-color"
-							:class="{
-							active: color === foregroundColor && !hasCustomColorSelected
-						}"
-							:style="{ backgroundColor: color }"
-							@click="selectColor(color, index)"
-					></div>
+							v-for="(color, index) in colorPalette"
+							:key="index"
+							class="palette-color-wrapper"
+					>
+						<div
+								class="palette-color"
+								:class="{
+								active: color === foregroundColor && !hasCustomColorSelected
+							}"
+								:style="{ backgroundColor: color }"
+								@click="selectColor(color, index)"
+						></div>
+					</div>
 				</div>
 			</div>
 		</section>
@@ -1151,33 +1171,71 @@ const resizeCanvas = () => {
 .content {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-4);
+	gap: var(--space-2);
 	padding-bottom: var(--space-6);
+}
+
+// Collapsible Section
+.collapsible-section {
+	background-color: var(--card-bg);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	overflow: hidden;
+}
+
+.section-header {
+	padding: var(--space-2);
+	cursor: pointer;
+	user-select: none;
+	background-color: var(--bg-secondary);
+	transition: all 0.2s;
+
+	&:hover {
+		background-color: var(--primary-color);
+
+		.section-title {
+			color: white;
+		}
+	}
+}
+
+.section-title {
+	margin: 0;
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	transition: color 0.2s;
+}
+
+.section-content {
+	display: flex;
+	gap: var(--space-2);
+	padding: var(--space-2);
+	flex-wrap: wrap;
+	align-items: center;
 }
 
 // Menu Bar
 .menu-bar {
-	display: flex;
-	gap: var(--space-2);
-	padding: var(--space-2);
-	background-color: var(--card-bg);
-	border: 2px solid var(--card-border);
-	border-radius: var(--border-radius-md);
-	flex-wrap: wrap;
-	align-items: center;
+	.section-content {
+		display: flex;
+		gap: var(--space-2);
+		flex-wrap: wrap;
+		align-items: center;
+	}
 }
 
 .image-name-container {
 	display: flex;
 	align-items: center;
-	gap: var(--space-2);
-	padding: var(--space-1) var(--space-2);
+	gap: var(--space-1);
+	padding: var(--space-1);
 	background-color: var(--bg-secondary);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-sm);
 
 	label {
-		font-size: var(--font-size-sm);
+		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-bold);
 		color: var(--text-color);
 		white-space: nowrap;
@@ -1185,14 +1243,14 @@ const resizeCanvas = () => {
 }
 
 .image-name-input {
-	min-width: 150px;
-	padding: var(--space-1) var(--space-2);
+	min-width: 100px;
+	padding: var(--space-1);
 	background-color: var(--bg-secondary);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-sm);
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
-	font-size: var(--font-size-sm);
+	font-size: var(--font-size-xs);
 
 	&:focus {
 		outline: none;
@@ -1202,7 +1260,7 @@ const resizeCanvas = () => {
 
 .canvas-size-controls {
 	display: flex;
-	gap: var(--space-2);
+	gap: var(--space-1);
 	margin-left: auto;
 	align-items: center;
 
@@ -1210,7 +1268,7 @@ const resizeCanvas = () => {
 		display: flex;
 		align-items: center;
 		gap: var(--space-1);
-		font-size: var(--font-size-sm);
+		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-bold);
 		color: var(--text-color);
 	}
@@ -1277,14 +1335,14 @@ const resizeCanvas = () => {
 }
 
 .size-input {
-	width: 60px;
-	padding: var(--space-1) var(--space-2);
+	width: 50px;
+	padding: var(--space-1);
 	background-color: var(--bg-secondary);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-sm);
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
-	font-size: var(--font-size-sm);
+	font-size: var(--font-size-xs);
 
 	&:focus {
 		outline: none;
@@ -1293,12 +1351,13 @@ const resizeCanvas = () => {
 }
 
 .menu-btn {
-	padding: var(--space-2) var(--space-4);
+	padding: var(--space-1) var(--space-3);
 	background-color: var(--bg-secondary);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-sm);
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-sm);
 	cursor: pointer;
 	transition: all 0.2s;
 
@@ -1318,28 +1377,30 @@ const resizeCanvas = () => {
 	}
 
 	&--icon {
-		font-size: 24px;
-		padding: var(--space-2) var(--space-3);
-		min-width: 48px;
+		font-size: 20px;
+		padding: var(--space-1) var(--space-2);
+		min-width: 40px;
 	}
 }
 
 // Toolbar
 .toolbar {
-	display: flex;
-	flex-direction: row;
-	gap: var(--space-2);
-	align-items: center;
-	flex-wrap: wrap;
+	.toolbar-content {
+		display: flex;
+		flex-direction: row;
+		gap: var(--space-2);
+		align-items: center;
+		flex-wrap: wrap;
+	}
 }
 
 .tool-btn {
-	width: 48px;
-	height: 48px;
+	width: 40px;
+	height: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 24px;
+	font-size: 20px;
 	background-color: var(--bg-secondary);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-sm);
@@ -1382,13 +1443,13 @@ const resizeCanvas = () => {
 }
 
 .brush-select {
-	padding: var(--space-1) var(--space-2);
+	padding: var(--space-1);
 	background-color: var(--bg-secondary);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-sm);
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
-	font-size: var(--font-size-sm);
+	font-size: var(--font-size-xs);
 	cursor: pointer;
 	transition: all 0.2s;
 
@@ -1404,17 +1465,10 @@ const resizeCanvas = () => {
 	}
 }
 
-// Active Colors
-.active-colors {
-	margin-left: var(--space-2);
-	padding-left: var(--space-2);
-	border-left: 2px solid var(--card-border);
-}
-
 .color-display {
 	position: relative;
-	width: 48px;
-	height: 48px;
+	width: 40px;
+	height: 40px;
 	cursor: pointer;
 }
 
@@ -1423,16 +1477,16 @@ const resizeCanvas = () => {
 	border: 2px solid var(--card-border);
 
 	&.foreground {
-		width: 32px;
-		height: 32px;
+		width: 28px;
+		height: 28px;
 		top: 0;
 		left: 0;
 		z-index: 2;
 	}
 
 	&.background {
-		width: 32px;
-		height: 32px;
+		width: 28px;
+		height: 28px;
 		bottom: 0;
 		right: 0;
 		z-index: 1;
@@ -1595,12 +1649,13 @@ const resizeCanvas = () => {
 
 .theme-select {
 	flex: 1;
-	padding: var(--space-2);
+	padding: var(--space-1);
 	background-color: var(--bg-secondary);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-sm);
 	color: var(--text-color);
 	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-xs);
 	cursor: pointer;
 	transition: all 0.2s;
 
@@ -1684,6 +1739,7 @@ const resizeCanvas = () => {
 	display: grid;
 	grid-template-columns: repeat(8, 1fr);
 	gap: var(--space-2);
+	width: 100%;
 
 	&.replace-mode {
 		.palette-color {
