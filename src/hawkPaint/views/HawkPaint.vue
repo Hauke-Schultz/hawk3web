@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, watch, nextTick } from 'vue'
+import { ref, reactive, watch, nextTick, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '../../gamingHub/components/Header.vue'
 
@@ -9,12 +9,19 @@ const router = useRouter()
 const minimapCanvas = ref(null)
 
 // Grid size
-const VIEWPORT_SIZE = 16 // Always show 16x16
+const VIEWPORT_WIDTH = ref(16) // Viewport width
+const VIEWPORT_HEIGHT = ref(16) // Viewport height
 const canvasWidth = ref(16)
 const canvasHeight = ref(16)
 const viewportX = ref(0)
 const viewportY = ref(0)
-const viewportStep = ref(16) // Step size for viewport movement
+const viewportStepX = ref(16) // Horizontal step size for viewport movement
+const viewportStepY = ref(16) // Vertical step size for viewport movement
+
+// Animation state
+const isPlaying = ref(false)
+const animationSpeed = ref(500) // Animation interval in ms
+let animationInterval = null
 
 // Tools
 const TOOLS = {
@@ -928,8 +935,8 @@ const drawMinimap = () => {
 	ctx.strokeRect(
 		viewportX.value * scale,
 		viewportY.value * scale,
-		VIEWPORT_SIZE * scale,
-		VIEWPORT_SIZE * scale
+		VIEWPORT_WIDTH.value * scale,
+		VIEWPORT_HEIGHT.value * scale
 	)
 }
 
@@ -946,8 +953,8 @@ const handleMinimapClick = (event) => {
 	const clickY = Math.floor((event.clientY - rect.top) / scale)
 
 	// Center viewport on clicked position
-	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_SIZE / 2), canvasWidth.value - VIEWPORT_SIZE))
-	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_SIZE / 2), canvasHeight.value - VIEWPORT_SIZE))
+	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_WIDTH.value / 2), canvasWidth.value - VIEWPORT_WIDTH.value))
+	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_HEIGHT.value / 2), canvasHeight.value - VIEWPORT_HEIGHT.value))
 
 	viewportX.value = newX
 	viewportY.value = newY
@@ -970,8 +977,8 @@ const handleMinimapTouch = (event) => {
 	const clickY = Math.floor((touch.clientY - rect.top) / scale)
 
 	// Center viewport on touched position
-	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_SIZE / 2), canvasWidth.value - VIEWPORT_SIZE))
-	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_SIZE / 2), canvasHeight.value - VIEWPORT_SIZE))
+	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_WIDTH.value / 2), canvasWidth.value - VIEWPORT_WIDTH.value))
+	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_HEIGHT.value / 2), canvasHeight.value - VIEWPORT_HEIGHT.value))
 
 	viewportX.value = newX
 	viewportY.value = newY
@@ -980,11 +987,27 @@ const handleMinimapTouch = (event) => {
 }
 
 // Watch for changes and update minimap
-watch([grid, viewportX, viewportY, canvasWidth, canvasHeight], () => {
+watch([grid, viewportX, viewportY, canvasWidth, canvasHeight, VIEWPORT_WIDTH, VIEWPORT_HEIGHT], () => {
 	nextTick(() => {
 		drawMinimap()
 	})
 }, { deep: true })
+
+// Sync viewport step sizes with viewport dimensions
+watch(VIEWPORT_WIDTH, (newWidth) => {
+	viewportStepX.value = newWidth
+})
+
+watch(VIEWPORT_HEIGHT, (newHeight) => {
+	viewportStepY.value = newHeight
+})
+
+// Restart animation when speed changes
+watch(animationSpeed, () => {
+	if (isPlaying.value) {
+		startAnimation()
+	}
+})
 
 // Initial draw after component mount
 nextTick(() => {
@@ -1002,18 +1025,61 @@ const isColorPaletteOpen = ref(true)
 
 // Move viewport
 const moveViewport = (deltaX, deltaY) => {
-	const stepSize = viewportStep.value
-	const newX = viewportX.value + (deltaX * stepSize)
-	const newY = viewportY.value + (deltaY * stepSize)
+	const stepX = viewportStepX.value
+	const stepY = viewportStepY.value
+	const newX = viewportX.value + (deltaX * stepX)
+	const newY = viewportY.value + (deltaY * stepY)
 
 	// Check bounds and clamp to valid range
 	if (deltaX !== 0) {
-		viewportX.value = Math.max(0, Math.min(newX, canvasWidth.value - VIEWPORT_SIZE))
+		viewportX.value = Math.max(0, Math.min(newX, canvasWidth.value - VIEWPORT_WIDTH.value))
 	}
 	if (deltaY !== 0) {
-		viewportY.value = Math.max(0, Math.min(newY, canvasHeight.value - VIEWPORT_SIZE))
+		viewportY.value = Math.max(0, Math.min(newY, canvasHeight.value - VIEWPORT_HEIGHT.value))
 	}
 }
+
+// Animation functions
+const toggleAnimation = () => {
+	if (isPlaying.value) {
+		stopAnimation()
+	} else {
+		startAnimation()
+	}
+}
+
+const startAnimation = () => {
+	if (animationInterval) {
+		clearInterval(animationInterval)
+	}
+
+	isPlaying.value = true
+	animationInterval = setInterval(() => {
+		// Move one step to the right
+		const stepX = viewportStepX.value
+		const newX = viewportX.value + stepX
+
+		// If we reached the end, loop back to the start
+		if (newX > canvasWidth.value - VIEWPORT_WIDTH.value) {
+			viewportX.value = 0
+		} else {
+			viewportX.value = newX
+		}
+	}, animationSpeed.value)
+}
+
+const stopAnimation = () => {
+	isPlaying.value = false
+	if (animationInterval) {
+		clearInterval(animationInterval)
+		animationInterval = null
+	}
+}
+
+// Stop animation when component unmounts
+onUnmounted(() => {
+	stopAnimation()
+})
 
 // Resize canvas function
 const resizeCanvas = () => {
@@ -1095,6 +1161,7 @@ const resizeCanvas = () => {
 
 				<!-- Canvas Size Controls -->
 				<div class="canvas-size-controls">
+					<span class="size-label">Canvas:</span>
 					<label>
 						W:
 						<input
@@ -1114,6 +1181,31 @@ const resizeCanvas = () => {
 								@change="resizeCanvas"
 								min="16"
 								max="256"
+								class="size-input"
+						/>
+					</label>
+				</div>
+
+				<!-- Viewport Size Controls -->
+				<div class="canvas-size-controls">
+					<span class="size-label">Grid:</span>
+					<label>
+						W:
+						<input
+								type="number"
+								v-model.number="VIEWPORT_WIDTH"
+								min="8"
+								max="64"
+								class="size-input"
+						/>
+					</label>
+					<label>
+						H:
+						<input
+								type="number"
+								v-model.number="VIEWPORT_HEIGHT"
+								min="8"
+								max="64"
 								class="size-input"
 						/>
 					</label>
@@ -1264,12 +1356,12 @@ const resizeCanvas = () => {
 			<div class="canvas-wrapper">
 				<div class="canvas">
 					<div
-						v-for="row in VIEWPORT_SIZE"
+						v-for="row in VIEWPORT_HEIGHT"
 						:key="`row-${row}`"
 						class="pixel-row"
 					>
 						<div
-							v-for="col in VIEWPORT_SIZE"
+							v-for="col in VIEWPORT_WIDTH"
 							:key="`pixel-${row}-${col}`"
 							class="pixel"
 							:style="{ backgroundColor: grid[getPixelIndex(viewportY + row - 1, viewportX + col - 1)] }"
@@ -1296,16 +1388,28 @@ const resizeCanvas = () => {
 		<!-- Minimap Section -->
 		<section class="minimap-section">
 			<div class="viewport-navigation">
-				<label class="viewport-step-label">
-					Schritt:
-					<input
-							type="number"
-							v-model.number="viewportStep"
-							min="1"
-							max="64"
-							class="size-input"
-					/>
-				</label>
+				<div class="viewport-step-controls">
+					<label class="viewport-step-label">
+						W:
+						<input
+								type="number"
+								v-model.number="viewportStepX"
+								min="1"
+								max="64"
+								class="size-input"
+						/>
+					</label>
+					<label class="viewport-step-label">
+						H:
+						<input
+								type="number"
+								v-model.number="viewportStepY"
+								min="1"
+								max="64"
+								class="size-input"
+						/>
+					</label>
+				</div>
 				<div class="nav-row">
 					<button
 							@click="moveViewport(-1, 0)"
@@ -1325,7 +1429,7 @@ const resizeCanvas = () => {
 					</button>
 					<button
 							@click="moveViewport(0, 1)"
-							:disabled="viewportY + VIEWPORT_SIZE >= canvasHeight"
+							:disabled="viewportY + VIEWPORT_HEIGHT >= canvasHeight"
 							class="nav-btn"
 							title="Runter"
 					>
@@ -1333,7 +1437,7 @@ const resizeCanvas = () => {
 					</button>
 					<button
 							@click="moveViewport(1, 0)"
-							:disabled="viewportX + VIEWPORT_SIZE >= canvasWidth"
+							:disabled="viewportX + VIEWPORT_WIDTH >= canvasWidth"
 							class="nav-btn"
 							title="Rechts"
 					>
@@ -1341,6 +1445,30 @@ const resizeCanvas = () => {
 					</button>
 				</div>
 			</div>
+
+			<!-- Animation Controls -->
+			<div class="animation-controls">
+				<label class="viewport-step-label">
+					Speed:
+					<input
+							type="number"
+							v-model.number="animationSpeed"
+							min="50"
+							max="5000"
+							step="50"
+							class="size-input"
+					/>
+					<span class="speed-unit">ms</span>
+				</label>
+				<button
+						@click="toggleAnimation"
+						:class="['play-btn', { playing: isPlaying }]"
+						:title="isPlaying ? 'Pause Animation' : 'Play Animation'"
+				>
+					{{ isPlaying ? '⏸' : '▶' }}
+				</button>
+			</div>
+
 			<div class="minimap-container">
 				<canvas
 					ref="minimapCanvas"
@@ -1488,8 +1616,14 @@ const resizeCanvas = () => {
 .canvas-size-controls {
 	display: flex;
 	gap: var(--space-1);
-	margin-left: auto;
 	align-items: center;
+
+	.size-label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-secondary);
+		white-space: nowrap;
+	}
 
 	label {
 		display: flex;
@@ -1508,6 +1642,12 @@ const resizeCanvas = () => {
 	gap: var(--space-2);
 }
 
+.viewport-step-controls {
+	display: flex;
+	gap: var(--space-1);
+	align-items: center;
+}
+
 .viewport-step-label {
 	display: flex;
 	align-items: center;
@@ -1515,6 +1655,63 @@ const resizeCanvas = () => {
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
 	color: var(--text-color);
+
+	.speed-unit {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+}
+
+// Animation Controls
+.animation-controls {
+	display: flex;
+	gap: var(--space-2);
+	align-items: center;
+}
+
+.play-btn {
+	width: 50px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	cursor: pointer;
+	transition: all 0.2s;
+	color: var(--text-color);
+
+	&:hover {
+		background-color: var(--primary-color);
+		color: white;
+		transform: scale(1.05);
+	}
+
+	&.playing {
+		background-color: #F44336;
+		color: white;
+		border-color: #D32F2F;
+		animation: pulse-animation 1.5s ease-in-out infinite;
+
+		&:hover {
+			background-color: #D32F2F;
+		}
+	}
+
+	&:active {
+		transform: scale(0.95);
+	}
+}
+
+@keyframes pulse-animation {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+	}
+	50% {
+		box-shadow: 0 0 0 4px rgba(244, 67, 54, 0);
+	}
 }
 
 // Minimap Section
