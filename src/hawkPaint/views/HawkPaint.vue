@@ -206,7 +206,7 @@ const showGrid = ref(false) // true = visible grid (0.7), false = subtle grid (0
 // Emoji Generator settings
 const emojiInput = ref('')
 const emojiSize = ref(16) // Default 16x16
-const quickEmojis = ['💎', '🪙', '⭐', '❤️', '🏺', '🗡️', '🛡️', '⚔️', '🔑', '🏹']
+const quickEmojis = ['💎', '🪙', '⭐', '❤️', '🔑']
 
 // Selection state
 const selection = ref(null) // { startRow, startCol, endRow, endCol, data, offsetRow, offsetCol, isDragging }
@@ -939,18 +939,11 @@ const generateFromEmoji = (emoji) => {
 	// Read pixel data
 	const imageData = ctx.getImageData(0, 0, size, size)
 
-	// Adjust canvas size to match emoji size
-	canvasWidth.value = size
-	canvasHeight.value = size
+	// Insert emoji at current viewport position
+	const startRow = viewportY.value
+	const startCol = viewportX.value
 
-	// Resize grid to match new canvas size
-	const newSize = size * size
-	grid.length = 0
-	for (let i = 0; i < newSize; i++) {
-		grid.push('transparent')
-	}
-
-	// Convert to hex colors with alpha support
+	// Convert to hex colors and paste at viewport position
 	for (let row = 0; row < size; row++) {
 		for (let col = 0; col < size; col++) {
 			const pixelIndex = (row * size + col) * 4
@@ -959,29 +952,30 @@ const generateFromEmoji = (emoji) => {
 			const b = imageData.data[pixelIndex + 2]
 			const a = imageData.data[pixelIndex + 3]
 
-			const gridIndex = getPixelIndex(row, col)
+			// Calculate target position in grid
+			const targetRow = startRow + row
+			const targetCol = startCol + col
 
-			// If alpha is below threshold, treat as transparent
-			if (a < 32) {
-				grid[gridIndex] = 'transparent'
-			} else {
-				const hex = '#' + [r, g, b].map(x => {
-					const hex = x.toString(16)
-					return hex.length === 1 ? '0' + hex : hex
-				}).join('').toUpperCase()
-				grid[gridIndex] = hex
+			// Only paste if within canvas bounds
+			if (targetRow >= 0 && targetRow < canvasHeight.value && targetCol >= 0 && targetCol < canvasWidth.value) {
+				const gridIndex = getPixelIndex(targetRow, targetCol)
+
+				// If alpha is below threshold, treat as transparent (don't paste)
+				if (a >= 32) {
+					const hex = '#' + [r, g, b].map(x => {
+						const hex = x.toString(16)
+						return hex.length === 1 ? '0' + hex : hex
+					}).join('').toUpperCase()
+					grid[gridIndex] = hex
+				}
 			}
 		}
 	}
 
-	// Reset viewport to origin
-	viewportX.value = 0
-	viewportY.value = 0
-
 	// Clear emoji input after generation
 	emojiInput.value = ''
 
-	console.log(`Emoji "${emoji}" generiert als ${size}x${size} Pixel-Art`)
+	console.log(`Emoji "${emoji}" eingefügt als ${size}x${size} bei Position (${startCol}, ${startRow})`)
 }
 
 // Quick emoji button handler
@@ -1903,7 +1897,7 @@ const resizeCanvas = () => {
 }
 
 .emoji-input {
-	min-width: 100px;
+	width: 170px;
 	padding: var(--space-2);
 	background-color: white;
 	border: 2px solid var(--card-border);
