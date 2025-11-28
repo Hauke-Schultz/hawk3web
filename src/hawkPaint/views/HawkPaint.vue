@@ -200,6 +200,9 @@ loadAvailableSpriteSheets()
 const brushSize = ref(1)
 const brushShape = ref('square')
 
+// Grid settings
+const showGrid = ref(false) // true = visible grid (0.7), false = subtle grid (0.1)
+
 // Selection state
 const selection = ref(null) // { startRow, startCol, endRow, endCol, data, offsetRow, offsetCol, isDragging }
 const selectionStart = ref(null)
@@ -415,6 +418,7 @@ const openCustomColorPicker = () => {
 const swapColors = () => {
 	const temp = foregroundColor.value
 	foregroundColor.value = backgroundColor.value
+	customColor.value = backgroundColor.value
 	backgroundColor.value = temp
 }
 
@@ -601,9 +605,10 @@ const applyTool = (row, col) => {
 			break
 		case TOOLS.PICKER:
 			foregroundColor.value = grid[index]
+			customColor.value = foregroundColor.value
 			break
 		case TOOLS.FILL:
-			floodFill(row, col, grid[index], foregroundColor.value)
+			floodFill(row, col, grid[index], backgroundColor.value)
 			break
 	}
 }
@@ -1210,6 +1215,29 @@ const resizeCanvas = () => {
 						/>
 					</label>
 				</div>
+
+				<!-- Grid Visibility Controls -->
+				<div class="grid-controls">
+					<span class="size-label">Raster:</span>
+					<label class="radio-label">
+						<input
+							type="radio"
+							:value="true"
+							v-model="showGrid"
+							class="radio-input"
+						/>
+						Sichtbar
+					</label>
+					<label class="radio-label">
+						<input
+							type="radio"
+							:value="false"
+							v-model="showGrid"
+							class="radio-input"
+						/>
+						Subtil
+					</label>
+				</div>
 			</div>
 		</section>
 
@@ -1364,7 +1392,10 @@ const resizeCanvas = () => {
 							v-for="col in VIEWPORT_WIDTH"
 							:key="`pixel-${row}-${col}`"
 							class="pixel"
-							:style="{ backgroundColor: grid[getPixelIndex(viewportY + row - 1, viewportX + col - 1)] }"
+							:style="{
+								backgroundColor: grid[getPixelIndex(viewportY + row - 1, viewportX + col - 1)],
+								border: showGrid ? '1px solid rgba(0, 0, 0, 0.7)' : '1px solid rgba(0, 0, 0, 0.1)'
+							}"
 							@mousedown="handlePixelMouseDown(viewportY + row - 1, viewportX + col - 1)"
 							@mouseenter="handlePixelMouseEnter(viewportY + row - 1, viewportX + col - 1)"
 						></div>
@@ -1635,6 +1666,45 @@ const resizeCanvas = () => {
 	}
 }
 
+.grid-controls {
+	display: flex;
+	gap: var(--space-2);
+	align-items: center;
+	padding: var(--space-1);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+
+	.size-label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-secondary);
+		white-space: nowrap;
+	}
+}
+
+.radio-label {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	cursor: pointer;
+	transition: color 0.2s;
+
+	&:hover {
+		color: var(--primary-color);
+	}
+}
+
+.radio-input {
+	cursor: pointer;
+	width: 16px;
+	height: 16px;
+	accent-color: var(--primary-color);
+}
+
 .viewport-navigation {
 	display: flex;
 	flex-direction: row;
@@ -1733,14 +1803,10 @@ const resizeCanvas = () => {
 }
 
 .minimap-container {
-	display: flex;
-	justify-content: center;
-	align-items: center;
 	background-color: var(--bg-secondary);
-	border: 2px solid var(--card-border);
-	border-radius: var(--border-radius-sm);
-	padding: var(--space-2);
 	min-height: 100px;
+	overflow: scroll;
+	max-height: 324px;
 }
 
 .minimap-canvas {
@@ -2002,7 +2068,7 @@ const resizeCanvas = () => {
 	background-color: var(--card-bg);
 	border: 2px solid var(--card-border);
 	border-radius: var(--border-radius-md);
-	padding: var(--space-4);
+	padding: var(--space-4) 0;
 	touch-action: none; // Prevent scrolling/zooming during touch drawing
 }
 
@@ -2042,7 +2108,6 @@ const resizeCanvas = () => {
 .pixel {
 	width: 20px;
 	height: 20px;
-	border: 1px solid rgba(0, 0, 0, 0.1);
 	cursor: crosshair;
 	box-sizing: border-box;
 
@@ -2213,100 +2278,6 @@ const resizeCanvas = () => {
 
 	&:active {
 		transform: scale(0.95);
-	}
-}
-
-// Responsive
-@media (max-width: 768px) {
-	.menu-bar {
-		justify-content: flex-start;
-	}
-
-	.canvas-size-controls {
-		margin-left: 0;
-		width: 100%;
-		justify-content: center;
-	}
-
-	.toolbar {
-		flex-wrap: wrap;
-		justify-content: center;
-	}
-
-	.brush-settings {
-		width: 100%;
-		justify-content: center;
-		border-left: none;
-		border-top: 2px solid var(--card-border);
-		padding-left: 0;
-		padding-top: var(--space-2);
-		margin-left: 0;
-		margin-top: var(--space-2);
-	}
-
-	.brush-setting {
-		flex: 1;
-		min-width: 0;
-
-		label {
-			font-size: 10px;
-		}
-	}
-
-	.brush-select {
-		width: 100%;
-		padding: var(--space-1);
-		font-size: 11px;
-	}
-
-	.viewport-controls {
-		flex-direction: column;
-		align-items: stretch;
-	}
-
-	.viewport-info {
-		text-align: center;
-	}
-
-	.canvas {
-		background-size: 15px 15px;
-		background-position: 0 0, 0 7.5px, 7.5px -7.5px, -7.5px 0px;
-	}
-
-	.pixel-row {
-		height: 15px;
-	}
-
-	.pixel {
-		width: 15px;
-		height: 15px;
-	}
-
-	.palette-header {
-		flex-direction: column;
-		align-items: stretch;
-	}
-
-	.theme-selector {
-		flex-direction: column;
-		align-items: stretch;
-
-		label {
-			text-align: left;
-		}
-	}
-
-	.custom-color-picker {
-		width: 100%;
-
-		.color-picker-btn {
-			width: 100%;
-			justify-content: center;
-		}
-	}
-
-	.color-palette {
-		grid-template-columns: repeat(8, 1fr);
 	}
 }
 </style>
