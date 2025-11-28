@@ -203,6 +203,11 @@ const brushShape = ref('square')
 // Grid settings
 const showGrid = ref(false) // true = visible grid (0.7), false = subtle grid (0.1)
 
+// Emoji Generator settings
+const emojiInput = ref('')
+const emojiSize = ref(16) // Default 16x16
+const quickEmojis = ['💎', '🪙', '⭐', '❤️', '🏺', '🗡️', '🛡️', '⚔️', '🔑', '🏹']
+
 // Selection state
 const selection = ref(null) // { startRow, startCol, endRow, endCol, data, offsetRow, offsetCol, isDragging }
 const selectionStart = ref(null)
@@ -906,6 +911,84 @@ const handleMenuClick = () => {
 	router.push('/gaming')
 }
 
+// Emoji to Pixel Generator
+const generateFromEmoji = (emoji) => {
+	if (!emoji) return
+
+	saveToHistory()
+
+	// Create temporary canvas for emoji rendering
+	const size = emojiSize.value
+	const canvas = document.createElement('canvas')
+	canvas.width = size
+	canvas.height = size
+	const ctx = canvas.getContext('2d')
+
+	// Clear canvas with transparent background
+	ctx.clearRect(0, 0, size, size)
+
+	// Set font size based on canvas size
+	const fontSize = Math.floor(size * 0.875) // 87.5% of canvas size
+	ctx.font = `${fontSize}px Arial`
+	ctx.textAlign = 'center'
+	ctx.textBaseline = 'middle'
+
+	// Draw emoji in center
+	ctx.fillText(emoji, size / 2, size / 2)
+
+	// Read pixel data
+	const imageData = ctx.getImageData(0, 0, size, size)
+
+	// Adjust canvas size to match emoji size
+	canvasWidth.value = size
+	canvasHeight.value = size
+
+	// Resize grid to match new canvas size
+	const newSize = size * size
+	grid.length = 0
+	for (let i = 0; i < newSize; i++) {
+		grid.push('transparent')
+	}
+
+	// Convert to hex colors with alpha support
+	for (let row = 0; row < size; row++) {
+		for (let col = 0; col < size; col++) {
+			const pixelIndex = (row * size + col) * 4
+			const r = imageData.data[pixelIndex]
+			const g = imageData.data[pixelIndex + 1]
+			const b = imageData.data[pixelIndex + 2]
+			const a = imageData.data[pixelIndex + 3]
+
+			const gridIndex = getPixelIndex(row, col)
+
+			// If alpha is below threshold, treat as transparent
+			if (a < 32) {
+				grid[gridIndex] = 'transparent'
+			} else {
+				const hex = '#' + [r, g, b].map(x => {
+					const hex = x.toString(16)
+					return hex.length === 1 ? '0' + hex : hex
+				}).join('').toUpperCase()
+				grid[gridIndex] = hex
+			}
+		}
+	}
+
+	// Reset viewport to origin
+	viewportX.value = 0
+	viewportY.value = 0
+
+	// Clear emoji input after generation
+	emojiInput.value = ''
+
+	console.log(`Emoji "${emoji}" generiert als ${size}x${size} Pixel-Art`)
+}
+
+// Quick emoji button handler
+const generateQuickEmoji = (emoji) => {
+	generateFromEmoji(emoji)
+}
+
 // Draw minimap
 const drawMinimap = () => {
 	if (!minimapCanvas.value) return
@@ -1025,6 +1108,7 @@ let previousHeight = canvasHeight.value
 
 // Accordion states for collapsible sections
 const isMenuBarOpen = ref(true)
+const isEmojiGeneratorOpen = ref(true)
 const isToolbarOpen = ref(true)
 const isColorPaletteOpen = ref(true)
 
@@ -1237,6 +1321,62 @@ const resizeCanvas = () => {
 						/>
 						Subtil
 					</label>
+				</div>
+			</div>
+		</section>
+
+		<!-- Emoji Generator -->
+		<section class="collapsible-section">
+			<div class="section-header" @click="isEmojiGeneratorOpen = !isEmojiGeneratorOpen">
+				<h3 class="section-title">{{ isEmojiGeneratorOpen ? '▼' : '▶' }} Emoji Generator</h3>
+			</div>
+			<div v-show="isEmojiGeneratorOpen" class="section-content">
+				<!-- Quick Emoji Buttons -->
+				<div class="quick-emojis">
+					<span class="size-label">Quick:</span>
+					<button
+						v-for="emoji in quickEmojis"
+						:key="emoji"
+						@click="generateQuickEmoji(emoji)"
+						class="emoji-btn"
+						:title="`Generate ${emoji}`"
+					>
+						{{ emoji }}
+					</button>
+				</div>
+
+				<!-- Custom Emoji Input -->
+				<div class="emoji-input-group">
+					<label for="emoji-input">Emoji:</label>
+					<input
+						id="emoji-input"
+						type="text"
+						v-model="emojiInput"
+						@keyup.enter="generateFromEmoji(emojiInput)"
+						class="emoji-input"
+						placeholder="💎 eingeben..."
+						maxlength="2"
+					/>
+					<button
+						@click="generateFromEmoji(emojiInput)"
+						:disabled="!emojiInput"
+						class="menu-btn"
+					>
+						Generate
+					</button>
+				</div>
+
+				<!-- Size Selection -->
+				<div class="emoji-size-controls">
+					<label for="emoji-size">Größe:</label>
+					<select id="emoji-size" v-model.number="emojiSize" class="size-select">
+						<option :value="8">8x8</option>
+						<option :value="16">16x16</option>
+						<option :value="24">24x24</option>
+						<option :value="32">32x32</option>
+						<option :value="48">48x48</option>
+						<option :value="64">64x64</option>
+					</select>
 				</div>
 			</div>
 		</section>
@@ -1703,6 +1843,125 @@ const resizeCanvas = () => {
 	width: 16px;
 	height: 16px;
 	accent-color: var(--primary-color);
+}
+
+// Emoji Generator Styles
+.quick-emojis {
+	display: flex;
+	gap: var(--space-1);
+	align-items: center;
+	flex-wrap: wrap;
+	width: 100%;
+
+	.size-label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-secondary);
+		white-space: nowrap;
+	}
+}
+
+.emoji-btn {
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	cursor: pointer;
+	transition: all 0.2s;
+
+	&:hover {
+		background-color: var(--primary-color);
+		transform: scale(1.1);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	}
+
+	&:active {
+		transform: scale(0.95);
+	}
+}
+
+.emoji-input-group {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-1);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+
+	label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color);
+		white-space: nowrap;
+	}
+}
+
+.emoji-input {
+	min-width: 100px;
+	padding: var(--space-2);
+	background-color: white;
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-size: 24px;
+	text-align: center;
+	font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+	}
+
+	&::placeholder {
+		font-size: var(--font-size-sm);
+	}
+}
+
+.emoji-size-controls {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-1);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+
+	label {
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color);
+		white-space: nowrap;
+	}
+}
+
+.size-select {
+	min-width: 80px;
+	padding: var(--space-1);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	color: var(--text-color);
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-xs);
+	cursor: pointer;
+	transition: all 0.2s;
+
+	&:hover {
+		background-color: var(--primary-color);
+		color: white;
+		border-color: var(--primary-color);
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+	}
 }
 
 .viewport-navigation {
