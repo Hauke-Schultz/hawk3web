@@ -8,6 +8,9 @@ const router = useRouter()
 // Minimap ref
 const minimapCanvas = ref(null)
 
+// Clipboard preview ref
+const clipboardPreviewCanvas = ref(null)
+
 // Grid size
 const VIEWPORT_WIDTH = ref(16) // Viewport width
 const VIEWPORT_HEIGHT = ref(16) // Viewport height
@@ -1024,6 +1027,49 @@ const drawMinimap = () => {
 	)
 }
 
+// Draw clipboard preview
+const drawClipboardPreview = () => {
+	if (!clipboardPreviewCanvas.value) return
+
+	const canvas = clipboardPreviewCanvas.value
+	const ctx = canvas.getContext('2d')
+
+	// If no clipboard data, show empty state
+	if (!clipboard.value) {
+		canvas.width = 100
+		canvas.height = 50
+		ctx.clearRect(0, 0, canvas.width, canvas.height)
+		ctx.fillStyle = '#999'
+		ctx.font = '12px Arial'
+		ctx.textAlign = 'center'
+		ctx.textBaseline = 'middle'
+		ctx.fillText('Keine Auswahl', canvas.width / 2, canvas.height / 2)
+		return
+	}
+
+	const { width, height, data } = clipboard.value
+	const scale = 8 // Each pixel is 8x8 on preview
+	canvas.width = width * scale
+	canvas.height = height * scale
+
+	// Clear canvas
+	ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+	// Draw clipboard pixels
+	let dataIndex = 0
+	for (let row = 0; row < height; row++) {
+		for (let col = 0; col < width; col++) {
+			const color = data[dataIndex]
+
+			if (color !== 'transparent') {
+				ctx.fillStyle = color
+				ctx.fillRect(col * scale, row * scale, scale, scale)
+			}
+			dataIndex++
+		}
+	}
+}
+
 // Click on minimap to jump to position
 const handleMinimapClick = (event) => {
 	if (!minimapCanvas.value) return
@@ -1077,6 +1123,13 @@ watch([grid, viewportX, viewportY, canvasWidth, canvasHeight, VIEWPORT_WIDTH, VI
 	})
 }, { deep: true })
 
+// Watch for clipboard changes and update preview
+watch(clipboard, () => {
+	nextTick(() => {
+		drawClipboardPreview()
+	})
+}, { deep: true })
+
 // Sync viewport step sizes with viewport dimensions
 watch(VIEWPORT_WIDTH, (newWidth) => {
 	viewportStepX.value = newWidth
@@ -1096,6 +1149,7 @@ watch(animationSpeed, () => {
 // Initial draw after component mount
 nextTick(() => {
 	drawMinimap()
+	drawClipboardPreview()
 })
 
 // Store previous dimensions
@@ -1578,6 +1632,17 @@ const resizeCanvas = () => {
 						height: (selection.endRow - selection.startRow + 1) * 20 + 'px'
 					}"
 				></div>
+			</div>
+		</section>
+
+		<!-- Clipboard Preview Section -->
+		<section class="clipboard-section">
+			<h3 class="section-title-static">Zwischenablage</h3>
+			<div class="clipboard-container">
+				<canvas
+					ref="clipboardPreviewCanvas"
+					class="clipboard-canvas"
+				></canvas>
 			</div>
 		</section>
 
@@ -2104,6 +2169,47 @@ const resizeCanvas = () => {
 	50% {
 		box-shadow: 0 0 0 4px rgba(244, 67, 54, 0);
 	}
+}
+
+// Clipboard Section
+.clipboard-section {
+	background-color: var(--card-bg);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.section-title-static {
+	font-size: var(--font-size-md);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0 0 var(--space-2) 0;
+}
+
+.clipboard-container {
+	background-color: var(--bg-secondary);
+	min-height: 80px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--space-2);
+	border-radius: var(--border-radius-sm);
+}
+
+.clipboard-canvas {
+	image-rendering: pixelated;
+	border: 1px solid var(--card-border);
+	background-color: white;
+	background-image:
+		linear-gradient(45deg, #eee 25%, transparent 25%),
+		linear-gradient(-45deg, #eee 25%, transparent 25%),
+		linear-gradient(45deg, transparent 75%, #eee 75%),
+		linear-gradient(-45deg, transparent 75%, #eee 75%);
+	background-size: 8px 8px;
+	background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
 }
 
 // Minimap Section
