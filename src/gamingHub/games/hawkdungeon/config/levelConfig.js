@@ -122,7 +122,7 @@ export const levelConfig = {
           items: [
             { type: 'weapon', name: 'axe' },
             { type: 'weapon', name: 'spear' },
-            { type: 'mana', count: 2 },
+          { type: 'mana', count: 1 },
             { type: 'manaPotion', count: 1 }
           ]
         },

@@ -109,75 +109,75 @@ export const spriteConfig = {
     health: {
       width: 16,
       height: 16,
-      x: 288,
-      y: 352
+      x: 0,
+      y: 64
     },
     healthPotion: {
       width: 16,
       height: 16,
-      x: 288,
-      y: 336
+      x: 0,
+      y: 48
     },
     mana: {
       width: 16,
       height: 16,
-      x: 304,
-      y: 352
+      x: 16,
+      y: 64
     },
     manaPotion: {
       width: 16,
       height: 16,
-      x: 304,
-      y: 336
+      x: 316,
+      y: 48
     },
     key: {
       width: 16,
       height: 16,
-      x: 320,
-      y: 304
+      x: 32,
+      y: 16
     },
     chest_closed: {
       width: 16,
       height: 16,
-      x: 304,
-      y: 400
+      x: 16,
+      y: 112
     },
     chest_open: {
       width: 16,
       height: 16,
-      x: 336,
-      y: 400
+      x: 48,
+      y: 112
     },
     // Gems and valuables
     diamond: {
       width: 16,
       height: 16,
-      x: 288,
-      y: 464
+      x: 0,
+      y: 160
     },
     ruby: {
       width: 16,
       height: 16,
-      x: 320,
-      y: 448
+      x: 32,
+      y: 160
     },
     emerald: {
       width: 16,
       height: 16,
-      x: 336,
-      y: 448
+      x: 48,
+      y: 160
     },
     sapphire: {
       width: 16,
       height: 16,
-      x: 304,
-      y: 448
+      x: 16,
+      y: 160
     },
     coin: {
       width: 16,
       height: 16,
-      x: 320,
-      y: 384
+      x: 32,
+      y: 96
     }
   },
 

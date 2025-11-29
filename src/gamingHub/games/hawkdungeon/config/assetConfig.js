@@ -30,7 +30,7 @@ export const assetConfig = {
   bosses: '/dungeon/spritesheet.png',
 
   // Item sprites (potions, keys, gems, etc.)
-  items: '/dungeon/spritesheet.png',
+  items: '/dungeon/items-v1.png',
 
   // Weapon sprites (swords, axes, spears, etc.)
   weapons: '/dungeon/spritesheet.png',

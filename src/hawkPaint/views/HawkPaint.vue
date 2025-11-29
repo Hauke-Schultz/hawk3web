@@ -663,7 +663,7 @@ const downloadImage = () => {
 	const canvas = document.createElement('canvas')
 	canvas.width = canvasWidth.value
 	canvas.height = canvasHeight.value
-	const ctx = canvas.getContext('2d')
+	const ctx = canvas.getContext('2d', { alpha: true })
 
 	// Clear canvas (transparent by default)
 	ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
@@ -701,7 +701,7 @@ const saveImage = async () => {
 	const canvas = document.createElement('canvas')
 	canvas.width = canvasWidth.value
 	canvas.height = canvasHeight.value
-	const ctx = canvas.getContext('2d')
+	const ctx = canvas.getContext('2d', { alpha: true })
 
 	// Clear canvas (transparent by default)
 	ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
@@ -810,15 +810,19 @@ const loadImage = () => {
 
 						const gridIndex = getPixelIndex(row, col)
 
-						// If alpha is below threshold, treat as transparent
-						if (a < 128) {
+						// If alpha is 0, treat as transparent
+						if (a === 0) {
 							grid[gridIndex] = 'transparent'
-						} else {
+						} else if (a === 255) {
+							// Fully opaque - use hex format
 							const hex = '#' + [r, g, b].map(x => {
 								const hex = x.toString(16)
 								return hex.length === 1 ? '0' + hex : hex
 							}).join('').toUpperCase()
 							grid[gridIndex] = hex
+						} else {
+							// Partial transparency - use rgba format
+							grid[gridIndex] = `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`
 						}
 					}
 				}
@@ -884,15 +888,19 @@ const loadSpriteSheet = () => {
 
 				const gridIndex = getPixelIndex(row, col)
 
-				// If alpha is below threshold, treat as transparent
-				if (a < 128) {
+				// If alpha is 0, treat as transparent
+				if (a === 0) {
 					grid[gridIndex] = 'transparent'
-				} else {
+				} else if (a === 255) {
+					// Fully opaque - use hex format
 					const hex = '#' + [r, g, b].map(x => {
 						const hex = x.toString(16)
 						return hex.length === 1 ? '0' + hex : hex
 					}).join('').toUpperCase()
 					grid[gridIndex] = hex
+				} else {
+					// Partial transparency - use rgba format
+					grid[gridIndex] = `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`
 				}
 			}
 		}
