@@ -12,7 +12,7 @@ const app = express()
 const PORT = process.env.PORT || 3000
 const HIGHSCORES_FILE = path.join(__dirname, 'highscores.json')
 const RSVP_FILE = path.join(__dirname, 'rsvp.json')
-const SPRITE_SHEETS_DIR = path.join(__dirname, '../public/dungeon/items')
+const SPRITE_SHEETS_DIR = path.join(__dirname, '../public/dungeon')
 const ADMIN_EMAIL = 'haukeschultz@gmail.com'
 
 // Middleware
@@ -623,7 +623,7 @@ app.get('/api/sprite-sheets', async (req, res) => {
         const fileName = file.replace('.png', '')
         return {
           name: fileName,
-          path: `/dungeon/items/${file}`,
+          path: `/dungeon/${file}`,
           gridSize: 16
         }
       })
@@ -668,7 +668,7 @@ app.post('/api/sprite-sheets', async (req, res) => {
     res.json({
       message: 'Sprite sheet saved successfully',
       fileName: fileName,
-      path: `/dungeon/items/${fileName}`
+      path: `/dungeon/${fileName}`
     })
   } catch (error) {
     console.error('Error saving sprite sheet:', error)

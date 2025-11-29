@@ -1,32 +1,87 @@
 // Sprite manager for loading and rendering sprites
 import { ref } from 'vue'
 import { spriteConfig, SPRITE_SIZE, SPRITE_SCALE, TILE_SIZE } from '../config/spriteConfig'
-import spritesheetUrl from '../assets/spritesheet.png'
+import { assetConfig, getTileCategory } from '../config/assetConfig'
 
 export function useSpriteManager() {
-  const spritesheet = ref(null)
+  // Store multiple spritesheets in a map
+  const spritesheets = ref(new Map())
   const isLoaded = ref(false)
 
-  // Load spritesheet
-  const loadSpritesheet = () => {
+  // Load a single spritesheet
+  const loadSingleSpritesheet = (path) => {
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.onload = () => {
-        spritesheet.value = img
-        isLoaded.value = true
+        spritesheets.value.set(path, img)
         resolve(img)
       }
-      img.onerror = reject
-      img.src = spritesheetUrl
+      img.onerror = () => reject(`Failed to load sprite: ${path}`)
+      img.src = path
     })
+  }
+
+  // Load all required spritesheets
+  const loadSpritesheet = async () => {
+    try {
+      // Load the main tiles spritesheet (required)
+      await loadSingleSpritesheet(assetConfig.tiles)
+
+      // Load combined spritesheet as fallback (if exists)
+      if (assetConfig.combined) {
+        await loadSingleSpritesheet(assetConfig.combined)
+      }
+
+      // Load other spritesheets (optional, won't fail if missing)
+      const optionalSheets = [
+        assetConfig.player,
+        assetConfig.enemies,
+        assetConfig.bosses,
+        assetConfig.items,
+        assetConfig.weapons
+      ].filter(path => path && path !== assetConfig.tiles && path !== assetConfig.combined)
+
+      // Load optional sheets but don't fail if they're missing
+      await Promise.allSettled(
+        optionalSheets.map(path => loadSingleSpritesheet(path))
+      )
+
+      isLoaded.value = true
+      return spritesheets.value
+    } catch (error) {
+      console.error('Failed to load spritesheets:', error)
+      throw error
+    }
+  }
+
+  // Get the appropriate spritesheet for a sprite type
+  const getSpritesheet = (category = 'tiles') => {
+    const path = getTileCategory(category)
+    // Try to get the specific spritesheet, fall back to combined, then tiles
+    return spritesheets.value.get(path) ||
+           spritesheets.value.get(assetConfig.combined) ||
+           spritesheets.value.get(assetConfig.tiles)
   }
 
   // Draw a sprite frame with scaling
   const drawSprite = (ctx, spriteType, frame, x, y, flipX = false, flipY = false) => {
-    if (!isLoaded.value || !spritesheet.value) return
+    if (!isLoaded.value) return
 
     const config = getSpriteConfig(spriteType)
     if (!config) return
+
+    // Determine which spritesheet to use (players vs enemies vs bosses)
+    let category = 'tiles'
+    if (spriteType === 'knight' || spriteType === 'warrior' || spriteType === 'mage') {
+      category = 'player'
+    } else if (spriteType === 'goblin' || spriteType === 'orc' || spriteType === 'skeleton') {
+      category = 'enemies'
+    } else if (spriteType === 'boss' || spriteType === 'dragon' || spriteType === 'demon') {
+      category = 'bosses'
+    }
+
+    const sheet = getSpritesheet(category)
+    if (!sheet) return
 
     const { frameWidth, frameHeight, startX, startY } = config
     const sourceX = startX + (frame * frameWidth)
@@ -44,13 +99,13 @@ export function useSpriteManager() {
       ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
       ctx.translate(-scaledWidth / 2, -scaledHeight / 2)
       ctx.drawImage(
-        spritesheet.value,
+        sheet,
         sourceX, sourceY, frameWidth, frameHeight,
         0, 0, scaledWidth, scaledHeight
       )
     } else {
       ctx.drawImage(
-        spritesheet.value,
+        sheet,
         sourceX, sourceY, frameWidth, frameHeight,
         x, y, scaledWidth, scaledHeight
       )
@@ -61,9 +116,10 @@ export function useSpriteManager() {
 
   // Draw a tile (non-animated sprite) with scaling
   const drawTile = (ctx, tileType, x, y, layer = 'main') => {
-    if (!isLoaded.value || !spritesheet.value) return
+    if (!isLoaded.value) return
 
     let config = null
+    let category = 'tiles'
 
     // Handle different sprite formats:
     // 1. String like '.' or 'W' - look up in spriteConfig
@@ -79,9 +135,19 @@ export function useSpriteManager() {
     } else if (typeof tileType === 'string') {
       // Look up sprite by key
       config = getTileConfig(tileType, layer)
+
+      // Determine category based on layer or tile type
+      if (layer === 'items' || spriteConfig.items?.[tileType]) {
+        category = 'items'
+      } else if (layer === 'weapons' || spriteConfig.weapons?.[tileType]) {
+        category = 'weapons'
+      }
     }
 
     if (!config) return
+
+    const sheet = getSpritesheet(category)
+    if (!sheet) return
 
     const { width, height, x: sourceX, y: sourceY } = config
 
@@ -90,7 +156,7 @@ export function useSpriteManager() {
     const scaledHeight = height * SPRITE_SCALE
 
     ctx.drawImage(
-      spritesheet.value,
+      sheet,
       sourceX, sourceY, width, height,
       x, y, scaledWidth, scaledHeight
     )
@@ -116,10 +182,13 @@ export function useSpriteManager() {
 
   // Draw an animated tile with scaling
   const drawAnimatedTile = (ctx, tileType, frame, x, y) => {
-    if (!isLoaded.value || !spritesheet.value) return
+    if (!isLoaded.value) return
 
     const config = getAnimatedTileConfig(tileType)
     if (!config) return
+
+    const sheet = getSpritesheet('tiles')
+    if (!sheet) return
 
     const { frameWidth, frameHeight, startX, startY } = config
     const sourceX = startX + (frame * frameWidth)
@@ -130,7 +199,7 @@ export function useSpriteManager() {
     const scaledHeight = frameHeight * SPRITE_SCALE
 
     ctx.drawImage(
-      spritesheet.value,
+      sheet,
       sourceX, sourceY, frameWidth, frameHeight,
       x, y, scaledWidth, scaledHeight
     )
@@ -184,9 +253,10 @@ export function useSpriteManager() {
   }
 
   return {
-    spritesheet,
+    spritesheets,
     isLoaded,
     loadSpritesheet,
+    getSpritesheet,
     drawSprite,
     drawTile,
     drawAnimatedTile,

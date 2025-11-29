@@ -695,7 +695,7 @@ const downloadImage = () => {
 	}, 'image/png')
 }
 
-// Save image to server in public/dungeon/items/ folder
+// Save image to server in public/dungeon/ folder
 const saveImage = async () => {
 	// Create canvas with actual canvas size
 	const canvas = document.createElement('canvas')

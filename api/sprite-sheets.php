@@ -1,7 +1,7 @@
 <?php
 /**
  * Sprite-Sheets API für PHP Hosting
- * Verwaltet PNG-Dateien im dungeon/items Ordner
+ * Verwaltet PNG-Dateien im dungeon Ordner
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Konfiguration
-define('SPRITE_SHEETS_DIR', __DIR__ . '/../public/dungeon/items');
+define('SPRITE_SHEETS_DIR', __DIR__ . '/../public/dungeon');
 
 /**
  * Erstelle Verzeichnis wenn es nicht existiert
@@ -42,7 +42,7 @@ function getAvailableSpriteSheets() {
             $fileName = pathinfo($file, PATHINFO_FILENAME);
             $spriteSheets[] = [
                 'name' => $fileName,
-                'path' => '/dungeon/items/' . $file,
+                'path' => '/dungeon/' . $file,
                 'gridSize' => 16
             ];
         }
@@ -109,7 +109,7 @@ function saveSpriteSheet() {
     echo json_encode([
         'message' => 'Sprite sheet saved successfully',
         'fileName' => $fileName,
-        'path' => '/dungeon/items/' . $fileName
+        'path' => '/dungeon/' . $fileName
     ]);
 }
 

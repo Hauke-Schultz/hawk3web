@@ -31,12 +31,12 @@ export const spriteConfig = {
     width: 16,
     height: 32,
     walk: {
-      frames: 8,
+      frames: 6,
       frameWidth: 16,
       frameHeight: 32,
       frameDuration: 100, // milliseconds per frame
-      startX: 128,
-      startY: 74
+      startX: 0,
+      startY: 40
     }
   },
 
