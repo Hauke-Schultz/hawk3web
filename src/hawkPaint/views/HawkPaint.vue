@@ -202,6 +202,8 @@ const brushShape = ref('square')
 
 // Grid settings
 const showGrid = ref(false) // true = visible grid (0.7), false = subtle grid (0.1)
+const showBackgroundRaster = ref(false) // Show background raster color
+const backgroundRasterColor = ref('#f0f0f0') // Default light gray
 
 // Emoji Generator settings
 const emojiInput = ref('')
@@ -1316,6 +1318,27 @@ const resizeCanvas = () => {
 						Subtil
 					</label>
 				</div>
+
+				<!-- Background Raster Controls -->
+				<div class="grid-controls">
+					<span class="size-label">Hintergrund:</span>
+					<label class="radio-label">
+						<input
+							type="checkbox"
+							v-model="showBackgroundRaster"
+							class="checkbox-input"
+						/>
+						Farbe
+					</label>
+					<label class="color-picker-label">
+						<input
+							type="color"
+							v-model="backgroundRasterColor"
+							:disabled="!showBackgroundRaster"
+							class="color-picker-input"
+						/>
+					</label>
+				</div>
 			</div>
 		</section>
 
@@ -1516,7 +1539,15 @@ const resizeCanvas = () => {
 			@mouseleave="handlePixelMouseUp"
 		>
 			<div class="canvas-wrapper">
-				<div class="canvas">
+				<div
+					class="canvas"
+					:class="{
+						'canvas--transparent': !showBackgroundRaster
+					}"
+					:style="{
+						backgroundColor: showBackgroundRaster ? backgroundRasterColor : 'white'
+					}"
+				>
 					<div
 						v-for="row in VIEWPORT_HEIGHT"
 						:key="`row-${row}`"
@@ -1837,6 +1868,44 @@ const resizeCanvas = () => {
 	width: 16px;
 	height: 16px;
 	accent-color: var(--primary-color);
+}
+
+.checkbox-input {
+	cursor: pointer;
+	width: 16px;
+	height: 16px;
+	accent-color: var(--primary-color);
+}
+
+.color-picker-label {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+.color-picker-input {
+	cursor: pointer;
+	width: 40px;
+	height: 28px;
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	background-color: transparent;
+	transition: all 0.2s;
+
+	&:hover:not(:disabled) {
+		border-color: var(--primary-color);
+		transform: scale(1.05);
+	}
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+	}
 }
 
 // Emoji Generator Styles
@@ -2333,15 +2402,18 @@ const resizeCanvas = () => {
 .canvas {
 	display: inline-block;
 	background-color: white;
-	background-image:
-		linear-gradient(45deg, #ccc 25%, transparent 25%),
-		linear-gradient(-45deg, #ccc 25%, transparent 25%),
-		linear-gradient(45deg, transparent 75%, #ccc 75%),
-		linear-gradient(-45deg, transparent 75%, #ccc 75%);
-	background-size: 20px 20px;
-	background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 	border: 2px solid var(--card-border);
 	user-select: none;
+
+	&--transparent {
+		background-size: 20px 20px;
+		background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+		background-image:
+				linear-gradient(45deg, #ccc 25%, transparent 25%),
+				linear-gradient(-45deg, #ccc 25%, transparent 25%),
+				linear-gradient(45deg, transparent 75%, #ccc 75%),
+				linear-gradient(-45deg, transparent 75%, #ccc 75%);
+	}
 }
 
 .selection-overlay {
