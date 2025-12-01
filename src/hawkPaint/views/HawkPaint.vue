@@ -1091,8 +1091,16 @@ const handleMinimapClick = (event) => {
 	const clickY = Math.floor((event.clientY - rect.top) / scale)
 
 	// Center viewport on clicked position
-	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_WIDTH.value / 2), canvasWidth.value - VIEWPORT_WIDTH.value))
-	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_HEIGHT.value / 2), canvasHeight.value - VIEWPORT_HEIGHT.value))
+	let newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_WIDTH.value / 2), canvasWidth.value - VIEWPORT_WIDTH.value))
+	let newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_HEIGHT.value / 2), canvasHeight.value - VIEWPORT_HEIGHT.value))
+
+	// Snap to viewport step grid
+	newX = Math.round(newX / viewportStepX.value) * viewportStepX.value
+	newY = Math.round(newY / viewportStepY.value) * viewportStepY.value
+
+	// Clamp again after snapping to ensure we don't exceed bounds
+	newX = Math.max(0, Math.min(newX, canvasWidth.value - VIEWPORT_WIDTH.value))
+	newY = Math.max(0, Math.min(newY, canvasHeight.value - VIEWPORT_HEIGHT.value))
 
 	viewportX.value = newX
 	viewportY.value = newY
@@ -1115,8 +1123,16 @@ const handleMinimapTouch = (event) => {
 	const clickY = Math.floor((touch.clientY - rect.top) / scale)
 
 	// Center viewport on touched position
-	const newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_WIDTH.value / 2), canvasWidth.value - VIEWPORT_WIDTH.value))
-	const newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_HEIGHT.value / 2), canvasHeight.value - VIEWPORT_HEIGHT.value))
+	let newX = Math.max(0, Math.min(clickX - Math.floor(VIEWPORT_WIDTH.value / 2), canvasWidth.value - VIEWPORT_WIDTH.value))
+	let newY = Math.max(0, Math.min(clickY - Math.floor(VIEWPORT_HEIGHT.value / 2), canvasHeight.value - VIEWPORT_HEIGHT.value))
+
+	// Snap to viewport step grid
+	newX = Math.round(newX / viewportStepX.value) * viewportStepX.value
+	newY = Math.round(newY / viewportStepY.value) * viewportStepY.value
+
+	// Clamp again after snapping to ensure we don't exceed bounds
+	newX = Math.max(0, Math.min(newX, canvasWidth.value - VIEWPORT_WIDTH.value))
+	newY = Math.max(0, Math.min(newY, canvasHeight.value - VIEWPORT_HEIGHT.value))
 
 	viewportX.value = newX
 	viewportY.value = newY
@@ -1166,7 +1182,7 @@ let previousHeight = canvasHeight.value
 
 // Accordion states for collapsible sections
 const isMenuBarOpen = ref(true)
-const isEmojiGeneratorOpen = ref(true)
+const isEmojiGeneratorOpen = ref(false)
 const isToolbarOpen = ref(true)
 const isColorPaletteOpen = ref(true)
 
@@ -1566,6 +1582,17 @@ const resizeCanvas = () => {
 						></div>
 					</div>
 				</div>
+
+				<!-- Clipboard Preview Section -->
+				<div
+					v-if="clipboard && (currentTool === TOOLS.SELECT || currentTool === TOOLS.MOVE || currentTool === TOOLS.PASTE)"
+					class="clipboard-container"
+				>
+					<canvas
+							ref="clipboardPreviewCanvas"
+							class="clipboard-canvas"
+					></canvas>
+				</div>
 			</div>
 		</section>
 		<!-- Color Palette Section -->
@@ -1640,17 +1667,6 @@ const resizeCanvas = () => {
 						height: (selection.endRow - selection.startRow + 1) * 20 + 'px'
 					}"
 				></div>
-			</div>
-		</section>
-
-		<!-- Clipboard Preview Section -->
-		<section class="clipboard-section">
-			<h3 class="section-title-static">Zwischenablage</h3>
-			<div class="clipboard-container">
-				<canvas
-					ref="clipboardPreviewCanvas"
-					class="clipboard-canvas"
-				></canvas>
 			</div>
 		</section>
 
