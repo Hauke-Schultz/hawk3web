@@ -203,6 +203,15 @@ loadAvailableSpriteSheets()
 const brushSize = ref(1)
 const brushShape = ref('square')
 
+// Pencil settings
+const pencilOpacity = ref(100) // 0-100%, opacity of the pencil
+
+// Fill settings
+const fillOpacity = ref(100) // 0-100%, opacity of the fill
+
+// Eraser settings
+const eraserStrength = ref(100) // 0-100%, how much to erase per click
+
 // Grid settings
 const showGrid = ref(false) // true = visible grid (0.7), false = subtle grid (0.1)
 const showBackgroundRaster = ref(false) // Show background raster color
@@ -588,6 +597,96 @@ const getBrushPattern = (size, shape) => {
 	return pattern
 }
 
+// Helper function to parse color to RGBA
+const parseColorToRGBA = (color) => {
+	if (color === 'transparent') {
+		return { r: 0, g: 0, b: 0, a: 0 }
+	}
+
+	let r, g, b, a = 1
+
+	if (color.startsWith('rgba(')) {
+		const match = color.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/)
+		if (match) {
+			r = parseInt(match[1])
+			g = parseInt(match[2])
+			b = parseInt(match[3])
+			a = parseFloat(match[4])
+		}
+	} else if (color.startsWith('#')) {
+		const hex = color.replace('#', '')
+		r = parseInt(hex.substring(0, 2), 16)
+		g = parseInt(hex.substring(2, 4), 16)
+		b = parseInt(hex.substring(4, 6), 16)
+		a = 1
+	} else if (color.startsWith('rgb(')) {
+		const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+		if (match) {
+			r = parseInt(match[1])
+			g = parseInt(match[2])
+			b = parseInt(match[3])
+			a = 1
+		}
+	}
+
+	return { r, g, b, a }
+}
+
+// Helper function to blend two colors (like a brush painting over existing color)
+const blendColors = (baseColor, topColor, opacity) => {
+	const base = parseColorToRGBA(baseColor)
+	const top = parseColorToRGBA(topColor)
+
+	// Apply opacity to the top color
+	const topAlpha = (opacity / 100) * top.a
+
+	// If base is transparent, just return top color with applied opacity
+	if (base.a === 0) {
+		if (topAlpha === 0) return 'transparent'
+		return `rgba(${top.r}, ${top.g}, ${top.b}, ${topAlpha.toFixed(3)})`
+	}
+
+	// Alpha blending formula
+	const outAlpha = topAlpha + base.a * (1 - topAlpha)
+
+	if (outAlpha === 0) return 'transparent'
+
+	const outR = Math.round((top.r * topAlpha + base.r * base.a * (1 - topAlpha)) / outAlpha)
+	const outG = Math.round((top.g * topAlpha + base.g * base.a * (1 - topAlpha)) / outAlpha)
+	const outB = Math.round((top.b * topAlpha + base.b * base.a * (1 - topAlpha)) / outAlpha)
+
+	// If alpha is 1, return as hex for cleaner storage
+	if (outAlpha === 1) {
+		const hex = '#' + [outR, outG, outB].map(x => {
+			const hex = x.toString(16)
+			return hex.length === 1 ? '0' + hex : hex
+		}).join('').toUpperCase()
+		return hex
+	}
+
+	return `rgba(${outR}, ${outG}, ${outB}, ${outAlpha.toFixed(3)})`
+}
+
+// Helper function to reduce alpha based on eraser strength
+const applyEraserToColor = (currentColor, strength) => {
+	const { r, g, b, a } = parseColorToRGBA(currentColor)
+
+	if (a === 0) return 'transparent'
+
+	// Calculate new alpha based on strength (strength is 0-100)
+	const strengthFactor = strength / 100
+	const alphaReduction = strengthFactor
+	const newAlpha = Math.max(0, a - alphaReduction)
+
+	// If alpha reaches 0, make it transparent
+	if (newAlpha === 0) {
+		return 'transparent'
+	}
+
+	// Return as rgba
+	return `rgba(${r}, ${g}, ${b}, ${newAlpha.toFixed(3)})`
+}
+
 const applyBrush = (row, col, color) => {
 	const pattern = getBrushPattern(brushSize.value, brushShape.value)
 
@@ -608,23 +707,45 @@ const applyTool = (row, col) => {
 
 	switch (currentTool.value) {
 		case TOOLS.PENCIL:
-			applyBrush(row, col, foregroundColor.value)
+			// Apply pencil with opacity blending (like a brush)
+			const pencilPattern = getBrushPattern(brushSize.value, brushShape.value)
+			pencilPattern.forEach(({ x, y }) => {
+				const targetRow = row + y
+				const targetCol = col + x
+
+				if (targetRow >= 0 && targetRow < canvasHeight.value && targetCol >= 0 && targetCol < canvasWidth.value) {
+					const targetIndex = getPixelIndex(targetRow, targetCol)
+					const currentColor = grid[targetIndex]
+					grid[targetIndex] = blendColors(currentColor, foregroundColor.value, pencilOpacity.value)
+				}
+			})
 			break
 		case TOOLS.ERASER:
-			applyBrush(row, col, 'transparent')
+			// Apply gradual erasing based on strength
+			const eraserPattern = getBrushPattern(brushSize.value, brushShape.value)
+			eraserPattern.forEach(({ x, y }) => {
+				const targetRow = row + y
+				const targetCol = col + x
+
+				if (targetRow >= 0 && targetRow < canvasHeight.value && targetCol >= 0 && targetCol < canvasWidth.value) {
+					const targetIndex = getPixelIndex(targetRow, targetCol)
+					const currentColor = grid[targetIndex]
+					grid[targetIndex] = applyEraserToColor(currentColor, eraserStrength.value)
+				}
+			})
 			break
 		case TOOLS.PICKER:
 			foregroundColor.value = grid[index]
 			customColor.value = foregroundColor.value
 			break
 		case TOOLS.FILL:
-			floodFill(row, col, grid[index], backgroundColor.value)
+			floodFill(row, col, grid[index], foregroundColor.value, fillOpacity.value)
 			break
 	}
 }
 
-const floodFill = (row, col, targetColor, fillColor) => {
-	if (targetColor === fillColor) return
+const floodFill = (row, col, targetColor, fillColor, opacity) => {
+	if (targetColor === fillColor && opacity === 100) return
 
 	const stack = [[row, col]]
 	const visited = new Set()
@@ -640,7 +761,8 @@ const floodFill = (row, col, targetColor, fillColor) => {
 		if (grid[index] !== targetColor) continue
 
 		visited.add(key)
-		grid[index] = fillColor
+		// Blend the fill color with the existing color based on opacity
+		grid[index] = blendColors(grid[index], fillColor, opacity)
 
 		stack.push([r + 1, c])
 		stack.push([r - 1, c])
@@ -1583,6 +1705,54 @@ const resizeCanvas = () => {
 					</div>
 				</div>
 
+				<!-- Pencil Opacity Slider (only visible when PENCIL is active) -->
+				<div v-if="currentTool === TOOLS.PENCIL" class="pencil-opacity-container">
+					<label for="pencil-opacity" class="pencil-opacity-label">
+						Deckkraft: {{ pencilOpacity }}%
+					</label>
+					<input
+							id="pencil-opacity"
+							type="range"
+							v-model.number="pencilOpacity"
+							min="0"
+							max="100"
+							step="1"
+							class="pencil-opacity-slider"
+					/>
+				</div>
+
+				<!-- Fill Opacity Slider (only visible when FILL is active) -->
+				<div v-if="currentTool === TOOLS.FILL" class="fill-opacity-container">
+					<label for="fill-opacity" class="fill-opacity-label">
+						Deckkraft: {{ fillOpacity }}%
+					</label>
+					<input
+							id="fill-opacity"
+							type="range"
+							v-model.number="fillOpacity"
+							min="0"
+							max="100"
+							step="1"
+							class="fill-opacity-slider"
+					/>
+				</div>
+
+				<!-- Eraser Strength Slider (only visible when ERASER is active) -->
+				<div v-if="currentTool === TOOLS.ERASER" class="eraser-strength-container">
+					<label for="eraser-strength" class="eraser-strength-label">
+						Löschstärke: {{ eraserStrength }}%
+					</label>
+					<input
+							id="eraser-strength"
+							type="range"
+							v-model.number="eraserStrength"
+							min="0"
+							max="100"
+							step="1"
+							class="eraser-strength-slider"
+					/>
+				</div>
+
 				<!-- Clipboard Preview Section -->
 				<div
 					v-if="clipboard && (currentTool === TOOLS.SELECT || currentTool === TOOLS.MOVE || currentTool === TOOLS.PASTE)"
@@ -1593,29 +1763,23 @@ const resizeCanvas = () => {
 							class="clipboard-canvas"
 					></canvas>
 				</div>
-			</div>
-		</section>
-		<!-- Color Palette Section -->
-		<section class="collapsible-section">
-			<div class="section-header" @click="isColorPaletteOpen = !isColorPaletteOpen">
-				<h3 class="section-title">{{ isColorPaletteOpen ? '▼' : '▶' }} Farben</h3>
-			</div>
-			<div v-show="isColorPaletteOpen" class="section-content">
-				<!-- Color Palette Grid -->
-				<div class="color-palette" :class="{ 'replace-mode': hasCustomColorSelected }">
-					<div
-							v-for="(color, index) in colorPalette"
-							:key="index"
-							class="palette-color-wrapper"
-					>
+				<div v-show="isColorPaletteOpen" class="color-palette-section section-content">
+					<!-- Color Palette Grid -->
+					<div class="color-palette" :class="{ 'replace-mode': hasCustomColorSelected }">
 						<div
-								class="palette-color"
-								:class="{
+								v-for="(color, index) in colorPalette"
+								:key="index"
+								class="palette-color-wrapper"
+						>
+							<div
+									class="palette-color"
+									:class="{
 								active: color === foregroundColor && !hasCustomColorSelected
 							}"
-								:style="{ backgroundColor: color }"
-								@click="selectColor(color, index)"
-						></div>
+									:style="{ backgroundColor: color }"
+									@click="selectColor(color, index)"
+							></div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -2395,6 +2559,222 @@ const resizeCanvas = () => {
 	}
 }
 
+// Pencil Opacity Slider
+.pencil-opacity-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	padding: var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	width: 100%;
+}
+
+.pencil-opacity-label {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	text-align: center;
+}
+
+.pencil-opacity-slider {
+	width: 100%;
+	height: 8px;
+	-webkit-appearance: none;
+	appearance: none;
+	background: linear-gradient(to right, rgba(100, 100, 100, 0.2) 0%, #2196F3 50%, #1976D2 100%);
+	border-radius: 5px;
+	outline: none;
+	cursor: pointer;
+
+	&::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		background: var(--primary-color);
+		border: 2px solid white;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+			box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+		}
+
+		&:active {
+			transform: scale(1.1);
+		}
+	}
+
+	&::-moz-range-thumb {
+		width: 20px;
+		height: 20px;
+		background: var(--primary-color);
+		border: 2px solid white;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+			box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+		}
+
+		&:active {
+			transform: scale(1.1);
+		}
+	}
+}
+
+// Fill Opacity Slider
+.fill-opacity-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	padding: var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	width: 100%;
+}
+
+.fill-opacity-label {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	text-align: center;
+}
+
+.fill-opacity-slider {
+	width: 100%;
+	height: 8px;
+	-webkit-appearance: none;
+	appearance: none;
+	background: linear-gradient(to right, rgba(100, 100, 100, 0.2) 0%, #66BB6A 50%, #4CAF50 100%);
+	border-radius: 5px;
+	outline: none;
+	cursor: pointer;
+
+	&::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		background: var(--primary-color);
+		border: 2px solid white;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+			box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+		}
+
+		&:active {
+			transform: scale(1.1);
+		}
+	}
+
+	&::-moz-range-thumb {
+		width: 20px;
+		height: 20px;
+		background: var(--primary-color);
+		border: 2px solid white;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+			box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+		}
+
+		&:active {
+			transform: scale(1.1);
+		}
+	}
+}
+
+// Eraser Strength Slider
+.eraser-strength-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	padding: var(--space-2);
+	background-color: var(--bg-secondary);
+	border: 2px solid var(--card-border);
+	border-radius: var(--border-radius-sm);
+	width: 100%;
+}
+
+.eraser-strength-label {
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	text-align: center;
+}
+
+.eraser-strength-slider {
+	width: 100%;
+	height: 8px;
+	-webkit-appearance: none;
+	appearance: none;
+	background: linear-gradient(to right, #f44336 0%, #ff9800 50%, #4caf50 100%);
+	border-radius: 5px;
+	outline: none;
+	cursor: pointer;
+
+	&::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		background: var(--primary-color);
+		border: 2px solid white;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+			box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+		}
+
+		&:active {
+			transform: scale(1.1);
+		}
+	}
+
+	&::-moz-range-thumb {
+		width: 20px;
+		height: 20px;
+		background: var(--primary-color);
+		border: 2px solid white;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: all 0.2s;
+
+		&:hover {
+			transform: scale(1.2);
+			box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+		}
+
+		&:active {
+			transform: scale(1.1);
+		}
+	}
+}
+
 .brush-select {
 	padding: var(--space-1);
 	background-color: var(--bg-secondary);
@@ -2690,6 +3070,10 @@ const resizeCanvas = () => {
 }
 
 // Color Palette
+.color-palette-section {
+	width: 100%;
+}
+
 .color-palette {
 	display: grid;
 	grid-template-columns: repeat(8, 1fr);
