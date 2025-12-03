@@ -114,6 +114,8 @@ export const levelConfig = {
             { type: 'key' },
             { type: 'health', count: 2 },
             { type: 'healthPotion', count: 1 },
+            { type: 'emerald', count: 1 },
+            { type: 'sapphire', count: 1 },
           ]
         },
         {
@@ -122,7 +124,7 @@ export const levelConfig = {
           items: [
             { type: 'weapon', name: 'axe' },
             { type: 'weapon', name: 'spear' },
-          { type: 'mana', count: 1 },
+            { type: 'mana', count: 1 },
             { type: 'manaPotion', count: 1 }
           ]
         },

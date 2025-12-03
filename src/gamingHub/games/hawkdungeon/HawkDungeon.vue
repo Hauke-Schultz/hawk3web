@@ -52,9 +52,13 @@
           :weapon="gameState.weapon"
           @attack="handleAttack"
         />
-	      <ItemButton
+	      <WeaponButton
 		      :is-active="showWeaponSelector"
 		      @toggle="toggleWeaponSelector"
+	      />
+	      <ItemButton
+		      :is-active="showItemSelector"
+		      @toggle="toggleItemSelector"
 	      />
       </div>
       <JoystickControl
@@ -65,13 +69,18 @@
     </div>
 
     <div v-if="showWeaponSelector" class="weapon-selector-container">
-      <InventoryPanel
+      <WeaponInventoryPanel
         :weapons="gameState.weapons"
         :current-weapon="gameState.weapon"
-        :inventory="gameState.inventory"
         @select-weapon="handleWeaponSwitch"
         @socket-gem="handleSocketGem"
         @unsocket-gem="handleUnsocketGem"
+      />
+    </div>
+
+    <div v-if="showItemSelector" class="item-selector-container">
+      <InventoryPanel
+        :inventory="gameState.inventory"
       />
     </div>
 
@@ -137,6 +146,8 @@ import ItemButton from './components/ItemButton.vue'
 import JoystickControl from './components/JoystickControl.vue'
 import WeaponSelector from './components/WeaponSelector.vue'
 import InventoryPanel from './components/InventoryPanel.vue'
+import WeaponInventoryPanel from './components/WeaponInventoryPanel.vue'
+import WeaponButton from './components/WeaponButton.vue'
 import GemSelectionModal from './components/GemSelectionModal.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
 import GameCompletedModal from '../../components/GameCompletedModal.vue'
@@ -305,8 +316,9 @@ const sessionTimer = ref(null)
 const showGameOverModal = ref(false)
 const showGameCompletedModal = ref(false)
 
-// Item menu state
+// Inventory menu state
 const showWeaponSelector = ref(false)
+const showItemSelector = ref(false)
 
 // Gem selection modal state
 const showGemSelection = ref(false)
@@ -404,6 +416,18 @@ const handleWeaponSwitch = (weaponName) => {
 
 const toggleWeaponSelector = () => {
   showWeaponSelector.value = !showWeaponSelector.value
+  // Close item selector when opening weapon selector
+  if (showWeaponSelector.value) {
+    showItemSelector.value = false
+  }
+}
+
+const toggleItemSelector = () => {
+  showItemSelector.value = !showItemSelector.value
+  // Close weapon selector when opening item selector
+  if (showItemSelector.value) {
+    showWeaponSelector.value = false
+  }
 }
 
 // Gem socketing handlers
@@ -705,7 +729,8 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.weapon-selector-container {
+.weapon-selector-container,
+.item-selector-container {
   position: absolute;
   bottom: 20px;
   left: 50%;
