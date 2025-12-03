@@ -735,8 +735,8 @@ export function useHawkDungeon() {
     }
 
     // Check if player has the gem in inventory
-    const gemIndex = gameState.inventory.findIndex(item => item.type === gemType)
-    if (gemIndex === -1) {
+    const gemItem = gameState.inventory.find(item => item.type === gemType)
+    if (!gemItem) {
       console.warn(`Gem ${gemType} not found in inventory`)
       return false
     }
@@ -744,8 +744,15 @@ export function useHawkDungeon() {
     // Socket the gem
     weapon.sockets[socketIndex] = gemType
 
-    // Remove gem from inventory
-    gameState.inventory.splice(gemIndex, 1)
+    // Remove one gem from inventory
+    if (gemItem.count && gemItem.count > 1) {
+      // Stackable item with count > 1: decrease count by 1
+      gemItem.count -= 1
+    } else {
+      // Single item or count === 1: remove from inventory
+      const gemIndex = gameState.inventory.findIndex(item => item.type === gemType)
+      gameState.inventory.splice(gemIndex, 1)
+    }
 
     console.log(`✨ Socketed ${gemType} into ${weaponName} at socket ${socketIndex}`)
     return true
@@ -781,11 +788,21 @@ export function useHawkDungeon() {
     // Remove the gem from socket
     weapon.sockets[socketIndex] = null
 
-    // Add gem back to inventory
-    gameState.inventory.push({
-      type: gemType,
-      name: gemType
-    })
+    // Add gem back to inventory (stackable)
+    const existingGem = gameState.inventory.find(item => item.type === gemType)
+    if (existingGem) {
+      // Gem already exists in inventory, increase count
+      existingGem.count = (existingGem.count || 1) + 1
+      existingGem.stackable = true // Ensure stackable flag is set
+    } else {
+      // Gem doesn't exist, add new stackable item
+      gameState.inventory.push({
+        type: gemType,
+        name: gemType,
+        stackable: true,
+        count: 1
+      })
+    }
 
     console.log(`Removed ${gemType} from ${weaponName} at socket ${socketIndex}`)
     return true

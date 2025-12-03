@@ -36,8 +36,8 @@
               </div>
             </div>
 
-            <!-- Count if multiple -->
-            <div v-if="gem.count > 1" class="gem-count-badge">{{ gem.count }}</div>
+            <!-- Count badge -->
+            <div class="gem-count-badge">{{ gem.count }}x</div>
           </div>
         </div>
 
@@ -81,7 +81,8 @@ const availableGems = computed(() => {
         count: 0
       }
     }
-    grouped[gem.type].count++
+    // If gem has a count property (stackable items), use it; otherwise count as 1
+    grouped[gem.type].count += gem.count || 1
   })
 
   return Object.values(grouped)

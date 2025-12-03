@@ -16,7 +16,7 @@
             height="64"
           />
           <div class="item-name">{{ getItemDisplayName(itemGroup.type) }}</div>
-          <div v-if="itemGroup.count > 1" class="item-count">{{ itemGroup.count }}</div>
+          <div v-if="itemGroup.count > 1" class="item-count">{{ itemGroup.count }}x</div>
         </div>
       </div>
 
@@ -59,7 +59,8 @@ const groupedInventory = computed(() => {
         count: 0
       }
     }
-    groups[type].count++
+    // If item has a count property (stackable items), use it; otherwise count as 1
+    groups[type].count += item.count || 1
   })
 
   return Object.values(groups)

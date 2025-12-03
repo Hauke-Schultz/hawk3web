@@ -184,12 +184,13 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
       gameState.inventory = []
     }
 
-    // Find existing item in inventory
-    const existingItem = gameState.inventory.find(invItem => invItem.type === type && invItem.stackable)
+    // Find existing item in inventory (check by type only to handle legacy items without stackable flag)
+    const existingItem = gameState.inventory.find(invItem => invItem.type === type)
 
     if (existingItem) {
       // Item exists, increase count
       existingItem.count = (existingItem.count || 1) + amount
+      existingItem.stackable = true // Ensure stackable flag is set
     } else {
       // Item doesn't exist, add new stack
       gameState.inventory.push({
@@ -271,6 +272,16 @@ export function useCollisions(knight, monsters, items, attackHitbox, gameState, 
       case 'sapphire':
         addStackableItem('sapphire', item.amount || 1)
         console.log(`💎 Sapphire collected!`)
+        break
+
+      case 'topaz':
+        addStackableItem('topaz', item.amount || 1)
+        console.log(`💎 Topaz collected!`)
+        break
+
+      case 'amethyst':
+        addStackableItem('amethyst', item.amount || 1)
+        console.log(`💎 Amethyst collected!`)
         break
 
       case 'coin':

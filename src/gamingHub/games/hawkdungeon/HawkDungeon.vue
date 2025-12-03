@@ -68,20 +68,24 @@
       />
     </div>
 
-    <div v-if="showWeaponSelector" class="weapon-selector-container">
-      <WeaponInventoryPanel
-        :weapons="gameState.weapons"
-        :current-weapon="gameState.weapon"
-        @select-weapon="handleWeaponSwitch"
-        @socket-gem="handleSocketGem"
-        @unsocket-gem="handleUnsocketGem"
-      />
+    <div v-if="showWeaponSelector" class="inventory-overlay" @click.self="closeWeaponSelector">
+      <div class="weapon-selector-container">
+        <WeaponInventoryPanel
+          :weapons="gameState.weapons"
+          :current-weapon="gameState.weapon"
+          @select-weapon="handleWeaponSwitch"
+          @socket-gem="handleSocketGem"
+          @unsocket-gem="handleUnsocketGem"
+        />
+      </div>
     </div>
 
-    <div v-if="showItemSelector" class="item-selector-container">
-      <InventoryPanel
-        :inventory="gameState.inventory"
-      />
+    <div v-if="showItemSelector" class="inventory-overlay" @click.self="closeItemSelector">
+      <div class="item-selector-container">
+        <InventoryPanel
+          :inventory="gameState.inventory"
+        />
+      </div>
     </div>
 
     <GameCompletedModal
@@ -430,6 +434,19 @@ const toggleItemSelector = () => {
   }
 }
 
+const closeWeaponSelector = () => {
+  showWeaponSelector.value = false
+}
+
+const closeItemSelector = () => {
+  showItemSelector.value = false
+}
+
+const closeAllSelectors = () => {
+  showWeaponSelector.value = false
+  showItemSelector.value = false
+}
+
 // Gem socketing handlers
 const handleSocketGem = (weaponName, socketIndex) => {
   // Store the weapon and socket index for later use
@@ -481,8 +498,17 @@ const handleKeyDown = (event) => {
   // Check for weapon unlock shortcuts (Alt + 1/2)
   handleWeaponUnlock(event)
 
+  // Close inventory panels on ESC
+  if (event.key === 'Escape') {
+    if (showWeaponSelector.value || showItemSelector.value) {
+      closeAllSelectors()
+      event.preventDefault()
+      return
+    }
+  }
+
   // Prevent default for game controls
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' ', '1', '2', '3', '4', 'i', 'I'].includes(event.key)) {
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' ', '1', '2', '3', '4', 'i', 'I', 'u', 'U'].includes(event.key)) {
     event.preventDefault()
   }
 
@@ -490,11 +516,17 @@ const handleKeyDown = (event) => {
   if (activeKeys.value.has(event.key)) return
   activeKeys.value.add(event.key)
 
-  // Toggle weapon selector (i/I key)
-  if (event.key === 'i' || event.key === 'I') {
+  // Toggle weapon selector (u/U key)
+  if (event.key === 'u' || event.key === 'U') {
     toggleWeaponSelector()
     return
   }
+
+	// Toggle Item Selector
+	if (event.key === 'i' || event.key === 'I') {
+		toggleItemSelector()
+		return
+	}
 
   // Weapon switching (number keys 1-4)
   if (['1', '2', '3', '4'].includes(event.key)) {
@@ -729,25 +761,46 @@ onUnmounted(() => {
   align-items: center;
 }
 
+.inventory-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 20px;
+  z-index: 100;
+  pointer-events: auto;
+  animation: fadeIn 0.2s ease-out;
+}
+
 .weapon-selector-container,
 .item-selector-container {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
   pointer-events: auto;
-  z-index: 10;
   animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(20px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
   }
 }
 

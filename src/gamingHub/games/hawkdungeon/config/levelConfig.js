@@ -112,10 +112,9 @@ export const levelConfig = {
           y: 3,
           items: [
             { type: 'key' },
-            { type: 'health', count: 2 },
+            { type: 'health', count: 1 },
             { type: 'healthPotion', count: 1 },
-            { type: 'emerald', count: 1 },
-            { type: 'sapphire', count: 1 },
+            { type: 'ruby', count: 3 },
           ]
         },
         {
