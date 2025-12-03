@@ -18,6 +18,17 @@
             height="140"
           />
           <div class="item-name">{{ weaponConfig[weapon.name]?.name || weapon.name }}</div>
+
+          <!-- Damage Stats -->
+          <div class="weapon-stats">
+            <div class="stat-damage">
+              ⚔️ {{ getWeaponStats(weapon).totalDamage }}
+              <span v-if="getWeaponStats(weapon).gemDamageBonus > 0" class="stat-bonus">
+                +{{ getWeaponStats(weapon).gemDamageBonus }}
+              </span>
+            </div>
+          </div>
+
           <div v-if="weapon.name === currentWeapon" class="item-active-indicator">✓</div>
 
           <!-- Gem Sockets -->
@@ -61,7 +72,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { weaponConfig } from '../config/weaponConfig'
 import { spriteConfig, SPRITE_SCALE } from '../config/spriteConfig'
 import { useSpriteManager } from '../composables/useSpriteManager'
-import { gemConfig } from '../config/gemConfig'
+import { gemConfig, calculateGemBonuses } from '../config/gemConfig'
 
 const props = defineProps({
   weapons: {
@@ -83,7 +94,7 @@ const emit = defineEmits(['select-weapon', 'socket-gem', 'unsocket-gem'])
 // Use plain objects for template refs (not reactive refs)
 const weaponCanvasRefs = {}
 const itemCanvasRefs = {}
-const { loadSpritesheet, isLoaded, spritesheet } = useSpriteManager()
+const { loadSpritesheet, isLoaded, getSpritesheet } = useSpriteManager()
 
 // Group inventory items by type and count them
 const groupedInventory = computed(() => {
@@ -123,6 +134,19 @@ const getItemDisplayName = (type) => {
   return names[type] || type
 }
 
+// Calculate weapon stats with gem bonuses
+const getWeaponStats = (weapon) => {
+  const baseDamage = weaponConfig[weapon.name]?.damage || 0
+  const gemBonuses = calculateGemBonuses(weapon.sockets)
+
+  return {
+    baseDamage,
+    gemDamageBonus: gemBonuses.damage,
+    totalDamage: baseDamage + gemBonuses.damage,
+    bonuses: gemBonuses
+  }
+}
+
 const handleSocketClick = (weaponName, socketIndex, gemType) => {
   if (gemType) {
     // Socket is filled - emit unsocket event
@@ -134,7 +158,10 @@ const handleSocketClick = (weaponName, socketIndex, gemType) => {
 }
 
 const drawWeaponSprites = () => {
-  if (!isLoaded.value || !spritesheet.value) return
+  if (!isLoaded.value) return
+
+  const weaponSpritesheet = getSpritesheet('weapons')
+  if (!weaponSpritesheet) return
 
   props.weapons.forEach(weapon => {
     const weaponName = weapon.name
@@ -167,7 +194,7 @@ const drawWeaponSprites = () => {
 
     // Draw weapon sprite from spritesheet
     ctx.drawImage(
-      spritesheet.value,
+      weaponSpritesheet,
       weaponSpriteConfig.x, weaponSpriteConfig.y, weaponSpriteConfig.width, weaponSpriteConfig.height,
       x, y, spriteWidth, spriteHeight
     )
@@ -175,7 +202,10 @@ const drawWeaponSprites = () => {
 }
 
 const drawItemSprites = () => {
-  if (!isLoaded.value || !spritesheet.value) return
+  if (!isLoaded.value) return
+
+  const itemSpritesheet = getSpritesheet('items')
+  if (!itemSpritesheet) return
 
   groupedInventory.value.forEach(itemGroup => {
     const canvas = itemCanvasRefs[itemGroup.type]
@@ -207,7 +237,7 @@ const drawItemSprites = () => {
 
     // Draw item sprite from spritesheet
     ctx.drawImage(
-      spritesheet.value,
+      itemSpritesheet,
       itemSpriteConfig.x, itemSpriteConfig.y, itemSpriteConfig.width, itemSpriteConfig.height,
       x, y, spriteWidth, spriteHeight
     )
@@ -358,6 +388,33 @@ watch(isLoaded, (loaded) => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: center;
+}
+
+.weapon-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.stat-damage {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.stat-bonus {
+  font-size: 10px;
+  color: rgb(34, 197, 94);
+  font-weight: 700;
+  text-shadow: 0 0 4px rgba(34, 197, 94, 0.6);
 }
 
 .item-hotkey {

@@ -113,6 +113,13 @@
       @try-again="handleModalPlayAgain"
       @back-to-games="handleModalBackToLevels"
     />
+
+    <GemSelectionModal
+      :visible="showGemSelection"
+      :inventory="gameState.inventory"
+      @select="handleGemSelected"
+      @close="handleGemSelectionClose"
+    />
   </main>
 </template>
 
@@ -130,6 +137,7 @@ import ItemButton from './components/ItemButton.vue'
 import JoystickControl from './components/JoystickControl.vue'
 import WeaponSelector from './components/WeaponSelector.vue'
 import InventoryPanel from './components/InventoryPanel.vue'
+import GemSelectionModal from './components/GemSelectionModal.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
 import GameCompletedModal from '../../components/GameCompletedModal.vue'
 import { useHawkDungeon } from './composables/useHawkDungeon'
@@ -300,6 +308,11 @@ const showGameCompletedModal = ref(false)
 // Item menu state
 const showWeaponSelector = ref(false)
 
+// Gem selection modal state
+const showGemSelection = ref(false)
+const selectedWeaponForSocket = ref(null)
+const selectedSocketIndex = ref(null)
+
 // Achievements and rewards
 const earnedAchievements = ref([])
 const levelReward = ref(0)
@@ -395,24 +408,33 @@ const toggleWeaponSelector = () => {
 
 // Gem socketing handlers
 const handleSocketGem = (weaponName, socketIndex) => {
-  // Find available gems in inventory
-  const availableGems = gameState.inventory.filter(item =>
-    ['ruby', 'sapphire', 'emerald', 'topaz', 'amethyst', 'diamond'].includes(item.type)
-  )
+  // Store the weapon and socket index for later use
+  selectedWeaponForSocket.value = weaponName
+  selectedSocketIndex.value = socketIndex
 
-  if (availableGems.length === 0) {
-    console.log('No gems available in inventory!')
-    return
-  }
+  // Show gem selection modal
+  showGemSelection.value = true
+}
 
-  // For now, automatically socket the first available gem
-  // TODO: Show gem selection UI in the future
-  const firstGem = availableGems[0]
-  const success = socketGem(weaponName, socketIndex, firstGem.type)
+const handleGemSelected = (gemType) => {
+  // Socket the selected gem
+  const success = socketGem(selectedWeaponForSocket.value, selectedSocketIndex.value, gemType)
 
   if (success) {
-    console.log(`Successfully socketed ${firstGem.type} into ${weaponName}`)
+    console.log(`Successfully socketed ${gemType} into ${selectedWeaponForSocket.value}`)
   }
+
+  // Close the modal
+  showGemSelection.value = false
+  selectedWeaponForSocket.value = null
+  selectedSocketIndex.value = null
+}
+
+const handleGemSelectionClose = () => {
+  // Close the modal without socketing
+  showGemSelection.value = false
+  selectedWeaponForSocket.value = null
+  selectedSocketIndex.value = null
 }
 
 const handleUnsocketGem = (weaponName, socketIndex) => {
