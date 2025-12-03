@@ -8,6 +8,7 @@ import { useCollisions } from './useCollisions'
 import { useLevelLoader } from './useLevelLoader'
 import { useChest } from './useChest'
 import { useTileInteractions } from './useTileInteractions'
+import { WEAPON_SOCKET_COUNT, calculateGemBonuses } from '../config/gemConfig'
 
 export function useHawkDungeon() {
   // Game state
@@ -23,7 +24,9 @@ export function useHawkDungeon() {
     coins: 0,
     experience: 0,
     weapon: 'sword', // Current equipped weapon
-    weapons: ['sword'], // Weapon inventory - weapons player owns (starts with only sword)
+    weapons: [
+      { name: 'sword', sockets: [null, null, null] } // Weapon inventory with socket system
+    ], // Weapons player owns (starts with sword with 3 empty sockets)
     inventory: [], // General inventory for keys, quest items, etc.
     facingDirection: 'right',
     isRunning: false,
@@ -168,9 +171,9 @@ export function useHawkDungeon() {
       attackCooldown.value = Math.max(0, attackCooldown.value - dt)
     }
 
-    // Update mana regeneration
-    const weapon = weaponConfig[gameState.weapon]
-    if (weapon.mana) {
+    // Update mana regeneration (with gem bonuses applied)
+    const weapon = getWeaponStats(gameState.weapon)
+    if (weapon && weapon.mana) {
       if (gameState.currentMana < gameState.maxMana) {
         manaRegenTimer += dt
         manaRegenProgress.value = (manaRegenTimer / weapon.mana.regenInterval) * 100
@@ -609,8 +612,8 @@ export function useHawkDungeon() {
   const handleAttack = (attackData = { charged: false }) => {
     if (attackCooldown.value > 0 || knight.isAttacking) return
 
-    // Create attack hitbox(es)
-    const weapon = weaponConfig[gameState.weapon]
+    // Create attack hitbox(es) with gem bonuses applied
+    const weapon = getWeaponStats(gameState.weapon)
 
     // Check mana cost for charged attack
     if (attackData.charged) {
@@ -649,7 +652,7 @@ export function useHawkDungeon() {
   }
 
   const getAttackHitboxes = (isCharged = false) => {
-    const weapon = weaponConfig[gameState.weapon]
+    const weapon = getWeaponStats(gameState.weapon)
     const direction = knight.direction
 
     // Get the appropriate pattern (charged or normal)
@@ -673,7 +676,8 @@ export function useHawkDungeon() {
 
   const switchWeapon = (weaponName) => {
     // Check if weapon is in inventory
-    if (gameState.weapons.includes(weaponName)) {
+    const hasWeapon = gameState.weapons.some(w => w.name === weaponName)
+    if (hasWeapon) {
       gameState.weapon = weaponName
       console.log(`Switched to ${weaponName}`)
     } else {
@@ -683,7 +687,7 @@ export function useHawkDungeon() {
 
   const unlockWeapon = (weaponName) => {
     // Check if weapon already unlocked
-    if (gameState.weapons.includes(weaponName)) {
+    if (gameState.weapons.some(w => w.name === weaponName)) {
       console.log(`Weapon ${weaponName} already unlocked`)
       return false
     }
@@ -694,10 +698,130 @@ export function useHawkDungeon() {
       return false
     }
 
-    // Add weapon to inventory
-    gameState.weapons.push(weaponName)
+    // Add weapon to inventory with empty sockets
+    gameState.weapons.push({
+      name: weaponName,
+      sockets: Array(WEAPON_SOCKET_COUNT).fill(null)
+    })
     console.log(`🎉 Unlocked new weapon: ${weaponName}!`)
     return true
+  }
+
+  /**
+   * Socket a gem into a weapon
+   * @param {string} weaponName - Name of the weapon
+   * @param {number} socketIndex - Index of the socket (0-2)
+   * @param {string} gemType - Type of gem (e.g., 'ruby', 'sapphire')
+   * @returns {boolean} - True if successful
+   */
+  const socketGem = (weaponName, socketIndex, gemType) => {
+    // Find the weapon
+    const weapon = gameState.weapons.find(w => w.name === weaponName)
+    if (!weapon) {
+      console.warn(`Weapon ${weaponName} not found in inventory`)
+      return false
+    }
+
+    // Validate socket index
+    if (socketIndex < 0 || socketIndex >= WEAPON_SOCKET_COUNT) {
+      console.warn(`Invalid socket index: ${socketIndex}`)
+      return false
+    }
+
+    // Check if socket is already occupied
+    if (weapon.sockets[socketIndex] !== null) {
+      console.warn(`Socket ${socketIndex} is already occupied`)
+      return false
+    }
+
+    // Check if player has the gem in inventory
+    const gemIndex = gameState.inventory.findIndex(item => item.type === gemType)
+    if (gemIndex === -1) {
+      console.warn(`Gem ${gemType} not found in inventory`)
+      return false
+    }
+
+    // Socket the gem
+    weapon.sockets[socketIndex] = gemType
+
+    // Remove gem from inventory
+    gameState.inventory.splice(gemIndex, 1)
+
+    console.log(`✨ Socketed ${gemType} into ${weaponName} at socket ${socketIndex}`)
+    return true
+  }
+
+  /**
+   * Remove a gem from a weapon socket
+   * @param {string} weaponName - Name of the weapon
+   * @param {number} socketIndex - Index of the socket (0-2)
+   * @returns {boolean} - True if successful
+   */
+  const unsocketGem = (weaponName, socketIndex) => {
+    // Find the weapon
+    const weapon = gameState.weapons.find(w => w.name === weaponName)
+    if (!weapon) {
+      console.warn(`Weapon ${weaponName} not found in inventory`)
+      return false
+    }
+
+    // Validate socket index
+    if (socketIndex < 0 || socketIndex >= WEAPON_SOCKET_COUNT) {
+      console.warn(`Invalid socket index: ${socketIndex}`)
+      return false
+    }
+
+    // Check if socket has a gem
+    const gemType = weapon.sockets[socketIndex]
+    if (gemType === null) {
+      console.warn(`Socket ${socketIndex} is empty`)
+      return false
+    }
+
+    // Remove the gem from socket
+    weapon.sockets[socketIndex] = null
+
+    // Add gem back to inventory
+    gameState.inventory.push({
+      type: gemType,
+      name: gemType
+    })
+
+    console.log(`Removed ${gemType} from ${weaponName} at socket ${socketIndex}`)
+    return true
+  }
+
+  /**
+   * Get the effective stats for a weapon including gem bonuses
+   * @param {string} weaponName - Name of the weapon
+   * @returns {object} - Weapon stats with gem bonuses applied
+   */
+  const getWeaponStats = (weaponName) => {
+    const baseStats = weaponConfig[weaponName]
+    if (!baseStats) return null
+
+    // Find the weapon in inventory to get its gems
+    const weapon = gameState.weapons.find(w => w.name === weaponName)
+    if (!weapon) return baseStats
+
+    // Calculate gem bonuses
+    const gemBonuses = calculateGemBonuses(weapon.sockets)
+
+    // Apply bonuses to base stats
+    return {
+      ...baseStats,
+      damage: baseStats.damage + gemBonuses.damage,
+      cooldown: Math.max(0.1, baseStats.cooldown + gemBonuses.cooldown), // Min 0.1s cooldown
+      mana: {
+        ...baseStats.mana,
+        regenInterval: Math.max(1, baseStats.mana.regenInterval + gemBonuses.manaRegen),
+        chargedAttackCost: Math.max(0, baseStats.mana.chargedAttackCost + gemBonuses.manaCost)
+      },
+      health: {
+        ...baseStats.health,
+        regenInterval: Math.max(1, baseStats.health.regenInterval + gemBonuses.healthRegen)
+      }
+    }
   }
 
   /**
@@ -746,6 +870,9 @@ export function useHawkDungeon() {
     handleInteract,
     switchWeapon,
     unlockWeapon,
+    socketGem,
+    unsocketGem,
+    getWeaponStats,
     openAllDoors,
     startGame,
     stopGame,

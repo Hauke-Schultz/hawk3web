@@ -3,7 +3,8 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(copy:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

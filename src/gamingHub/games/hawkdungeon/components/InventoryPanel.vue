@@ -4,21 +4,37 @@
     <div class="inventory-section">
       <div class="inventory-grid">
         <div
-          v-for="(weaponName, index) in weapons"
-          :key="weaponName"
+          v-for="(weapon, index) in weapons"
+          :key="weapon.name"
           class="inventory-slot"
-          :class="{ 'inventory-slot--active': weaponName === currentWeapon }"
-          @click="$emit('select-weapon', weaponName)"
+          :class="{ 'inventory-slot--active': weapon.name === currentWeapon }"
+          @click="$emit('select-weapon', weapon.name)"
         >
           <div class="item-hotkey">{{ index + 1 }}</div>
           <canvas
-            :ref="el => weaponCanvasRefs[weaponName] = el"
+            :ref="el => weaponCanvasRefs[weapon.name] = el"
             class="item-sprite"
             width="80"
             height="140"
           />
-          <div class="item-name">{{ weaponConfig[weaponName]?.name || weaponName }}</div>
-          <div v-if="weaponName === currentWeapon" class="item-active-indicator">✓</div>
+          <div class="item-name">{{ weaponConfig[weapon.name]?.name || weapon.name }}</div>
+          <div v-if="weapon.name === currentWeapon" class="item-active-indicator">✓</div>
+
+          <!-- Gem Sockets -->
+          <div class="gem-sockets">
+            <div
+              v-for="(gemType, socketIndex) in weapon.sockets"
+              :key="`${weapon.name}-socket-${socketIndex}`"
+              class="gem-socket"
+              :class="{ 'gem-socket--empty': !gemType, 'gem-socket--filled': gemType }"
+              :style="gemType ? { borderColor: gemConfig[gemType]?.color } : {}"
+              @click.stop="handleSocketClick(weapon.name, socketIndex, gemType)"
+            >
+              <span v-if="gemType" class="gem-icon" :style="{ color: gemConfig[gemType]?.color }">
+                {{ gemConfig[gemType]?.icon }}
+              </span>
+            </div>
+          </div>
         </div>
         <!-- Group items by type and count them -->
         <div
@@ -45,6 +61,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { weaponConfig } from '../config/weaponConfig'
 import { spriteConfig, SPRITE_SCALE } from '../config/spriteConfig'
 import { useSpriteManager } from '../composables/useSpriteManager'
+import { gemConfig } from '../config/gemConfig'
 
 const props = defineProps({
   weapons: {
@@ -61,10 +78,11 @@ const props = defineProps({
   }
 })
 
-defineEmits(['select-weapon'])
+const emit = defineEmits(['select-weapon', 'socket-gem', 'unsocket-gem'])
 
-const weaponCanvasRefs = ref({})
-const itemCanvasRefs = ref({})
+// Use plain objects for template refs (not reactive refs)
+const weaponCanvasRefs = {}
+const itemCanvasRefs = {}
 const { loadSpritesheet, isLoaded, spritesheet } = useSpriteManager()
 
 // Group inventory items by type and count them
@@ -94,16 +112,33 @@ const getItemDisplayName = (type) => {
     'health': 'Health',
     'mana': 'Mana',
     'healthPotion': 'Health Potion',
-    'manaPotion': 'Mana Potion'
+    'manaPotion': 'Mana Potion',
+    'ruby': 'Ruby',
+    'sapphire': 'Sapphire',
+    'emerald': 'Emerald',
+    'topaz': 'Topaz',
+    'amethyst': 'Amethyst',
+    'diamond': 'Diamond'
   }
   return names[type] || type
+}
+
+const handleSocketClick = (weaponName, socketIndex, gemType) => {
+  if (gemType) {
+    // Socket is filled - emit unsocket event
+    emit('unsocket-gem', weaponName, socketIndex)
+  } else {
+    // Socket is empty - emit socket event (will be handled in parent to show gem selection)
+    emit('socket-gem', weaponName, socketIndex)
+  }
 }
 
 const drawWeaponSprites = () => {
   if (!isLoaded.value || !spritesheet.value) return
 
-  props.weapons.forEach(weaponName => {
-    const canvas = weaponCanvasRefs.value[weaponName]
+  props.weapons.forEach(weapon => {
+    const weaponName = weapon.name
+    const canvas = weaponCanvasRefs[weaponName]
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
@@ -143,7 +178,7 @@ const drawItemSprites = () => {
   if (!isLoaded.value || !spritesheet.value) return
 
   groupedInventory.value.forEach(itemGroup => {
-    const canvas = itemCanvasRefs.value[itemGroup.type]
+    const canvas = itemCanvasRefs[itemGroup.type]
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
@@ -370,6 +405,51 @@ watch(isLoaded, (loaded) => {
   font-size: 16px;
   color: rgb(34, 197, 94);
   filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.8));
+}
+
+/* Gem Sockets */
+.gem-sockets {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.gem-socket {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.gem-socket--empty:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.gem-socket--filled {
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 8px currentColor;
+}
+
+.gem-socket--filled:hover {
+  transform: scale(1.15);
+  filter: brightness(1.2);
+}
+
+.gem-icon {
+  font-size: 14px;
+  filter: drop-shadow(0 0 4px currentColor);
+  pointer-events: none;
 }
 
 .inventory-empty {

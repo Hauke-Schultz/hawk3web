@@ -50,10 +50,12 @@ export const chestConfig = {
   gem: {
     type: 'gem',
     loot: [
-      { type: 'ruby', count: 1, chance: 0.7 }, // 70% chance for 2 rubies
-      { type: 'emerald', count: 1, chance: 0.7 }, // 70% chance for 2 emeralds
-      { type: 'sapphire', count: 1, chance: 0.7 }, // 70% chance for 2 sapphires
-      { type: 'diamond', count: 1, chance: 0.3 } // 30% chance for 1 diamond
+      { type: 'ruby', count: 1, chance: 0.6 }, // 60% chance for ruby
+      { type: 'emerald', count: 1, chance: 0.6 }, // 60% chance for emerald
+      { type: 'sapphire', count: 1, chance: 0.6 }, // 60% chance for sapphire
+      { type: 'topaz', count: 1, chance: 0.4 }, // 40% chance for topaz
+      { type: 'amethyst', count: 1, chance: 0.4 }, // 40% chance for amethyst
+      { type: 'diamond', count: 1, chance: 0.2 } // 20% chance for diamond
     ],
     spriteClosed: 'chest_closed',
     spriteOpen: 'chest_open'
@@ -76,9 +78,11 @@ export const chestConfig = {
     type: 'wealthy',
     loot: [
       { type: 'coin', count: 10, chance: 1.0 }, // 100% chance for 10 coins
-      { type: 'ruby', count: 1, chance: 0.6 }, // 60% chance for 1 ruby
-      { type: 'emerald', count: 1, chance: 0.6 }, // 60% chance for 1 emerald
-      { type: 'sapphire', count: 1, chance: 0.6 } // 60% chance for 1 sapphire
+      { type: 'ruby', count: 1, chance: 0.5 }, // 50% chance for 1 ruby
+      { type: 'emerald', count: 1, chance: 0.5 }, // 50% chance for 1 emerald
+      { type: 'sapphire', count: 1, chance: 0.5 }, // 50% chance for 1 sapphire
+      { type: 'topaz', count: 1, chance: 0.3 }, // 30% chance for 1 topaz
+      { type: 'amethyst', count: 1, chance: 0.3 } // 30% chance for 1 amethyst
     ],
     spriteClosed: 'chest_closed',
     spriteOpen: 'chest_open'

@@ -70,6 +70,8 @@
         :current-weapon="gameState.weapon"
         :inventory="gameState.inventory"
         @select-weapon="handleWeaponSwitch"
+        @socket-gem="handleSocketGem"
+        @unsocket-gem="handleUnsocketGem"
       />
     </div>
 
@@ -165,6 +167,9 @@ const {
   handleStopMove,
   switchWeapon,
   unlockWeapon,
+  socketGem,
+  unsocketGem,
+  getWeaponStats,
   startGame,
   stopGame,
   setGameOverCallback,
@@ -182,6 +187,18 @@ const handleWeaponUnlock = (event) => {
         break
       case '2':
         unlockWeapon('spear')
+        break
+      case '3':
+        // Add test gems to inventory
+        gameState.inventory.push(
+          { type: 'ruby', name: 'Ruby' },
+          { type: 'sapphire', name: 'Sapphire' },
+          { type: 'emerald', name: 'Emerald' },
+          { type: 'topaz', name: 'Topaz' },
+          { type: 'amethyst', name: 'Amethyst' },
+          { type: 'diamond', name: 'Diamond' }
+        )
+        console.log('Added test gems to inventory!')
         break
     }
   }
@@ -376,6 +393,36 @@ const toggleWeaponSelector = () => {
   showWeaponSelector.value = !showWeaponSelector.value
 }
 
+// Gem socketing handlers
+const handleSocketGem = (weaponName, socketIndex) => {
+  // Find available gems in inventory
+  const availableGems = gameState.inventory.filter(item =>
+    ['ruby', 'sapphire', 'emerald', 'topaz', 'amethyst', 'diamond'].includes(item.type)
+  )
+
+  if (availableGems.length === 0) {
+    console.log('No gems available in inventory!')
+    return
+  }
+
+  // For now, automatically socket the first available gem
+  // TODO: Show gem selection UI in the future
+  const firstGem = availableGems[0]
+  const success = socketGem(weaponName, socketIndex, firstGem.type)
+
+  if (success) {
+    console.log(`Successfully socketed ${firstGem.type} into ${weaponName}`)
+  }
+}
+
+const handleUnsocketGem = (weaponName, socketIndex) => {
+  const success = unsocketGem(weaponName, socketIndex)
+
+  if (success) {
+    console.log(`Successfully removed gem from ${weaponName}`)
+  }
+}
+
 // Keyboard controls
 const activeKeys = ref(new Set())
 const spaceCharging = ref(false)
@@ -407,7 +454,7 @@ const handleKeyDown = (event) => {
   if (['1', '2', '3', '4'].includes(event.key)) {
     const weaponIndex = parseInt(event.key) - 1
     if (gameState.weapons[weaponIndex]) {
-      switchWeapon(gameState.weapons[weaponIndex])
+      switchWeapon(gameState.weapons[weaponIndex].name)
       // Auto-close weapon selector after keyboard selection
       showWeaponSelector.value = false
     }

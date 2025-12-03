@@ -173,6 +173,18 @@ export const spriteConfig = {
       x: 16,
       y: 160
     },
+    topaz: {
+      width: 16,
+      height: 16,
+      x: 32,
+      y: 160  // Using ruby sprite as placeholder
+    },
+    amethyst: {
+      width: 16,
+      height: 16,
+      x: 0,
+      y: 160  // Using diamond sprite as placeholder
+    },
     coin: {
       width: 16,
       height: 16,
