@@ -54,6 +54,8 @@
         />
 	      <WeaponButton
 		      :is-active="showWeaponSelector"
+		      :current-weapon="gameState.weapon"
+		      :weapon-data="gameState.weapons.find(w => w.name === gameState.weapon)"
 		      @toggle="toggleWeaponSelector"
 	      />
 	      <ItemButton

@@ -15,9 +15,12 @@
             :style="{ borderColor: gemConfig[gem.type]?.color }"
             @click="handleGemSelect(gem.type)"
           >
-            <div class="gem-icon-large" :style="{ color: gemConfig[gem.type]?.color }">
-              {{ gemConfig[gem.type]?.icon }}
-            </div>
+            <canvas
+              :ref="el => gemCanvasRefs[gem.type] = el"
+              class="gem-sprite-large"
+              width="64"
+              height="64"
+            />
             <div class="gem-name">{{ gemConfig[gem.type]?.name }}</div>
             <div class="gem-description">{{ gemConfig[gem.type]?.description }}</div>
 
@@ -51,8 +54,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { gemConfig } from '../config/gemConfig'
+import { spriteConfig } from '../config/spriteConfig'
+import { useSpriteManager } from '../composables/useSpriteManager'
 
 const props = defineProps({
   visible: {
@@ -66,6 +71,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select', 'close'])
+
+const gemCanvasRefs = {}
+const { loadSpritesheet, isLoaded, getSpritesheet } = useSpriteManager()
 
 // Group gems by type and count them
 const availableGems = computed(() => {
@@ -99,6 +107,67 @@ const handleClose = () => {
 const handleOverlayClick = () => {
   handleClose()
 }
+
+const drawGemSprites = () => {
+  if (!isLoaded.value) return
+
+  const itemsSpritesheet = getSpritesheet('items')
+  if (!itemsSpritesheet) return
+
+  availableGems.value.forEach(gem => {
+    const canvas = gemCanvasRefs[gem.type]
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    ctx.webkitImageSmoothingEnabled = false
+    ctx.mozImageSmoothingEnabled = false
+    ctx.msImageSmoothingEnabled = false
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Get gem sprite config
+    const gemSpriteConfig = spriteConfig.items?.[gem.type]
+    if (!gemSpriteConfig) {
+      console.warn(`No sprite config found for gem: ${gem.type}`)
+      return
+    }
+
+    // Draw gem sprite from spritesheet (scaled 16x16 -> 64x64)
+    ctx.drawImage(
+      itemsSpritesheet,
+      gemSpriteConfig.x, gemSpriteConfig.y, gemSpriteConfig.width, gemSpriteConfig.height,
+      0, 0, canvas.width, canvas.height
+    )
+  })
+}
+
+onMounted(async () => {
+  await loadSpritesheet()
+  drawGemSprites()
+})
+
+// Redraw when modal becomes visible
+watch(() => props.visible, (visible) => {
+  if (visible && isLoaded.value) {
+    setTimeout(drawGemSprites, 100)
+  }
+})
+
+// Redraw when available gems change
+watch(availableGems, () => {
+  if (isLoaded.value && props.visible) {
+    setTimeout(drawGemSprites, 100)
+  }
+})
+
+// Redraw when spritesheet is loaded
+watch(isLoaded, (loaded) => {
+  if (loaded && props.visible) {
+    drawGemSprites()
+  }
+})
 </script>
 
 <style scoped>
@@ -198,9 +267,13 @@ const handleOverlayClick = () => {
   transform: translateY(-2px);
 }
 
-.gem-icon-large {
-  font-size: 48px;
-  filter: drop-shadow(0 0 8px currentColor);
+.gem-sprite-large {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
   margin-bottom: 4px;
 }
 
@@ -317,8 +390,9 @@ const handleOverlayClick = () => {
     padding: 12px;
   }
 
-  .gem-icon-large {
-    font-size: 36px;
+  .gem-sprite-large {
+    width: 48px;
+    height: 48px;
   }
 }
 </style>

@@ -40,9 +40,13 @@
               :style="gemType ? { borderColor: gemConfig[gemType]?.color } : {}"
               @click.stop="handleSocketClick(weapon.name, socketIndex, gemType)"
             >
-              <span v-if="gemType" class="gem-icon" :style="{ color: gemConfig[gemType]?.color }">
-                {{ gemConfig[gemType]?.icon }}
-              </span>
+              <canvas
+                v-if="gemType"
+                :ref="el => gemCanvasRefs[`${weapon.name}-socket-${socketIndex}`] = el"
+                class="gem-sprite"
+                width="16"
+                height="16"
+              />
             </div>
           </div>
         </div>
@@ -73,6 +77,7 @@ const emit = defineEmits(['select-weapon', 'socket-gem', 'unsocket-gem'])
 
 // Use plain objects for template refs (not reactive refs)
 const weaponCanvasRefs = {}
+const gemCanvasRefs = {}
 const { loadSpritesheet, isLoaded, getSpritesheet } = useSpriteManager()
 
 // Calculate weapon stats with gem bonuses
@@ -142,15 +147,58 @@ const drawWeaponSprites = () => {
   })
 }
 
+const drawGemSprites = () => {
+  if (!isLoaded.value) return
+
+  const itemsSpritesheet = getSpritesheet('items')
+  if (!itemsSpritesheet) return
+
+  props.weapons.forEach(weapon => {
+    weapon.sockets.forEach((gemType, socketIndex) => {
+      if (!gemType) return
+
+      const canvas = gemCanvasRefs[`${weapon.name}-socket-${socketIndex}`]
+      if (!canvas) return
+
+      const ctx = canvas.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      ctx.webkitImageSmoothingEnabled = false
+      ctx.mozImageSmoothingEnabled = false
+      ctx.msImageSmoothingEnabled = false
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // Get gem sprite config
+      const gemSpriteConfig = spriteConfig.items?.[gemType]
+      if (!gemSpriteConfig) {
+        console.warn(`No sprite config found for gem: ${gemType}`)
+        return
+      }
+
+      // Draw gem sprite from spritesheet (no scaling, 16x16 -> 16x16)
+      ctx.drawImage(
+        itemsSpritesheet,
+        gemSpriteConfig.x, gemSpriteConfig.y, gemSpriteConfig.width, gemSpriteConfig.height,
+        0, 0, canvas.width, canvas.height
+      )
+    })
+  })
+}
+
 onMounted(async () => {
   await loadSpritesheet()
   drawWeaponSprites()
+  drawGemSprites()
 })
 
 // Redraw when weapons change
 watch(() => props.weapons, () => {
   if (isLoaded.value) {
-    setTimeout(drawWeaponSprites, 100)
+    setTimeout(() => {
+      drawWeaponSprites()
+      drawGemSprites()
+    }, 100)
   }
 }, { deep: true })
 
@@ -158,6 +206,7 @@ watch(() => props.weapons, () => {
 watch(isLoaded, (loaded) => {
   if (loaded) {
     drawWeaponSprites()
+    drawGemSprites()
   }
 })
 </script>
@@ -339,9 +388,13 @@ watch(isLoaded, (loaded) => {
   filter: brightness(1.2);
 }
 
-.gem-icon {
-  font-size: 14px;
-  filter: drop-shadow(0 0 4px currentColor);
+.gem-sprite {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
   pointer-events: none;
 }
 
