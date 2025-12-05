@@ -35,8 +35,8 @@ const handleClick = () => {
 }
 
 .item-button {
-  width: 70px;
-  height: 70px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   border: 3px solid #ffffff;

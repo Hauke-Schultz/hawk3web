@@ -68,16 +68,13 @@
     height: `${percentage.value}%`,
     background: `linear-gradient(to top, ${props.colorFrom}, ${props.colorTo})`
   }));
-  const borderGradientStyle = computed(() => {
-    if (regenerationProgress.value > 0) {
-      return {
-        background: `conic-gradient(
-        ${props.colorTo} ${regenerationProgress.value * 3.6}deg,
-        rgba(0, 0, 0, 1) ${regenerationProgress.value * 3.6}deg
-      )`
-      };
-    }
-    return {};
+  const progressRingStyle = computed(() => {
+    const circumference = 2 * Math.PI * 29; // radius = 29
+    const offset = circumference - (regenerationProgress.value / 100) * circumference;
+    return {
+      strokeDasharray: `${circumference} ${circumference}`,
+      strokeDashoffset: offset
+    };
   });
 
   watch(() => props.currentValue, (newValue) => {
@@ -122,7 +119,19 @@
 
 <template>
   <div class="liquid-indicator" :style="containerStyle">
-    <div class="border-container" :style="borderGradientStyle"></div>
+    <div class="border-container"></div>
+    <svg v-if="regenerationProgress > 0" class="progress-ring" :width="props.size" :height="props.size">
+      <circle
+        class="progress-ring-circle"
+        :stroke="props.colorTo"
+        stroke-width="5"
+        fill="transparent"
+        :r="29"
+        :cx="props.size / 2"
+        :cy="props.size / 2"
+        :style="progressRingStyle"
+      />
+    </svg>
     <div class="glass-container"></div>
     <div class="shine-effect"></div>
     <div class="liquid-container">
@@ -153,8 +162,21 @@
     inset: 0;
     border-radius: 50%;
     background-color: rgba(243, 244, 246, 0.1);
-    border: 4px solid rgba(243, 244, 246, 1);
+    border: 4px solid rgba(243, 244, 246, 0.1);
     backdrop-filter: blur(2px);
+  }
+
+  .progress-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotate(-90deg);
+    z-index: 10;
+  }
+
+  .progress-ring-circle {
+    transition: stroke-dashoffset 0.1s linear;
+    filter: drop-shadow(0 0 4px black);
   }
 
   .glass-container {

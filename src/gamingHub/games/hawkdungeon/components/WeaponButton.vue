@@ -114,8 +114,8 @@ const drawWeaponSprite = () => {
   }
 
   // Calculate scaled dimensions from sprite config
-  const spriteWidth = weaponSpriteConfig.width * SPRITE_SCALE
-  const spriteHeight = weaponSpriteConfig.height * SPRITE_SCALE
+  const spriteWidth = weaponSpriteConfig.width * SPRITE_SCALE / 1.5
+  const spriteHeight = weaponSpriteConfig.height * SPRITE_SCALE / 1.5
 
   // Center the weapon sprite in the canvas
   const x = (canvas.width - spriteWidth) / 2

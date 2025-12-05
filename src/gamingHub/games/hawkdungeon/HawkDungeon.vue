@@ -760,7 +760,7 @@ onUnmounted(() => {
 .left-controls {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-end;
 }
 
 .inventory-overlay {
