@@ -8,12 +8,12 @@
       <canvas
         ref="weaponCanvas"
         class="weapon-sprite"
-        width="80"
-        height="140"
+        width="60"
+        height="120"
       />
 
       <div class="weapon-info">
-        <div class="weapon-damage">⚔️{{ totalDamage }}</div>
+        <div class="weapon-damage">{{ totalDamage }}</div>
       </div>
 
       <!-- Gem Sockets -->
@@ -218,11 +218,18 @@ watch(isLoaded, (loaded) => {
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+
+	.gem-sockets {
+		margin: 0;
+		position: absolute;
+		bottom: 0;
+		gap: 0;
+	}
 }
 
 .weapon-sprite {
-  width: 80px;
-  height: 140px;
+  width: 60px;
+  height: 120px;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
@@ -231,23 +238,28 @@ watch(isLoaded, (loaded) => {
 }
 
 .weapon-info {
-  position: absolute;
-  top: 4px;
-  right: 4px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+	position: absolute;
+	bottom: 30px;
+	left: 0;
 }
 
 .weapon-damage {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
   font-size: 11px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.85);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  background: rgba(0, 0, 0, 0.6);
-  padding: 2px 4px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgb(204, 0, 0);
+  padding: 4px;
+	border-radius: 50%;
+  border: 1px solid rgb(204, 0, 0);
 }
 
 /* Gem Sockets */
@@ -257,6 +269,12 @@ watch(isLoaded, (loaded) => {
   justify-content: center;
   align-items: center;
   margin-top: 4px;
+
+	.gem-socket:hover {
+		border: 2px solid rgba(255, 255, 255, 0.3);
+		background: rgba(0, 0, 0, 0.4);
+		transform: inherit;
+	}
 }
 
 .gem-socket {
