@@ -12,11 +12,11 @@
     },
     colorFrom: {
       type: String,
-      default: 'rgb(185, 28, 28)'
+      default: 'rgba(185, 28, 28, 0.8)'
     },
     colorTo: {
       type: String,
-      default: 'rgb(239, 68, 68)'
+      default: 'rgba(239, 68, 68, 0.8)'
     },
     showValue: {
       type: Boolean,

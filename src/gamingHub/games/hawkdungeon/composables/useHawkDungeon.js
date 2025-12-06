@@ -643,12 +643,15 @@ export function useHawkDungeon() {
 
     console.log('Attack hitbox created:', attackHitbox.value)
 
+    // Different animation durations based on weapon
+    const animationDuration = gameState.weapon === 'axe' ? 600 : 300
+
     // Remove hitbox after attack animation
     setTimeout(() => {
       console.log('Removing attack hitbox')
       attackHitbox.value = null
       knight.isAttacking = false
-    }, 300)
+    }, animationDuration)
   }
 
   const getAttackHitboxes = (isCharged = false) => {

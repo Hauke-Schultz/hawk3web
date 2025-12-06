@@ -5,8 +5,8 @@
         <LiquidIndicator
           :current-value="health"
           :max-value="maxHealth"
-          :color-from="'rgb(185, 28, 28)'"
-          :color-to="'rgb(239, 68, 68)'"
+          :color-from="'rgba(185, 28, 28, 0.8)'"
+          :color-to="'rgba(239, 68, 68, 0.8)'"
           :show-value="true"
           :size="64"
           :external-progress="healthRegenProgress"
@@ -17,8 +17,8 @@
         <LiquidIndicator
           :current-value="mana"
           :max-value="maxMana"
-          :color-from="'rgb(29, 78, 216)'"
-          :color-to="'rgb(59, 130, 246)'"
+          :color-from="'rgba(29, 78, 216, .8)'"
+          :color-to="'rgba(59, 130, 246, .8)'"
           :show-value="true"
           :size="64"
           :external-progress="manaRegenProgress"
@@ -34,8 +34,8 @@
         <LiquidIndicator
           :current-value="kills"
           :max-value="killGoal"
-          :color-from="'rgb(217, 119, 6)'"
-          :color-to="'rgb(251, 191, 36)'"
+          :color-from="'rgba(217, 119, 6, .8)'"
+          :color-to="'rgba(251, 191, 36, .8)'"
           :show-value="true"
           :size="64"
           :regeneration-interval="null"
@@ -99,7 +99,7 @@ defineProps({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  padding: 0;
   background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
   z-index: 100;
   font-family: 'Arial', sans-serif;

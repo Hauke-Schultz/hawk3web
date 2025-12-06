@@ -63,7 +63,7 @@ export const levelConfig = {
         'W.,.,:M..:W',
         'W.:C.,:,:.W',
         'W,:^,.WWWWW',
-        'W:.,..W,.:W',
+        'W:.,...,.:W',
         'W.K:,.D:.,W',
         'W,:^..W.,:W',
         'W.:.:.WBWWW',

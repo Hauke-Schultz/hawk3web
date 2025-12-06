@@ -100,15 +100,23 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       if (!hitbox.createdAt) {
         hitbox.createdAt = performance.now()
       }
-      const elapsed = performance.now() - hitbox.createdAt
-      const progress = Math.min(elapsed / 300, 1)
 
-      // Draw weapon animation
+      // Different animation durations based on weapon
+      const isAxe = hitbox.weapon === 'axe'
+      const animationDuration = isAxe ? 600 : 300 // Axe: 600ms, Others: 300ms
+
+      const elapsed = performance.now() - hitbox.createdAt
+      const progress = Math.min(elapsed / animationDuration, 1)
+
+      // Draw weapon animation based on weapon type
       if (hitbox.charged) {
-        // Draw spinning sword animation for charged attack
+        // Draw spinning animation for charged attack
         drawSpinningSword(centerX, centerY, hitbox, progress)
+      } else if (isAxe) {
+        // Draw axe-specific swing animation for normal axe attack
+        drawAxeSwing(centerX, centerY, hitbox, progress)
       } else {
-        // Draw sword swing animation for normal attack
+        // Draw sword swing animation for other weapons
         drawSwordSwing(centerX, centerY, hitbox, progress)
       }
 
@@ -678,8 +686,13 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     if (!hitbox.createdAt) {
       hitbox.createdAt = performance.now()
     }
+
+    // Different animation durations based on weapon
+    const isAxe = hitbox.weapon === 'axe'
+    const animationDuration = isAxe ? 600 : 300 // Axe: 600ms, Others: 300ms
+
     const elapsed = performance.now() - hitbox.createdAt
-    const progress = Math.min(elapsed / 300, 1) // 300ms animation
+    const progress = Math.min(elapsed / animationDuration, 1)
 
     // Draw attack effect at specified position
     drawAttackEffect(centerX, centerY, hitbox, progress, gridX, gridY)
@@ -698,65 +711,243 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const radius = maxRadius * progress
     const alpha = 0.85 * (1 - progress) // Start more opaque
 
-    // Layer 1: Outer explosive glow
-    const outerGradient = ctx.createRadialGradient(
-        circleCenterX, circleCenterY, 0,
-        circleCenterX, circleCenterY, radius * 1.3
-    )
-    outerGradient.addColorStop(0, `rgba(255, 255, 150, ${alpha * 0.9})`)
-    outerGradient.addColorStop(0.3, `rgba(255, 220, 100, ${alpha * 0.7})`)
-    outerGradient.addColorStop(0.6, `rgba(255, 180, 50, ${alpha * 0.4})`)
-    outerGradient.addColorStop(1, `rgba(255, 100, 0, 0)`)
+    // Different colors based on weapon type
+    const isAxe = hitbox.weapon === 'axe'
+    const isSpear = hitbox.weapon === 'spear'
 
-    ctx.fillStyle = outerGradient
-    ctx.beginPath()
-    ctx.arc(circleCenterX, circleCenterY, radius * 1.3, 0, Math.PI * 2)
-    ctx.fill()
+    if (isAxe) {
+      // AXE: Red/Orange/Dark fire effect (powerful cleaving strike)
+      // Layer 1: Outer explosive glow - dark red/orange
+      const outerGradient = ctx.createRadialGradient(
+          circleCenterX, circleCenterY, 0,
+          circleCenterX, circleCenterY, radius * 1.3
+      )
+      outerGradient.addColorStop(0, `rgba(255, 100, 50, ${alpha * 0.9})`)
+      outerGradient.addColorStop(0.3, `rgba(220, 50, 30, ${alpha * 0.7})`)
+      outerGradient.addColorStop(0.6, `rgba(180, 30, 10, ${alpha * 0.4})`)
+      outerGradient.addColorStop(1, `rgba(100, 0, 0, 0)`)
 
-    // Layer 2: Middle impact ring
-    const middleGradient = ctx.createRadialGradient(
-        circleCenterX, circleCenterY, radius * 0.3,
-        circleCenterX, circleCenterY, radius * 0.8
-    )
-    middleGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`)
-    middleGradient.addColorStop(0.5, `rgba(255, 230, 100, ${alpha * 0.6})`)
-    middleGradient.addColorStop(1, `rgba(255, 150, 0, 0)`)
+      ctx.fillStyle = outerGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 1.3, 0, Math.PI * 2)
+      ctx.fill()
 
-    ctx.fillStyle = middleGradient
-    ctx.beginPath()
-    ctx.arc(circleCenterX, circleCenterY, radius * 0.8, 0, Math.PI * 2)
-    ctx.fill()
+      // Layer 2: Middle impact ring - bright red
+      const middleGradient = ctx.createRadialGradient(
+          circleCenterX, circleCenterY, radius * 0.3,
+          circleCenterX, circleCenterY, radius * 0.8
+      )
+      middleGradient.addColorStop(0, `rgba(255, 150, 100, ${alpha})`)
+      middleGradient.addColorStop(0.5, `rgba(255, 80, 50, ${alpha * 0.6})`)
+      middleGradient.addColorStop(1, `rgba(200, 50, 0, 0)`)
 
-    // Layer 3: Bright core flash
-    const coreAlpha = alpha * (1 - progress * 0.5) // Flash brighter early
-    ctx.fillStyle = `rgba(255, 255, 255, ${coreAlpha})`
-    ctx.beginPath()
-    ctx.arc(circleCenterX, circleCenterY, radius * 0.25, 0, Math.PI * 2)
-    ctx.fill()
+      ctx.fillStyle = middleGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.8, 0, Math.PI * 2)
+      ctx.fill()
 
-    // Add impact "shockwave" lines radiating out
-    if (progress < 0.5) { // Only in first half
-      const shockwaveAlpha = alpha * (1 - progress * 2)
-      ctx.strokeStyle = `rgba(255, 255, 200, ${shockwaveAlpha})`
-      ctx.lineWidth = 3
+      // Layer 3: Bright core flash - orange-white
+      const coreAlpha = alpha * (1 - progress * 0.5)
+      ctx.fillStyle = `rgba(255, 200, 150, ${coreAlpha})`
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.25, 0, Math.PI * 2)
+      ctx.fill()
 
-      for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2
-        const startDist = radius * 0.3
-        const endDist = radius * 0.9
+      // Add impact "shockwave" lines - red/orange
+      if (progress < 0.5) {
+        const shockwaveAlpha = alpha * (1 - progress * 2)
+        ctx.strokeStyle = `rgba(255, 100, 50, ${shockwaveAlpha})`
+        ctx.lineWidth = 4
 
-        ctx.beginPath()
-        ctx.moveTo(
-            circleCenterX + Math.cos(angle) * startDist,
-            circleCenterY + Math.sin(angle) * startDist
-        )
-        ctx.lineTo(
-            circleCenterX + Math.cos(angle) * endDist,
-            circleCenterY + Math.sin(angle) * endDist
-        )
-        ctx.stroke()
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2
+          const startDist = radius * 0.3
+          const endDist = radius * 0.9
+
+          ctx.beginPath()
+          ctx.moveTo(
+              circleCenterX + Math.cos(angle) * startDist,
+              circleCenterY + Math.sin(angle) * startDist
+          )
+          ctx.lineTo(
+              circleCenterX + Math.cos(angle) * endDist,
+              circleCenterY + Math.sin(angle) * endDist
+          )
+          ctx.stroke()
+        }
+      }
+    } else {
+      // SWORD/SPEAR: Yellow/Gold effect (original)
+      // Layer 1: Outer explosive glow
+      const outerGradient = ctx.createRadialGradient(
+          circleCenterX, circleCenterY, 0,
+          circleCenterX, circleCenterY, radius * 1.3
+      )
+      outerGradient.addColorStop(0, `rgba(255, 255, 150, ${alpha * 0.9})`)
+      outerGradient.addColorStop(0.3, `rgba(255, 220, 100, ${alpha * 0.7})`)
+      outerGradient.addColorStop(0.6, `rgba(255, 180, 50, ${alpha * 0.4})`)
+      outerGradient.addColorStop(1, `rgba(255, 100, 0, 0)`)
+
+      ctx.fillStyle = outerGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 1.3, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Layer 2: Middle impact ring
+      const middleGradient = ctx.createRadialGradient(
+          circleCenterX, circleCenterY, radius * 0.3,
+          circleCenterX, circleCenterY, radius * 0.8
+      )
+      middleGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`)
+      middleGradient.addColorStop(0.5, `rgba(255, 230, 100, ${alpha * 0.6})`)
+      middleGradient.addColorStop(1, `rgba(255, 150, 0, 0)`)
+
+      ctx.fillStyle = middleGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.8, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Layer 3: Bright core flash
+      const coreAlpha = alpha * (1 - progress * 0.5)
+      ctx.fillStyle = `rgba(255, 255, 255, ${coreAlpha})`
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.25, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Add impact "shockwave" lines
+      if (progress < 0.5) {
+        const shockwaveAlpha = alpha * (1 - progress * 2)
+        ctx.strokeStyle = `rgba(255, 255, 200, ${shockwaveAlpha})`
+        ctx.lineWidth = 3
+
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2
+          const startDist = radius * 0.3
+          const endDist = radius * 0.9
+
+          ctx.beginPath()
+          ctx.moveTo(
+              circleCenterX + Math.cos(angle) * startDist,
+              circleCenterY + Math.sin(angle) * startDist
+          )
+          ctx.lineTo(
+              circleCenterX + Math.cos(angle) * endDist,
+              circleCenterY + Math.sin(angle) * endDist
+          )
+          ctx.stroke()
+        }
       }
     }
+
+    ctx.restore()
+  }
+
+  const drawAxeSwing = (centerX, centerY, hitbox, progress) => {
+    ctx.save()
+
+    // Axe dimensions (16x28 scaled by 4)
+    const axeWidth = 16 * 4
+    const axeHeight = 28 * 4
+
+    // Position axe slightly away from knight
+    const distance = TILE_SIZE * 0.3
+
+    // Calculate base position and angle
+    let baseAngle = 0
+    let axeX = centerX
+    let axeY = centerY
+    let flipX = false
+
+    switch (knight.direction) {
+      case 'up':
+        baseAngle = -Math.PI / 2
+        axeX = centerX
+        axeY = centerY - distance
+        break
+      case 'down':
+        baseAngle = Math.PI / 2
+        axeX = centerX
+        axeY = centerY + distance
+        break
+      case 'left':
+        baseAngle = 0
+        axeX = centerX - distance
+        axeY = centerY
+        flipX = true
+        break
+      case 'right':
+        baseAngle = 0
+        axeX = centerX + distance
+        axeY = centerY
+        flipX = false
+        break
+    }
+
+    // Three-phase animation:
+    // Phase 1 (0-0.15): Quick wind-up backward -20°
+    // Phase 2 (0.15-0.5): Fast forward swing to +60° (cleave forward)
+    // Phase 3 (0.5-1.0): Slow pull back to 0°
+    let swingAngle = 0
+    let forwardDistance = 0
+
+    if (progress < 0.15) {
+      // Wind-up phase: quick pull back
+      const windupProgress = progress / 0.15
+      const easeWindup = 1 - Math.pow(1 - windupProgress, 2)
+      swingAngle = -20 * (Math.PI / 180) * easeWindup
+      forwardDistance = -TILE_SIZE * 0.1 * easeWindup // Pull back slightly
+    } else if (progress < 0.5) {
+      // Strike phase: fast swing forward
+      const strikeProgress = (progress - 0.15) / 0.35
+      const easeStrike = 1 - Math.pow(1 - strikeProgress, 3) // Fast ease out
+      const windupOffset = -20 * (Math.PI / 180)
+      const forwardSwing = 60 * (Math.PI / 180)
+      swingAngle = windupOffset + (forwardSwing - windupOffset) * easeStrike
+      forwardDistance = TILE_SIZE * 0.4 * easeStrike // Push forward
+    } else {
+      // Recovery phase: slow pull back
+      const recoveryProgress = (progress - 0.5) / 0.5
+      const easeRecovery = recoveryProgress * recoveryProgress // Slow ease in
+      const currentAngle = 60 * (Math.PI / 180)
+      swingAngle = currentAngle * (1 - easeRecovery)
+      const currentDistance = TILE_SIZE * 0.4
+      forwardDistance = currentDistance * (1 - easeRecovery)
+    }
+
+    // Apply forward/backward movement based on direction
+    switch (knight.direction) {
+      case 'up':
+        axeY -= forwardDistance
+        break
+      case 'down':
+        axeY += forwardDistance
+        break
+      case 'left':
+        axeX -= forwardDistance
+        break
+      case 'right':
+        axeX += forwardDistance
+        break
+    }
+
+    const totalAngle = baseAngle + swingAngle
+
+    // Move to axe position
+    ctx.translate(axeX, axeY)
+
+    // Apply horizontal flip for left direction
+    if (flipX) {
+      ctx.scale(-1, 1)
+    }
+
+    // Rotate around the grip (bottom of axe)
+    ctx.rotate(totalAngle)
+
+    // Draw axe (pivot point at the grip/bottom)
+    const axeDrawX = -axeWidth / 2
+    const axeDrawY = -axeHeight
+
+    drawTile(ctx, hitbox.weapon, axeDrawX, axeDrawY)
 
     ctx.restore()
   }
