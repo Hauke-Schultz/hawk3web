@@ -109,8 +109,11 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       const progress = Math.min(elapsed / animationDuration, 1)
 
       // Draw weapon animation based on weapon type
-      if (hitbox.charged) {
-        // Draw spinning animation for charged attack
+      if (hitbox.charged && isAxe) {
+        // Draw 3-hit zigzag animation for charged axe attack
+        drawChargedAxeSwing(centerX, centerY, hitbox, progress)
+      } else if (hitbox.charged) {
+        // Draw spinning animation for charged sword attack
         drawSpinningSword(centerX, centerY, hitbox, progress)
       } else if (isAxe) {
         // Draw axe-specific swing animation for normal axe attack
@@ -842,6 +845,104 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     ctx.restore()
   }
 
+  const drawChargedAxeSwing = (centerX, centerY, hitbox, progress) => {
+    ctx.save()
+
+    // Axe dimensions (16x28 scaled by 4)
+    const axeWidth = 16 * 4
+    const axeHeight = 28 * 4
+
+    // Position axe slightly away from knight based on attack direction
+    const distance = TILE_SIZE * 0.3
+
+    // Position based on attack direction
+    let axeX = centerX
+    let axeY = centerY
+
+    switch (knight.direction) {
+      case 'up':
+        axeY = centerY - distance
+        break
+      case 'down':
+        axeY = centerY + distance
+        break
+      case 'left':
+        axeX = centerX - distance
+        break
+      case 'right':
+        axeX = centerX + distance
+        break
+    }
+
+    // Base angle and flip based on FACING direction (not attack direction)
+    let baseAngle = 0
+    let flipX = false
+
+    if (knight.facingDirection === 'left') {
+      baseAngle = 0
+      flipX = true
+    } else {
+      // right
+      baseAngle = 0
+      flipX = false
+    }
+
+    let swingAngle = 0
+    let offsetY = 0 // Immer vertikaler Offset (hoch/runter schwingen)
+
+    const swingAmplitude = 80 * (Math.PI / 180) // ±80° für deutlicheren Swing
+
+    // Zwei DEUTLICH getrennte Schläge (vertikal schwingen, unabhängig von Angriffsrichtung)
+    if (progress < 0.25) {
+      // Schlag 1: Von Mitte nach OBEN
+      const strikeProgress = progress / 0.25
+      const easeOut = 1 - Math.pow(1 - strikeProgress, 3)
+      swingAngle = -swingAmplitude * easeOut
+      offsetY = -TILE_SIZE * 0.6 * easeOut
+    } else if (progress < 0.5) {
+      // Schlag 2: Von OBEN nach UNTEN (großer Schwung)
+      const strikeProgress = (progress - 0.25) / 0.25
+      const easeInOut = strikeProgress < 0.5
+        ? 2 * strikeProgress * strikeProgress
+        : 1 - Math.pow(-2 * strikeProgress + 2, 2) / 2
+
+      // Von -80° zu +80° = 160° Schwung
+      swingAngle = -swingAmplitude + (swingAmplitude * 2) * easeInOut
+      offsetY = -TILE_SIZE * 0.6 + (TILE_SIZE * 1.2) * easeInOut
+    } else {
+      // Recovery: Von UNTEN zurück zur Mitte
+      const recoveryProgress = (progress - 0.5) / 0.5
+      const easeIn = recoveryProgress * recoveryProgress
+
+      swingAngle = swingAmplitude * (1 - easeIn)
+      offsetY = TILE_SIZE * 0.6 * (1 - easeIn)
+    }
+
+    // Apply offset
+    axeY += offsetY
+
+    const totalAngle = baseAngle + swingAngle
+
+    // Move to axe position
+    ctx.translate(axeX, axeY)
+
+    // Apply horizontal flip for left direction
+    if (flipX) {
+      ctx.scale(-1, 1)
+    }
+
+    // Rotate around the grip (bottom of axe)
+    ctx.rotate(totalAngle)
+
+    // Draw axe (pivot point at the grip/bottom)
+    const axeDrawX = -axeWidth / 2
+    const axeDrawY = -axeHeight
+
+    drawTile(ctx, hitbox.weapon, axeDrawX, axeDrawY)
+
+    ctx.restore()
+  }
+
   const drawAxeSwing = (centerX, centerY, hitbox, progress) => {
     ctx.save()
 
@@ -849,61 +950,62 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const axeWidth = 16 * 4
     const axeHeight = 28 * 4
 
-    // Position axe slightly away from knight
+    // Position axe slightly away from knight based on attack direction
     const distance = TILE_SIZE * 0.3
 
-    // Calculate base position and angle
-    let baseAngle = 0
+    // Position based on attack direction
     let axeX = centerX
     let axeY = centerY
-    let flipX = false
 
     switch (knight.direction) {
       case 'up':
-        baseAngle = -Math.PI / 2
-        axeX = centerX
         axeY = centerY - distance
         break
       case 'down':
-        baseAngle = Math.PI / 2
-        axeX = centerX
         axeY = centerY + distance
         break
       case 'left':
-        baseAngle = 0
         axeX = centerX - distance
-        axeY = centerY
-        flipX = true
         break
       case 'right':
-        baseAngle = 0
         axeX = centerX + distance
-        axeY = centerY
-        flipX = false
         break
     }
 
+    // Base angle and flip based on FACING direction (not attack direction)
+    let baseAngle = 0
+    let flipX = false
+
+    if (knight.facingDirection === 'left') {
+      baseAngle = 0
+      flipX = true
+    } else {
+      // right
+      baseAngle = 0
+      flipX = false
+    }
+
     // Three-phase animation:
-    // Phase 1 (0-0.15): Quick wind-up backward -20°
-    // Phase 2 (0.15-0.5): Fast forward swing to +60° (cleave forward)
+    // Phase 1 (0-0.15): Quick wind-up upward -20°
+    // Phase 2 (0.15-0.5): Fast downward swing to +60° (vertical swing)
     // Phase 3 (0.5-1.0): Slow pull back to 0°
     let swingAngle = 0
-    let forwardDistance = 0
+    let verticalDistance = 0
 
     if (progress < 0.15) {
-      // Wind-up phase: quick pull back
+      // Wind-up phase: quick pull back upward
       const windupProgress = progress / 0.15
       const easeWindup = 1 - Math.pow(1 - windupProgress, 2)
       swingAngle = -20 * (Math.PI / 180) * easeWindup
-      forwardDistance = -TILE_SIZE * 0.1 * easeWindup // Pull back slightly
+      verticalDistance = -TILE_SIZE * 0.1 * easeWindup // Pull back slightly upward
     } else if (progress < 0.5) {
-      // Strike phase: fast swing forward
+      // Strike phase: fast swing downward
       const strikeProgress = (progress - 0.15) / 0.35
       const easeStrike = 1 - Math.pow(1 - strikeProgress, 3) // Fast ease out
       const windupOffset = -20 * (Math.PI / 180)
       const forwardSwing = 60 * (Math.PI / 180)
       swingAngle = windupOffset + (forwardSwing - windupOffset) * easeStrike
-      forwardDistance = TILE_SIZE * 0.4 * easeStrike // Push forward
+      verticalDistance = TILE_SIZE * 0.4 * easeStrike // Push downward
     } else {
       // Recovery phase: slow pull back
       const recoveryProgress = (progress - 0.5) / 0.5
@@ -911,24 +1013,11 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       const currentAngle = 60 * (Math.PI / 180)
       swingAngle = currentAngle * (1 - easeRecovery)
       const currentDistance = TILE_SIZE * 0.4
-      forwardDistance = currentDistance * (1 - easeRecovery)
+      verticalDistance = currentDistance * (1 - easeRecovery)
     }
 
-    // Apply forward/backward movement based on direction
-    switch (knight.direction) {
-      case 'up':
-        axeY -= forwardDistance
-        break
-      case 'down':
-        axeY += forwardDistance
-        break
-      case 'left':
-        axeX -= forwardDistance
-        break
-      case 'right':
-        axeX += forwardDistance
-        break
-    }
+    // Apply vertical movement (always up/down, regardless of attack direction)
+    axeY += verticalDistance
 
     const totalAngle = baseAngle + swingAngle
 
