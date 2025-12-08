@@ -21,7 +21,7 @@ const props = defineProps({
 const emit = defineEmits(['theme-change', 'font-size-change', 'language-change', 'back', 'menu-click'])
 
 // LocalStorage service
-const { gameData, clearStorage, updateSettings } = useLocalStorage()
+const { gameData, clearStorage, updateSettings, downloadData, uploadData } = useLocalStorage()
 
 // Screenshot service
 const { clearAllScreenshots } = useScreenshot()
@@ -36,6 +36,11 @@ const selectedLanguage = ref(currentLanguage.value)
 const selectedFontSize = ref(gameData.settings.fontSize || 'small')
 const isDeleteUnlocked = ref(false)
 const showDeleteConfirmation = ref(false)
+
+// Data Export/Import State
+const fileInput = ref(null)
+const importStatus = ref(null)
+const exportStatus = ref(null)
 
 // PWA Install State
 const showInstallPrompt = ref(false)
@@ -157,6 +162,62 @@ const cancelDelete = () => {
 const handleMenuClick = () => {
 	router.push('/gaming')
 }
+
+// Data Export/Import Methods
+const handleExportData = () => {
+	try {
+		const result = downloadData()
+		if (result.success) {
+			exportStatus.value = { type: 'success', message: `Data exported to ${result.filename}` }
+			setTimeout(() => {
+				exportStatus.value = null
+			}, 5000)
+		} else {
+			exportStatus.value = { type: 'error', message: 'Export failed: ' + result.error }
+			setTimeout(() => {
+				exportStatus.value = null
+			}, 5000)
+		}
+	} catch (error) {
+		exportStatus.value = { type: 'error', message: 'Export failed: ' + error.message }
+		setTimeout(() => {
+			exportStatus.value = null
+		}, 5000)
+	}
+}
+
+const handleImportClick = () => {
+	fileInput.value?.click()
+}
+
+const handleFileChange = async (event) => {
+	const file = event.target.files?.[0]
+	if (!file) return
+
+	try {
+		importStatus.value = { type: 'loading', message: 'Importing data...' }
+		const result = await uploadData(file)
+
+		if (result.success) {
+			importStatus.value = { type: 'success', message: `Data imported from ${result.filename}` }
+			setTimeout(() => {
+				importStatus.value = null
+				// Reload page to reflect changes
+				window.location.reload()
+			}, 2000)
+		}
+	} catch (error) {
+		importStatus.value = { type: 'error', message: 'Import failed: ' + error.message }
+		setTimeout(() => {
+			importStatus.value = null
+		}, 5000)
+	} finally {
+		// Reset file input
+		if (fileInput.value) {
+			fileInput.value.value = ''
+		}
+	}
+}
 </script>
 
 <template>
@@ -250,6 +311,66 @@ const handleMenuClick = () => {
 						<Icon name="completion-badge" size="20" />
 						<span>{{ t('settings.app_already_installed') }}</span>
 					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Data Export/Import Section -->
+		<section class="data-management-section">
+			<h2 class="section-title">{{ t('settings.data_management') }}</h2>
+
+			<div class="data-management-container">
+				<div class="data-management-info">
+					<h3 class="data-management-title">{{ t('settings.backup_restore') }}</h3>
+					<p class="data-management-description">
+						{{ t('settings.backup_restore_description') }}
+					</p>
+				</div>
+
+				<div class="data-management-controls">
+					<!-- Export Button -->
+					<button
+							class="btn btn--primary"
+							@click="handleExportData"
+							:aria-label="t('settings.export_data')"
+					>
+						<Icon name="download" size="20" />
+						{{ t('settings.export_data') }}
+					</button>
+
+					<!-- Import Button -->
+					<button
+							class="btn btn--secondary"
+							@click="handleImportClick"
+							:aria-label="t('settings.import_data')"
+					>
+						<Icon name="save" size="20" />
+						{{ t('settings.import_data') }}
+					</button>
+
+					<!-- Hidden File Input -->
+					<input
+							ref="fileInput"
+							type="file"
+							accept=".json,application/json"
+							style="display: none"
+							@change="handleFileChange"
+					/>
+				</div>
+
+				<!-- Export Status Message -->
+				<div v-if="exportStatus" class="status-message" :class="`status-message--${exportStatus.type}`">
+					<Icon :name="exportStatus.type === 'success' ? 'completion-badge' : 'error'" size="16" />
+					<span>{{ exportStatus.message }}</span>
+				</div>
+
+				<!-- Import Status Message -->
+				<div v-if="importStatus" class="status-message" :class="`status-message--${importStatus.type}`">
+					<Icon
+						:name="importStatus.type === 'success' ? 'completion-badge' : importStatus.type === 'loading' ? 'loading' : 'error'"
+						size="16"
+					/>
+					<span>{{ importStatus.message }}</span>
 				</div>
 			</div>
 		</section>
@@ -606,5 +727,89 @@ const handleMenuClick = () => {
 	border-radius: var(--border-radius-md);
 	font-size: var(--font-size-sm);
 	font-weight: var(--font-weight-bold);
+}
+
+// Data Management Section
+.data-management-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.data-management-container {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-xl);
+	padding: var(--space-4);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.data-management-info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.data-management-title {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+	margin: 0;
+}
+
+.data-management-description {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+	margin: 0;
+	line-height: 1.4;
+}
+
+.data-management-controls {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	flex-wrap: wrap;
+}
+
+.status-message {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-3);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-medium);
+	animation: fadeIn 0.3s ease;
+
+	&--success {
+		background-color: rgba(var(--success-color-rgb, 34, 197, 94), 0.1);
+		color: var(--success-color);
+		border: 1px solid var(--success-color);
+	}
+
+	&--error {
+		background-color: rgba(var(--error-color-rgb, 239, 68, 68), 0.1);
+		color: var(--error-color);
+		border: 1px solid var(--error-color);
+	}
+
+	&--loading {
+		background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1);
+		color: var(--primary-color);
+		border: 1px solid var(--primary-color);
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 </style>

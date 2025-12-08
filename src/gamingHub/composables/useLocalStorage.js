@@ -996,7 +996,19 @@ export function useLocalStorage() {
 			gameData.settings = validateSettingsData(migrated.settings)
 			gameData.games = validateGameData(migrated.games)
 			gameData.achievements = Array.isArray(migrated.achievements) ? migrated.achievements : []
+			gameData.currency = migrated.currency || getDefaultData().currency
+			gameData.notifications = validateNotificationsData(migrated.notifications)
+			gameData.cardStates = validateCardStates(migrated.cardStates)
 			gameData.version = CURRENT_VERSION
+
+			console.log('✅ Data imported successfully:', {
+				player: gameData.player.name,
+				coins: gameData.player.coins,
+				diamonds: gameData.player.diamonds,
+				dailyRewardsCounter: gameData.currency.dailyRewards.counter,
+				achievements: gameData.achievements.length,
+				games: Object.keys(gameData.games)
+			})
 
 			saveData()
 			return true
@@ -1004,6 +1016,69 @@ export function useLocalStorage() {
 			console.error('Error importing data:', error)
 			return false
 		}
+	}
+
+	const downloadData = () => {
+		try {
+			const jsonData = exportData()
+			const blob = new Blob([jsonData], { type: 'application/json' })
+			const url = URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0]
+			const filename = `hawk3-gamedata-${timestamp}.json`
+
+			link.href = url
+			link.download = filename
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			URL.revokeObjectURL(url)
+
+			console.log(`📥 Game data exported to ${filename}`)
+			return { success: true, filename }
+		} catch (error) {
+			console.error('Error downloading data:', error)
+			return { success: false, error: error.message }
+		}
+	}
+
+	const uploadData = (file) => {
+		return new Promise((resolve, reject) => {
+			if (!file) {
+				reject(new Error('No file provided'))
+				return
+			}
+
+			if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+				reject(new Error('Invalid file type. Please upload a JSON file.'))
+				return
+			}
+
+			const reader = new FileReader()
+
+			reader.onload = (event) => {
+				try {
+					const jsonData = event.target.result
+					const success = importData(jsonData)
+
+					if (success) {
+						console.log('📤 Game data imported successfully from file:', file.name)
+						resolve({ success: true, filename: file.name })
+					} else {
+						reject(new Error('Failed to import data. Invalid format.'))
+					}
+				} catch (error) {
+					console.error('Error reading file:', error)
+					reject(error)
+				}
+			}
+
+			reader.onerror = () => {
+				reject(new Error('Error reading file'))
+			}
+
+			reader.readAsText(file)
+		})
 	}
 
 	const resetData = () => {
@@ -2322,6 +2397,8 @@ export function useLocalStorage() {
 		saveData,
 		exportData,
 		importData,
+		downloadData,
+		uploadData,
 		resetData,
 		clearStorage
 	}
