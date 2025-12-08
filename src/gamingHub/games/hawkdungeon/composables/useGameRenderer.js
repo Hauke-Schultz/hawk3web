@@ -109,17 +109,25 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       const progress = Math.min(elapsed / animationDuration, 1)
 
       // Draw weapon animation based on weapon type
+      const isSpear = hitbox.weapon === 'spear'
+
       if (hitbox.charged && isAxe) {
-        // Draw 3-hit zigzag animation for charged axe attack
+        // Draw 2-hit zigzag animation for charged axe attack
         drawChargedAxeSwing(centerX, centerY, hitbox, progress)
+      } else if (hitbox.charged && isSpear) {
+        // Draw multi-thrust animation for charged spear attack
+        drawChargedSpearThrust(centerX, centerY, hitbox, progress)
       } else if (hitbox.charged) {
         // Draw spinning animation for charged sword attack
         drawSpinningSword(centerX, centerY, hitbox, progress)
       } else if (isAxe) {
         // Draw axe-specific swing animation for normal axe attack
         drawAxeSwing(centerX, centerY, hitbox, progress)
+      } else if (isSpear) {
+        // Draw spear thrust animation for normal spear attack
+        drawSpearThrust(centerX, centerY, hitbox, progress)
       } else {
-        // Draw sword swing animation for other weapons
+        // Draw sword swing animation for sword
         drawSwordSwing(centerX, centerY, hitbox, progress)
       }
 
@@ -1037,6 +1045,147 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const axeDrawY = -axeHeight
 
     drawTile(ctx, hitbox.weapon, axeDrawX, axeDrawY)
+
+    ctx.restore()
+  }
+
+  const drawSpearThrust = (centerX, centerY, hitbox, progress) => {
+    ctx.save()
+
+    // Spear dimensions (16x28 scaled by 4)
+    const spearWidth = 16 * 4
+    const spearHeight = 28 * 4
+
+    // Position based on attack direction
+    let spearX = centerX
+    let spearY = centerY
+
+    // Base angle and flip based on FACING direction
+    let baseAngle = 0
+    let flipX = knight.facingDirection === 'left'
+
+    // Fast thrust animation:
+    // Phase 1 (0-0.2): Quick pull back
+    // Phase 2 (0.2-0.6): Fast thrust forward
+    // Phase 3 (0.6-1.0): Pull back to ready position
+    let thrustDistance = 0
+
+    if (progress < 0.2) {
+      // Pull back phase
+      const pullbackProgress = progress / 0.2
+      const easePullback = pullbackProgress * pullbackProgress
+      thrustDistance = -TILE_SIZE * 0.15 * easePullback
+    } else if (progress < 0.6) {
+      // Thrust forward phase
+      const thrustProgress = (progress - 0.2) / 0.4
+      const easeThrust = 1 - Math.pow(1 - thrustProgress, 3)
+      thrustDistance = TILE_SIZE * 0.7 * easeThrust
+    } else {
+      // Pull back phase
+      const recoverProgress = (progress - 0.6) / 0.4
+      const easeRecover = recoverProgress * recoverProgress
+      thrustDistance = TILE_SIZE * 0.7 * (1 - easeRecover)
+    }
+
+    // Apply thrust in the attack direction
+    switch (knight.direction) {
+      case 'up':
+        spearY = centerY - thrustDistance
+        baseAngle = -Math.PI / 2
+        break
+      case 'down':
+        spearY = centerY + thrustDistance
+        baseAngle = Math.PI / 2
+        break
+      case 'left':
+        spearX = centerX - thrustDistance
+        baseAngle = Math.PI
+        break
+      case 'right':
+        spearX = centerX + thrustDistance
+        baseAngle = 0
+        break
+    }
+
+    // Move to spear position
+    ctx.translate(spearX, spearY)
+
+    // Apply horizontal flip for left facing
+    if (flipX && (knight.direction === 'up' || knight.direction === 'down')) {
+      ctx.scale(-1, 1)
+    }
+
+    // Rotate based on attack direction
+    ctx.rotate(baseAngle)
+
+    // Draw spear
+    const spearDrawX = -spearWidth / 2
+    const spearDrawY = -spearHeight
+
+    drawTile(ctx, hitbox.weapon, spearDrawX, spearDrawY)
+
+    ctx.restore()
+  }
+
+  const drawChargedSpearThrust = (centerX, centerY, hitbox, progress) => {
+    ctx.save()
+
+    // Spear dimensions (16x28 scaled by 4)
+    const spearWidth = 16 * 4
+    const spearHeight = 28 * 4
+
+    // Position based on attack direction
+    let spearX = centerX
+    let spearY = centerY
+
+    // Base angle and flip based on FACING direction
+    let baseAngle = 0
+    let flipX = knight.facingDirection === 'left'
+
+    // Triple thrust animation (3 schnelle Stöße)
+    // Verwende Sinus-Welle für 3 schnelle Vor-und-Zurück Bewegungen
+    const thrustCycles = 3
+    const thrustWave = Math.sin(progress * thrustCycles * Math.PI)
+
+    // Nur vorwärts stoßen (keine negativen Werte)
+    const thrustDistance = Math.max(0, thrustWave) * TILE_SIZE * 0.8
+
+    // Apply thrust in the attack direction
+    switch (knight.direction) {
+      case 'up':
+        spearY = centerY - thrustDistance
+        baseAngle = -Math.PI / 2
+        break
+      case 'down':
+        spearY = centerY + thrustDistance
+        baseAngle = Math.PI / 2
+        break
+      case 'left':
+        spearX = centerX - thrustDistance
+        baseAngle = Math.PI
+        break
+      case 'right':
+        spearX = centerX + thrustDistance
+        baseAngle = 0
+        break
+    }
+
+    // Move to spear position
+    ctx.translate(spearX, spearY)
+
+    // Apply horizontal flip for left facing
+    if (flipX && (knight.direction === 'up' || knight.direction === 'down')) {
+      ctx.scale(-1, 1)
+    }
+
+    // Rotate based on attack direction
+    ctx.rotate(baseAngle)
+
+    // Draw spear
+    const spearDrawX = -spearWidth / 2
+    const spearDrawY = -spearHeight
+
+    drawTile(ctx, hitbox.weapon, spearDrawX, spearDrawY)
 
     ctx.restore()
   }
