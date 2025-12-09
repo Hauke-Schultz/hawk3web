@@ -8,6 +8,7 @@ import { useCollisions } from './useCollisions'
 import { useLevelLoader } from './useLevelLoader'
 import { useChest } from './useChest'
 import { useTileInteractions } from './useTileInteractions'
+import { usePathfinding } from './usePathfinding'
 import { WEAPON_SOCKET_COUNT, calculateGemBonuses } from '../config/gemConfig'
 
 export function useHawkDungeon() {
@@ -494,6 +495,7 @@ export function useHawkDungeon() {
   // Initialize AI, collision, and level systems
   let monsterAI = null
   let collisionSystem = null
+  let pathfinding = null
   let gameOverCallback = null
   let levelCompletionCallback = null
 
@@ -526,6 +528,7 @@ export function useHawkDungeon() {
 
     monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback)
     collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback, unlockWeapon, switchWeapon)
+    pathfinding = usePathfinding(levelLoader, monsters)
   }
 
   const setGameOverCallback = (callback) => {
@@ -631,6 +634,223 @@ export function useHawkDungeon() {
   const handleStopMove = () => {
     knight.movementQueue = []
     knight.nextDirection = null
+  }
+
+  const handleClickMove = (gridX, gridY) => {
+    if (!pathfinding) {
+      console.warn('Pathfinding not initialized')
+      return
+    }
+
+    // Check if clicked on a monster
+    const clickedMonster = getMonsterAtPosition(gridX, gridY)
+
+    if (clickedMonster) {
+      // Player clicked on a monster - move to adjacent position and attack
+      console.log('Clicked on monster, moving to attack position')
+      const attackPosition = findNearestWalkableAdjacentPosition(gridX, gridY, clickedMonster)
+
+      if (attackPosition) {
+        const path = pathfinding.findPath(knight.gridX, knight.gridY, attackPosition.x, attackPosition.y)
+
+        if (path.length > 0) {
+          // Set the path
+          knight.movementQueue = [...path]
+          knight.nextDirection = null
+
+          // Schedule attack after movement completes
+          // We'll set a flag to attack when we reach the target
+          setTimeout(() => {
+            if (knight.gridX === attackPosition.x && knight.gridY === attackPosition.y) {
+              // Calculate direction to monster
+              const direction = getDirectionToTarget(knight.gridX, knight.gridY, clickedMonster.gridX, clickedMonster.gridY)
+              if (direction) {
+                knight.direction = direction
+                if (direction === 'left' || direction === 'right') {
+                  knight.facingDirection = direction
+                }
+                handleAttack({ charged: false })
+              }
+            }
+          }, path.length * MOVEMENT_DURATION + 100)
+        } else {
+          // Already adjacent to monster, just attack
+          const direction = getDirectionToTarget(knight.gridX, knight.gridY, clickedMonster.gridX, clickedMonster.gridY)
+          if (direction) {
+            knight.direction = direction
+            if (direction === 'left' || direction === 'right') {
+              knight.facingDirection = direction
+            }
+            handleAttack({ charged: false })
+          }
+        }
+      }
+      return
+    }
+
+    // Check if target is walkable
+    const isWalkable = levelLoader.isWalkable(gridX, gridY)
+
+    if (!isWalkable) {
+      // Target is not walkable (obstacle) - find nearest walkable position
+      console.log('Target is not walkable, finding nearest position')
+      const nearestPosition = findNearestWalkablePosition(gridX, gridY)
+
+      if (nearestPosition) {
+        console.log(`Found nearest walkable position: (${nearestPosition.x}, ${nearestPosition.y})`)
+        const path = pathfinding.findPath(knight.gridX, knight.gridY, nearestPosition.x, nearestPosition.y)
+
+        if (path.length > 0) {
+          knight.movementQueue = [...path]
+          knight.nextDirection = null
+          return
+        }
+      }
+
+      console.log('No valid path to obstacle')
+      return
+    }
+
+    // Normal movement to walkable tile
+    const path = pathfinding.findPath(knight.gridX, knight.gridY, gridX, gridY)
+
+    if (path.length === 0) {
+      console.log('No valid path to target')
+      return
+    }
+
+    console.log(`Found path with ${path.length} steps:`, path)
+
+    // Clear current movement queue and set new path
+    knight.movementQueue = [...path]
+    knight.nextDirection = null
+  }
+
+  const getMonsterAtPosition = (gridX, gridY) => {
+    return monsters.value.find(monster => {
+      if (monster.state === 'dead') return false
+
+      const monsterWidth = monster.gridWidth || 1
+      const monsterHeight = monster.gridHeight || 1
+
+      for (let dy = 0; dy < monsterHeight; dy++) {
+        for (let dx = 0; dx < monsterWidth; dx++) {
+          if (monster.gridX + dx === gridX && monster.gridY + dy === gridY) {
+            return true
+          }
+        }
+      }
+      return false
+    })
+  }
+
+  const getDirectionToTarget = (fromX, fromY, toX, toY) => {
+    const dx = toX - fromX
+    const dy = toY - fromY
+
+    // Prioritize the direction with larger absolute difference
+    if (Math.abs(dx) > Math.abs(dy)) {
+      return dx > 0 ? 'right' : 'left'
+    } else if (Math.abs(dy) > Math.abs(dx)) {
+      return dy > 0 ? 'down' : 'up'
+    } else if (dx !== 0) {
+      return dx > 0 ? 'right' : 'left'
+    } else if (dy !== 0) {
+      return dy > 0 ? 'down' : 'up'
+    }
+    return null
+  }
+
+  const findNearestWalkableAdjacentPosition = (targetX, targetY, monster) => {
+    const monsterWidth = monster.gridWidth || 1
+    const monsterHeight = monster.gridHeight || 1
+
+    // Get all positions adjacent to the monster
+    const adjacentPositions = []
+
+    // Top row
+    for (let x = targetX - 1; x <= targetX + monsterWidth; x++) {
+      adjacentPositions.push({ x, y: targetY - 1 })
+    }
+
+    // Bottom row
+    for (let x = targetX - 1; x <= targetX + monsterWidth; x++) {
+      adjacentPositions.push({ x, y: targetY + monsterHeight })
+    }
+
+    // Left column (excluding corners already added)
+    for (let y = targetY; y < targetY + monsterHeight; y++) {
+      adjacentPositions.push({ x: targetX - 1, y })
+    }
+
+    // Right column (excluding corners already added)
+    for (let y = targetY; y < targetY + monsterHeight; y++) {
+      adjacentPositions.push({ x: targetX + monsterWidth, y })
+    }
+
+    // Filter walkable positions and find the nearest one
+    const walkablePositions = adjacentPositions.filter(pos =>
+      levelLoader.isWalkable(pos.x, pos.y) &&
+      !getMonsterAtPosition(pos.x, pos.y)
+    )
+
+    if (walkablePositions.length === 0) return null
+
+    // Find the position closest to the knight
+    let nearest = walkablePositions[0]
+    let minDistance = Math.abs(knight.gridX - nearest.x) + Math.abs(knight.gridY - nearest.y)
+
+    for (const pos of walkablePositions) {
+      const distance = Math.abs(knight.gridX - pos.x) + Math.abs(knight.gridY - pos.y)
+      if (distance < minDistance) {
+        minDistance = distance
+        nearest = pos
+      }
+    }
+
+    return nearest
+  }
+
+  const findNearestWalkablePosition = (targetX, targetY) => {
+    // Search in expanding circles around the target
+    const maxRadius = 10
+
+    for (let radius = 1; radius <= maxRadius; radius++) {
+      const candidates = []
+
+      // Check all positions at this radius using a diamond pattern (Manhattan distance)
+      for (let dx = -radius; dx <= radius; dx++) {
+        const remainingDistance = radius - Math.abs(dx)
+
+        for (let dy = -remainingDistance; dy <= remainingDistance; dy += (remainingDistance === 0 ? 1 : remainingDistance * 2)) {
+          const x = targetX + dx
+          const y = targetY + dy
+
+          if (levelLoader.isWalkable(x, y) && !getMonsterAtPosition(x, y)) {
+            candidates.push({ x, y })
+          }
+        }
+      }
+
+      if (candidates.length > 0) {
+        // Return the first walkable position found at this radius
+        // Prefer positions closer to the knight
+        let nearest = candidates[0]
+        let minDistance = Math.abs(knight.gridX - nearest.x) + Math.abs(knight.gridY - nearest.y)
+
+        for (const pos of candidates) {
+          const distance = Math.abs(knight.gridX - pos.x) + Math.abs(knight.gridY - pos.y)
+          if (distance < minDistance) {
+            minDistance = distance
+            nearest = pos
+          }
+        }
+
+        return nearest
+      }
+    }
+
+    return null
   }
 
   const handleAttack = (attackData = { charged: false }) => {
@@ -911,6 +1131,7 @@ export function useHawkDungeon() {
     handleAttack,
     handleMove,
     handleStopMove,
+    handleClickMove,
     handleInteract,
     switchWeapon,
     unlockWeapon,

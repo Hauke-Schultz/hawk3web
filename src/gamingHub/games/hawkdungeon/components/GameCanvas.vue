@@ -4,6 +4,7 @@
       ref="canvas"
       :width="canvasWidth"
       :height="canvasHeight"
+      @click="handleCanvasClick"
     />
   </div>
 </template>
@@ -47,6 +48,8 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['tileClick'])
+
 const canvas = ref(null)
 const canvasContainer = ref(null)
 
@@ -58,6 +61,31 @@ const canvasHeight = ref(GRID_SIZE * TILE_SIZE)
 
 // Blood splatter array - each splatter has gridX, gridY, pixels array, and timestamp
 const bloodSplatters = ref([])
+
+// Handle canvas click
+const handleCanvasClick = (event) => {
+  if (!canvas.value) return
+
+  const rect = canvas.value.getBoundingClientRect()
+  const clickX = event.clientX - rect.left
+  const clickY = event.clientY - rect.top
+
+  // Convert canvas coordinates to grid coordinates
+  // The canvas shows a 7x7 grid centered on the knight
+  const tileX = Math.floor(clickX / TILE_SIZE)
+  const tileY = Math.floor(clickY / TILE_SIZE)
+
+  // Calculate the actual grid position in the world
+  // The knight is always at the center of the screen (grid position 3, 3 in the viewport)
+  const centerOffset = Math.floor(GRID_SIZE / 2) // 3 for a 7x7 grid
+  const worldGridX = props.knight.gridX + (tileX - centerOffset)
+  const worldGridY = props.knight.gridY + (tileY - centerOffset)
+
+  console.log(`Canvas click at (${clickX}, ${clickY}) -> Tile (${tileX}, ${tileY}) -> World grid (${worldGridX}, ${worldGridY})`)
+
+  // Emit the tile click event with world grid coordinates
+  emit('tileClick', worldGridX, worldGridY)
+}
 
 const updateCanvasSize = () => {
   // Canvas size is fixed to 7x7 grid

@@ -42,6 +42,7 @@
         :lockedDoorFlash="lockedDoorFlash"
         :levelLoader="levelLoader"
         :chestSystem="chestSystem"
+        @tileClick="handleClickMove"
       />
     </div>
 
@@ -190,6 +191,7 @@ const {
   handleAttack,
   handleMove,
   handleStopMove,
+  handleClickMove,
   switchWeapon,
   unlockWeapon,
   socketGem,
