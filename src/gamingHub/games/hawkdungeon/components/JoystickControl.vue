@@ -43,7 +43,7 @@ const isActive = ref(false)
 let moveInterval = null
 
 const maxDistance = 35 // Maximum distance stick can move from center
-const deadzone = 15 // Minimum distance before registering movement (deadzone)
+const deadzone = 22 // Minimum distance before registering movement (deadzone)
 
 const calculateDirection = (x, y) => {
   const angle = Math.atan2(y, x) * (180 / Math.PI)

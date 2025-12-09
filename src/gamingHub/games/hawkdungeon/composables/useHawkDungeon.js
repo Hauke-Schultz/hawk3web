@@ -49,7 +49,8 @@ export function useHawkDungeon() {
     direction: 'right', // Last movement direction (up, down, left, right) - used for attacks
     isMoving: false,
     isAttacking: false,
-    movementQueue: []
+    movementQueue: [],
+    nextDirection: null // Direction queued to start after current movement
   })
 
   // Monsters array
@@ -96,7 +97,7 @@ export function useHawkDungeon() {
 
   // Movement timing
   let movementTimer = 0
-  const MOVEMENT_DURATION = 800 // 800ms for full step (8 frames × 100ms)
+  const MOVEMENT_DURATION = 600 // 600ms for full step (faster movement)
 
   // Current movement interpolation
   let isMovingToTarget = false
@@ -133,6 +134,12 @@ export function useHawkDungeon() {
     knight.targetGridY = 0
     knight.screenX = 0
     knight.screenY = 0
+    knight.movementQueue = []
+    knight.nextDirection = null
+
+    // Reset movement state
+    isMovingToTarget = false
+    moveProgress = 0
 
     // Initialize systems
     initializeSystems()
@@ -231,18 +238,20 @@ export function useHawkDungeon() {
   }
 
   const updateKnightMovement = (dt) => {
-    // Process movement queue
-    if (knight.movementQueue.length > 0 && !isMovingToTarget) {
-      const direction = knight.movementQueue.shift()
-      startMovement(direction)
-    }
-
     // Interpolate movement to target
     if (isMovingToTarget) {
       moveProgress += dt / (MOVEMENT_DURATION / 1000)
 
+      // Check if we should queue the next movement (at 70% progress for smoother transitions)
+      if (moveProgress >= 0.6 && knight.movementQueue.length > 0) {
+        // Queue next movement early for fluid movement
+        const nextDirection = knight.movementQueue.shift()
+        // Store next direction to start after current movement completes
+        knight.nextDirection = nextDirection
+      }
+
       if (moveProgress >= 1) {
-        // Movement complete
+        // Movement complete - finalize position
         knight.gridX = moveTargetPos.x
         knight.gridY = moveTargetPos.y
         knight.targetGridX = moveTargetPos.x
@@ -251,13 +260,22 @@ export function useHawkDungeon() {
         dungeonOffset.y = -knight.gridY * TILE_SIZE
         isMovingToTarget = false
         moveProgress = 0
-        knight.isMoving = false
-        knight.animationState = 'idle'
-        knight.animationFrame = 0
 
         // Check for traps and fountains after movement is complete
         checkForTraps()
         checkForFountains()
+
+        // Check if there's a queued next movement
+        if (knight.nextDirection) {
+          const nextDir = knight.nextDirection
+          knight.nextDirection = null
+          startMovement(nextDir)
+        } else {
+          // No more movements - go to idle
+          knight.isMoving = false
+          knight.animationState = 'idle'
+          knight.animationFrame = 0
+        }
       } else {
         // Smooth interpolation
         const eased = easeInOutQuad(moveProgress)
@@ -266,6 +284,10 @@ export function useHawkDungeon() {
         dungeonOffset.x = -currentX * TILE_SIZE
         dungeonOffset.y = -currentY * TILE_SIZE
       }
+    } else if (knight.movementQueue.length > 0) {
+      // Not moving but have queued movements - start next movement
+      const direction = knight.movementQueue.shift()
+      startMovement(direction)
     }
   }
 
@@ -593,12 +615,13 @@ export function useHawkDungeon() {
   }
 
   const handleMove = (direction) => {
-    // If direction changed, clear queue and add new direction
-    const lastDirection = knight.movementQueue[knight.movementQueue.length - 1]
+    // Get the last direction in the queue (or current movement direction)
+    const lastDirection = knight.movementQueue[knight.movementQueue.length - 1] || knight.direction
 
     if (lastDirection && lastDirection !== direction) {
       // Direction changed - clear queue and add new direction
       knight.movementQueue = [direction]
+      knight.nextDirection = null // Clear any pre-queued next direction
     } else if (knight.movementQueue.length < 2) {
       // Same direction or empty queue - add to queue if not full
       knight.movementQueue.push(direction)
@@ -607,6 +630,7 @@ export function useHawkDungeon() {
 
   const handleStopMove = () => {
     knight.movementQueue = []
+    knight.nextDirection = null
   }
 
   const handleAttack = (attackData = { charged: false }) => {
