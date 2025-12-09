@@ -357,7 +357,7 @@ export const spriteConfig = {
     'b': { width: 16, height: 16, x: 288, y: 432, name: 'blood' },         // Blood (Blutfleck)
     's': { width: 16, height: 16, x: 288, y: 432, name: 'skull1' },        // Skull (Totenschädel)
     'o': { width: 16, height: 16, x: 272, y: 416, name: 'skull2' },        // Skull two
-    'k': { width: 16, height: 16, x: 96, y: 112, name: 'pillar_bottom' },
+    'k': { width: 16, height: 16, x: 96, y: 112, name: 'pillar_bottom' },  // Pillar Bottom
     '.': null  // Transparent/empty
   },
 
@@ -370,11 +370,11 @@ export const spriteConfig = {
     't': { width: 16, height: 16, x: 48, y: 0, name: 'wallTop' },          // WallTop (Mauer oben)
     'd': { width: 16, height: 16, x: 80, y: 160, name: 'spider1' },        // spider web more
     'f': { width: 16, height: 16, x: 96, y: 160, name: 'spider2' },        // spider web less
-    'v': { width: 16, height: 16, x: 48, y: 144, name: 'vines1' },          // Vines (Ranken)
-    'r': { width: 16, height: 16, x: 64, y: 144, name: 'vines2' },          // Vines (Ranken)
+    'v': { width: 16, height: 16, x: 48, y: 144, name: 'vines1' },         // Vines (Ranken)
+    'r': { width: 16, height: 16, x: 64, y: 144, name: 'vines2' },         // Vines (Ranken)
     'h': { width: 16, height: 16, x: 48, y: 128, name: 'hanging_deco' },   // Hanging decoration
     'l': { width: 16, height: 16, x: 64, y: 128, name: 'light_beam' },     // Light beam (Lichtstrahl)
-    'n': { width: 16, height: 16, x: 96, y: 80, name: 'pillar_top' },
+    'n': { width: 16, height: 16, x: 96, y: 80, name: 'pillar_top' },      // Pillar Top
     '.': null  // Transparent/empty
   }
 }
