@@ -1,36 +1,3 @@
-/**
- * TILE LEGEND:
- *
- * Main Layer (tiles):
- * W = Wall
- * . = Floor (light)
- * , = Floor (variant 1)
- * : = Floor (variant 2)
- * ^ = Floor (variant 3)
- * A = Archway/Door
- * C = Chest
- * M = Monster spawn
- * Q = Mana fountain (Mana-Quelle)
- * D = Decoration (pillar/statue)
- * B = Boss spawn area
- * H = Healing shrine
- *
- * Under Layer (unterLayer) - rendered BELOW player/enemies:
- * . = Transparent/empty
- * s = Skull (Totenschädel)
- * b = Blood stain (Blutfleck)
- * r = Rubble (Schutt)
- * c = Crack (Riss)
- *
- * Over Layer (overLayer) - rendered ABOVE player/enemies:
- * . = Transparent/empty
- * w = Cobweb (Spinnennetz)
- * o = Horns (Hörner - über Mana-Quelle)
- * v = Vines (Ranken)
- * h = Hanging decoration (hängende Deko)
- * l = Light beam (Lichtstrahl)
- */
-
 export const levelConfig = {
   1: {
     level: 1,
@@ -42,7 +9,6 @@ export const levelConfig = {
     maxEnemies: 5,
     killGoal: 5,
     hasBoss: true, // Boss appears after killGoal reached
-    timeLimit: 120, // 2 minutes
     difficulty: 'easy',
     rewards: {
       coins: 100,
@@ -152,7 +118,6 @@ export const levelConfig = {
     maxEnemies: 8,
     killGoal: 75,
     hasBoss: false,
-    timeLimit: 120,
     difficulty: 'medium',
     rewards: {
       coins: 150,
@@ -169,7 +134,6 @@ export const levelConfig = {
     maxEnemies: 12,
     killGoal: 100,
     hasBoss: false,
-    timeLimit: 150, // 2:30
     difficulty: 'medium',
     rewards: {
       coins: 200,
@@ -187,7 +151,6 @@ export const levelConfig = {
     killGoal: 1, // Just defeat the boss
     hasBoss: true,
     bossHealth: 15,
-    timeLimit: 180, // 3 minutes
     difficulty: 'boss',
     rewards: {
       coins: 500,
@@ -204,7 +167,6 @@ export const levelConfig = {
     maxEnemies: 20,
     killGoal: 150,
     hasBoss: false,
-    timeLimit: 180,
     difficulty: 'hard',
     rewards: {
       coins: 300,
@@ -221,7 +183,6 @@ export const levelConfig = {
     maxEnemies: 999, // Unlimited
     killGoal: 999999, // Endless mode
     hasBoss: false,
-    timeLimit: null, // No time limit
     endless: true,
     difficulty: 'endless',
     milestoneRewards: [50, 100, 150, 200, 250, 300],

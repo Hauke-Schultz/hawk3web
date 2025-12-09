@@ -356,7 +356,7 @@ export const spriteConfig = {
   underLayerDecorations: {
     'b': { width: 16, height: 16, x: 288, y: 432, name: 'blood' },         // Blood (Blutfleck)
     's': { width: 16, height: 16, x: 288, y: 432, name: 'skull1' },        // Skull (Totenschädel)
-    'o': { width: 16, height: 16, x: 272, y: 416, name: 'skull2' },        // Skull two
+    'o': { width: 16, height: 16, x: 96, y: 176, name: 'skull2' },         // Skull two
     'k': { width: 16, height: 16, x: 96, y: 112, name: 'pillar_bottom' },  // Pillar Bottom
     '.': null  // Transparent/empty
   },
