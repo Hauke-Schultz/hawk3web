@@ -144,46 +144,66 @@ export const weaponConfig = {
     attackPattern: {
       up: [
         { dx: 0, dy: -1 },  // 1 tile forward
+        { dx: 0, dy: -2 },  // 2 tile forward
+        { dx: 0, dy: -3 },  // 3 tile forward
         { dx: -1, dy: -1 }, // left diagonal
         { dx: 1, dy: -1 },  // right diagonal
-        { dx: 0, dy: -2 }   // 2 tiles forward
       ],
       down: [
         { dx: 0, dy: 1 },   // 1 tile forward
+        { dx: 0, dy: 2 },   // 2 tile forward
+        { dx: 0, dy: 3 },   // 3 tile forward
         { dx: -1, dy: 1 },  // left diagonal
         { dx: 1, dy: 1 },   // right diagonal
-        { dx: 0, dy: 2 }    // 2 tiles forward
       ],
       left: [
         { dx: -1, dy: 0 },  // 1 tile forward
+        { dx: -2, dy: 0 },  // 2 tile forward
+        { dx: -3, dy: 0 },  // 3 tile forward
         { dx: -1, dy: -1 }, // up diagonal
         { dx: -1, dy: 1 },  // down diagonal
-        { dx: -2, dy: 0 }   // 2 tiles forward
       ],
       right: [
         { dx: 1, dy: 0 },   // 1 tile forward
+        { dx: 2, dy: 0 },   // 2 tile forward
+        { dx: 3, dy: 0 },   // 3 tile forward
         { dx: 1, dy: -1 },  // up diagonal
         { dx: 1, dy: 1 },   // down diagonal
-        { dx: 2, dy: 0 }    // 2 tiles forward
       ]
     },
     // Charged attack: Wide piercing line (3 tiles wide, 2 deep = 6 tiles)
     chargedAttackPattern: {
       up: [
-        { dx: 0, dy: -1 }, { dx: -1, dy: -1 }, { dx: 1, dy: -1 },
-        { dx: 0, dy: -2 }, { dx: -1, dy: -2 }, { dx: 1, dy: -2 }
+        { dx: 0, dy: 1 },   // 0 tile forward
+        { dx: 0, dy: -1 },  // 1 tile forward
+        { dx: 0, dy: -2 },  // 2 tile forward
+        { dx: 0, dy: -3 },  // 3 tile forward
+        { dx: -1, dy: -1 }, // left diagonal
+        { dx: 1, dy: -1 },  // right diagonal
       ],
       down: [
-        { dx: 0, dy: 1 }, { dx: -1, dy: 1 }, { dx: 1, dy: 1 },
-        { dx: 0, dy: 2 }, { dx: -1, dy: 2 }, { dx: 1, dy: 2 }
+        { dx: 0, dy: -1 },  // 0 tile forward
+        { dx: 0, dy: 1 },   // 1 tile forward
+        { dx: 0, dy: 2 },   // 2 tile forward
+        { dx: 0, dy: 3 },   // 3 tile forward
+        { dx: -1, dy: 1 },  // left diagonal
+        { dx: 1, dy: 1 },   // right diagonal
       ],
       left: [
-        { dx: -1, dy: 0 }, { dx: -1, dy: -1 }, { dx: -1, dy: 1 },
-        { dx: -2, dy: 0 }, { dx: -2, dy: -1 }, { dx: -2, dy: 1 }
+        { dx: 1, dy: 0 },   // 0 tile forward
+        { dx: -1, dy: 0 },  // 1 tile forward
+        { dx: -2, dy: 0 },  // 2 tile forward
+        { dx: -3, dy: 0 },  // 3 tile forward
+        { dx: -1, dy: -1 }, // up diagonal
+        { dx: -1, dy: 1 },  // down diagonal
       ],
       right: [
-        { dx: 1, dy: 0 }, { dx: 1, dy: -1 }, { dx: 1, dy: 1 },
-        { dx: 2, dy: 0 }, { dx: 2, dy: -1 }, { dx: 2, dy: 1 }
+        { dx: -1, dy: 0 },  // 0 tile forward
+        { dx: 1, dy: 0 },   // 1 tile forward
+        { dx: 2, dy: 0 },   // 2 tile forward
+        { dx: 3, dy: 0 },   // 3 tile forward
+        { dx: 1, dy: -1 },  // up diagonal
+        { dx: 1, dy: 1 },   // down diagonal
       ]
     },
     mana: {

@@ -103,7 +103,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
       // Different animation durations based on weapon
       const isAxe = hitbox.weapon === 'axe'
-      const animationDuration = isAxe ? 600 : 300 // Axe: 600ms, Others: 300ms
+      const isSpearWeapon = hitbox.weapon === 'spear'
+      // Longer animation durations for better visibility
+      const animationDuration = isAxe ? 800 : (isSpearWeapon ? 600 : 500) // Axe: 800ms, Spear: 600ms, Sword: 500ms
 
       const elapsed = performance.now() - hitbox.createdAt
       const progress = Math.min(elapsed / animationDuration, 1)
@@ -700,7 +702,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
     // Different animation durations based on weapon
     const isAxe = hitbox.weapon === 'axe'
-    const animationDuration = isAxe ? 600 : 300 // Axe: 600ms, Others: 300ms
+    const isSpearWeapon = hitbox.weapon === 'spear'
+    // Longer animation durations for better visibility
+    const animationDuration = isAxe ? 800 : (isSpearWeapon ? 600 : 500) // Axe: 800ms, Spear: 600ms, Sword: 500ms
 
     const elapsed = performance.now() - hitbox.createdAt
     const progress = Math.min(elapsed / animationDuration, 1)
@@ -787,8 +791,69 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
           ctx.stroke()
         }
       }
+    } else if (isSpear) {
+      // SPEAR: Orange/Amber effect (piercing thrust)
+      // Layer 1: Outer explosive glow - orange
+      const outerGradient = ctx.createRadialGradient(
+          circleCenterX, circleCenterY, 0,
+          circleCenterX, circleCenterY, radius * 1.3
+      )
+      outerGradient.addColorStop(0, `rgba(255, 165, 50, ${alpha * 0.9})`)
+      outerGradient.addColorStop(0.3, `rgba(255, 140, 30, ${alpha * 0.7})`)
+      outerGradient.addColorStop(0.6, `rgba(255, 100, 0, ${alpha * 0.4})`)
+      outerGradient.addColorStop(1, `rgba(200, 80, 0, 0)`)
+
+      ctx.fillStyle = outerGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 1.3, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Layer 2: Middle impact ring - bright orange
+      const middleGradient = ctx.createRadialGradient(
+          circleCenterX, circleCenterY, radius * 0.3,
+          circleCenterX, circleCenterY, radius * 0.8
+      )
+      middleGradient.addColorStop(0, `rgba(255, 200, 100, ${alpha})`)
+      middleGradient.addColorStop(0.5, `rgba(255, 140, 50, ${alpha * 0.6})`)
+      middleGradient.addColorStop(1, `rgba(255, 100, 0, 0)`)
+
+      ctx.fillStyle = middleGradient
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.8, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Layer 3: Bright core flash - orange-white
+      const coreAlpha = alpha * (1 - progress * 0.5)
+      ctx.fillStyle = `rgba(255, 220, 150, ${coreAlpha})`
+      ctx.beginPath()
+      ctx.arc(circleCenterX, circleCenterY, radius * 0.25, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Add piercing lines (directional thrust lines)
+      if (progress < 0.5) {
+        const shockwaveAlpha = alpha * (1 - progress * 1.7)
+        ctx.strokeStyle = `rgba(255, 140, 50, ${shockwaveAlpha})`
+        ctx.lineWidth = 3
+
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2
+          const startDist = radius * 0.3
+          const endDist = radius * 0.9
+
+          ctx.beginPath()
+          ctx.moveTo(
+              circleCenterX + Math.cos(angle) * startDist,
+              circleCenterY + Math.sin(angle) * startDist
+          )
+          ctx.lineTo(
+              circleCenterX + Math.cos(angle) * endDist,
+              circleCenterY + Math.sin(angle) * endDist
+          )
+          ctx.stroke()
+        }
+      }
     } else {
-      // SWORD/SPEAR: Yellow/Gold effect (original)
+      // SWORD: Yellow/Gold effect (original)
       // Layer 1: Outer explosive glow
       const outerGradient = ctx.createRadialGradient(
           circleCenterX, circleCenterY, 0,
@@ -1088,22 +1153,23 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     }
 
     // Apply thrust in the attack direction
+    // Rotate 90 degrees clockwise from original orientation
     switch (knight.direction) {
       case 'up':
         spearY = centerY - thrustDistance
-        baseAngle = -Math.PI / 2
+        baseAngle = 0 // Changed from -Math.PI / 2
         break
       case 'down':
         spearY = centerY + thrustDistance
-        baseAngle = Math.PI / 2
+        baseAngle = Math.PI // Changed from Math.PI / 2
         break
       case 'left':
         spearX = centerX - thrustDistance
-        baseAngle = Math.PI
+        baseAngle = -Math.PI / 2 // Changed from Math.PI
         break
       case 'right':
         spearX = centerX + thrustDistance
-        baseAngle = 0
+        baseAngle = Math.PI / 2 // Changed from 0
         break
     }
 
@@ -1151,22 +1217,23 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
     const thrustDistance = Math.max(0, thrustWave) * TILE_SIZE * 0.8
 
     // Apply thrust in the attack direction
+    // Rotate 90 degrees clockwise from original orientation
     switch (knight.direction) {
       case 'up':
         spearY = centerY - thrustDistance
-        baseAngle = -Math.PI / 2
+        baseAngle = 0 // Changed from -Math.PI / 2
         break
       case 'down':
         spearY = centerY + thrustDistance
-        baseAngle = Math.PI / 2
+        baseAngle = Math.PI // Changed from Math.PI / 2
         break
       case 'left':
         spearX = centerX - thrustDistance
-        baseAngle = Math.PI
+        baseAngle = -Math.PI / 2 // Changed from Math.PI
         break
       case 'right':
         spearX = centerX + thrustDistance
-        baseAngle = 0
+        baseAngle = Math.PI / 2 // Changed from 0
         break
     }
 
