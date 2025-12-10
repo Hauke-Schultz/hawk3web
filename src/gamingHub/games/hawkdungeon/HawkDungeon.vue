@@ -98,7 +98,8 @@
       :game-title="t('hawkDungeon.title')"
       :final-score="gameState.kills"
       :time-elapsed="0"
-      :show-stars="false"
+      :show-stars="true"
+      :stars-earned="starsEarned"
       :new-achievements="earnedAchievements"
       :show-achievements="true"
       :show-reward="true"
@@ -170,7 +171,15 @@ const props = defineProps({
 
 const router = useRouter()
 const { t } = useI18n()
-const { gameData } = useLocalStorage()
+const {
+  gameData,
+  updateHawkDungeonLevel,
+  updateGameStats,
+  addScore,
+  checkGameLevelAchievements,
+  checkAutoAchievements,
+  addAchievement
+} = useLocalStorage()
 
 // GameCanvas ref for blood splatter effects
 const gameCanvas = ref(null)
@@ -251,69 +260,190 @@ if (setLevelCompletionCallback) {
 }
 
 
+// Check Hawk Dungeon specific achievements
+const checkHawkDungeonAchievements = () => {
+  // You can add HawkDungeon-specific achievements here later
+  // For now, this is a placeholder for game-specific achievements
+}
+
 // Calculate level rewards and achievements
 const calculateLevelRewards = () => {
   const currentLevel = gameState.level
   const levelConfig = getLevelConfig(currentLevel)
 
-  // Base reward per level
-  const baseReward = 50
-  const levelMultiplier = currentLevel * 10
-
-  // Calculate total reward
-  const totalReward = baseReward + levelMultiplier
-
-  // Build reward breakdown
-  const breakdown = [
-    {
-      label: t('common.level_completion'),
-      value: baseReward
-    },
-    {
-      label: t('common.level_bonus'),
-      value: levelMultiplier
-    }
-  ]
-
-  // Bonus for remaining health
-  const healthBonus = gameState.currentHealth * 5
-  if (healthBonus > 0) {
-    breakdown.push({
-      label: t('common.health_bonus'),
-      value: healthBonus
-    })
-  }
-
-  // Total kills bonus
-  const killsBonus = gameState.kills * 2
-  if (killsBonus > 0) {
-    breakdown.push({
-      label: t('common.kills_bonus'),
-      value: killsBonus
-    })
-  }
-
-  levelReward.value = totalReward + healthBonus + killsBonus
-  rewardBreakdown.value = breakdown
-
-  // Award coins to player
-  gameData.player.coins += levelReward.value
-
-  // Check for achievements
+  // Reset earned achievements
   earnedAchievements.value = []
 
-  // Mark level as completed in game stats
-  if (!gameData.hawkDungeon) {
-    gameData.hawkDungeon = { levels: [] }
+  // Calculate stars (1-3 based on health remaining)
+  const healthPercent = (gameState.currentHealth / gameState.maxHealth) * 100
+  const stars = healthPercent >= 80 ? 3 : healthPercent >= 50 ? 2 : 1
+  starsEarned.value = stars
+
+  // Update level statistics
+  updateHawkDungeonLevel(currentLevel, {
+    completed: true,
+    stars: stars,
+    kills: gameState.kills,
+    score: gameState.kills,
+    survivalTime: sessionTime.value,
+    healthRemaining: gameState.currentHealth
+  })
+
+  // Track achievements before checks
+  const achievementsBeforeCheck = gameData.achievements.length
+
+  // Check level completion achievements
+  checkGameLevelAchievements('hawkDungeon', currentLevel)
+
+  // Check HawkDungeon specific achievements
+  checkHawkDungeonAchievements()
+
+  // Check auto achievements
+  checkAutoAchievements()
+
+  // Collect newly earned achievements
+  const newAchievements = gameData.achievements.slice(achievementsBeforeCheck)
+  newAchievements.forEach(achievement => {
+    earnedAchievements.value.push(achievement)
+  })
+
+  // Check if first time completion
+  const previousStats = gameData.games.hawkDungeon.levels[currentLevel]
+  const isFirstTime = previousStats ? !previousStats.completed : true
+
+  // Calculate level reward
+  const baseLevelReward = currentLevel * 50 // 50 coins per level
+  const starMultiplier = stars * 0.5 // +50% per star
+  const healthBonus = gameState.currentHealth * 5
+  const killsBonus = gameState.kills * 2
+
+  const totalCoins = Math.round(baseLevelReward * (1 + starMultiplier)) + healthBonus + killsBonus
+  const totalDiamonds = stars >= 3 ? 3 : stars >= 2 ? 2 : 1
+
+  // Create reward breakdown
+  const breakdown = []
+
+  // Base completion
+  breakdown.push({
+    type: 'base',
+    source: t('rewards.breakdown.base_completion'),
+    coins: baseLevelReward,
+    diamonds: 0,
+    icon: 'completion',
+    style: 'default'
+  })
+
+  // Star performance
+  if (stars > 0) {
+    breakdown.push({
+      type: 'stars',
+      source: t('rewards.breakdown.star_performance', { stars }),
+      coins: Math.round(baseLevelReward * starMultiplier),
+      diamonds: totalDiamonds,
+      icon: 'star-filled',
+      style: 'performance'
+    })
   }
-  if (!gameData.hawkDungeon.levels[currentLevel - 1]) {
-    gameData.hawkDungeon.levels[currentLevel - 1] = {}
+
+  // Health bonus
+  if (healthBonus > 0) {
+    breakdown.push({
+      type: 'health',
+      source: t('rewards.breakdown.health_bonus', { health: gameState.currentHealth }),
+      coins: healthBonus,
+      diamonds: 0,
+      icon: 'heart',
+      style: 'performance'
+    })
   }
-  gameData.hawkDungeon.levels[currentLevel - 1].completed = true
-  gameData.hawkDungeon.levels[currentLevel - 1].highScore = Math.max(
-    gameData.hawkDungeon.levels[currentLevel - 1].highScore || 0,
-    gameState.kills
-  )
+
+  // Kills bonus
+  if (killsBonus > 0) {
+    breakdown.push({
+      type: 'kills',
+      source: t('rewards.breakdown.kills_bonus', { kills: gameState.kills }),
+      coins: killsBonus,
+      diamonds: 0,
+      icon: 'skull',
+      style: 'performance'
+    })
+  }
+
+  // Add achievement rewards to breakdown
+  if (earnedAchievements.value.length > 0) {
+    earnedAchievements.value.forEach(achievement => {
+      breakdown.push({
+        type: 'achievement',
+        source: t('rewards.breakdown.achievement_reward', { name: t(`achievements.definitions.${achievement.id}.name`) }),
+        coins: achievement.rewards.coins,
+        diamonds: achievement.rewards.diamonds,
+        icon: 'trophy',
+        style: 'achievement'
+      })
+    })
+
+    // Add achievement rewards to totals
+    const achievementCoins = earnedAchievements.value.reduce((sum, a) => sum + a.rewards.coins, 0)
+    const achievementDiamonds = earnedAchievements.value.reduce((sum, a) => sum + a.rewards.diamonds, 0)
+
+    rewardBreakdown.value = {
+      items: breakdown,
+      total: {
+        coins: totalCoins + achievementCoins,
+        diamonds: totalDiamonds + achievementDiamonds
+      }
+    }
+
+    levelReward.value = {
+      coins: totalCoins + achievementCoins,
+      diamonds: totalDiamonds + achievementDiamonds
+    }
+
+    // Update player currency with achievements
+    gameData.player.coins = (gameData.player.coins || 0) + totalCoins + achievementCoins
+    gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds + achievementDiamonds
+  } else {
+    rewardBreakdown.value = {
+      items: breakdown,
+      total: {
+        coins: totalCoins,
+        diamonds: totalDiamonds
+      }
+    }
+
+    levelReward.value = {
+      coins: totalCoins,
+      diamonds: totalDiamonds
+    }
+
+    // Update player currency
+    gameData.player.coins = (gameData.player.coins || 0) + totalCoins
+    gameData.player.diamonds = (gameData.player.diamonds || 0) + totalDiamonds
+  }
+
+  // Update game stats
+  const gameStats = {
+    gamesPlayed: gameData.games.hawkDungeon.gamesPlayed + 1,
+    totalScore: gameData.games.hawkDungeon.totalScore + gameState.kills,
+    highScore: Math.max(gameData.games.hawkDungeon.highScore, gameState.kills),
+    maxLevel: Math.max(gameData.games.hawkDungeon.maxLevel, currentLevel),
+    totalKills: gameData.games.hawkDungeon.totalKills + gameState.kills,
+    totalCoins: gameData.games.hawkDungeon.totalCoins + gameState.coins,
+    stars: gameData.games.hawkDungeon.stars + stars,
+    completedLevels: gameData.games.hawkDungeon.completedLevels + (isFirstTime ? 1 : 0)
+  }
+
+  updateGameStats('hawkDungeon', gameStats)
+  addScore(gameState.kills)
+
+  console.log('⚔️ Level completed with achievements!', {
+    level: currentLevel,
+    kills: gameState.kills,
+    healthRemaining: gameState.currentHealth,
+    stars,
+    achievements: earnedAchievements.value.length,
+    reward: rewardBreakdown.value
+  })
 }
 
 // Session timer for endless mode
@@ -337,6 +467,7 @@ const selectedSocketIndex = ref(null)
 const earnedAchievements = ref([])
 const levelReward = ref(0)
 const rewardBreakdown = ref([])
+const starsEarned = ref(0)
 
 // Computed
 const currentLevelConfig = computed(() => getLevelConfig(props.level || gameState.value?.level || 1))
@@ -408,11 +539,8 @@ const handleTryAgain = () => {
 
   // Small delay to ensure cleanup
   setTimeout(() => {
-    // Set the level from props if available
-    if (props.level) {
-      gameState.level = props.level
-    }
-    startGame()
+    // Start game with level from props
+    startGame(props.level || 1)
   }, 100)
 }
 
@@ -647,7 +775,8 @@ onMounted(() => {
     })
   }
 
-  startGame()
+  // Start game with level from props
+  startGame(props.level || 1)
 
   if (isEndlessMode.value) {
     startSessionTimer()

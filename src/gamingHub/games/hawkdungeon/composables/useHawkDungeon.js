@@ -117,15 +117,15 @@ export function useHawkDungeon() {
   // Blood splatter callback
   let bloodSplatterCallback = null
 
-  const startGame = () => {
+  const startGame = (level = 1) => {
     gameState.isRunning = true
-    gameState.level = 1
+    gameState.level = level
     gameState.currentHealth = 10
     gameState.maxHealth = 10
     gameState.kills = 0
     gameState.bossKills = 0
     gameState.bossPhase = false
-    gameState.killGoal = levelConfig[1].killGoal
+    gameState.killGoal = levelConfig[level].killGoal
     gameState.inventory = [] // Reset inventory
 
     // Center knight on screen

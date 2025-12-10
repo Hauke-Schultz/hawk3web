@@ -2294,6 +2294,70 @@ export function useLocalStorage() {
     gameData.games.hawkTower.saveState = null
   }
 
+  // Update Hawk Dungeon level statistics
+  const updateHawkDungeonLevel = (levelNumber, stats) => {
+    if (!gameData.games.hawkDungeon.levels[levelNumber]) {
+      gameData.games.hawkDungeon.levels[levelNumber] = {
+        completed: false,
+        stars: 0,
+        bestKills: 0,
+        bestScore: 0,
+        bestSurvivalTime: 0,
+        healthRemaining: 0
+      }
+    }
+
+    const level = gameData.games.hawkDungeon.levels[levelNumber]
+    const wasCompleted = level.completed
+
+    // Update level statistics
+    if (stats.completed !== undefined) level.completed = stats.completed
+    if (stats.stars !== undefined && stats.stars > level.stars) {
+      level.stars = stats.stars
+    }
+    if (stats.kills !== undefined && stats.kills > level.bestKills) {
+      level.bestKills = stats.kills
+    }
+    if (stats.score !== undefined && stats.score > level.bestScore) {
+      level.bestScore = stats.score
+    }
+    if (stats.survivalTime !== undefined && stats.survivalTime > level.bestSurvivalTime) {
+      level.bestSurvivalTime = stats.survivalTime
+    }
+    if (stats.healthRemaining !== undefined && stats.healthRemaining > level.healthRemaining) {
+      level.healthRemaining = stats.healthRemaining
+    }
+
+    // Calculate total stars
+    gameData.games.hawkDungeon.totalStars = Object.values(gameData.games.hawkDungeon.levels)
+        .reduce((sum, lvl) => sum + (lvl.stars || 0), 0)
+
+    // Update global stats
+    if (stats.kills) gameData.games.hawkDungeon.totalKills += stats.kills
+    if (stats.coins) gameData.games.hawkDungeon.totalCoins += stats.coins
+    if (stats.survivalTime && stats.survivalTime > gameData.games.hawkDungeon.bestSurvivalTime) {
+      gameData.games.hawkDungeon.bestSurvivalTime = stats.survivalTime
+    }
+    if (stats.score && stats.score > gameData.games.hawkDungeon.highScore) {
+      gameData.games.hawkDungeon.highScore = stats.score
+    }
+
+    // Check for first completion achievement
+    if (stats.completed && !wasCompleted) {
+      checkAutoAchievements()
+    }
+  }
+
+  // Save Hawk Dungeon game state
+  const saveHawkDungeonState = (state) => {
+    gameData.games.hawkDungeon.saveState = state
+  }
+
+  // Clear Hawk Dungeon save state
+  const clearHawkDungeonState = () => {
+    gameData.games.hawkDungeon.saveState = null
+  }
+
 	// Return all reactive data and methods
 	return {
 		// Reactive data
@@ -2392,6 +2456,10 @@ export function useLocalStorage() {
     updateHawkTowerLevel,
     saveHawkTowerState,
     clearHawkTowerState,
+
+    updateHawkDungeonLevel,
+    saveHawkDungeonState,
+    clearHawkDungeonState,
 
 		// Data management
 		saveData,

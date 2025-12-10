@@ -111,17 +111,167 @@ export const levelConfig = {
 
   2: {
     level: 2,
-    name: 'Goblin Swarm',
-    description: 'Deeper into darkness',
-    enemyType: 'goblin',
-    spawnRate: 4,
-    maxEnemies: 8,
-    killGoal: 75,
-    hasBoss: false,
+    name: 'The Catacombs',
+    description: 'Navigate through the ancient catacombs',
+    enemyTypes: ['goblin', 'orc'], // Mixed enemy types
+    bossTypes: ['boss'],
+    spawnRate: 4, // Seconds between spawns
+    maxEnemies: 7,
+    killGoal: 8,
+    hasBoss: true, // Boss appears after killGoal reached
     difficulty: 'medium',
     rewards: {
       coins: 150,
       exp: 75
+    },
+    map: {
+      name: 'The Catacombs',
+      description: 'A multi-room dungeon with locked doors and hidden treasures',
+      width: 19,
+      height: 21,
+      playerStart: {
+        x: 2,
+        y: 2
+      },
+      tiles: [
+        '                   ',
+        'WWWWWWAWWWWWWWWWWWW',
+        'W.,:.,M,:........:W',
+        'W^:.,C.,:,D,::^,.,W',
+        'W.,:.:.,:,W.,:.C.:W',
+        'W:.,.^..,.WWD.WWWWW',
+        'WWWD.WWWWW..,.:..:W',
+        'W:.,:.W::,..,^.::.W',
+        'W.,C.:W:.,..,:,.:.W',
+        'W:.^.,W.,.:..:.,:.W',
+        'WWWW.WW:.,.:^.:.:.W',
+        'W.:,:.W.:.,.:.:.,.W',
+        'W,:.,.D.,.,:WWWDWWW',
+        'W.:^..W:,.,:W:.,:.W',
+        'WWBW.WW.:.,.W,C.,:W',
+        'W:H,:.W:,.:.W^.:.,W',
+        'W.,C:.D,.:.,W:.,:.W',
+        'W^.:.,W.:,:.W.,:.,W',
+        'W:..:.WWDWWAW.:,.:W',
+        'W.,,:.,:,:,M.^.,:,W',
+        'WWWWWWWWWWWWWWWWWWW'
+      ],
+      // Under Layer - Bodendeko
+      underLayer: [
+        '...................',
+        '...................',
+        '...b.s..o..........',
+        '...................',
+        '...................',
+        '...................',
+        '...................',
+        '...........b.......',
+        '..b................',
+        '...................',
+        '...........s.......',
+        '...................',
+        '...................',
+        '...................',
+        '...................',
+        '........o..........',
+        '...................',
+        '...................',
+        '..........b........',
+        '......s............',
+        '...................'
+      ],
+      // Over Layer - Spinnenweben etc.
+      overLayer: [
+        'ttttttbtttttttttttt',
+        'ddf................',
+        'df.................',
+        'f..................',
+        '...........t.ttttt.',
+        '.tt.tttttt.........',
+        '.....fddfdf........',
+        '......ffff.........',
+        '...................',
+        '.ttttt.............',
+        '...................',
+        '............ttt.tt.',
+        '...............ffd.',
+        '.tbttt.........fdd.',
+        '...............ffd.',
+        '...................',
+        '...................',
+        '.......t.tta.......',
+        '...................',
+        '...................',
+        '...................'
+      ],
+      chests: [
+        // Chest 1 - Starting room (contains key for first door)
+        {
+          x: 5,
+          y: 3,
+          items: [
+            { type: 'key' },
+            { type: 'diamond', count: 1 },
+            { type: 'ruby', count: 1 },
+            { type: 'emerald', count: 1 },
+          ]
+        },
+        // Chest 2 - Left corridor (contains key for second area)
+        {
+          x: 3,
+          y: 8,
+          items: [
+            { type: 'key' },
+            { type: 'mana', count: 1 },
+            { type: 'ruby', count: 2 }
+          ]
+        },
+        // Chest 3 - Middle room (weapons and gems)
+        {
+          x: 8,
+          y: 8,
+          items: [
+            { type: 'key' },
+            { type: 'weapon', name: 'axe' },
+          ]
+        },
+        // Chest 4 - Right side (key for boss room)
+        {
+          x: 15,
+          y: 4,
+          items: [
+            { type: 'key' },
+            { type: 'diamond', count: 1 },
+            { type: 'ruby', count: 1 },
+            { type: 'health', count: 1 }
+          ]
+        },
+        // Chest 5 - Lower left (special items)
+        {
+          x: 4,
+          y: 16,
+          items: [
+            { type: 'manaPotion', count: 2 },
+            { type: 'weapon', name: 'spear' },
+            { type: 'ruby', count: 1 },
+            { type: 'emerald', count: 1 },
+            { type: 'key' },
+          ]
+        },
+        // Chest 6 - Lower right (final rewards before boss)
+        {
+          x: 13,
+          y: 14,
+          items: [
+            { type: 'health', count: 1 },
+            { type: 'mana', count: 1 },
+            { type: 'diamond', count: 1 },
+            { type: 'ruby', count: 1 },
+            { type: 'key' },
+          ]
+        }
+      ],
+      killGoal: 20,
     }
   },
 
