@@ -116,8 +116,8 @@ export const levelConfig = {
     enemyTypes: ['goblin', 'orc'], // Mixed enemy types
     bossTypes: ['boss'],
     spawnRate: 4, // Seconds between spawns
-    maxEnemies: 7,
-    killGoal: 8,
+    maxEnemies: 8,
+    killGoal: 20,
     hasBoss: true, // Boss appears after killGoal reached
     difficulty: 'medium',
     rewards: {
@@ -136,31 +136,31 @@ export const levelConfig = {
       tiles: [
         '                   ',
         'WWWWWWAWWWWWWWWWWWW',
-        'W.,:.,M,:........:W',
+        'W.,:.,M,:.W......:W',
         'W^:.,C.,:,D,::^,.,W',
         'W.,:.:.,:,W.,:.C.:W',
-        'W:.,.^..,.WWD.WWWWW',
-        'WWWD.WWWWW..,.:..:W',
+        'W:.,.^..,.WWDWWWWWW',
+        'WWWDWWWWWWW.,.:..:W',
         'W:.,:.W::,..,^.::.W',
-        'W.,C.:W:.,..,:,.:.W',
+        'W.,C.:W:C,..,:,.:.W',
         'W:.^.,W.,.:..:.,:.W',
-        'WWWW.WW:.,.:^.:.:.W',
-        'W.:,:.W.:.,.:.:.,.W',
-        'W,:.,.D.,.,:WWWDWWW',
-        'W.:^..W:,.,:W:.,:.W',
-        'WWBW.WW.:.,.W,C.,:W',
+        'WWWWWWW:.,.:^.:.:.W',
+        'W.:,^^W.:.,.:.:.,.W',
+        'W,^C^.D.,.,:WWWWWWW',
+        'W.:^^.W:,.,:W:.,:.W',
+        'WWBWWWW.:.,.W,C.,:W',
         'W:H,:.W:,.:.W^.:.,W',
-        'W.,C:.D,.:.,W:.,:.W',
+        'W.,C:.W,.:.,D:.,:.W',
         'W^.:.,W.:,:.W.,:.,W',
-        'W:..:.WWDWWAW.:,.:W',
+        'W:..:.WWWWWAW.:,.:W',
         'W.,,:.,:,:,M.^.,:,W',
         'WWWWWWWWWWWWWWWWWWW'
       ],
       // Under Layer - Bodendeko
       underLayer: [
-        '...................',
-        '...................',
-        '...b.s..o..........',
+        '.b....b............',
+        '............b......',
+        'b..b.s..o..........',
         '...................',
         '...................',
         '...................',
@@ -193,13 +193,13 @@ export const levelConfig = {
         '...................',
         '.ttttt.............',
         '...................',
-        '............ttt.tt.',
-        '...............ffd.',
-        '.tbttt.........fdd.',
-        '...............ffd.',
-        '...................',
-        '...................',
-        '.......t.tta.......',
+        '............ttttttf',
+        '...............ffdf',
+        '.tbttt........ffddd',
+        '...............ffdd',
+        '...............ffdd',
+        '................ffd',
+        '.......tttta.......',
         '...................',
         '...................',
         '...................'
@@ -269,9 +269,16 @@ export const levelConfig = {
             { type: 'ruby', count: 1 },
             { type: 'key' },
           ]
-        }
+        },
+        {
+          x: 3,
+          y: 12,
+          items: [
+            { type: 'key' },
+            { type: 'ruby', count: 6 }
+          ]
+        },
       ],
-      killGoal: 20,
     }
   },
 
