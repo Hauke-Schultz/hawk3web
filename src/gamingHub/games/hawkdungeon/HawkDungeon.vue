@@ -210,7 +210,9 @@ const {
   stopGame,
   setGameOverCallback,
   setLevelCompletionCallback,
-  setBloodSplatterCallback
+  setBloodSplatterCallback,
+  savePersistentState,
+  clearPersistentState
 } = useHawkDungeon()
 
 // For testing: Unlock weapons with keyboard shortcuts (Alt + 1/2/3)
@@ -511,6 +513,10 @@ const handleModalPlayAgain = () => {
 const handleModalBackToLevels = () => {
   showGameOverModal.value = false
   showGameCompletedModal.value = false
+
+  // Clear persistent state when going back to level selection
+  clearPersistentState()
+
   backToLevelSelection()
 }
 
@@ -522,17 +528,15 @@ const handleNextLevel = () => {
 
   // Navigate to next level
   router.push(`/games/hawkdungeon/level/${nextLevelNum}`)
-
-  // Reload the page to start the new level
-  setTimeout(() => {
-    window.location.reload()
-  }, 100)
 }
 
 const handleTryAgain = () => {
   // Clear all game state
   monsters.value = []
   items.value = []
+
+  // Clear persistent state when retrying (fresh start)
+  clearPersistentState()
 
   // Restart the game completely
   stopGame()

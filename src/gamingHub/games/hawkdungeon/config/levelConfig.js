@@ -284,17 +284,198 @@ export const levelConfig = {
 
   3: {
     level: 3,
-    name: 'The Horde',
-    description: 'Face the goblin horde',
-    enemyType: 'goblin',
-    spawnRate: 3,
-    maxEnemies: 12,
-    killGoal: 100,
-    hasBoss: false,
+    name: 'The Crypts',
+    description: 'Descend into the haunted crypts',
+    enemyTypes: ['goblin', 'orc'], // All enemy types
+    bossTypes: ['boss'],
+    spawnRate: 3, // Faster spawns
+    maxEnemies: 10,
+    killGoal: 30,
+    hasBoss: true,
     difficulty: 'medium',
     rewards: {
-      coins: 200,
-      exp: 100
+      coins: 250,
+      exp: 125
+    },
+    map: {
+      name: 'The Crypts',
+      description: 'A vast crypt with multiple chambers and dark secrets',
+      width: 21,
+      height: 23,
+      playerStart: {
+        x: 2,
+        y: 2
+      },
+      tiles: [
+        '                     ',
+        'WWWWWWWWAWWWWWWWWWWWW',
+        'W.:,.,M,:.W........:W',
+        'W^:.,C.:,.D,::^,C,.,W',
+        'W.,:.:.,:,W.,:.:.:.W',
+        'W:.,.^..,.WWWDWWWWWWW',
+        'WWWDWWWWWW..:,:..:.:W',
+        'W:.,:.W::,C.,^.::^.:W',
+        'W.,C.:W:.,:.,:,.:..,W',
+        'W:.^.,W.,.:^.:.,:.:.W',
+        'WWWWWWW:.,.:..:.:.,.W',
+        'W.:,:.WWDWWWWWWWWWWWW',
+        'W,^C^.W:.,.:W.,:.C.:W',
+        'W.:^..D:.,.,W^.:.,:.W',
+        'WWWWWWW.,.:.W:.,:.:.W',
+        'W:.,C^W:,.:.WWDWWWWWW',
+        'W.,^:.W,.C.,W:.:,^.:W',
+        'W^.^.,D.:,^.W.,.,.:.W',
+        'W:..:.W:.,.,W^.,.C.:W',
+        'W.^^C.WWDWWWW.:^.:.,W',
+        'W.,H:.,:,M,:.^.,:,.,W',
+        'WWWWWWWWWWWWWWWWWWWWW'
+      ],
+      // Under Layer - Bodendeko
+      underLayer: [
+        '.....................',
+        '.b.........b.........',
+        '.......s..o..........',
+        'b....................',
+        '.....................',
+        '.....................',
+        '.....................',
+        '.....k.......b.......',
+        '..b..................',
+        '.....................',
+        '............s........',
+        '.....................',
+        '.........k...........',
+        '.....................',
+        '.....................',
+        '.b.......o...........',
+        '..k..................',
+        '.....................',
+        '........b............',
+        '......s..............',
+        '.....................',
+        '.....................'
+      ],
+      // Over Layer - Spinnenweben etc.
+      overLayer: [
+        'tttttttttatttttttttt.',
+        'ddf..................',
+        'df...................',
+        'f....................',
+        '............t.tttttt.',
+        '.tt.tttttt...........',
+        '.....fddfdf..........',
+        '......ffff...........',
+        '.....................',
+        '.ttttt...............',
+        '.....................',
+        '..............ttttttt',
+        '.................ffdf',
+        '.tbttt...........ffdd',
+        '..................ffd',
+        '..................ffd',
+        '.................ffdd',
+        '.......ttttttttt.....',
+        '.....................',
+        '.....................',
+        '.....................',
+        '.....................'
+      ],
+      chests: [
+        // Chest 1 - Starting room (first key)
+        {
+          x: 5,
+          y: 3,
+          items: [
+            { type: 'key' },
+            { type: 'health', count: 1 },
+            { type: 'ruby', count: 2 },
+            { type: 'emerald', count: 1 }
+          ]
+        },
+        // Chest 2 - Left corridor
+        {
+          x: 3,
+          y: 8,
+          items: [
+            { type: 'key' },
+            { type: 'mana', count: 1 },
+            { type: 'sapphire', count: 2 },
+            { type: 'topaz', count: 1 }
+          ]
+        },
+        // Chest 3 - Upper right area
+        {
+          x: 16,
+          y: 3,
+          items: [
+            { type: 'key' },
+            { type: 'healthPotion', count: 1 },
+            { type: 'diamond', count: 1 }
+          ]
+        },
+        // Chest 4 - Middle left
+        {
+          x: 4,
+          y: 12,
+          items: [
+            { type: 'key' },
+            { type: 'weapon', name: 'axe' },
+            { type: 'amethyst', count: 2 }
+          ]
+        },
+        // Chest 5 - Middle right
+        {
+          x: 16,
+          y: 12,
+          items: [
+            { type: 'key' },
+            { type: 'manaPotion', count: 2 },
+            { type: 'ruby', count: 3 }
+          ]
+        },
+        // Chest 6 - Lower left corridor
+        {
+          x: 3,
+          y: 15,
+          items: [
+            { type: 'key' },
+            { type: 'health', count: 2 },
+            { type: 'emerald', count: 2 }
+          ]
+        },
+        // Chest 7 - Lower middle
+        {
+          x: 7,
+          y: 16,
+          items: [
+            { type: 'weapon', name: 'spear' },
+            { type: 'diamond', count: 1 },
+            { type: 'topaz', count: 2 }
+          ]
+        },
+        // Chest 8 - Lower right before boss
+        {
+          x: 15,
+          y: 18,
+          items: [
+            { type: 'key' },
+            { type: 'health', count: 2 },
+            { type: 'mana', count: 2 },
+            { type: 'ruby', count: 4 }
+          ]
+        },
+        // Chest 9 - Secret lower left
+        {
+          x: 5,
+          y: 19,
+          items: [
+            { type: 'healthPotion', count: 2 },
+            { type: 'manaPotion', count: 2 },
+            { type: 'diamond', count: 2 }
+          ]
+        }
+      ],
+      killGoal: 30,
     }
   },
 

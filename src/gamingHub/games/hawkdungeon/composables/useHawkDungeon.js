@@ -117,6 +117,64 @@ export function useHawkDungeon() {
   // Blood splatter callback
   let bloodSplatterCallback = null
 
+  // LocalStorage keys for persistent state between levels
+  const STORAGE_KEY_INVENTORY = 'hawkdungeon_inventory'
+  const STORAGE_KEY_WEAPONS = 'hawkdungeon_weapons'
+
+  /**
+   * Save inventory and weapons to localStorage
+   */
+  const savePersistentState = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY_INVENTORY, JSON.stringify(gameState.inventory))
+      localStorage.setItem(STORAGE_KEY_WEAPONS, JSON.stringify(gameState.weapons))
+      console.log('💾 Saved inventory and weapons to localStorage:', {
+        inventory: gameState.inventory,
+        weapons: gameState.weapons
+      })
+    } catch (error) {
+      console.error('Failed to save persistent state:', error)
+    }
+  }
+
+  /**
+   * Load inventory and weapons from localStorage
+   */
+  const loadPersistentState = () => {
+    try {
+      const savedInventory = localStorage.getItem(STORAGE_KEY_INVENTORY)
+      const savedWeapons = localStorage.getItem(STORAGE_KEY_WEAPONS)
+
+      if (savedInventory) {
+        gameState.inventory = JSON.parse(savedInventory)
+        console.log('📦 Loaded inventory from localStorage:', gameState.inventory)
+      }
+
+      if (savedWeapons) {
+        gameState.weapons = JSON.parse(savedWeapons)
+        console.log('⚔️ Loaded weapons from localStorage:', gameState.weapons)
+      }
+
+      return { inventory: savedInventory !== null, weapons: savedWeapons !== null }
+    } catch (error) {
+      console.error('Failed to load persistent state:', error)
+      return { inventory: false, weapons: false }
+    }
+  }
+
+  /**
+   * Clear saved persistent state from localStorage
+   */
+  const clearPersistentState = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY_INVENTORY)
+      localStorage.removeItem(STORAGE_KEY_WEAPONS)
+      console.log('🗑️ Cleared persistent state from localStorage')
+    } catch (error) {
+      console.error('Failed to clear persistent state:', error)
+    }
+  }
+
   const startGame = (level = 1) => {
     gameState.isRunning = true
     gameState.level = level
@@ -126,7 +184,20 @@ export function useHawkDungeon() {
     gameState.bossKills = 0
     gameState.bossPhase = false
     gameState.killGoal = levelConfig[level].killGoal
-    gameState.inventory = [] // Reset inventory
+
+    // Try to load saved inventory and weapons from previous level
+    const loaded = loadPersistentState()
+
+    // If no saved state, reset to defaults
+    if (!loaded.inventory) {
+      gameState.inventory = []
+    }
+    if (!loaded.weapons) {
+      gameState.weapons = [
+        { name: 'sword', sockets: [null, null, null] }
+      ]
+      gameState.weapon = 'sword'
+    }
 
     // Center knight on screen
     knight.gridX = 0
@@ -1143,7 +1214,10 @@ export function useHawkDungeon() {
     stopGame,
     setGameOverCallback,
     setLevelCompletionCallback,
-    setBloodSplatterCallback
+    setBloodSplatterCallback,
+    savePersistentState,
+    loadPersistentState,
+    clearPersistentState
   }
 }
 
