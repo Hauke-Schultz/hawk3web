@@ -7,8 +7,8 @@ export const levelConfig = {
     bossTypes: ['boss'],
     spawnRate: 5, // Seconds between spawns
     maxEnemies: 5,
-    killGoal: 5,
-    hasBoss: true, // Boss appears after killGoal reached
+    killGoal: 2,
+    hasBoss: false, // Boss appears after killGoal reached
     difficulty: 'easy',
     rewards: {
       coins: 100,

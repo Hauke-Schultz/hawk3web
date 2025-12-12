@@ -13,7 +13,7 @@
       <div class="game-info">
         <h2 class="game-title">{{ t('hawkDungeon.title') }}</h2>
         <div class="level-indicator" :class="{ 'level-indicator--endless': isEndlessMode }">
-          {{ isEndlessMode ? t('hawkDungeon.endless_mode') : t('hawkDungeon.level_title', { level: gameState.level }) }}
+          {{ isEndlessMode ? t('hawkDungeon.endless_mode') : t('hawkDungeon.level_title', { level: currentLevel }) }}
         </div>
       </div>
     </div>
@@ -94,7 +94,7 @@
     <GameCompletedModal
       :visible="showGameCompletedModal"
       game-name="hawkDungeon"
-      :level="gameState.level"
+      :level="currentLevel"
       :game-title="t('hawkDungeon.title')"
       :final-score="gameState.kills"
       :time-elapsed="0"
@@ -121,7 +121,7 @@
     <GameOverModal
       v-if="!isEndlessMode"
       :visible="showGameOverModal"
-      :level="gameState.level"
+      :level="currentLevel"
       :game-title="t('hawkDungeon.title')"
       :final-score="gameState.kills"
       :game-over-icon="'💀'"
@@ -141,7 +141,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../../composables/useLocalStorage.js'
 import { useI18n } from '../../../composables/useI18n.js'
@@ -168,6 +168,9 @@ const props = defineProps({
     default: 1
   }
 })
+
+// Current level state
+const currentLevel = ref(props.level || 1)
 
 const router = useRouter()
 const { t } = useI18n()
@@ -270,8 +273,7 @@ const checkHawkDungeonAchievements = () => {
 
 // Calculate level rewards and achievements
 const calculateLevelRewards = () => {
-  const currentLevel = gameState.level
-  const levelConfig = getLevelConfig(currentLevel)
+  const levelConfig = getLevelConfig(currentLevel.value)
 
   // Reset earned achievements
   earnedAchievements.value = []
@@ -282,7 +284,7 @@ const calculateLevelRewards = () => {
   starsEarned.value = stars
 
   // Update level statistics
-  updateHawkDungeonLevel(currentLevel, {
+  updateHawkDungeonLevel(currentLevel.value, {
     completed: true,
     stars: stars,
     kills: gameState.kills,
@@ -295,7 +297,7 @@ const calculateLevelRewards = () => {
   const achievementsBeforeCheck = gameData.achievements.length
 
   // Check level completion achievements
-  checkGameLevelAchievements('hawkDungeon', currentLevel)
+  checkGameLevelAchievements('hawkDungeon', currentLevel.value)
 
   // Check HawkDungeon specific achievements
   checkHawkDungeonAchievements()
@@ -310,11 +312,11 @@ const calculateLevelRewards = () => {
   })
 
   // Check if first time completion
-  const previousStats = gameData.games.hawkDungeon.levels[currentLevel]
+  const previousStats = gameData.games.hawkDungeon.levels[currentLevel.value]
   const isFirstTime = previousStats ? !previousStats.completed : true
 
   // Calculate level reward
-  const baseLevelReward = currentLevel * 50 // 50 coins per level
+  const baseLevelReward = currentLevel.value * 50 // 50 coins per level
   const starMultiplier = stars * 0.5 // +50% per star
   const healthBonus = gameState.currentHealth * 5
   const killsBonus = gameState.kills * 2
@@ -428,7 +430,7 @@ const calculateLevelRewards = () => {
     gamesPlayed: gameData.games.hawkDungeon.gamesPlayed + 1,
     totalScore: gameData.games.hawkDungeon.totalScore + gameState.kills,
     highScore: Math.max(gameData.games.hawkDungeon.highScore, gameState.kills),
-    maxLevel: Math.max(gameData.games.hawkDungeon.maxLevel, currentLevel),
+    maxLevel: Math.max(gameData.games.hawkDungeon.maxLevel, currentLevel.value),
     totalKills: gameData.games.hawkDungeon.totalKills + gameState.kills,
     totalCoins: gameData.games.hawkDungeon.totalCoins + gameState.coins,
     stars: gameData.games.hawkDungeon.stars + stars,
@@ -439,7 +441,7 @@ const calculateLevelRewards = () => {
   addScore(gameState.kills)
 
   console.log('⚔️ Level completed with achievements!', {
-    level: currentLevel,
+    level: currentLevel.value,
     kills: gameState.kills,
     healthRemaining: gameState.currentHealth,
     stars,
@@ -472,7 +474,7 @@ const rewardBreakdown = ref([])
 const starsEarned = ref(0)
 
 // Computed
-const currentLevelConfig = computed(() => getLevelConfig(props.level || gameState.value?.level || 1))
+const currentLevelConfig = computed(() => getLevelConfig(currentLevel.value))
 
 const isEndlessMode = computed(() => {
   return currentLevelConfig.value.endless || false
@@ -522,12 +524,26 @@ const handleModalBackToLevels = () => {
 
 const handleNextLevel = () => {
   showGameCompletedModal.value = false
+  nextLevel()
+}
 
-  // Calculate next level
-  const nextLevelNum = gameState.level + 1
+const nextLevel = () => {
+  // Check if there are more levels
+  const maxLevel = 6 // Maximum number of levels in the game
 
-  // Navigate to next level
-  router.push(`/games/hawkdungeon/level/${nextLevelNum}`)
+  if (currentLevel.value < maxLevel) {
+    currentLevel.value++
+    router.push(`/games/hawkdungeon/${currentLevel.value}`)
+    stopGame()
+	  savePersistentState()
+
+    // Small delay to ensure cleanup
+    setTimeout(() => {
+      startGame(currentLevel.value)
+    }, 100)
+  } else {
+    backToLevelSelection()
+  }
 }
 
 const handleTryAgain = () => {
@@ -543,8 +559,8 @@ const handleTryAgain = () => {
 
   // Small delay to ensure cleanup
   setTimeout(() => {
-    // Start game with level from props
-    startGame(props.level || 1)
+    // Start game with current level
+    startGame(currentLevel.value)
   }, 100)
 }
 
@@ -779,8 +795,8 @@ onMounted(() => {
     })
   }
 
-  // Start game with level from props
-  startGame(props.level || 1)
+  // Start game with current level
+  startGame(currentLevel.value)
 
   if (isEndlessMode.value) {
     startSessionTimer()
@@ -810,6 +826,13 @@ onUnmounted(() => {
   // Remove keyboard event listeners
   window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('keyup', handleKeyUp)
+})
+
+// Watch level changes
+watch(() => props.level, (newLevel) => {
+  currentLevel.value = newLevel
+  stopGame()
+  startGame(currentLevel.value)
 })
 </script>
 
