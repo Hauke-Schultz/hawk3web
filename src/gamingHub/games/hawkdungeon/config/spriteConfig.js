@@ -69,7 +69,7 @@ export const spriteConfig = {
   },
 
   // Boss enemy (32×32 px)
-  boss: {
+  boss_orc: {
     width: 32,
     height: 32,
     walk: {
@@ -78,10 +78,10 @@ export const spriteConfig = {
       frameHeight: 32,
       frameDuration: 100,
       startX: 0,
-      startY: 0
+      startY: 32
     }
   },
-  zombie: {
+  boss_zombie: {
     width: 32,
     height: 32,
     walk: {

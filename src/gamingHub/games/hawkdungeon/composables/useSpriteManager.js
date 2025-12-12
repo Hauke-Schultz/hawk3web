@@ -76,7 +76,7 @@ export function useSpriteManager() {
       category = 'player'
     } else if (spriteType === 'goblin' || spriteType === 'orc' || spriteType === 'skeleton') {
       category = 'enemies'
-    } else if (spriteType === 'boss' || spriteType === 'dragon' || spriteType === 'demon') {
+    } else if (spriteType.includes('boss')) {
       category = 'bosses'
     }
 

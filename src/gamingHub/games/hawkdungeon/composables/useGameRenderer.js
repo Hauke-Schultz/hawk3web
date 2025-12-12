@@ -544,7 +544,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         offsetY = (TILE_SIZE - 24 * SPRITE_SCALE) / 2
       } else if (monster.type === 'orc') {
         offsetY = (TILE_SIZE - 24 * SPRITE_SCALE) / 2
-      } else if (monster.type === 'boss') {
+      } else if (monster.type.includes('boss')) {
         // Boss sprite is centered on the 2x2 grid
         offsetY = 0
       }
@@ -557,7 +557,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       let actualSpriteHeight = TILE_SIZE
       if (monster.type === 'goblin' || monster.type === 'orc') {
         actualSpriteHeight = 24 * SPRITE_SCALE
-      } else if (monster.type === 'boss') {
+      } else if (monster.type.includes('boss')) {
         actualSpriteHeight = 46 * SPRITE_SCALE // Boss sprite height from spriteConfig
       }
 
@@ -584,7 +584,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
             ctx.beginPath()
             // Clip rect moves down as monster sinks
             // Use sprite width for clipping (boss is 2x wide)
-            const clipWidth = (monster.type === 'boss') ? spriteWidth : TILE_SIZE
+            const clipWidth = (monster.type.includes('boss')) ? spriteWidth : TILE_SIZE
             ctx.rect(drawX, drawY + deathClipOffsetY, clipWidth, deathClipHeight)
             ctx.clip()
 
@@ -630,7 +630,7 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
       if (monster.state !== 'dead') {
         // Position health bar centered above the monster
         // For boss (2x2), center the health bar over the 2-tile width
-        const healthBarX = monster.type === 'boss' ? drawX + TILE_SIZE / 2 : drawX
+        const healthBarX = monster.type.includes('boss') ? drawX + TILE_SIZE / 2 : drawX
         drawHealthBar(healthBarX, drawY - 12, monster.health, monster.maxHealth)
       }
     })

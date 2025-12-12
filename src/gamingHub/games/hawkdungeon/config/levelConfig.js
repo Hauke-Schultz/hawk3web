@@ -4,7 +4,7 @@ export const levelConfig = {
     name: 'Entrance Hall',
     description: 'First steps into the dungeon',
     enemyTypes: ['goblin', 'orc'], // Mixed enemy types
-    bossTypes: ['boss'],
+    bossTypes: ['boss_orc'],
     spawnRate: 5, // Seconds between spawns
     maxEnemies: 5,
     killGoal: 1,
@@ -114,7 +114,7 @@ export const levelConfig = {
     name: 'The Catacombs',
     description: 'Navigate through the ancient catacombs',
     enemyTypes: ['goblin', 'orc'], // Mixed enemy types
-    bossTypes: ['boss'],
+    bossTypes: ['boss_zombie'],
     spawnRate: 4, // Seconds between spawns
     maxEnemies: 8,
     killGoal: 20,
@@ -287,7 +287,7 @@ export const levelConfig = {
     name: 'The Crypts',
     description: 'Descend into the haunted crypts',
     enemyTypes: ['goblin', 'orc'], // All enemy types
-    bossTypes: ['boss'],
+    bossTypes: ['boss_zombie'],
     spawnRate: 3, // Faster spawns
     maxEnemies: 10,
     killGoal: 30,
