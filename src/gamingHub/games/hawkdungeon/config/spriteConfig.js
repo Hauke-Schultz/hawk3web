@@ -49,8 +49,8 @@ export const spriteConfig = {
       frameWidth: 16,
       frameHeight: 24,
       frameDuration: 100,
-      startX: 368,
-      startY: 158
+      startX: 0,
+      startY: 144
     }
   },
 
@@ -63,24 +63,37 @@ export const spriteConfig = {
       frameWidth: 16,
       frameHeight: 24,
       frameDuration: 100,
-      startX: 368,
-      startY: 182
+      startX: 0,
+      startY: 168
     }
   },
 
-  // Boss enemy (32×46 px)
+  // Boss enemy (32×32 px)
   boss: {
     width: 32,
-    height: 46,
+    height: 32,
     walk: {
       frames: 4,
       frameWidth: 32,
-      frameHeight: 46,
+      frameHeight: 32,
       frameDuration: 100,
-      startX: 16,
-      startY: 337
+      startX: 0,
+      startY: 0
     }
   },
+  zombie: {
+    width: 32,
+    height: 32,
+    walk: {
+      frames: 4,
+      frameWidth: 32,
+      frameHeight: 32,
+      frameDuration: 100,
+      startX: 0,
+      startY: 0
+    }
+  },
+
 
   // Weapons
   weapons: {

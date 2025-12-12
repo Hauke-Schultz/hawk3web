@@ -24,10 +24,10 @@ export const assetConfig = {
   player: '/dungeon/player-v1.png',
 
   // Enemy sprites (goblins, orcs, etc.)
-  enemies: '/dungeon/spritesheet.png',
+  enemies: '/dungeon/enemy-v1.png',
 
   // Boss sprites (large enemies)
-  bosses: '/dungeon/spritesheet.png',
+  bosses: '/dungeon/boss-v1.png',
 
   // Item sprites (potions, keys, gems, etc.)
   items: '/dungeon/items-v1.png',
