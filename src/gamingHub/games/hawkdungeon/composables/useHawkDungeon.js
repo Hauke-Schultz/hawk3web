@@ -98,7 +98,7 @@ export function useHawkDungeon() {
 
   // Movement timing
   let movementTimer = 0
-  const MOVEMENT_DURATION = 600 // 600ms for full step (faster movement)
+  const MOVEMENT_DURATION = 500 // 600ms for full step (faster movement)
 
   // Current movement interpolation
   let isMovingToTarget = false
@@ -314,45 +314,67 @@ export function useHawkDungeon() {
     if (isMovingToTarget) {
       moveProgress += dt / (MOVEMENT_DURATION / 1000)
 
-      // Check if we should queue the next movement (at 70% progress for smoother transitions)
-      if (moveProgress >= 0.6 && knight.movementQueue.length > 0) {
+      // Queue next movement early (at 70% progress) for smoother transitions
+      if (moveProgress >= 0.7 && !knight.nextDirection && knight.movementQueue.length > 0) {
         // Queue next movement early for fluid movement
         const nextDirection = knight.movementQueue.shift()
-        // Store next direction to start after current movement completes
         knight.nextDirection = nextDirection
       }
 
       if (moveProgress >= 1) {
-        // Movement complete - finalize position
-        knight.gridX = moveTargetPos.x
-        knight.gridY = moveTargetPos.y
-        knight.targetGridX = moveTargetPos.x
-        knight.targetGridY = moveTargetPos.y
-        dungeonOffset.x = -knight.gridX * TILE_SIZE
-        dungeonOffset.y = -knight.gridY * TILE_SIZE
-        isMovingToTarget = false
-        moveProgress = 0
+        // Store completed position for trap/fountain checks
+        const completedX = moveTargetPos.x
+        const completedY = moveTargetPos.y
 
-        // Check for traps and fountains after movement is complete
-        checkForTraps()
-        checkForFountains()
+        // Movement complete - finalize position
+        knight.gridX = completedX
+        knight.gridY = completedY
+        knight.targetGridX = completedX
+        knight.targetGridY = completedY
 
         // Check if there's a queued next movement
-        if (knight.nextDirection) {
+        const hasNextMovement = knight.nextDirection !== null
+
+        if (hasNextMovement) {
+          // Start next movement immediately for seamless transition
           const nextDir = knight.nextDirection
           knight.nextDirection = null
+
+          // Reset movement state and start next movement
+          isMovingToTarget = false
+          moveProgress = 0
+
           startMovement(nextDir)
+
+          // Check for traps and fountains on the completed position asynchronously
+          // This doesn't block the next movement from starting
+          setTimeout(() => {
+            // Only check if knight is still on that position (they might have moved)
+            if (knight.gridX === completedX && knight.gridY === completedY) {
+              checkForTraps()
+              checkForFountains()
+            }
+          }, 0)
         } else {
+          // No next movement - complete normally
+          dungeonOffset.x = -knight.gridX * TILE_SIZE
+          dungeonOffset.y = -knight.gridY * TILE_SIZE
+          isMovingToTarget = false
+          moveProgress = 0
+
+          // Check for traps and fountains after movement is complete
+          checkForTraps()
+          checkForFountains()
+
           // No more movements - go to idle
           knight.isMoving = false
           knight.animationState = 'idle'
           knight.animationFrame = 0
         }
       } else {
-        // Smooth interpolation
-        const eased = easeInOutQuad(moveProgress)
-        const currentX = moveStartPos.x + (moveTargetPos.x - moveStartPos.x) * eased
-        const currentY = moveStartPos.y + (moveTargetPos.y - moveStartPos.y) * eased
+        // Linear interpolation for constant speed (no pause between movements)
+        const currentX = moveStartPos.x + (moveTargetPos.x - moveStartPos.x) * moveProgress
+        const currentY = moveStartPos.y + (moveTargetPos.y - moveStartPos.y) * moveProgress
         dungeonOffset.x = -currentX * TILE_SIZE
         dungeonOffset.y = -currentY * TILE_SIZE
       }
@@ -551,7 +573,7 @@ export function useHawkDungeon() {
 
     if (knight.animationState === 'walking') {
       if (animationTimer >= ANIMATION_FRAME_DURATION) {
-        knight.animationFrame = (knight.animationFrame + 1) % 8
+        knight.animationFrame = (knight.animationFrame + 1) % 5
         animationTimer = 0
       }
     } else if (knight.animationState === 'idle') {
