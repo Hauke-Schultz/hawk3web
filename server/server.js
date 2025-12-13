@@ -4,6 +4,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import nodemailer from 'nodemailer'
+import crypto from 'crypto'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -14,6 +15,8 @@ const HIGHSCORES_FILE = path.join(__dirname, 'highscores.json')
 const RSVP_FILE = path.join(__dirname, 'rsvp.json')
 const SPRITE_SHEETS_DIR = path.join(__dirname, '../public/dungeon')
 const ADMIN_EMAIL = 'haukeschultz@gmail.com'
+const USERS_FILE = path.join(__dirname, 'users.json')
+const GAMEDATA_FILE = path.join(__dirname, 'gamedata.json')
 
 // Middleware
 app.use(cors())
@@ -460,6 +463,339 @@ app.delete('/api/highscores/:playerId', async (req, res) => {
 })
 
 // ========================================
+// User & Game Data Functions
+// ========================================
+
+// Hash password using SHA-256
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex')
+}
+
+// Initialize users file if it doesn't exist
+async function initUsersFile() {
+  try {
+    await fs.access(USERS_FILE)
+  } catch {
+    await fs.writeFile(USERS_FILE, JSON.stringify({}))
+    console.log('Created users.json file')
+  }
+}
+
+// Read users from file
+async function readUsers() {
+  try {
+    const data = await fs.readFile(USERS_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('Error reading users:', error)
+    return {}
+  }
+}
+
+// Write users to file
+async function writeUsers(users) {
+  try {
+    await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2))
+    return true
+  } catch (error) {
+    console.error('Error writing users:', error)
+    return false
+  }
+}
+
+// Initialize game data file if it doesn't exist
+async function initGameDataFile() {
+  try {
+    await fs.access(GAMEDATA_FILE)
+  } catch {
+    await fs.writeFile(GAMEDATA_FILE, JSON.stringify({}))
+    console.log('Created gamedata.json file')
+  }
+}
+
+// Read game data from file
+async function readGameData() {
+  try {
+    const data = await fs.readFile(GAMEDATA_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('Error reading game data:', error)
+    return {}
+  }
+}
+
+// Write game data to file
+async function writeGameData(gameData) {
+  try {
+    await fs.writeFile(GAMEDATA_FILE, JSON.stringify(gameData, null, 2))
+    return true
+  } catch (error) {
+    console.error('Error writing game data:', error)
+    return false
+  }
+}
+
+// ========================================
+// User Authentication API Routes
+// ========================================
+
+// POST /api/auth/register - Register a new user
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, password } = req.body
+
+    // Validation
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' })
+    }
+
+    if (username.length < 3 || username.length > 20) {
+      return res.status(400).json({ error: 'Username must be between 3 and 20 characters' })
+    }
+
+    if (password.length < 4) {
+      return res.status(400).json({ error: 'Password must be at least 4 characters' })
+    }
+
+    // Check for invalid characters in username
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      return res.status(400).json({ error: 'Username can only contain letters, numbers, hyphens and underscores' })
+    }
+
+    const users = await readUsers()
+
+    // Check if username already exists
+    if (users[username.toLowerCase()]) {
+      return res.status(400).json({ error: 'Username already exists' })
+    }
+
+    // Create new user
+    const hashedPassword = hashPassword(password)
+    users[username.toLowerCase()] = {
+      username: username,
+      password: hashedPassword,
+      createdAt: new Date().toISOString(),
+      lastLogin: null
+    }
+
+    // Save users
+    const success = await writeUsers(users)
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to create user' })
+    }
+
+    console.log(`✅ New user registered: ${username}`)
+
+    res.json({
+      success: true,
+      message: 'User registered successfully',
+      username: username
+    })
+  } catch (error) {
+    console.error('Error registering user:', error)
+    res.status(500).json({ error: 'Failed to register user' })
+  }
+})
+
+// POST /api/auth/login - Login user
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body
+
+    // Validation
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' })
+    }
+
+    const users = await readUsers()
+    const user = users[username.toLowerCase()]
+
+    // Check if user exists
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username or password' })
+    }
+
+    // Check password
+    const hashedPassword = hashPassword(password)
+    if (user.password !== hashedPassword) {
+      return res.status(401).json({ error: 'Invalid username or password' })
+    }
+
+    // Update last login
+    user.lastLogin = new Date().toISOString()
+    users[username.toLowerCase()] = user
+    await writeUsers(users)
+
+    console.log(`✅ User logged in: ${username}`)
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      username: user.username,
+      createdAt: user.createdAt,
+      lastLogin: user.lastLogin
+    })
+  } catch (error) {
+    console.error('Error logging in:', error)
+    res.status(500).json({ error: 'Failed to login' })
+  }
+})
+
+// ========================================
+// Game Data API Routes
+// ========================================
+
+// POST /api/gamedata/save - Save game data for a user
+app.post('/api/gamedata/save', async (req, res) => {
+  try {
+    const { username, password, gameData } = req.body
+
+    // Validation
+    if (!username || !password || !gameData) {
+      return res.status(400).json({ error: 'Username, password and gameData are required' })
+    }
+
+    // Verify user credentials
+    const users = await readUsers()
+    const user = users[username.toLowerCase()]
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' })
+    }
+
+    const hashedPassword = hashPassword(password)
+    if (user.password !== hashedPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' })
+    }
+
+    // Load existing game data
+    const allGameData = await readGameData()
+
+    // Save game data for this user
+    allGameData[username.toLowerCase()] = {
+      username: user.username,
+      data: gameData,
+      lastSaved: new Date().toISOString()
+    }
+
+    // Write to file
+    const success = await writeGameData(allGameData)
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to save game data' })
+    }
+
+    console.log(`💾 Game data saved for user: ${username}`)
+
+    res.json({
+      success: true,
+      message: 'Game data saved successfully',
+      lastSaved: allGameData[username.toLowerCase()].lastSaved
+    })
+  } catch (error) {
+    console.error('Error saving game data:', error)
+    res.status(500).json({ error: 'Failed to save game data' })
+  }
+})
+
+// POST /api/gamedata/load - Load game data for a user
+app.post('/api/gamedata/load', async (req, res) => {
+  try {
+    const { username, password } = req.body
+
+    // Validation
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' })
+    }
+
+    // Verify user credentials
+    const users = await readUsers()
+    const user = users[username.toLowerCase()]
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' })
+    }
+
+    const hashedPassword = hashPassword(password)
+    if (user.password !== hashedPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' })
+    }
+
+    // Load game data
+    const allGameData = await readGameData()
+    const userGameData = allGameData[username.toLowerCase()]
+
+    if (!userGameData) {
+      return res.json({
+        success: true,
+        message: 'No game data found',
+        gameData: null,
+        lastSaved: null
+      })
+    }
+
+    console.log(`📂 Game data loaded for user: ${username}`)
+
+    res.json({
+      success: true,
+      message: 'Game data loaded successfully',
+      gameData: userGameData.data,
+      lastSaved: userGameData.lastSaved
+    })
+  } catch (error) {
+    console.error('Error loading game data:', error)
+    res.status(500).json({ error: 'Failed to load game data' })
+  }
+})
+
+// GET /api/gamedata/users - Get all users with their statistics
+app.get('/api/gamedata/users', async (req, res) => {
+  try {
+    const users = await readUsers()
+    const allGameData = await readGameData()
+
+    const userStats = []
+
+    for (const [usernameLower, userData] of Object.entries(allGameData)) {
+      const user = users[usernameLower]
+      if (!user) continue
+
+      const gameData = userData.data
+
+      // Calculate statistics
+      const stats = {
+        username: user.username,
+        level: gameData.player?.level || 1,
+        coins: gameData.player?.coins || 0,
+        diamonds: gameData.player?.diamonds || 0,
+        totalScore: gameData.player?.totalScore || 0,
+        gamesPlayed: gameData.player?.gamesPlayed || 0,
+        achievements: gameData.achievements?.filter(a => a.earned).length || 0,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin,
+        lastSaved: userData.lastSaved
+      }
+
+      userStats.push(stats)
+    }
+
+    // Sort by level descending, then by coins
+    userStats.sort((a, b) => {
+      if (b.level !== a.level) return b.level - a.level
+      return b.coins - a.coins
+    })
+
+    res.json({
+      success: true,
+      users: userStats,
+      total: userStats.length
+    })
+  } catch (error) {
+    console.error('Error fetching user stats:', error)
+    res.status(500).json({ error: 'Failed to fetch user statistics' })
+  }
+})
+
+// ========================================
 // RSVP API Routes
 // ========================================
 
@@ -685,11 +1021,15 @@ app.get('/api/health', (req, res) => {
 async function startServer() {
   await initHighscoresFile()
   await initRSVPFile()
+  await initUsersFile()
+  await initGameDataFile()
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`)
     console.log(`📊 Highscores API: http://localhost:${PORT}/api/highscores`)
     console.log(`💌 RSVP API: http://localhost:${PORT}/api/rsvp`)
     console.log(`🎨 Sprite Sheets API: http://localhost:${PORT}/api/sprite-sheets`)
+    console.log(`👤 Auth API: http://localhost:${PORT}/api/auth/*`)
+    console.log(`💾 Game Data API: http://localhost:${PORT}/api/gamedata/*`)
   })
 }
 

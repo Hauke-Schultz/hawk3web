@@ -10,6 +10,7 @@ import HawkDungeonLevels from '../gamingHub/games/hawkdungeon/HawkDungeonLevels.
 import HawkDungeon from '../gamingHub/games/hawkdungeon/HawkDungeon.vue'
 import Shop from '../gamingHub/views/Shop.vue'
 import Profile from '../gamingHub/views/Profile.vue'
+import Users from '../gamingHub/views/Users.vue'
 import Trophy from '../gamingHub/views/Trophy.vue'
 import Settings from '../gamingHub/views/Settings.vue'
 import About from '../views/About.vue'
@@ -160,6 +161,11 @@ export const routes = [
     path: '/profile',
     name: 'Profile',
     component: Profile
+  },
+  {
+    path: '/users',
+    name: 'Users',
+    component: Users
   },
   {
     path: '/trophies',

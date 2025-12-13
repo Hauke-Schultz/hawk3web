@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
@@ -11,12 +11,118 @@ import {RARITY_CONFIG, SHOP_ITEMS} from '../config/shopConfig.js'
 import ConfirmationModal from '../components/ConfirmationModal.vue'
 import GiftCodeModal from '../components/GiftCodeModal.vue'
 import {MYSTERY_ITEMS} from "../config/mysteryBoxConfig.js";
+import { useServerSync } from '../composables/useServerSync.js'
 
 // Services
-const { gameData, updatePlayer, markGiftAsReceived, unmarkGiftAsReceived  } = useLocalStorage()
+const { gameData, updatePlayer, markGiftAsReceived, unmarkGiftAsReceived, exportData, importData, setOnDataChanged  } = useLocalStorage()
 const { t } = useI18n()
 const { getAllOwnedItems, hasItem } = useInventory()
 const router = useRouter()
+
+// Server Sync
+const {
+  serverAuth,
+  loadAuthFromStorage,
+  login,
+  register,
+  logout,
+  saveToServer,
+  loadFromServer
+} = useServerSync()
+
+const showLoginForm = ref(false)
+const loginForm = ref({
+  username: '',
+  password: '',
+  confirmPassword: '',
+  isRegistering: false
+})
+const loginError = ref(null)
+const loginLoading = ref(false)
+
+// Setup auto-sync on mount
+onMounted(() => {
+  // Load auth from storage and auto-load data if logged in
+  const isLoggedIn = loadAuthFromStorage()
+  if (isLoggedIn) {
+    loadFromServer(importData)
+  }
+
+  // Register callback for immediate sync after important actions
+  setOnDataChanged((action) => {
+    console.log(`🔄 Data changed: ${action}, triggering immediate sync`)
+    saveToServer(exportData, true) // immediate = true
+  })
+})
+
+// Auto-sync to server when gameData changes (debounced)
+watch(() => gameData, () => {
+  if (serverAuth.value.isLoggedIn) {
+    saveToServer(exportData, false) // debounced
+  }
+}, { deep: true })
+
+// Login/Register functions
+async function handleLogin() {
+  if (!loginForm.value.username || !loginForm.value.password) {
+    loginError.value = 'Bitte Benutzername und Passwort eingeben'
+    return
+  }
+
+  if (loginForm.value.isRegistering && loginForm.value.password !== loginForm.value.confirmPassword) {
+    loginError.value = 'Passwörter stimmen nicht überein'
+    return
+  }
+
+  loginLoading.value = true
+  loginError.value = null
+
+  try {
+    if (loginForm.value.isRegistering) {
+      // Register new user
+      const regResult = await register(loginForm.value.username, loginForm.value.password)
+      if (!regResult.success) {
+        loginError.value = regResult.error
+        loginLoading.value = false
+        return
+      }
+    }
+
+    // Login (works for both new and existing users)
+    const loginResult = await login(loginForm.value.username, loginForm.value.password)
+
+    if (loginResult.success) {
+      // Load game data from server
+      await loadFromServer(importData)
+
+      showLoginForm.value = false
+      loginForm.value.username = ''
+      loginForm.value.password = ''
+      loginForm.value.confirmPassword = ''
+    } else {
+      loginError.value = loginResult.error
+    }
+  } catch (error) {
+    loginError.value = error.message || 'Login fehlgeschlagen'
+  } finally {
+    loginLoading.value = false
+  }
+}
+
+function handleLogout() {
+  logout()
+  showLoginForm.value = false
+}
+
+function handleLoadFromServer() {
+  loadFromServer(importData)
+}
+
+function toggleLoginForm() {
+  showLoginForm.value = !showLoginForm.value
+  loginError.value = null
+  loginForm.value.isRegistering = false
+}
 
 const giftRedeemResult = ref(null)
 const showGiftModal = ref(false)
@@ -651,6 +757,120 @@ onUnmounted(() => {
 			</div>
 		</section>
 
+
+		<!-- Server Sync Card -->
+		<div class="server-sync-card">
+			<!-- Logged In State -->
+			<div v-if="serverAuth.isLoggedIn" class="sync-info">
+				<div class="sync-header">
+					<div class="sync-user">
+						<span class="username">{{ serverAuth.username }}</span>
+					</div>
+					<button class="btn btn--logout" @click="handleLogout">
+						Abmelden
+					</button>
+				</div>
+
+				<div class="sync-status">
+					<div class="status-item" :class="'status-item--' + serverAuth.syncStatus">
+						<Icon
+								:name="serverAuth.syncStatus === 'syncing' ? 'sync' : serverAuth.syncStatus === 'success' ? 'check' : serverAuth.syncStatus === 'error' ? 'error' : 'cloud'"
+								size="16"
+								:class="{ 'spinning': serverAuth.syncStatus === 'syncing' }"
+						/>
+						<span v-if="serverAuth.syncStatus === 'syncing'">Synchronisiere...</span>
+						<span v-else-if="serverAuth.syncStatus === 'success'">Synchronisiert</span>
+						<span v-else-if="serverAuth.syncStatus === 'error'">Fehler: {{ serverAuth.syncError }}</span>
+						<span v-else>Bereit</span>
+					</div>
+
+					<div v-if="serverAuth.lastSynced" class="last-synced">
+						Zuletzt: {{ new Date(serverAuth.lastSynced).toLocaleString('de-DE') }}
+					</div>
+				</div>
+
+				<button class="btn btn--secondary btn--small" @click="handleLoadFromServer">
+					Vom Server laden
+				</button>
+			</div>
+
+			<!-- Logged Out State -->
+			<div v-else class="sync-login">
+				<div v-if="!showLoginForm" class="login-prompt">
+					<h3>Server-Synchronisation</h3>
+					<p>Melde dich an, um deine Daten auf dem Server zu speichern und auf mehreren Geräten zu synchronisieren.</p>
+					<button class="btn btn--primary" @click="toggleLoginForm">
+						Anmelden / Registrieren
+					</button>
+				</div>
+
+				<!-- Login Form -->
+				<div v-else class="login-form-container">
+					<div class="login-form">
+						<h3>{{ loginForm.isRegistering ? 'Registrieren' : 'Anmelden' }}</h3>
+
+						<div v-if="loginError" class="login-error">
+							{{ loginError }}
+						</div>
+
+						<div class="form-group">
+							<label>Benutzername</label>
+							<input
+									v-model="loginForm.username"
+									type="text"
+									placeholder="Benutzername"
+									:disabled="loginLoading"
+									@keydown.enter="handleLogin"
+							/>
+						</div>
+
+						<div class="form-group">
+							<label>Passwort</label>
+							<input
+									v-model="loginForm.password"
+									type="password"
+									placeholder="Passwort"
+									:disabled="loginLoading"
+									@keydown.enter="handleLogin"
+							/>
+						</div>
+
+						<div v-if="loginForm.isRegistering" class="form-group">
+							<label>Passwort bestätigen</label>
+							<input
+									v-model="loginForm.confirmPassword"
+									type="password"
+									placeholder="Passwort wiederholen"
+									:disabled="loginLoading"
+									@keydown.enter="handleLogin"
+							/>
+						</div>
+
+						<div class="form-actions">
+							<button
+									class="btn btn--primary"
+									:disabled="loginLoading"
+									@click="handleLogin"
+							>
+								<Icon v-if="loginLoading" name="sync" size="14" class="spinning" />
+								{{ loginForm.isRegistering ? 'Registrieren' : 'Anmelden' }}
+							</button>
+
+							<button class="btn btn--secondary" @click="toggleLoginForm" :disabled="loginLoading">
+								Abbrechen
+							</button>
+						</div>
+
+						<div class="form-toggle">
+							<a @click="loginForm.isRegistering = !loginForm.isRegistering">
+								{{ loginForm.isRegistering ? 'Bereits registriert? Hier anmelden' : 'Noch kein Konto? Hier registrieren' }}
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<ConfirmationModal
 			:visible="showGiftModal && giftRedeemResult?.success"
 			:title="t('shop.gifts.gift_redeemed')"
@@ -1208,5 +1428,226 @@ onUnmounted(() => {
 
 .text-warning {
 	color: var(--warning-color);
+}
+
+// Server Sync Card Styles
+.server-sync-card {
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-xl);
+	padding: var(--space-4);
+	margin-bottom: var(--space-4);
+}
+
+.sync-info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.sync-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-bottom: var(--space-2);
+	border-bottom: 1px solid var(--card-border);
+}
+
+.sync-user {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+}
+
+.username {
+	font-size: var(--font-size-lg);
+}
+
+.btn--logout {
+	padding: var(--space-2) var(--space-3);
+	background-color: var(--error-color);
+	color: white;
+
+	&:hover {
+		background-color: #dc2626;
+	}
+}
+
+.sync-status {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+}
+
+.status-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-2);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+
+	&--idle {
+		background-color: var(--bg-secondary);
+		color: var(--text-secondary);
+	}
+
+	&--syncing {
+		background-color: rgba(59, 130, 246, 0.1);
+		color: #3b82f6;
+	}
+
+	&--success {
+		background-color: rgba(16, 185, 129, 0.1);
+		color: var(--success-color);
+	}
+
+	&--error {
+		background-color: rgba(239, 68, 68, 0.1);
+		color: var(--error-color);
+	}
+}
+
+.spinning {
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+.last-synced {
+	font-size: var(--font-size-xs);
+	color: var(--text-secondary);
+	padding-left: var(--space-7);
+}
+
+.btn--small {
+	padding: var(--space-2) var(--space-3);
+	font-size: var(--font-size-sm);
+}
+
+// Login Form Styles
+.sync-login {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.login-prompt {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-3);
+	text-align: center;
+	padding: var(--space-4);
+
+	h3 {
+		font-size: var(--font-size-lg);
+		color: var(--text-color);
+		margin: 0;
+	}
+
+	p {
+		color: var(--text-secondary);
+		margin: 0;
+		max-width: 400px;
+	}
+}
+
+.login-form-container {
+	width: 100%;
+	max-width: 400px;
+}
+
+.login-form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+
+	h3 {
+		text-align: center;
+		margin: 0;
+		color: var(--text-color);
+	}
+}
+
+.login-error {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-2) var(--space-3);
+	background-color: rgba(239, 68, 68, 0.1);
+	color: var(--error-color);
+	border-radius: var(--border-radius-md);
+	font-size: var(--font-size-sm);
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+
+	label {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color);
+	}
+
+	input {
+		padding: var(--space-2) var(--space-3);
+		background-color: var(--bg-secondary);
+		border: 2px solid var(--card-border);
+		border-radius: var(--border-radius-md);
+		font-size: var(--font-size-base);
+		color: var(--text-color);
+		font-family: var(--font-family-base);
+
+		&:focus {
+			outline: none;
+			border-color: var(--primary-color);
+			box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.25);
+		}
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+		&::placeholder {
+			color: var(--text-secondary);
+		}
+	}
+}
+
+.form-actions {
+	display: flex;
+	gap: var(--space-2);
+	margin-top: var(--space-2);
+
+	button {
+		flex: 1;
+	}
+}
+
+.form-toggle {
+	text-align: center;
+	margin-top: var(--space-2);
+
+	a {
+		color: var(--primary-color);
+		font-size: var(--font-size-sm);
+		cursor: pointer;
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
 }
 </style>

@@ -437,6 +437,9 @@ const migrateData = (data) => {
 	return data
 }
 
+// Callback für Server-Sync nach wichtigen Änderungen
+let onDataChangedCallback = null
+
 // Main composable function
 export function useLocalStorage() {
 	// Load initial data from localStorage
@@ -1277,6 +1280,11 @@ export function useLocalStorage() {
       updateNotificationCount()
     }, 100)
 
+    // Trigger server sync callback (if registered)
+    if (onDataChangedCallback) {
+      onDataChangedCallback('dailyRewardClaimed')
+    }
+
     return reward
   }
 
@@ -1678,6 +1686,11 @@ export function useLocalStorage() {
     saveData()
 
     console.log(`🎁 Mystery Box #${pendingBox.mysteryBoxNumber} claimed! Item received: ${pendingBox.item.name} ${pendingBox.item.icon}`)
+
+    // Trigger server sync callback (if registered)
+    if (onDataChangedCallback) {
+      onDataChangedCallback('mysteryBoxClaimed')
+    }
 
     return {
       item: pendingBox.item,
@@ -2358,10 +2371,18 @@ export function useLocalStorage() {
     gameData.games.hawkDungeon.saveState = null
   }
 
+	// Register callback for server sync
+	const setOnDataChanged = (callback) => {
+		onDataChangedCallback = callback
+	}
+
 	// Return all reactive data and methods
 	return {
 		// Reactive data
 		gameData,
+
+		// Server sync
+		setOnDataChanged,
 
 		// Utility functions
 		formatCurrency,

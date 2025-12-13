@@ -250,6 +250,10 @@ const getTodayName = () => {
 					<Icon name="user" size="20" />
 					<span>{{ t('nav.profile') }}</span>
 				</button>
+				<button class="nav-icon-btn" @click="navigateTo('/users')">
+					<Icon name="users" size="20" />
+					<span>Rangliste</span>
+				</button>
 				<button class="nav-icon-btn" @click="navigateTo('/settings')">
 					<Icon name="settings" size="20" />
 					<span>{{ t('nav.settings') }}</span>
