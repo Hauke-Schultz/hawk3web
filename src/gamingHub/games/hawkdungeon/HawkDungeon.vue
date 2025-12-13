@@ -73,6 +73,12 @@
 
     <div v-if="showWeaponSelector" class="inventory-overlay" @click.self="closeWeaponSelector">
       <div class="weapon-selector-container">
+        <GemSelectionPanel
+          :visible="showGemSelection"
+          :inventory="gameState.inventory"
+          @select="handleGemSelected"
+          @close="handleGemSelectionClose"
+        />
         <WeaponInventoryPanel
           :weapons="gameState.weapons"
           :current-weapon="gameState.weapon"
@@ -131,12 +137,6 @@
       @back-to-games="handleModalBackToLevels"
     />
 
-    <GemSelectionModal
-      :visible="showGemSelection"
-      :inventory="gameState.inventory"
-      @select="handleGemSelected"
-      @close="handleGemSelectionClose"
-    />
   </main>
 </template>
 
@@ -156,7 +156,7 @@ import WeaponSelector from './components/WeaponSelector.vue'
 import InventoryPanel from './components/InventoryPanel.vue'
 import WeaponInventoryPanel from './components/WeaponInventoryPanel.vue'
 import WeaponButton from './components/WeaponButton.vue'
-import GemSelectionModal from './components/GemSelectionModal.vue'
+import GemSelectionPanel from './components/GemSelectionPanel.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
 import GameCompletedModal from '../../components/GameCompletedModal.vue'
 import { useHawkDungeon } from './composables/useHawkDungeon'
