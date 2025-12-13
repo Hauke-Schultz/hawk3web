@@ -440,6 +440,9 @@ const migrateData = (data) => {
 // Callback für Server-Sync nach wichtigen Änderungen
 let onDataChangedCallback = null
 
+// Debounce timeout for server sync
+let serverSyncTimeout = null
+
 // Main composable function
 export function useLocalStorage() {
 	// Load initial data from localStorage
@@ -483,8 +486,8 @@ export function useLocalStorage() {
 	Object.assign(gameData, loadData())
 	//checkAutoAchievements()
 
-	// Save data to localStorage
-	const saveData = () => {
+	// Save data to localStorage and server
+	const saveData = async () => {
 		// SSR-safe: Check if localStorage is available (browser only)
 		if (typeof localStorage === 'undefined') {
 			return
@@ -493,9 +496,56 @@ export function useLocalStorage() {
 		try {
 			gameData.player.lastPlayed = new Date().toISOString().split('T')[0]
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(gameData))
+
+			// Try to save to server if logged in
+			await saveToServer()
 		} catch (error) {
 			console.error('Error saving data to localStorage:', error)
 		}
+	}
+
+	// Save to server if user is logged in (debounced)
+	const saveToServer = async () => {
+		// Clear existing timeout
+		if (serverSyncTimeout) {
+			clearTimeout(serverSyncTimeout)
+		}
+
+		// Debounce: wait 1000ms before syncing to server
+		serverSyncTimeout = setTimeout(async () => {
+			try {
+				// Load auth from localStorage
+				const savedAuth = localStorage.getItem('hawk3_server_auth')
+				if (!savedAuth) return
+
+				const auth = JSON.parse(savedAuth)
+				if (!auth.username || !auth.password) return
+
+				// Make API call to save game data
+				const response = await fetch('http://localhost:3000/api/gamedata/save', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						username: auth.username,
+						password: auth.password,
+						gameData: gameData
+					})
+				})
+
+				if (response.ok) {
+					const result = await response.json()
+					console.log('✅ Game data synced to server:', result.lastSaved)
+				} else {
+					const error = await response.json()
+					console.warn('⚠️ Failed to sync to server:', error.error)
+				}
+			} catch (error) {
+				// Silently fail if server is not available
+				console.debug('Server sync skipped:', error.message)
+			}
+		}, 1000)
 	}
 
 	// Auto-save when data changes
@@ -651,6 +701,11 @@ export function useLocalStorage() {
 				stars: level.stars,
 				attempts: level.attempts
 			})
+
+			// Trigger server sync callback (if registered)
+			if (onDataChangedCallback) {
+				onDataChangedCallback(`levelCompleted_${gameName}_${levelNumber}`)
+			}
 		} else {
 			console.log(`XXX No improvements for level ${levelNumber} this time`)
 		}

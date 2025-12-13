@@ -4,7 +4,8 @@
       "Bash(dir:*)",
       "Bash(copy:*)",
       "Bash(curl:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

@@ -7,10 +7,10 @@
         "avatar": "avatar/user",
         "level": 1,
         "experience": 50,
-        "totalScore": 3326,
-        "gamesPlayed": 31,
-        "coins": 12146,
-        "diamonds": 128,
+        "totalScore": 3515,
+        "gamesPlayed": 32,
+        "coins": 11601,
+        "diamonds": 134,
         "createdAt": "2025-11-16",
         "lastPlayed": "2025-12-13",
         "inventory": {
@@ -45,6 +45,28 @@
               "tier": 1,
               "mysteryBoxNumber": 1,
               "claimedAt": "2025-12-08T22:01:53.865Z"
+            },
+            "crystal_orb": {
+              "id": "crystal_orb",
+              "quantity": 1,
+              "purchasedAt": "2025-12-13T20:52:40.087Z",
+              "type": "cosmetic",
+              "category": "profile",
+              "rarity": "rare",
+              "name": "Crystal Orb",
+              "description": "A glowing orb that reveals hidden secrets",
+              "tier": 1,
+              "mysteryBoxNumber": 2,
+              "claimedAt": "2025-12-13T20:52:40.087Z"
+            },
+            "regular_glasses": {
+              "id": "regular_glasses",
+              "quantity": 1,
+              "purchasedAt": "2025-12-13T20:53:45.712Z",
+              "type": "cosmetic",
+              "category": "profile",
+              "rarity": "common",
+              "name": "Smart Glasses"
             }
           },
           "equipped": {
@@ -233,17 +255,124 @@
               },
               "source": "minigame"
             }
+          },
+          {
+            "id": "daily_minigame_1765659155954_r3iku6mnq",
+            "timestamp": "2025-12-13T20:52:35.954Z",
+            "type": "earn",
+            "source": "daily_minigame",
+            "description": "Daily Minigame Reward",
+            "amounts": {
+              "coins": 80,
+              "diamonds": 2
+            },
+            "balanceAfter": {
+              "coins": 12226,
+              "diamonds": 130
+            },
+            "metadata": {
+              "rewardType": "daily_minigame",
+              "gameResult": "reward_claimed",
+              "rewardAmount": {
+                "coins": 80,
+                "diamonds": 2,
+                "source": "minigame",
+                "claimedAt": "2025-12-13T20:52:35.954Z",
+                "claimedDate": "2025-12-13",
+                "mysteryBoxUnlocked": true,
+                "mysteryBoxNumber": 2,
+                "pendingItem": {
+                  "id": "crystal_orb",
+                  "name": "Crystal Orb",
+                  "description": "A glowing orb that reveals hidden secrets",
+                  "category": "profile",
+                  "rarity": "rare",
+                  "icon": "🔮",
+                  "type": "cosmetic",
+                  "tier": 1,
+                  "mysteryBoxNumber": 2
+                }
+              },
+              "source": "minigame"
+            }
+          },
+          {
+            "id": "mystery_box_1765659160088_iy9kap91j",
+            "timestamp": "2025-12-13T20:52:40.088Z",
+            "type": "mystery_item",
+            "source": "mystery_box",
+            "description": "Crystal Orb discovered!",
+            "amounts": {
+              "coins": 0,
+              "diamonds": 0
+            },
+            "balanceAfter": {
+              "coins": 12226,
+              "diamonds": 130
+            },
+            "metadata": {
+              "rewardType": "mystery_item",
+              "mysteryBoxNumber": 2,
+              "isSpecial": false,
+              "totalMysteryBoxesClaimed": 2,
+              "itemReceived": {
+                "id": "crystal_orb",
+                "name": "Crystal Orb",
+                "rarity": "rare",
+                "tier": 1
+              }
+            }
+          },
+          {
+            "id": "purchase_1765659225713_h7qh0anem",
+            "timestamp": "2025-12-13T20:53:45.713Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Smart Glasses",
+            "amounts": {
+              "coins": -1000,
+              "diamonds": 0
+            },
+            "balanceAfter": {
+              "coins": 11226,
+              "diamonds": 130
+            },
+            "metadata": {
+              "itemId": "regular_glasses",
+              "itemName": "Smart Glasses",
+              "category": "profile",
+              "rarity": "common"
+            }
+          },
+          {
+            "id": "tx_1765659256269_2dguw38cm",
+            "timestamp": "2025-12-13T20:54:16.269Z",
+            "type": "earn",
+            "source": "achievement",
+            "description": "Achievement: Stack Beginner",
+            "amounts": {
+              "coins": 150,
+              "diamonds": 1
+            },
+            "balanceAfter": {
+              "coins": 11376,
+              "diamonds": 131
+            },
+            "metadata": {
+              "achievementId": "hawkTower_beginner",
+              "rarity": "common"
+            }
           }
         ],
         "dailyRewards": {
-          "lastClaimed": "2025-12-12",
-          "counter": 9,
+          "lastClaimed": "2025-12-13",
+          "counter": 10,
           "selectedGame": null
         },
         "mysteryBoxes": {
-          "lastClaimed": "2025-12-08",
-          "totalClaimed": 1,
-          "lastClaimedCounter": 5,
+          "lastClaimed": "2025-12-13",
+          "totalClaimed": 2,
+          "lastClaimedCounter": 10,
           "pendingMysteryBox": null
         },
         "milestones": {
@@ -398,17 +527,25 @@
           "levels": {}
         },
         "hawkTower": {
-          "highScore": 35,
-          "totalScore": 35,
-          "gamesPlayed": 1,
+          "highScore": 189,
+          "totalScore": 224,
+          "gamesPlayed": 2,
           "maxLevel": 1,
-          "totalStacks": 3,
-          "totalPerfectStacks": 1,
-          "bestCombo": 0,
-          "maxCombo": 0,
-          "stars": 0,
+          "totalStacks": 23,
+          "totalPerfectStacks": 17,
+          "bestCombo": 5,
+          "maxCombo": 5,
+          "stars": 3,
           "completedLevels": 0,
-          "levels": {}
+          "levels": {
+            "1": {
+              "completed": true,
+              "stars": 3,
+              "bestHeight": 10,
+              "bestScore": 189,
+              "perfectPercent": 80
+            }
+          }
         },
         "hawkDungeon": {
           "highScore": 20,
@@ -445,7 +582,7 @@
         "dailyRewardCard": {
           "read": true,
           "lastShown": null,
-          "readAt": "2025-12-12T19:27:54.479Z"
+          "readAt": "2025-12-13T20:52:35.956Z"
         }
       },
       "achievements": [
@@ -558,15 +695,34 @@
           },
           "earned": true,
           "earnedAt": "2025-12-11T18:33:16.814Z"
+        },
+        {
+          "id": "hawkTower_beginner",
+          "name": "Stack Beginner",
+          "description": "Completed first Hawk Tower level",
+          "category": "hawkTower",
+          "icon": "hawk-tower",
+          "rarity": "common",
+          "rewards": {
+            "coins": 150,
+            "diamonds": 1
+          },
+          "trigger": {
+            "type": "level_complete",
+            "game": "hawkTower",
+            "level": 1
+          },
+          "earned": true,
+          "earnedAt": "2025-12-13T20:54:16.269Z"
         }
       ],
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-13T10:05:18.371Z"
+        "lastUpdated": "2025-12-13T21:00:46.173Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-13T11:05:58.529Z"
+    "lastSaved": "2025-12-13T21:00:47.189Z"
   }
 }
