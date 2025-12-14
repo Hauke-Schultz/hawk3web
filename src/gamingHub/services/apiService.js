@@ -1,21 +1,25 @@
 // API Service for server communication
 
-// Detect if running in production (on haukeschultz.com) or development (localhost)
-const isProduction = typeof window !== 'undefined' && (window.location.hostname === 'haukeschultz.com' || window.location.hostname === 'www.haukeschultz.com')
-
-// Use PHP API in production, Node.js API in development
-const API_BASE_URL = isProduction
-  ? 'https://haukeschultz.com/api'
-  : (import.meta.env.VITE_API_URL || 'http://localhost:3000/api')
-
-// API type determines request format
-const API_TYPE = isProduction ? 'php' : 'node'
-
 class ApiService {
   constructor() {
-    this.baseUrl = API_BASE_URL
-    this.apiType = API_TYPE
+    // Detect environment at runtime (not build time)
+    this.isProduction = this.detectProduction()
+    this.baseUrl = this.getBaseUrl()
+    this.apiType = this.isProduction ? 'php' : 'node'
     console.log(`API Service initialized: ${this.apiType} mode, base URL: ${this.baseUrl}`)
+  }
+
+  detectProduction() {
+    if (typeof window === 'undefined') return false
+    const hostname = window.location.hostname
+    return hostname === 'haukeschultz.com' || hostname === 'www.haukeschultz.com'
+  }
+
+  getBaseUrl() {
+    if (this.isProduction) {
+      return 'https://haukeschultz.com/api'
+    }
+    return import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
   }
 
   // Helper method for making requests
