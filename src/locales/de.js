@@ -125,6 +125,8 @@ export default {
 			merge_bonus: 'Merge-Bonus ({merges} Zusammenfügungen)',
       height_bonus: 'Höhen-Bonus ({height} Blöcke)',
       score_bonus: 'Punkte-Bonus ({score} Punkte)',
+      health_bonus: 'Health Bonus',
+      kills_bonus: 'Kills Bonus',
 		}
 	},
 

@@ -1,7 +1,7 @@
 // API Service for server communication
 
 // Detect if running in production (on haukeschultz.com) or development (localhost)
-const isProduction = window.location.hostname === 'haukeschultz.com' || window.location.hostname === 'www.haukeschultz.com'
+const isProduction = typeof window !== 'undefined' && (window.location.hostname === 'haukeschultz.com' || window.location.hostname === 'www.haukeschultz.com')
 
 // Use PHP API in production, Node.js API in development
 const API_BASE_URL = isProduction
