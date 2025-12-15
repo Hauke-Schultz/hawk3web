@@ -42,6 +42,8 @@ export function useServerSync() {
         username: serverAuth.value.username,
         password: serverAuth.value.password
       }))
+      // Also save username separately for easy access
+      localStorage.setItem('hawk3_current_username', serverAuth.value.username)
     }
   }
 
@@ -79,6 +81,7 @@ export function useServerSync() {
     serverAuth.value.password = ''
     serverAuth.value.lastSynced = null
     localStorage.removeItem('hawk3_server_auth')
+    localStorage.removeItem('hawk3_current_username')
   }
 
   // Save to server (with debounce)

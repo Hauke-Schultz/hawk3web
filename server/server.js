@@ -795,6 +795,139 @@ app.get('/api/gamedata/users', async (req, res) => {
   }
 })
 
+// POST /api/gamedata/sendGift - Send a gift to another user
+app.post('/api/gamedata/sendGift', async (req, res) => {
+  try {
+    const { username, password, recipientUsername, itemId } = req.body
+
+    // Validation
+    if (!username || !password || !recipientUsername || !itemId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username, password, recipientUsername and itemId are required'
+      })
+    }
+
+    // Verify sender credentials
+    const users = await readUsers()
+    const sender = users[username.toLowerCase()]
+
+    if (!sender) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid sender credentials'
+      })
+    }
+
+    const hashedPassword = hashPassword(password)
+    if (sender.password !== hashedPassword) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid sender credentials'
+      })
+    }
+
+    // Check if recipient exists
+    const recipient = users[recipientUsername.toLowerCase()]
+    if (!recipient) {
+      return res.status(404).json({
+        success: false,
+        error: 'Recipient user not found'
+      })
+    }
+
+    // Load game data
+    const allGameData = await readGameData()
+    const senderGameData = allGameData[username.toLowerCase()]
+    const recipientGameData = allGameData[recipientUsername.toLowerCase()]
+
+    if (!senderGameData || !senderGameData.data) {
+      return res.status(404).json({
+        success: false,
+        error: 'Sender game data not found'
+      })
+    }
+
+    // Check if sender owns the item
+    const senderInventory = senderGameData.data.player?.inventory?.items || {}
+    if (!senderInventory[itemId] || senderInventory[itemId].quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Item not found in sender inventory'
+      })
+    }
+
+    // Get item details
+    const itemData = senderInventory[itemId]
+
+    // Remove item from sender's inventory
+    senderInventory[itemId].quantity -= 1
+    if (senderInventory[itemId].quantity <= 0) {
+      delete senderInventory[itemId]
+    }
+
+    // Initialize recipient game data if it doesn't exist
+    if (!recipientGameData || !recipientGameData.data) {
+      allGameData[recipientUsername.toLowerCase()] = {
+        username: recipient.username,
+        data: {
+          player: {
+            inventory: {
+              items: {}
+            }
+          }
+        },
+        lastSaved: new Date().toISOString()
+      }
+    }
+
+    // Add item to recipient's inventory
+    const recipientInventory = allGameData[recipientUsername.toLowerCase()].data.player.inventory.items
+
+    if (!recipientInventory[itemId]) {
+      recipientInventory[itemId] = {
+        id: itemId,
+        quantity: 0,
+        ...itemData,
+        receivedAsGift: true,
+        giftFrom: username,
+        receivedAt: new Date().toISOString()
+      }
+    }
+
+    recipientInventory[itemId].quantity += 1
+
+    // Update last saved timestamps
+    senderGameData.lastSaved = new Date().toISOString()
+    allGameData[recipientUsername.toLowerCase()].lastSaved = new Date().toISOString()
+
+    // Save all game data
+    const success = await writeGameData(allGameData)
+    if (!success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to save game data'
+      })
+    }
+
+    console.log(`🎁 Gift sent: ${username} → ${recipientUsername} (${itemId})`)
+
+    res.json({
+      success: true,
+      message: 'Gift sent successfully',
+      sender: username,
+      recipient: recipientUsername,
+      itemId: itemId
+    })
+  } catch (error) {
+    console.error('Error sending gift:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send gift'
+    })
+  }
+})
+
 // ========================================
 // RSVP API Routes
 // ========================================

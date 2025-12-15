@@ -6,6 +6,7 @@ import { useInventory } from '../composables/useInventory.js'
 import { useLocalStorage } from '../composables/useLocalStorage.js'
 import { useI18n } from '../../composables/useI18n.js'
 import { SHOP_ITEMS, SHOP_CATEGORIES, RARITY_CONFIG } from '../config/shopConfig.js'
+import { apiService } from '../services/apiService.js'
 import Header from '../components/Header.vue'
 import Icon from '../../components/Icon.vue'
 import CurrencyDisplay from '../components/CurrencyDisplay.vue'
@@ -273,14 +274,85 @@ const handleGiftClick = (item) => {
 	showGiftCodeModal.value = true
 }
 
-const handleGiftSend = async (item) => {
+const handleGiftSend = async (data) => {
+	const { item, recipientUsername } = data
+
+	if (!recipientUsername) {
+		console.error('No recipient selected')
+		return
+	}
+
 	try {
-		const result = createGift(item.id)
+		// Get auth credentials
+		const savedAuth = localStorage.getItem('hawk3_server_auth')
+		if (!savedAuth) {
+			showGiftCodeModal.value = false
+			modalType.value = 'gift_error'
+			selectedItem.value = { ...item, error: 'not_logged_in' }
+			showModal.value = true
+			return
+		}
+
+		const auth = JSON.parse(savedAuth)
+
+		// Send gift directly to user via API
+		const result = await apiService.sendGift(auth.username, auth.password, recipientUsername, item.id)
 
 		if (result.success) {
-			// Switch to success mode in same modal
-			sentGiftData.value = result.gift
-			giftCodeModalMode.value = 'success'
+			// Close modal and show success message
+			showGiftCodeModal.value = false
+
+			// Update local inventory
+			const { removeItemFromInventory } = useLocalStorage()
+			removeItemFromInventory(item.id, 1)
+
+			// Save to sentGifts
+			const now = new Date().toISOString()
+			const giftData = {
+				itemId: item.id,
+				itemName: item.name,
+				itemIcon: item.icon,
+				itemRarity: item.rarity,
+				recipientUsername: recipientUsername,
+				senderName: auth.username,
+				sentAt: now,
+				sentDate: now.split('T')[0],
+				method: 'direct' // Direct send via API (not gift code)
+			}
+
+			// Add to sentGifts array
+			if (!gameData.player.gifts) {
+				gameData.player.gifts = {
+					sentToday: 0,
+					receivedToday: 0,
+					lastSentDate: '2023-01-01',
+					lastReceivedDate: '2023-01-01',
+					sentGifts: [],
+					receivedGifts: [],
+					redeemedCodes: []
+				}
+			}
+			gameData.player.gifts.sentGifts.push(giftData)
+
+			// Update daily counter
+			const today = now.split('T')[0]
+			if (gameData.player.gifts.lastSentDate !== today) {
+				gameData.player.gifts.sentToday = 1
+				gameData.player.gifts.lastSentDate = today
+			} else {
+				gameData.player.gifts.sentToday += 1
+			}
+
+			console.log('🎁 Gift saved to sentGifts:', giftData)
+
+			// Show success modal
+			modalType.value = 'gift_sent_success'
+			selectedItem.value = {
+				...item,
+				recipientUsername,
+				sentAt: now
+			}
+			showModal.value = true
 		} else {
 			// Close modal and show error
 			showGiftCodeModal.value = false
@@ -289,7 +361,7 @@ const handleGiftSend = async (item) => {
 			showModal.value = true
 		}
 	} catch (error) {
-		console.error('Gift creation error:', error)
+		console.error('Gift send error:', error)
 		showGiftCodeModal.value = false
 		modalType.value = 'gift_error'
 		selectedItem.value = { ...item, error: 'unknown_error' }

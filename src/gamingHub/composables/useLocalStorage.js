@@ -522,7 +522,10 @@ export function useLocalStorage() {
 				if (!auth.username || !auth.password) return
 
 				// Make API call to save game data
-				const response = await fetch('http://localhost:3000/api/gamedata/save', {
+        const url = import.meta.env.DEV
+            ? 'http://localhost:3000/api/gamedata/save'
+            : 'https://www.haukeschultz.com/api/gamedata/save'
+				const response = await fetch(url, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',

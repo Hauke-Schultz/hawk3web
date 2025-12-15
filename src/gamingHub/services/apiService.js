@@ -127,6 +127,32 @@ class ApiService {
     }
   }
 
+  // Send gift to another user
+  async sendGift(senderUsername, senderPassword, recipientUsername, itemId) {
+    if (this.apiType === 'php') {
+      return this.request('/gamedata.php?action=sendGift', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: senderUsername,
+          password: senderPassword,
+          recipientUsername,
+          itemId,
+          action: 'sendGift'
+        })
+      })
+    } else {
+      return this.request('/gamedata/sendGift', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: senderUsername,
+          password: senderPassword,
+          recipientUsername,
+          itemId
+        })
+      })
+    }
+  }
+
   // Health check (only for Node.js)
   async healthCheck() {
     if (this.apiType === 'node') {

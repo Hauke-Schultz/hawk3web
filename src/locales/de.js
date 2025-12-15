@@ -519,6 +519,13 @@ export default {
       item_removed_from_inventory: 'Item wurde aus dem Inventar entfernt',
       item_will_be_removed: 'Warnung: Item wird aus deinem Inventar entfernt',
       item_returned_to_inventory: 'Item wurde zurück ins Inventar gelegt',
+      select_recipient: 'Empfänger auswählen',
+      choose_user: 'Wähle einen Benutzer',
+      no_users_available: 'Keine Benutzer verfügbar',
+      direct_send_info: 'Direktes Versenden',
+      direct_send_step1: 'Wähle einen Empfänger aus der Liste',
+      direct_send_step2: 'Das Geschenk wird direkt an den Benutzer gesendet',
+      sending_gift: 'Sende Geschenk...',
     },
 	},
 

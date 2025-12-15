@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n.js'
 import Icon from '../../components/Icon.vue'
+import { apiService } from '../services/apiService.js'
 
 const props = defineProps({
 	visible: {
@@ -35,6 +36,11 @@ const isProcessing = ref(false)
 const giftReceived = computed(() => {
 	return props.giftData?.received || false
 })
+
+// User selection for sending gifts
+const availableUsers = ref([])
+const selectedUser = ref(null)
+const isLoadingUsers = ref(false)
 
 const modalTitle = computed(() => {
 	if (props.mode === 'send') {
@@ -113,14 +119,52 @@ const handleClose = () => {
 	emit('close')
 }
 
+const loadAvailableUsers = async () => {
+	isLoadingUsers.value = true
+	try {
+		const response = await apiService.getUserStats()
+		if (response.users) {
+			// Filter out current user
+			const currentUsername = localStorage.getItem('hawk3_current_username')
+			availableUsers.value = response.users
+				.filter(user => user.username !== currentUsername)
+				.map(user => ({
+					username: user.username,
+					level: user.level || 0,
+					totalScore: user.totalScore || 0
+				}))
+		}
+	} catch (error) {
+		console.error('Failed to load users:', error)
+		availableUsers.value = []
+	} finally {
+		isLoadingUsers.value = false
+	}
+}
+
 const handleFinalConfirm = async () => {
+	if (props.mode === 'send' && !selectedUser.value) {
+		return
+	}
+
 	isProcessing.value = true
 	try {
-		await emit('confirm', props.item)
+		await emit('confirm', {
+			item: props.item,
+			recipientUsername: selectedUser.value
+		})
 	} finally {
 		isProcessing.value = false
 	}
 }
+
+// Load users when modal opens in send mode
+watch(() => props.visible, (newVal) => {
+	if (newVal && props.mode === 'send') {
+		loadAvailableUsers()
+		selectedUser.value = null
+	}
+})
 </script>
 
 <template>
@@ -171,13 +215,43 @@ const handleFinalConfirm = async () => {
 						</div>
 					</div>
 
+					<!-- User Selection Dropdown -->
+					<div class="user-selection-section">
+						<label class="selection-label">
+							<Icon name="users" size="20" />
+							{{ t('shop.gifts.select_recipient') }}
+						</label>
+
+						<div v-if="isLoadingUsers" class="loading-state">
+							<Icon name="loading" size="20" class="icon-spin" />
+							<span>{{ t('common.loading') }}</span>
+						</div>
+
+						<select
+							v-else
+							v-model="selectedUser"
+							class="user-select"
+							:disabled="availableUsers.length === 0"
+						>
+							<option :value="null" disabled>
+								{{ availableUsers.length === 0 ? t('shop.gifts.no_users_available') : t('shop.gifts.choose_user') }}
+							</option>
+							<option
+								v-for="user in availableUsers"
+								:key="user.username"
+								:value="user.username"
+							>
+								{{ user.username }} (Level {{ user.level }})
+							</option>
+						</select>
+					</div>
+
 					<!-- Gift Information -->
 					<div class="share-instructions">
-						<h4><Icon name="info" size="20" /> {{ t('shop.gifts.how_it_works') }}</h4>
+						<h4><Icon name="info" size="20" /> {{ t('shop.gifts.direct_send_info') }}</h4>
 						<ul class="info-list">
-							<li>{{ t('shop.gifts.info_step1') }}</li>
-							<li>{{ t('shop.gifts.info_step2') }}</li>
-							<li>{{ t('shop.gifts.info_step3') }}</li>
+							<li>{{ t('shop.gifts.direct_send_step1') }}</li>
+							<li>{{ t('shop.gifts.direct_send_step2') }}</li>
 							<li>{{ t('shop.gifts.one_gift_per_day') }}</li>
 						</ul>
 					</div>
@@ -333,11 +407,11 @@ const handleFinalConfirm = async () => {
 					<button
 							class="btn btn--warning"
 							@click="handleFinalConfirm"
-							:disabled="isProcessing"
+							:disabled="isProcessing || !selectedUser || isLoadingUsers"
 							:class="{ 'btn--loading': isProcessing }"
 					>
 						<Icon v-if="isProcessing" name="loading" size="16" class="icon-spin" />
-						{{ isProcessing ? t('shop.gifts.creating_gift') : t('shop.gifts.send_now') }}
+						{{ isProcessing ? t('shop.gifts.sending_gift') : t('shop.gifts.send_now') }}
 					</button>
 				</div>
 
@@ -667,6 +741,65 @@ const handleFinalConfirm = async () => {
 .info-list {
 	margin: 0;
 	padding-left: var(--space-6);
+}
+
+.user-selection-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.selection-label {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-color);
+}
+
+.user-select {
+	width: 100%;
+	padding: var(--space-3);
+	background-color: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: var(--border-radius-md);
+	color: var(--text-color);
+	font-size: var(--font-size-base);
+	font-family: var(--font-family-base);
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover:not(:disabled) {
+		border-color: var(--primary-color);
+	}
+
+	&:focus {
+		outline: none;
+		border-color: var(--primary-color);
+		box-shadow: 0 0 0 0.125rem rgba(79, 70, 229, 0.25);
+	}
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	option {
+		background-color: var(--card-bg);
+		color: var(--text-color);
+		padding: var(--space-2);
+	}
+}
+
+.loading-state {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	padding: var(--space-4);
+	color: var(--text-secondary);
+	font-size: var(--font-size-sm);
 }
 
 .btn--loading {

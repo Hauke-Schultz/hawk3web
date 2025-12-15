@@ -439,6 +439,13 @@ export default {
       item_removed_from_inventory: 'Item has been removed from inventory',
       item_will_be_removed: 'Warning: Item will be removed from your inventory',
       item_returned_to_inventory: 'Item has been returned to inventory',
+      select_recipient: 'Select Recipient',
+      choose_user: 'Choose a user',
+      no_users_available: 'No users available',
+      direct_send_info: 'Direct Send',
+      direct_send_step1: 'Select a recipient from the list',
+      direct_send_step2: 'The gift will be sent directly to the user',
+      sending_gift: 'Sending gift...',
     },
 	},
 
