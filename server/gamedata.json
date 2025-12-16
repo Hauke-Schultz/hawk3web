@@ -12,7 +12,7 @@
         "coins": 6612,
         "diamonds": 124,
         "createdAt": "2025-11-16",
-        "lastPlayed": "2025-12-15",
+        "lastPlayed": "2025-12-16",
         "inventory": {
           "items": {
             "cap": {
@@ -59,23 +59,17 @@
               "rarity": "common",
               "name": "Smart Glasses"
             },
-            "friendship_ring": {
-              "id": "friendship_ring",
-              "quantity": 1,
-              "purchasedAt": "2025-12-15T20:19:10.443Z",
-              "type": "cosmetic",
-              "category": "gifts",
-              "rarity": "rare",
-              "name": "Friendship Ring"
-            },
             "love_letter": {
               "id": "love_letter",
               "quantity": 1,
-              "purchasedAt": "2025-12-15T22:50:09.852Z",
+              "purchasedAt": "2025-12-16T10:34:25.161Z",
               "type": "cosmetic",
               "category": "gifts",
               "rarity": "common",
-              "name": "Love Letter"
+              "name": "Love Letter",
+              "receivedAsGift": true,
+              "giftFrom": "froppy",
+              "receivedAt": "2025-12-16T10:34:40.399Z"
             }
           },
           "equipped": {
@@ -87,25 +81,12 @@
           "consumables": {}
         },
         "gifts": {
-          "sentToday": 1,
+          "sentToday": 0,
           "receivedToday": 0,
-          "lastSentDate": "2025-12-15",
+          "lastSentDate": "2025-12-14",
           "lastReceivedDate": "2025-12-14",
-          "sentGifts": [
-            {
-              "itemId": "love_letter",
-              "itemName": "Love Letter",
-              "itemIcon": "💌",
-              "itemRarity": "common",
-              "recipientUsername": "Froppy",
-              "senderName": "hauke",
-              "sentAt": "2025-12-15T22:50:14.565Z",
-              "sentDate": "2025-12-15",
-              "method": "direct"
-            }
-          ],
-          "receivedGifts": [],
-          "redeemedCodes": []
+          "sentGifts": [],
+          "receivedGifts": []
         }
       },
       "currency": {
@@ -830,11 +811,11 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-15T22:50:21.726Z"
+        "lastUpdated": "2025-12-16T10:32:52.662Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-15T22:50:23.805Z"
+    "lastSaved": "2025-12-16T10:35:01.383Z"
   },
   "froppy": {
     "username": "Froppy",
@@ -846,8 +827,8 @@
         "experience": 50,
         "totalScore": 3518,
         "gamesPlayed": 34,
-        "coins": 7412,
-        "diamonds": 129,
+        "coins": 1612,
+        "diamonds": 111,
         "createdAt": "2025-11-16",
         "lastPlayed": "2025-12-16",
         "inventory": {
@@ -895,6 +876,15 @@
               "category": "profile",
               "rarity": "common",
               "name": "Smart Glasses"
+            },
+            "love_letter": {
+              "id": "love_letter",
+              "quantity": 1,
+              "purchasedAt": "2025-12-16T10:34:25.161Z",
+              "type": "cosmetic",
+              "category": "gifts",
+              "rarity": "common",
+              "name": "Love Letter"
             }
           },
           "equipped": {
@@ -908,9 +898,21 @@
         "gifts": {
           "sentToday": 1,
           "receivedToday": 0,
-          "lastSentDate": "2025-12-15",
+          "lastSentDate": "2025-12-16",
           "lastReceivedDate": "2025-12-15",
-          "sentGifts": [],
+          "sentGifts": [
+            {
+              "itemId": "love_letter",
+              "itemName": "Love Letter",
+              "itemIcon": "💌",
+              "itemRarity": "common",
+              "recipientUsername": "hauke",
+              "senderName": "froppy",
+              "sentAt": "2025-12-16T10:34:40.408Z",
+              "sentDate": "2025-12-16",
+              "method": "direct"
+            }
+          ],
           "receivedGifts": []
         }
       },
@@ -1306,6 +1308,69 @@
               },
               "source": "minigame"
             }
+          },
+          {
+            "id": "purchase_1765880612083_hjwqxlez8",
+            "timestamp": "2025-12-16T10:23:32.083Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Friendship Ring",
+            "amounts": {
+              "coins": -2500,
+              "diamonds": -8
+            },
+            "balanceAfter": {
+              "coins": 4912,
+              "diamonds": 121
+            },
+            "metadata": {
+              "itemId": "friendship_ring",
+              "itemName": "Friendship Ring",
+              "category": "gifts",
+              "rarity": "rare"
+            }
+          },
+          {
+            "id": "purchase_1765880854729_of5ske8rw",
+            "timestamp": "2025-12-16T10:27:34.729Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Friendship Ring",
+            "amounts": {
+              "coins": -2500,
+              "diamonds": -8
+            },
+            "balanceAfter": {
+              "coins": 2412,
+              "diamonds": 113
+            },
+            "metadata": {
+              "itemId": "friendship_ring",
+              "itemName": "Friendship Ring",
+              "category": "gifts",
+              "rarity": "rare"
+            }
+          },
+          {
+            "id": "purchase_1765881265162_c7h817l46",
+            "timestamp": "2025-12-16T10:34:25.162Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Love Letter",
+            "amounts": {
+              "coins": -800,
+              "diamonds": -2
+            },
+            "balanceAfter": {
+              "coins": 1612,
+              "diamonds": 111
+            },
+            "metadata": {
+              "itemId": "love_letter",
+              "itemName": "Love Letter",
+              "category": "gifts",
+              "rarity": "common"
+            }
           }
         ],
         "dailyRewards": {
@@ -1663,10 +1728,10 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-16T09:20:46.314Z"
+        "lastUpdated": "2025-12-16T10:34:48.262Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-16T10:03:34.891Z"
+    "lastSaved": "2025-12-16T10:34:51.218Z"
   }
 }

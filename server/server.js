@@ -954,11 +954,24 @@ app.post('/api/gamedata/sendGift', async (req, res) => {
           player: {
             inventory: {
               items: {}
+            },
+            gifts: {
+              receivedGifts: []
             }
           }
         },
         lastSaved: new Date().toISOString()
       }
+    }
+
+    // Initialize player.gifts.receivedGifts if it doesn't exist
+    if (!allGameData[recipientUsername.toLowerCase()].data.player.gifts) {
+      allGameData[recipientUsername.toLowerCase()].data.player.gifts = {
+        receivedGifts: []
+      }
+    }
+    if (!allGameData[recipientUsername.toLowerCase()].data.player.gifts.receivedGifts) {
+      allGameData[recipientUsername.toLowerCase()].data.player.gifts.receivedGifts = []
     }
 
     // Add item to recipient's inventory
@@ -976,6 +989,17 @@ app.post('/api/gamedata/sendGift', async (req, res) => {
     }
 
     recipientInventory[itemId].quantity += 1
+
+    // Add gift to receivedGifts list
+    const giftTimestamp = new Date().toISOString()
+    allGameData[recipientUsername.toLowerCase()].data.player.gifts.receivedGifts.push({
+      itemId: itemId,
+      itemName: itemData.name || itemId,
+      quantity: 1,
+      from: username,
+      receivedAt: giftTimestamp,
+      itemData: itemData
+    })
 
     // Update last saved timestamps
     senderGameData.lastSaved = new Date().toISOString()
