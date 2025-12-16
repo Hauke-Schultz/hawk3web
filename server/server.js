@@ -795,6 +795,86 @@ app.get('/api/gamedata/users', async (req, res) => {
   }
 })
 
+// POST /api/gamedata/getReceivedGifts - Get all gifts received by a user
+app.post('/api/gamedata/getReceivedGifts', async (req, res) => {
+  try {
+    const { username, password } = req.body
+
+    // Validation
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username and password are required'
+      })
+    }
+
+    // Verify user credentials
+    const users = await readUsers()
+    const user = users[username.toLowerCase()]
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      })
+    }
+
+    const hashedPassword = hashPassword(password)
+    if (user.password !== hashedPassword) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      })
+    }
+
+    // Load game data
+    const allGameData = await readGameData()
+    const userGameData = allGameData[username.toLowerCase()]
+
+    if (!userGameData || !userGameData.data) {
+      return res.json({
+        success: true,
+        gifts: []
+      })
+    }
+
+    // Get all items that were received as gifts
+    const inventory = userGameData.data.player?.inventory?.items || {}
+    const receivedGifts = []
+
+    for (const [itemId, itemData] of Object.entries(inventory)) {
+      if (itemData.receivedAsGift) {
+        receivedGifts.push({
+          itemId,
+          ...itemData,
+          giftFrom: itemData.giftFrom,
+          receivedAt: itemData.receivedAt
+        })
+      }
+    }
+
+    // Sort by receivedAt (newest first)
+    receivedGifts.sort((a, b) => {
+      const dateA = new Date(a.receivedAt || 0)
+      const dateB = new Date(b.receivedAt || 0)
+      return dateB - dateA
+    })
+
+    console.log(`🎁 Received gifts loaded for user: ${username} (${receivedGifts.length} gifts)`)
+
+    res.json({
+      success: true,
+      gifts: receivedGifts
+    })
+  } catch (error) {
+    console.error('Error getting received gifts:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get received gifts'
+    })
+  }
+})
+
 // POST /api/gamedata/sendGift - Send a gift to another user
 app.post('/api/gamedata/sendGift', async (req, res) => {
   try {

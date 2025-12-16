@@ -46,7 +46,6 @@ const getDefaultData = () => ({
       lastReceivedDate: '2023-01-01',
       sentGifts: [], // Array of sent gift codes
       receivedGifts: [], // Array of received gift data
-      redeemedCodes: [] // Array of redeemed codes to prevent duplicates
     }
 	},
 	notifications: {
@@ -194,8 +193,7 @@ const validateGiftsData = (gifts) => {
       lastSentDate: '2023-01-01',
       lastReceivedDate: '2023-01-01',
       sentGifts: [],
-      receivedGifts: [],
-      redeemedCodes: []
+      receivedGifts: []
     }
   }
 
@@ -206,7 +204,6 @@ const validateGiftsData = (gifts) => {
     lastReceivedDate: typeof gifts.lastReceivedDate === 'string' ? gifts.lastReceivedDate : '2023-01-01',
     sentGifts: Array.isArray(gifts.sentGifts) ? gifts.sentGifts : [],
     receivedGifts: Array.isArray(gifts.receivedGifts) ? gifts.receivedGifts : [],
-    redeemedCodes: Array.isArray(gifts.redeemedCodes) ? gifts.redeemedCodes : []
   }
 }
 
@@ -364,8 +361,7 @@ const migrateData = (data) => {
         lastSentDate: '2023-01-01',
         lastReceivedDate: '2023-01-01',
         sentGifts: [],
-        receivedGifts: [],
-        redeemedCodes: []
+        receivedGifts: []
       }
       console.log('🎁 Gift system data structure added')
     }
@@ -2175,6 +2171,48 @@ export function useLocalStorage() {
     return false
   }
 
+  // Sync received gifts from server
+  const syncReceivedGifts = async () => {
+    const savedAuth = localStorage.getItem('hawk3_server_auth')
+    if (!savedAuth) {
+      console.log('⚠️ No auth credentials found, skipping gift sync')
+      return { success: false, error: 'not_logged_in' }
+    }
+
+    try {
+      const auth = JSON.parse(savedAuth)
+      const { apiService } = await import('../services/apiService.js')
+
+      const result = await apiService.getReceivedGifts(auth.username, auth.password)
+
+      if (result.success && result.receivedGifts) {
+        // Ensure gifts data structure exists
+        if (!gameData.player.gifts) {
+          gameData.player.gifts = validateGiftsData(null)
+        }
+
+        // Merge received gifts from server with local gifts
+        const existingCodes = new Set(gameData.player.gifts.receivedGifts.map(g => g.code))
+
+        result.receivedGifts.forEach(serverGift => {
+          // Only add if not already in local receivedGifts
+          if (!existingCodes.has(serverGift.code)) {
+            gameData.player.gifts.receivedGifts.push(serverGift)
+            console.log(`🎁 New gift received: ${serverGift.itemName} from ${serverGift.senderName}`)
+          }
+        })
+
+        saveData()
+        return { success: true, newGifts: result.receivedGifts.length }
+      }
+
+      return { success: false, error: result.error || 'unknown_error' }
+    } catch (error) {
+      console.error('Failed to sync received gifts:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   const redeemGift = (giftCode) => {
     // Ensure gift data exists
     if (!gameData.player.gifts) {
@@ -2190,14 +2228,6 @@ export function useLocalStorage() {
       }
     }
 
-    // Check if already redeemed
-    if (gameData.player.gifts.redeemedCodes.includes(normalizedCode)) {
-      return {
-        success: false,
-        error: 'already_redeemed'
-      }
-    }
-
     if (!canReceiveGiftToday()) {
       return {
         success: false,
@@ -2210,8 +2240,7 @@ export function useLocalStorage() {
         normalizedCode,
         gameData.player.name,
         gameData.player.gifts.receivedToday,
-        [],
-        gameData.player.gifts.redeemedCodes
+        []
     )
 
     if (!validation.valid) {
@@ -2289,7 +2318,6 @@ export function useLocalStorage() {
       receivedAt: new Date().toISOString()
     })
 
-    gameData.player.gifts.redeemedCodes.push(normalizedCode)
     gameData.player.gifts.receivedToday += 1
 
     console.log(`🎁 Gift redeemed: ${shopItem.name} from ${gift.senderName}`)
@@ -2531,6 +2559,7 @@ export function useLocalStorage() {
     redeemGift,
     markGiftAsReceived,
     unmarkGiftAsReceived,
+    syncReceivedGifts,
 
     updateHawkTowerLevel,
     saveHawkTowerState,

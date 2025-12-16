@@ -525,6 +525,8 @@ export default {
       direct_send_info: 'Direktes Versenden',
       direct_send_step1: 'Wähle einen Empfänger aus der Liste',
       direct_send_step2: 'Das Geschenk wird direkt an den Benutzer gesendet',
+      sent_to_recipient: 'Gesendet an {recipient}',
+      gift_sent_directly: 'Dieses Geschenk wurde direkt über den Server an den Empfänger gesendet.',
       sending_gift: 'Sende Geschenk...',
     },
 	},

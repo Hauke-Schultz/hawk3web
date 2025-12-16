@@ -445,6 +445,8 @@ export default {
       direct_send_info: 'Direct Send',
       direct_send_step1: 'Select a recipient from the list',
       direct_send_step2: 'The gift will be sent directly to the user',
+      sent_to_recipient: 'Sent to {recipient}',
+      gift_sent_directly: 'This gift was sent directly to the recipient via the server.',
       sending_gift: 'Sending gift...',
     },
 	},

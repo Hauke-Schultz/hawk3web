@@ -9,8 +9,8 @@
         "experience": 50,
         "totalScore": 3518,
         "gamesPlayed": 34,
-        "coins": 9912,
-        "diamonds": 134,
+        "coins": 6612,
+        "diamonds": 124,
         "createdAt": "2025-11-16",
         "lastPlayed": "2025-12-15",
         "inventory": {
@@ -59,29 +59,23 @@
               "rarity": "common",
               "name": "Smart Glasses"
             },
-            "champagne_bottle": {
-              "id": "champagne_bottle",
+            "friendship_ring": {
+              "id": "friendship_ring",
               "quantity": 1,
-              "purchasedAt": "2025-12-14T18:52:47.562Z",
+              "purchasedAt": "2025-12-15T20:19:10.443Z",
               "type": "cosmetic",
               "category": "gifts",
-              "rarity": "uncommon",
-              "name": "Champagne Bottle",
-              "receivedAsGift": true,
-              "giftFrom": "Froppy",
-              "receivedAt": "2025-12-14T18:53:06.173Z"
+              "rarity": "rare",
+              "name": "Friendship Ring"
             },
-            "red_rose": {
-              "id": "red_rose",
+            "love_letter": {
+              "id": "love_letter",
               "quantity": 1,
-              "purchasedAt": "2025-12-15T08:41:42.973Z",
+              "purchasedAt": "2025-12-15T22:50:09.852Z",
               "type": "cosmetic",
               "category": "gifts",
               "rarity": "common",
-              "name": "Red Rose",
-              "receivedAsGift": true,
-              "giftFrom": "Froppy",
-              "receivedAt": "2025-12-15T08:41:56.121Z"
+              "name": "Love Letter"
             }
           },
           "equipped": {
@@ -96,16 +90,16 @@
           "sentToday": 1,
           "receivedToday": 0,
           "lastSentDate": "2025-12-15",
-          "lastReceivedDate": "2025-12-15",
+          "lastReceivedDate": "2025-12-14",
           "sentGifts": [
             {
-              "itemId": "champagne_bottle",
-              "itemName": "Champagne Bottle",
-              "itemIcon": "🍾",
-              "itemRarity": "uncommon",
+              "itemId": "love_letter",
+              "itemName": "Love Letter",
+              "itemIcon": "💌",
+              "itemRarity": "common",
               "recipientUsername": "Froppy",
               "senderName": "hauke",
-              "sentAt": "2025-12-15T08:39:37.872Z",
+              "sentAt": "2025-12-15T22:50:14.565Z",
               "sentDate": "2025-12-15",
               "method": "direct"
             }
@@ -436,6 +430,48 @@
               "itemName": "Champagne Bottle",
               "category": "gifts",
               "rarity": "uncommon"
+            }
+          },
+          {
+            "id": "purchase_1765829950444_64lyr8jsz",
+            "timestamp": "2025-12-15T20:19:10.444Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Friendship Ring",
+            "amounts": {
+              "coins": -2500,
+              "diamonds": -8
+            },
+            "balanceAfter": {
+              "coins": 7412,
+              "diamonds": 126
+            },
+            "metadata": {
+              "itemId": "friendship_ring",
+              "itemName": "Friendship Ring",
+              "category": "gifts",
+              "rarity": "rare"
+            }
+          },
+          {
+            "id": "purchase_1765839009854_7fflr4r85",
+            "timestamp": "2025-12-15T22:50:09.854Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Love Letter",
+            "amounts": {
+              "coins": -800,
+              "diamonds": -2
+            },
+            "balanceAfter": {
+              "coins": 6612,
+              "diamonds": 124
+            },
+            "metadata": {
+              "itemId": "love_letter",
+              "itemName": "Love Letter",
+              "category": "gifts",
+              "rarity": "common"
             }
           }
         ],
@@ -794,11 +830,11 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-15T08:40:42.539Z"
+        "lastUpdated": "2025-12-15T22:50:21.726Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-15T08:41:56.121Z"
+    "lastSaved": "2025-12-15T22:50:23.805Z"
   },
   "froppy": {
     "username": "Froppy",
@@ -813,7 +849,7 @@
         "coins": 7412,
         "diamonds": 129,
         "createdAt": "2025-11-16",
-        "lastPlayed": "2025-12-15",
+        "lastPlayed": "2025-12-16",
         "inventory": {
           "items": {
             "cap": {
@@ -824,15 +860,6 @@
               "category": "profile",
               "rarity": "common",
               "name": "Baseball Cap"
-            },
-            "love_letter": {
-              "id": "love_letter",
-              "quantity": 2,
-              "purchasedAt": "2025-12-08T21:48:10.028Z",
-              "type": "cosmetic",
-              "category": "gifts",
-              "rarity": "common",
-              "name": "Love Letter"
             },
             "magic_hat": {
               "id": "magic_hat",
@@ -868,27 +895,6 @@
               "category": "profile",
               "rarity": "common",
               "name": "Smart Glasses"
-            },
-            "champagne_bottle": {
-              "id": "champagne_bottle",
-              "quantity": 1,
-              "purchasedAt": "2025-12-14T18:52:47.562Z",
-              "type": "cosmetic",
-              "category": "gifts",
-              "rarity": "uncommon",
-              "name": "Champagne Bottle",
-              "receivedAsGift": true,
-              "giftFrom": "hauke",
-              "receivedAt": "2025-12-15T08:39:37.842Z"
-            },
-            "red_rose": {
-              "id": "red_rose",
-              "quantity": 1,
-              "purchasedAt": "2025-12-15T08:41:42.973Z",
-              "type": "cosmetic",
-              "category": "gifts",
-              "rarity": "common",
-              "name": "Red Rose"
             }
           },
           "equipped": {
@@ -904,21 +910,8 @@
           "receivedToday": 0,
           "lastSentDate": "2025-12-15",
           "lastReceivedDate": "2025-12-15",
-          "sentGifts": [
-            {
-              "itemId": "red_rose",
-              "itemName": "Red Rose",
-              "itemIcon": "🌹",
-              "itemRarity": "common",
-              "recipientUsername": "hauke",
-              "senderName": "Froppy",
-              "sentAt": "2025-12-15T08:41:56.131Z",
-              "sentDate": "2025-12-15",
-              "method": "direct"
-            }
-          ],
-          "receivedGifts": [],
-          "redeemedCodes": []
+          "sentGifts": [],
+          "receivedGifts": []
         }
       },
       "currency": {
@@ -1670,10 +1663,10 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-15T08:42:20.205Z"
+        "lastUpdated": "2025-12-16T09:20:46.314Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-15T08:42:29.510Z"
+    "lastSaved": "2025-12-16T10:03:34.891Z"
   }
 }

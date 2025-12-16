@@ -232,8 +232,7 @@ gameData = {
       lastSentDate: string,
       lastReceivedDate: string,
       sentGifts: [],
-      receivedGifts: [],
-      redeemedCodes: []
+      receivedGifts: []
     }
   },
   games: {

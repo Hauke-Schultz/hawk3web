@@ -88,16 +88,11 @@ export const validateGiftCodeFormat = (code) => {
   return pattern.test(code.toUpperCase())
 }
 
-export const validateGiftRedemption = (giftCode, currentPlayerName, receivedToday, ownedItems, redeemedCodes) => {
+export const validateGiftRedemption = (giftCode, currentPlayerName, receivedToday, ownedItems) => {
   const decoded = decodeGiftCode(giftCode)
 
   if (!decoded || !decoded.isValid) {
     return { valid: false, error: 'invalid_code' }
-  }
-
-  // Check if already redeemed
-  if (redeemedCodes.includes(giftCode.toUpperCase())) {
-    return { valid: false, error: 'already_redeemed' }
   }
 
   // Check if player is trying to redeem their own gift

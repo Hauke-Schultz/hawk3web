@@ -153,6 +153,28 @@ class ApiService {
     }
   }
 
+  // Get received gifts for current user
+  async getReceivedGifts(username, password) {
+    if (this.apiType === 'php') {
+      return this.request('/gamedata.php?action=getReceivedGifts', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          password,
+          action: 'getReceivedGifts'
+        })
+      })
+    } else {
+      return this.request('/gamedata/getReceivedGifts', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          password
+        })
+      })
+    }
+  }
+
   // Health check (only for Node.js)
   async healthCheck() {
     if (this.apiType === 'node') {

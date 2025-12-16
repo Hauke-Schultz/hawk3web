@@ -13,15 +13,9 @@ import CurrencyDisplay from '../components/CurrencyDisplay.vue'
 import ShopModal from '../components/ShopModal.vue'
 import GiftCodeModal from "../components/GiftCodeModal.vue";
 
-const props = defineProps({
-	autoRedeemCode: {
-		type: String,
-		default: null
-	}
-})
 
 // Services
-const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift, canReceiveGiftToday, redeemGift, markGiftAsReceived, unmarkGiftAsReceived } = useLocalStorage()
+const { gameData, buyItem, canSendGiftToday, getGiftableItems, createGift } = useLocalStorage()
 const { selectedCategory, currentCategoryItems, canAffordItem } = useShop()
 const { hasItem } = useInventory()
 const { t } = useI18n()
@@ -29,13 +23,9 @@ const router = useRouter()
 
 // Modal state
 const showModal = ref(false)
-const showGiftModal = ref(false)
 const selectedItem = ref(null)
 const modalType = ref('purchase') // 'purchase', 'insufficient', 'owned'
 const justPurchasedItems = ref([])
-const giftCode = ref('')
-const giftRedeemResult = ref(null)
-const isRedeeming = ref(false)
 
 // Reactive player balance
 const playerBalance = computed(() => ({
@@ -74,54 +64,6 @@ const handleItemClick = (item) => {
 
 	showModal.value = true
 }
-
-const handleGiftRedeem = async () => {
-	if (!giftCode.value.trim()) {
-		modalType.value = 'invalid_code'
-		giftRedeemResult.value = {
-			success: false,
-			message: t('shop.gifts.unknown_error')
-		}
-		return
-	}
-
-	isRedeeming.value = true
-
-	try {
-		const result = await redeemGift(giftCode.value.trim())
-
-		if (result.success) {
-			modalType.value = 'gift_received'
-			showModal.value = true
-			giftRedeemResult.value = {
-				success: true,
-				message: t('shop.gifts.gift_received')
-			}
-
-			// Clear input
-			giftCode.value = ''
-		} else {
-			modalType.value = 'invalid_code'
-			giftRedeemResult.value = {
-				success: false,
-				message: t('shop.gifts.unknown_error')
-			}
-		}
-	} catch (error) {
-		console.error('Gift redemption error:', error)
-		modalType.value = 'invalid_code'
-		giftRedeemResult.value = {
-			success: false,
-			message: t('shop.gifts.unknown_error')
-		}
-	} finally {
-		isRedeeming.value = false
-	}
-}
-
-const canRedeemGiftsToday = computed(() => {
-	return canReceiveGiftToday()
-})
 
 const handlePurchaseConfirm = async () => {
 	if (!selectedItem.value || modalType.value !== 'purchase') {
@@ -269,7 +211,6 @@ const handleGiftClick = (item) => {
 
 	// Open gift code modal in send mode
 	selectedGiftForSend.value = item
-	sentGiftData.value = null
 	giftCodeModalMode.value = 'send'
 	showGiftCodeModal.value = true
 }
@@ -328,8 +269,7 @@ const handleGiftSend = async (data) => {
 					lastSentDate: '2023-01-01',
 					lastReceivedDate: '2023-01-01',
 					sentGifts: [],
-					receivedGifts: [],
-					redeemedCodes: []
+					receivedGifts: []
 				}
 			}
 			gameData.player.gifts.sentGifts.push(giftData)
@@ -417,14 +357,12 @@ const showGiftCodeModal = ref(false)
 const selectedGiftCode = ref(null)
 const selectedGiftForSend = ref(null)
 const giftCodeModalMode = ref('view')
-const sentGiftData = ref(null)
 
 const handleGiftStatusClick = (item) => {
 	const status = getGiftStatus(item)
 
 	if (status.sentToday) {
 		selectedGiftCode.value = status.sentToday
-		sentGiftData.value = null
 		giftCodeModalMode.value = 'view'
 		showGiftCodeModal.value = true
 	} else {
@@ -436,29 +374,7 @@ const closeGiftCodeModal = () => {
 	showGiftCodeModal.value = false
 	selectedGiftCode.value = null
 	selectedGiftForSend.value = null
-	sentGiftData.value = null
 	giftCodeModalMode.value = 'view'
-}
-
-const unMarkAsReceived = () => {
-	if (selectedGiftCode.value) {
-		const success = markGiftAsReceived(selectedGiftCode.value.code)
-		if (success) {
-			selectedGiftCode.value.received = false
-			selectedGiftCode.value.receivedAt = null
-		}
-	}
-}
-
-const markAsReceived = async () => {
-	if (selectedGiftCode.value) {
-		const success = markGiftAsReceived(selectedGiftCode.value.code)
-		if (success) {
-			// Update local state
-			selectedGiftCode.value.received = true
-			selectedGiftCode.value.receivedAt = new Date().toISOString()
-		}
-	}
 }
 
 // Navigation
@@ -466,18 +382,6 @@ const handleMenuClick = () => {
 	router.push('/gaming')
 }
 
-onMounted(() => {
-	// Auto-redeem wenn Code in URL
-	if (props.autoRedeemCode) {
-		giftCode.value = props.autoRedeemCode
-		selectedCategory.value = 'gifts' // Switch to gifts tab
-
-		// Small delay for UI to render
-		setTimeout(() => {
-			handleGiftRedeem()
-		}, 500)
-	}
-})
 
 // watch gameData if changes are needed
 watch(() => gameData, (newData) => {
@@ -496,13 +400,6 @@ watch(() => gameData, (newData) => {
 	/>
 
 	<main class="shop">
-		<div v-if="props.autoRedeemCode && isRedeeming" class="auto-redeem-overlay">
-			<div class="auto-redeem-content">
-				<Icon name="heart" size="48" class="icon-spin" />
-				<p>{{ t('shop.gifts.auto_redeeming') }}</p>
-			</div>
-		</div>
-
 		<!-- Shop Header -->
 		<div class="shop-header">
 			<div class="shop-title-section">
@@ -523,51 +420,6 @@ watch(() => gameData, (newData) => {
 				<Icon :name="category.icon" size="20" />
 				<span>{{ t(`shop.categories.${category.id}`) }}</span>
 			</button>
-		</div>
-
-		<div
-				v-if="selectedCategory === 'gifts'"
-				class="gift-section"
-		>
-			<label class="item-name">{{ t('shop.gifts.enter_gift_code') }}</label>
-			<div class="gift-redeem-section">
-				<div class="gift-input-group">
-					<input
-							v-model="giftCode"
-							type="text"
-							class="gift-code-input"
-							:placeholder="t('shop.gifts.gift_code_placeholder')"
-							:disabled="!canRedeemGiftsToday || isRedeeming"
-							maxlength="50"
-							@keydown.enter="handleGiftRedeem"
-					/>
-					<button
-							class="btn btn--primary"
-							:class="{ 'btn--loading': isRedeeming }"
-							@click="handleGiftRedeem"
-					>
-						{{ isRedeeming ? t('common.loading') : t('shop.gifts.redeem_gift') }}
-					</button>
-				</div>
-
-				<!-- Gift Redeem Result -->
-				<template v-if="giftRedeemResult && !showGiftModal">
-					<div v-if="giftRedeemResult.success" class="gift-result gift-result--success">
-						<Icon name="completion-badge" size="20" />
-						<span>{{ giftRedeemResult.message }}</span>
-					</div>
-					<div v-else class="gift-result gift-result--error">
-						<Icon name="close" size="20" />
-						<span>{{ giftRedeemResult.message }}</span>
-					</div>
-				</template>
-
-				<!-- Gift Limit Warning -->
-				<div v-if="!canRedeemGiftsToday" class="gift-result gift-result--warning">
-					<Icon name="info" size="16" />
-					<span>{{ t('shop.gifts.daily_limit_message') }}</span>
-				</div>
-			</div>
 		</div>
 
 		<!-- Items Grid -->
@@ -681,12 +533,10 @@ watch(() => gameData, (newData) => {
 		<GiftCodeModal
 				:visible="showGiftCodeModal"
 				:mode="giftCodeModalMode"
-				:gift-data="giftCodeModalMode === 'success' ? sentGiftData : selectedGiftCode"
+				:gift-data="selectedGiftCode"
 				:item="selectedGiftForSend"
 				:player-balance="playerBalance"
 				@confirm="handleGiftSend"
-				@mark-received="markAsReceived"
-				@unmark-received="unMarkAsReceived"
 				@close="closeGiftCodeModal"
 		/>
 	</main>
@@ -996,15 +846,6 @@ watch(() => gameData, (newData) => {
 }
 
 // Gift-specific styles
-.gift-section {
-	border: 1px solid var(--card-border);
-	border-radius: var(--border-radius-lg);
-	padding: var(--space-3);
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-3);
-}
-
 .shop-item--gift-mode {
 	position: relative;
 
@@ -1057,73 +898,6 @@ watch(() => gameData, (newData) => {
 
 	&:hover {
 		background-color: var(--primary-hover);
-	}
-}
-
-
-// Gift Redeem Section
-.gift-redeem-section {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-3);
-}
-
-.gift-input-group {
-	display: flex;
-	gap: var(--space-2);
-}
-
-.gift-code-input {
-	background-color: var(--card-bg);
-	border: 1px solid var(--card-border);
-	border-radius: var(--border-radius-md);
-	padding: var(--space-3) var(--space-4);
-	font-size: var(--font-size-base);
-	color: var(--text-color);
-	font-family: 'Courier New', monospace;
-	text-transform: uppercase;
-	letter-spacing: 1px;
-	transition: all 0.2s ease;
-	width: 100%;
-
-	&:focus {
-		outline: none;
-		border-color: var(--primary-color);
-		box-shadow: 0 0 0 0.125rem rgba(79, 70, 229, 0.25);
-	}
-
-	&:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	&::placeholder {
-		color: var(--text-muted);
-		text-transform: none;
-		letter-spacing: normal;
-	}
-}
-
-.gift-result {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	padding: var(--space-2);
-	color: white;
-	border-radius: var(--border-radius-md);
-	font-size: var(--font-size-sm);
-	font-weight: var(--font-weight-bold);
-
-	&--success {
-		background-color: var(--success-color);
-	}
-
-	&--warning {
-		background-color: var(--warning-color);
-	}
-
-	&--error {
-		background-color: var(--error-color);
 	}
 }
 
@@ -1257,29 +1031,4 @@ watch(() => gameData, (newData) => {
 	}
 }
 
-.auto-redeem-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.8);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 2000;
-}
-
-.auto-redeem-content {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--space-4);
-	color: white;
-
-	p {
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-bold);
-	}
-}
 </style>

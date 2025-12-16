@@ -14,7 +14,7 @@ import {MYSTERY_ITEMS} from "../config/mysteryBoxConfig.js";
 import { useServerSync } from '../composables/useServerSync.js'
 
 // Services
-const { gameData, updatePlayer, markGiftAsReceived, unmarkGiftAsReceived, exportData, importData, setOnDataChanged  } = useLocalStorage()
+const { gameData, updatePlayer, exportData, importData, setOnDataChanged, syncReceivedGifts  } = useLocalStorage()
 const { t } = useI18n()
 const { getAllOwnedItems, hasItem } = useInventory()
 const router = useRouter()
@@ -41,11 +41,14 @@ const loginError = ref(null)
 const loginLoading = ref(false)
 
 // Setup auto-sync on mount
-onMounted(() => {
+onMounted(async () => {
   // Load auth from storage and auto-load data if logged in
   const isLoggedIn = loadAuthFromStorage()
   if (isLoggedIn) {
     loadFromServer(importData)
+
+    // Sync received gifts from server
+    await syncReceivedGifts()
   }
 
   // Register callback for immediate sync after important actions
@@ -53,6 +56,8 @@ onMounted(() => {
     console.log(`🔄 Data changed: ${action}, triggering immediate sync`)
     saveToServer(exportData, true) // immediate = true
   })
+
+  document.addEventListener('click', handleOutsideClick)
 })
 
 // Auto-sync to server when gameData changes (debounced)
@@ -299,25 +304,29 @@ const regularInventory = computed(() => {
 })
 
 const receivedGifts = computed(() => {
+	const giftsMap = new Map()
+
+	// 1. Get gifts from gameData.player.gifts.receivedGifts (old structure)
 	const receivedGiftsData = gameData.player.gifts?.receivedGifts || []
-
-	return receivedGiftsData
-			.map(gift => {
-				let shopItem = SHOP_ITEMS.find(item => item.id === gift.itemId)
-				if (!shopItem) {
-					shopItem = MYSTERY_ITEMS.find(item => item.id === gift.itemId)
-				}
-				if (!shopItem) return null
-
-				return {
-					...shopItem,
-					senderName: gift.senderName,
-					receivedAt: gift.receivedAt,
-					giftCode: gift.code,
-					giftType: 'received'
-				}
+	receivedGiftsData.forEach(gift => {
+		let shopItem = SHOP_ITEMS.find(item => item.id === gift.itemId)
+		if (!shopItem) {
+			shopItem = MYSTERY_ITEMS.find(item => item.id === gift.itemId)
+		}
+		if (shopItem) {
+			const key = `${gift.itemId}_${gift.receivedAt}`
+			giftsMap.set(key, {
+				...shopItem,
+				senderName: gift.senderName,
+				receivedAt: gift.receivedAt,
+				giftCode: gift.code,
+				giftType: 'received'
 			})
-			.filter(Boolean)
+		}
+	})
+
+	// Convert map to array and sort by receivedAt (newest first)
+	return Array.from(giftsMap.values())
 			.sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt))
 })
 
@@ -338,11 +347,10 @@ const sentGifts = computed(() => {
 				return {
 					...shopItem,
 					giftCode: gift.code,
-					sentDate: gift.createdAt,
-					received: gift.received || false,
-					receivedAt: gift.receivedAt,
-					expiresAt: gift.expiresAt,
-					giftType: gift.received ? 'sent-received' : 'sent-pending'
+					sentDate: gift.sentAt || gift.createdAt,
+					recipientUsername: gift.recipientUsername,
+					method: gift.method,
+					giftType: 'sent-direct'
 				}
 			})
 			.filter(Boolean)
@@ -362,15 +370,13 @@ const showSentGiftModal = ref(false)
 
 const handleSentGiftClick = (gift) => {
 	selectedSentGift.value = {
-		code: gift.giftCode,
 		itemId: gift.id,
 		itemName: gift.name,
 		itemIcon: gift.icon,
 		itemRarity: gift.rarity,
-		createdAt: gift.sentDate,
-		expiresAt: gift.expiresAt,
-		received: gift.received,
-		receivedAt: gift.receivedAt
+		sentAt: gift.sentDate,
+		recipientUsername: gift.recipientUsername,
+		method: gift.method
 	}
 	showSentGiftModal.value = true
 }
@@ -378,26 +384,6 @@ const handleSentGiftClick = (gift) => {
 const closeSentGiftModal = () => {
 	showSentGiftModal.value = false
 	selectedSentGift.value = null
-}
-
-const handleSentGiftMarkReceived = () => {
-	if (selectedSentGift.value) {
-		const success = markGiftAsReceived(selectedSentGift.value.code)
-		if (success) {
-			selectedSentGift.value.received = true
-			selectedSentGift.value.receivedAt = new Date().toISOString()
-		}
-	}
-}
-
-const handleSentGiftUnmarkReceived = () => {
-	if (selectedSentGift.value) {
-		const success = unmarkGiftAsReceived(selectedSentGift.value.code)
-		if (success) {
-			selectedSentGift.value.received = false
-			selectedSentGift.value.receivedAt = null
-		}
-	}
 }
 
 const getGiftDate = (item) => {
@@ -446,10 +432,6 @@ const selectAvatar = (avatar) => {
 const handleMenuClick = () => {
 	router.push('/gaming')
 }
-
-onMounted(() => {
-	document.addEventListener('click', handleOutsideClick)
-})
 
 // Add to onUnmounted
 onUnmounted(() => {
@@ -673,17 +655,15 @@ onUnmounted(() => {
 
 								<div class="item-details">
 									<span class="item-name">{{ item.name }}</span>
-									<span class="item-source item-source--gift-received">
-			              {{ item.description }}
-			            </span>
+
+									<!-- Gift From Info -->
+									<div class="item-source item-source--gift-received">
+										<Icon name="user" size="16" />
+										{{ t('profile.inventory.gift_from', { sender: item.senderName || 'Unknown' }) }}
+									</div>
 
 									<!-- Gift Date -->
-									<div class="gift-history">
-										<div class="gift-history-item">
-											<span class="gift-sender">{{ item.senderName }}</span>
-											<span class="gift-date">{{ getGiftDate(item) }}</span>
-										</div>
-									</div>
+									<span class="item-quantity">{{ getGiftDate(item) }}</span>
 								</div>
 							</div>
 						</div>
@@ -698,45 +678,21 @@ onUnmounted(() => {
 						<div class="inventory-items">
 							<div
 								v-for="gift in sentGifts"
-								:key="`sent-gift-${gift.giftCode}`"
-								class="inventory-item inventory-item--sent-gift"
-								:class="{
-			            'inventory-item--gift-received': gift.received,
-			            'inventory-item--gift-pending': !gift.received
-			          }"
+								:key="`sent-gift-${gift.giftCode || gift.recipientUsername}`"
+								class="inventory-item inventory-item--sent-gift inventory-item--gift-sent-direct"
 								@click="handleSentGiftClick(gift)"
 							>
 			          <span
-				          class="item-icon"
-				          :class="{
-			              'item-icon--gift-received': gift.received,
-			              'item-icon--gift-pending': !gift.received
-			            }"
+				          class="item-icon item-icon--gift-sent"
 				          :style="getItemRarityStyle(gift.rarity)"
 			          >{{ gift.icon }}</span>
 
 								<div class="item-details">
 									<div class="item-name">{{ gift.name }}</div>
 
-									<div
-										class="item-source"
-										:class="{
-			                'item-source--gift-received': gift.received,
-			                'item-source--gift-pending': !gift.received
-			              }"
-									>
-										<Icon
-											:name="gift.received ? 'completion-badge' : 'clock'"
-											size="20"
-											:class="{
-			                  'text-success': gift.received,
-			                  'text-warning': !gift.received
-			                }"
-										/>
-										{{ gift.received
-											? t('profile.inventory.gift_received_by_friend')
-											: t('profile.inventory.gift_sent_waiting')
-										}}
+									<div class="item-source item-source--gift-sent">
+										<Icon name="heart" size="20" class="text-success" />
+										{{ t('profile.inventory.gift_sent_to', { recipient: gift.recipientUsername || 'Unknown' }) }}
 									</div>
 									<span class="item-quantity">{{ getGiftDate(gift) }}</span>
 								</div>
@@ -900,8 +856,6 @@ onUnmounted(() => {
 				:visible="showSentGiftModal"
 				:gift-data="selectedSentGift"
 				mode="view"
-				@mark-received="handleSentGiftMarkReceived"
-				@unmark-received="handleSentGiftUnmarkReceived"
 				@close="closeSentGiftModal"
 		/>
 	</main>
