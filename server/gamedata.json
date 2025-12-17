@@ -9,10 +9,10 @@
         "experience": 50,
         "totalScore": 3518,
         "gamesPlayed": 34,
-        "coins": 6612,
-        "diamonds": 124,
+        "coins": 5412,
+        "diamonds": 121,
         "createdAt": "2025-11-16",
-        "lastPlayed": "2025-12-16",
+        "lastPlayed": "2025-12-17",
         "inventory": {
           "items": {
             "cap": {
@@ -70,6 +70,27 @@
               "receivedAsGift": true,
               "giftFrom": "froppy",
               "receivedAt": "2025-12-16T10:34:40.399Z"
+            },
+            "party_hat": {
+              "id": "party_hat",
+              "quantity": 1,
+              "purchasedAt": "2025-12-16T10:35:31.265Z",
+              "type": "cosmetic",
+              "category": "gifts",
+              "rarity": "uncommon",
+              "name": "Party Hat"
+            },
+            "friendship_bracelet": {
+              "id": "friendship_bracelet",
+              "quantity": 1,
+              "purchasedAt": "2025-12-17T22:44:19.618Z",
+              "type": "cosmetic",
+              "category": "gifts",
+              "rarity": "uncommon",
+              "name": "Friendship Bracelet",
+              "receivedAsGift": true,
+              "giftFrom": "froppy",
+              "receivedAt": "2025-12-17T22:44:28.800Z"
             }
           },
           "equipped": {
@@ -81,12 +102,41 @@
           "consumables": {}
         },
         "gifts": {
-          "sentToday": 0,
+          "sentToday": 1,
           "receivedToday": 0,
-          "lastSentDate": "2025-12-14",
+          "lastSentDate": "2025-12-17",
           "lastReceivedDate": "2025-12-14",
-          "sentGifts": [],
-          "receivedGifts": []
+          "sentGifts": [
+            {
+              "itemId": "party_hat",
+              "itemName": "Party Hat",
+              "itemIcon": "🎉",
+              "itemRarity": "uncommon",
+              "recipientUsername": "Froppy",
+              "senderName": "hauke",
+              "sentAt": "2025-12-17T22:43:18.775Z",
+              "sentDate": "2025-12-17",
+              "method": "direct"
+            }
+          ],
+          "receivedGifts": [
+            {
+              "itemId": "friendship_bracelet",
+              "itemName": "Friendship Bracelet",
+              "quantity": 1,
+              "from": "froppy",
+              "receivedAt": "2025-12-17T22:44:28.800Z",
+              "itemData": {
+                "id": "friendship_bracelet",
+                "quantity": 0,
+                "purchasedAt": "2025-12-17T22:44:19.618Z",
+                "type": "cosmetic",
+                "category": "gifts",
+                "rarity": "uncommon",
+                "name": "Friendship Bracelet"
+              }
+            }
+          ]
         }
       },
       "currency": {
@@ -454,6 +504,27 @@
               "category": "gifts",
               "rarity": "common"
             }
+          },
+          {
+            "id": "purchase_1765881331266_04vdjjmk7",
+            "timestamp": "2025-12-16T10:35:31.266Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Party Hat",
+            "amounts": {
+              "coins": -1200,
+              "diamonds": -3
+            },
+            "balanceAfter": {
+              "coins": 5412,
+              "diamonds": 121
+            },
+            "metadata": {
+              "itemId": "party_hat",
+              "itemName": "Party Hat",
+              "category": "gifts",
+              "rarity": "uncommon"
+            }
           }
         ],
         "dailyRewards": {
@@ -811,11 +882,11 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-16T10:32:52.662Z"
+        "lastUpdated": "2025-12-17T22:43:05.896Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-16T10:35:01.383Z"
+    "lastSaved": "2025-12-17T22:44:28.800Z"
   },
   "froppy": {
     "username": "Froppy",
@@ -825,12 +896,12 @@
         "avatar": "avatar/user",
         "level": 1,
         "experience": 50,
-        "totalScore": 3518,
-        "gamesPlayed": 34,
-        "coins": 1612,
-        "diamonds": 111,
+        "totalScore": 3519,
+        "gamesPlayed": 35,
+        "coins": 309,
+        "diamonds": 110,
         "createdAt": "2025-11-16",
-        "lastPlayed": "2025-12-16",
+        "lastPlayed": "2025-12-17",
         "inventory": {
           "items": {
             "cap": {
@@ -879,12 +950,33 @@
             },
             "love_letter": {
               "id": "love_letter",
-              "quantity": 1,
+              "quantity": 3,
               "purchasedAt": "2025-12-16T10:34:25.161Z",
               "type": "cosmetic",
               "category": "gifts",
               "rarity": "common",
               "name": "Love Letter"
+            },
+            "party_hat": {
+              "id": "party_hat",
+              "quantity": 2,
+              "purchasedAt": "2025-12-16T10:35:31.265Z",
+              "type": "cosmetic",
+              "category": "gifts",
+              "rarity": "uncommon",
+              "name": "Party Hat",
+              "receivedAsGift": true,
+              "giftFrom": "hauke",
+              "receivedAt": "2025-12-16T10:35:38.390Z"
+            },
+            "friendship_bracelet": {
+              "id": "friendship_bracelet",
+              "quantity": 1,
+              "purchasedAt": "2025-12-17T22:44:19.618Z",
+              "type": "cosmetic",
+              "category": "gifts",
+              "rarity": "uncommon",
+              "name": "Friendship Bracelet"
             }
           },
           "equipped": {
@@ -898,22 +990,39 @@
         "gifts": {
           "sentToday": 1,
           "receivedToday": 0,
-          "lastSentDate": "2025-12-16",
+          "lastSentDate": "2025-12-17",
           "lastReceivedDate": "2025-12-15",
           "sentGifts": [
             {
-              "itemId": "love_letter",
-              "itemName": "Love Letter",
-              "itemIcon": "💌",
-              "itemRarity": "common",
+              "itemId": "friendship_bracelet",
+              "itemName": "Friendship Bracelet",
+              "itemIcon": "📿",
+              "itemRarity": "uncommon",
               "recipientUsername": "hauke",
               "senderName": "froppy",
-              "sentAt": "2025-12-16T10:34:40.408Z",
-              "sentDate": "2025-12-16",
+              "sentAt": "2025-12-17T22:44:28.822Z",
+              "sentDate": "2025-12-17",
               "method": "direct"
             }
           ],
-          "receivedGifts": []
+          "receivedGifts": [
+            {
+              "itemId": "party_hat",
+              "itemName": "Party Hat",
+              "quantity": 1,
+              "from": "hauke",
+              "receivedAt": "2025-12-17T22:43:18.762Z",
+              "itemData": {
+                "id": "party_hat",
+                "quantity": 0,
+                "purchasedAt": "2025-12-16T10:35:31.265Z",
+                "type": "cosmetic",
+                "category": "gifts",
+                "rarity": "uncommon",
+                "name": "Party Hat"
+              }
+            }
+          ]
         }
       },
       "currency": {
@@ -1371,11 +1480,59 @@
               "category": "gifts",
               "rarity": "common"
             }
+          },
+          {
+            "id": "purchase_1766011459619_o2r5tydxl",
+            "timestamp": "2025-12-17T22:44:19.619Z",
+            "type": "spend",
+            "source": "shop_purchase",
+            "description": "Purchased: Friendship Bracelet",
+            "amounts": {
+              "coins": -1500,
+              "diamonds": -5
+            },
+            "balanceAfter": {
+              "coins": 112,
+              "diamonds": 106
+            },
+            "metadata": {
+              "itemId": "friendship_bracelet",
+              "itemName": "Friendship Bracelet",
+              "category": "gifts",
+              "rarity": "uncommon"
+            }
+          },
+          {
+            "id": "daily_minigame_1766011776088_rk65nyon5",
+            "timestamp": "2025-12-17T22:49:36.088Z",
+            "type": "earn",
+            "source": "daily_minigame",
+            "description": "Daily Minigame Reward",
+            "amounts": {
+              "coins": 100,
+              "diamonds": 3
+            },
+            "balanceAfter": {
+              "coins": 212,
+              "diamonds": 109
+            },
+            "metadata": {
+              "rewardType": "daily_minigame",
+              "gameResult": "reward_claimed",
+              "rewardAmount": {
+                "coins": 100,
+                "diamonds": 3,
+                "source": "minigame",
+                "claimedAt": "2025-12-17T22:49:36.088Z",
+                "claimedDate": "2025-12-17"
+              },
+              "source": "minigame"
+            }
           }
         ],
         "dailyRewards": {
-          "lastClaimed": "2025-12-15",
-          "counter": 12,
+          "lastClaimed": "2025-12-17",
+          "counter": 13,
           "selectedGame": null
         },
         "mysteryBoxes": {
@@ -1558,14 +1715,14 @@
         },
         "hawkDungeon": {
           "highScore": 20,
-          "totalScore": 94,
-          "gamesPlayed": 28,
+          "totalScore": 95,
+          "gamesPlayed": 29,
           "maxLevel": 2,
-          "totalKills": 188,
-          "totalCoins": 3127,
+          "totalKills": 190,
+          "totalCoins": 3233,
           "bestSurvivalTime": 0,
           "maxCombo": 0,
-          "stars": 67,
+          "stars": 68,
           "completedLevels": 0,
           "levels": {
             "1": {
@@ -1584,14 +1741,15 @@
               "bestSurvivalTime": 0,
               "healthRemaining": 9
             }
-          }
+          },
+          "totalStars": 6
         }
       },
       "cardStates": {
         "dailyRewardCard": {
           "read": true,
           "lastShown": null,
-          "readAt": "2025-12-15T08:42:20.104Z"
+          "readAt": "2025-12-17T22:49:36.092Z"
         }
       },
       "achievements": [
@@ -1728,10 +1886,10 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-16T10:34:48.262Z"
+        "lastUpdated": "2025-12-17T22:59:26.654Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-16T10:34:51.218Z"
+    "lastSaved": "2025-12-17T23:00:12.872Z"
   }
 }

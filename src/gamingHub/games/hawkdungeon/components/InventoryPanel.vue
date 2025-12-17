@@ -169,31 +169,10 @@ watch(isLoaded, (loaded) => {
 	width: 100%;
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.section-icon {
-  font-size: 20px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
 .inventory-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+	gap: 12px;
 }
 
 .inventory-slot {
@@ -236,16 +215,15 @@ watch(isLoaded, (loaded) => {
 
 .item-count {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
+	top: 0;
+	right: 0;
   min-width: 24px;
   height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 6px;
-  background: rgba(59, 130, 246, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 0, 0, 0.5);
   border-radius: 12px;
   font-size: 12px;
   font-weight: 700;

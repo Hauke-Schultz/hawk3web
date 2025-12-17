@@ -292,20 +292,17 @@ const handleGiftSend = async (data) => {
 				recipientUsername,
 				sentAt: now
 			}
-			showModal.value = true
 		} else {
 			// Close modal and show error
 			showGiftCodeModal.value = false
 			modalType.value = 'gift_error'
 			selectedItem.value = { ...item, error: result.error }
-			showModal.value = true
 		}
 	} catch (error) {
 		console.error('Gift send error:', error)
 		showGiftCodeModal.value = false
 		modalType.value = 'gift_error'
 		selectedItem.value = { ...item, error: 'unknown_error' }
-		showModal.value = true
 	}
 }
 

@@ -38,7 +38,7 @@
           </div>
 
           <!-- Count badge -->
-          <div class="gem-count-badge">{{ gem.count }}</div>
+          <div v-if="gem.count > 1" class="gem-count-badge">{{ gem.count }}</div>
         </div>
       </div>
 
@@ -216,7 +216,7 @@ watch(isLoaded, (loaded) => {
 
 .gem-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 12px;
 }
 
@@ -281,22 +281,22 @@ watch(isLoaded, (loaded) => {
 }
 
 .gem-count-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  min-width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 5px;
-  background: rgba(59, 130, 246, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 6px;
+	background: rgba(255, 0, 0, 0.5);
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 700;
+	color: white;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .no-gems {
@@ -317,25 +317,6 @@ watch(isLoaded, (loaded) => {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
-}
-
-/* Panel transitions */
-.panel-slide-enter-active {
-  transition: all 0.3s ease;
-}
-
-.panel-slide-leave-active {
-  transition: all 0.2s ease;
-}
-
-.panel-slide-enter-from {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-.panel-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 
 /* Responsive */

@@ -659,7 +659,7 @@ onUnmounted(() => {
 									<!-- Gift From Info -->
 									<div class="item-source item-source--gift-received">
 										<Icon name="user" size="16" />
-										{{ t('profile.inventory.gift_from', { sender: item.senderName || 'Unknown' }) }}
+										{{ t('profile.inventory.gift_from', { sender: item.from || 'Unknown' }) }}
 									</div>
 
 									<!-- Gift Date -->
