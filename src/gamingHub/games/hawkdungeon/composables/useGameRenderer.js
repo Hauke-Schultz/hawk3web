@@ -409,8 +409,13 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
         // Check if this decoration is animated
         if (decoSprite.animated) {
+          // Calculate individual animation frame based on position for randomized flickering
+          // Use position as seed for pseudo-random offset
+          const positionSeed = (worldTileX * 7 + worldTileY * 13) % 3
+          const individualFrame = (fountainAnimationFrame + positionSeed) % 3
+
           // Draw animated decoration (e.g., torch)
-          drawAnimatedTile(ctx, decoSprite.animated, fountainAnimationFrame, drawX, drawY)
+          drawAnimatedTile(ctx, decoSprite.animated, individualFrame, drawX, drawY)
         } else {
           // Draw static decoration sprite
           drawTile(ctx, tileChar, drawX, drawY, 'overLayer')
