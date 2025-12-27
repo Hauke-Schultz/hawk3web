@@ -259,6 +259,19 @@ export const spriteConfig = {
         startX: 64,
         startY: 16
       }
+    },
+    torch: {
+      width: 16,
+      height: 16,
+      type: 'interactive',
+      animation: {
+        frames: 3,
+        frameWidth: 16,
+        frameHeight: 16,
+        frameDuration: 150, // milliseconds per frame
+        startX: 80,
+        startY: 144
+      }
     }
   },
 
@@ -388,6 +401,7 @@ export const spriteConfig = {
     'h': { width: 16, height: 16, x: 48, y: 128, name: 'hanging_deco' },   // Hanging decoration
     'l': { width: 16, height: 16, x: 64, y: 128, name: 'light_beam' },     // Light beam (Lichtstrahl)
     'n': { width: 16, height: 16, x: 96, y: 80, name: 'pillar_top' },      // Pillar Top
+    'F': { animated: 'torch', name: 'torch' },                             // Torch (animated)
     '.': null  // Transparent/empty
   }
 }

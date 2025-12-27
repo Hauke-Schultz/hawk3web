@@ -59,14 +59,14 @@ export const levelConfig = {
       // '.' = transparent/leer, andere Zeichen = Deko-Tiles
       overLayer: [
         'ttttttatttt',
-        'dddff......',
+        'dddffF.F...',
         'ddf........',
-        'df....tttt.',
+        'df....ttttF',
         'ff.........',
         'f.n........',
         '..........f',
         '.......bttf',
-        '........fdd',
+        'F.......fdd',
         '........ffd',
         '.........ff',
         '.tttttttttf',

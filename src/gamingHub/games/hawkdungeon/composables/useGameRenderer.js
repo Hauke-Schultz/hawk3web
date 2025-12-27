@@ -407,8 +407,14 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
         const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
-        // Draw the decoration sprite
-        drawTile(ctx, tileChar, drawX, drawY, 'overLayer')
+        // Check if this decoration is animated
+        if (decoSprite.animated) {
+          // Draw animated decoration (e.g., torch)
+          drawAnimatedTile(ctx, decoSprite.animated, fountainAnimationFrame, drawX, drawY)
+        } else {
+          // Draw static decoration sprite
+          drawTile(ctx, tileChar, drawX, drawY, 'overLayer')
+        }
       }
     }
   }

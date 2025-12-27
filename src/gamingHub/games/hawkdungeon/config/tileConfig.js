@@ -99,6 +99,13 @@ export const tileConfig = {
     healthRestore: 'full' // Restores full health
   },
 
+  // Torch - animated wall decoration
+  torch: {
+    sprite: 'torch', // Animated sprite
+    walkable: false,
+    animated: true
+  },
+
   // Add more tile types here as needed
   // Example for future expansion:
   //
@@ -137,6 +144,9 @@ export const tileCharacterMap = {
   'M': 'manaFountain',    // Mana fountain (restores mana)
   'Q': 'manaFountain',    // Mana fountain (alternative mapping)
   'H': 'healthFountain',  // Health fountain (restores health)
+
+  // Decorations
+  'F': 'torch',           // Torch (animated)
 
   // Special markers (render as floor underneath)
   'C': 'floor1',     // Chest (floor underneath, chest is rendered separately)

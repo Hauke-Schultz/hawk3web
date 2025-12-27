@@ -896,12 +896,12 @@
         "avatar": "avatar/user",
         "level": 1,
         "experience": 50,
-        "totalScore": 3519,
-        "gamesPlayed": 35,
-        "coins": 309,
-        "diamonds": 110,
+        "totalScore": 3539,
+        "gamesPlayed": 36,
+        "coins": 609,
+        "diamonds": 113,
         "createdAt": "2025-11-16",
-        "lastPlayed": "2025-12-17",
+        "lastPlayed": "2025-12-27",
         "inventory": {
           "items": {
             "cap": {
@@ -1528,11 +1528,38 @@
               },
               "source": "minigame"
             }
+          },
+          {
+            "id": "daily_minigame_1766874775894_9zp8yyxzu",
+            "timestamp": "2025-12-27T22:32:55.893Z",
+            "type": "earn",
+            "source": "daily_minigame",
+            "description": "Daily Minigame Reward",
+            "amounts": {
+              "coins": 25,
+              "diamonds": 1
+            },
+            "balanceAfter": {
+              "coins": 609,
+              "diamonds": 113
+            },
+            "metadata": {
+              "rewardType": "daily_minigame",
+              "gameResult": "reward_claimed",
+              "rewardAmount": {
+                "coins": 25,
+                "diamonds": 1,
+                "source": "minigame",
+                "claimedAt": "2025-12-27T22:32:55.893Z",
+                "claimedDate": "2025-12-27"
+              },
+              "source": "minigame"
+            }
           }
         ],
         "dailyRewards": {
-          "lastClaimed": "2025-12-17",
-          "counter": 13,
+          "lastClaimed": "2025-12-27",
+          "counter": 14,
           "selectedGame": null
         },
         "mysteryBoxes": {
@@ -1715,14 +1742,14 @@
         },
         "hawkDungeon": {
           "highScore": 20,
-          "totalScore": 95,
-          "gamesPlayed": 29,
+          "totalScore": 115,
+          "gamesPlayed": 30,
           "maxLevel": 2,
-          "totalKills": 190,
-          "totalCoins": 3233,
+          "totalKills": 230,
+          "totalCoins": 3488,
           "bestSurvivalTime": 0,
           "maxCombo": 0,
-          "stars": 68,
+          "stars": 70,
           "completedLevels": 0,
           "levels": {
             "1": {
@@ -1741,15 +1768,14 @@
               "bestSurvivalTime": 0,
               "healthRemaining": 9
             }
-          },
-          "totalStars": 6
+          }
         }
       },
       "cardStates": {
         "dailyRewardCard": {
           "read": true,
           "lastShown": null,
-          "readAt": "2025-12-17T22:49:36.092Z"
+          "readAt": "2025-12-27T22:32:55.895Z"
         }
       },
       "achievements": [
@@ -1886,10 +1912,10 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-17T22:59:26.654Z"
+        "lastUpdated": "2025-12-27T23:08:49.958Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-17T23:00:12.872Z"
+    "lastSaved": "2025-12-27T23:08:50.977Z"
   }
 }
