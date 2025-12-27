@@ -896,10 +896,10 @@
         "avatar": "avatar/user",
         "level": 1,
         "experience": 50,
-        "totalScore": 3539,
-        "gamesPlayed": 36,
-        "coins": 609,
-        "diamonds": 113,
+        "totalScore": 3540,
+        "gamesPlayed": 37,
+        "coins": 706,
+        "diamonds": 114,
         "createdAt": "2025-11-16",
         "lastPlayed": "2025-12-27",
         "inventory": {
@@ -1742,14 +1742,14 @@
         },
         "hawkDungeon": {
           "highScore": 20,
-          "totalScore": 115,
-          "gamesPlayed": 30,
+          "totalScore": 116,
+          "gamesPlayed": 31,
           "maxLevel": 2,
-          "totalKills": 230,
-          "totalCoins": 3488,
+          "totalKills": 232,
+          "totalCoins": 3593,
           "bestSurvivalTime": 0,
           "maxCombo": 0,
-          "stars": 70,
+          "stars": 71,
           "completedLevels": 0,
           "levels": {
             "1": {
@@ -1912,10 +1912,10 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-27T23:11:58.690Z"
+        "lastUpdated": "2025-12-27T23:28:29.989Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-27T23:11:59.717Z"
+    "lastSaved": "2025-12-27T23:28:31.008Z"
   }
 }

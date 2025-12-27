@@ -301,8 +301,71 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
         const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
 
-        // Draw the decoration sprite
-        drawTile(ctx, tileChar, drawX, drawY, 'underLayer')
+        // Check if this decoration is animated
+        if (decoSprite.animated) {
+          // Calculate individual animation frame based on position for randomized flickering
+          // Use position as seed for pseudo-random offset
+          const positionSeed = (worldTileX * 7 + worldTileY * 13) % 3
+          const individualFrame = (fountainAnimationFrame + positionSeed) % 3
+
+          // Draw light glow effect for torch BEFORE drawing the torch sprite
+          if (decoSprite.animated === 'torch') {
+            ctx.save()
+
+            // Calculate center of tile for light source
+            const lightCenterX = drawX + TILE_SIZE / 2
+            const lightCenterY = drawY + 16 + TILE_SIZE / 2
+
+            // Pulsing effect based on individual animation frame
+            const pulsePhase = (individualFrame / 3) * Math.PI * 2
+            const pulseIntensity = 0.85 + Math.sin(pulsePhase) * 0.1 // Oscillates between 0.7 and 1.0
+
+            // Outer glow (soft orange ambient light)
+            const outerRadius = TILE_SIZE * 1.1 * pulseIntensity
+            const outerGradient = ctx.createRadialGradient(
+              lightCenterX, lightCenterY, 0,
+              lightCenterX, lightCenterY, outerRadius
+            )
+            outerGradient.addColorStop(0, `rgba(255, 180, 80, ${0.25 * pulseIntensity})`)
+            outerGradient.addColorStop(0.3, `rgba(255, 150, 60, ${0.15 * pulseIntensity})`)
+            outerGradient.addColorStop(0.6, `rgba(255, 120, 40, ${0.08 * pulseIntensity})`)
+            outerGradient.addColorStop(1, 'rgba(255, 100, 20, 0)')
+
+            ctx.fillStyle = outerGradient
+            ctx.fillRect(
+              lightCenterX - outerRadius,
+              lightCenterY - outerRadius,
+              outerRadius * 2,
+              outerRadius * 2
+            )
+
+            // Inner bright core (warm yellow-white)
+            const innerRadius = TILE_SIZE * 1.2 * pulseIntensity
+            const innerGradient = ctx.createRadialGradient(
+              lightCenterX, lightCenterY, 0,
+              lightCenterX, lightCenterY, innerRadius
+            )
+            innerGradient.addColorStop(0, `rgba(255, 220, 150, ${0.4 * pulseIntensity})`)
+            innerGradient.addColorStop(0.5, `rgba(255, 180, 100, ${0.2 * pulseIntensity})`)
+            innerGradient.addColorStop(1, 'rgba(255, 140, 60, 0)')
+
+            ctx.fillStyle = innerGradient
+            ctx.fillRect(
+              lightCenterX - innerRadius,
+              lightCenterY - innerRadius,
+              innerRadius * 2,
+              innerRadius * 2
+            )
+
+            ctx.restore()
+          }
+
+          // Draw animated decoration (e.g., torch)
+          drawAnimatedTile(ctx, decoSprite.animated, individualFrame, drawX, drawY)
+        } else {
+          // Draw static decoration sprite
+          drawTile(ctx, tileChar, drawX, drawY, 'underLayer')
+        }
       }
     }
 
@@ -413,6 +476,58 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
           // Use position as seed for pseudo-random offset
           const positionSeed = (worldTileX * 7 + worldTileY * 13) % 3
           const individualFrame = (fountainAnimationFrame + positionSeed) % 3
+
+          // Draw light glow effect for torch BEFORE drawing the torch sprite
+          if (decoSprite.animated === 'torch') {
+            ctx.save()
+
+            // Calculate center of tile for light source
+            const lightCenterX = drawX + TILE_SIZE / 2
+            const lightCenterY = drawY + TILE_SIZE / 2
+
+            // Pulsing effect based on individual animation frame
+            const pulsePhase = (individualFrame / 3) * Math.PI * 2
+            const pulseIntensity = 0.85 + Math.sin(pulsePhase) * 0.15 // Oscillates between 0.7 and 1.0
+
+            // Outer glow (soft orange ambient light)
+            const outerRadius = TILE_SIZE * 2.5 * pulseIntensity
+            const outerGradient = ctx.createRadialGradient(
+              lightCenterX, lightCenterY, 0,
+              lightCenterX, lightCenterY, outerRadius
+            )
+            outerGradient.addColorStop(0, `rgba(255, 180, 80, ${0.25 * pulseIntensity})`)
+            outerGradient.addColorStop(0.3, `rgba(255, 150, 60, ${0.15 * pulseIntensity})`)
+            outerGradient.addColorStop(0.6, `rgba(255, 120, 40, ${0.08 * pulseIntensity})`)
+            outerGradient.addColorStop(1, 'rgba(255, 100, 20, 0)')
+
+            ctx.fillStyle = outerGradient
+            ctx.fillRect(
+              lightCenterX - outerRadius,
+              lightCenterY - outerRadius,
+              outerRadius * 2,
+              outerRadius * 2
+            )
+
+            // Inner bright core (warm yellow-white)
+            const innerRadius = TILE_SIZE * 1.2 * pulseIntensity
+            const innerGradient = ctx.createRadialGradient(
+              lightCenterX, lightCenterY, 0,
+              lightCenterX, lightCenterY, innerRadius
+            )
+            innerGradient.addColorStop(0, `rgba(255, 220, 150, ${0.4 * pulseIntensity})`)
+            innerGradient.addColorStop(0.5, `rgba(255, 180, 100, ${0.2 * pulseIntensity})`)
+            innerGradient.addColorStop(1, 'rgba(255, 140, 60, 0)')
+
+            ctx.fillStyle = innerGradient
+            ctx.fillRect(
+              lightCenterX - innerRadius,
+              lightCenterY - innerRadius,
+              innerRadius * 2,
+              innerRadius * 2
+            )
+
+            ctx.restore()
+          }
 
           // Draw animated decoration (e.g., torch)
           drawAnimatedTile(ctx, decoSprite.animated, individualFrame, drawX, drawY)

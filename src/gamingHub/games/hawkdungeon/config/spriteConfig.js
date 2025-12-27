@@ -384,6 +384,7 @@ export const spriteConfig = {
     's': { width: 16, height: 16, x: 80, y: 176, name: 'skull1' },         // Skull (Totenschädel)
     'o': { width: 16, height: 16, x: 96, y: 176, name: 'skull2' },         // Skull two
     'k': { width: 16, height: 16, x: 96, y: 112, name: 'pillar_bottom' },  // Pillar Bottom
+    'F': { animated: 'torch', name: 'torch' },                             // Torch (animated)
     '.': null  // Transparent/empty
   },
 

@@ -42,10 +42,10 @@ export const levelConfig = {
       // '.' = transparent/leer, andere Zeichen = Deko-Tiles
       underLayer: [
         '...........',
-        '.....b.....',
+        '.....b.F...',
         '...b.s..o..',
         '...........',
-        '...........',
+        '......F....',
         '...........',
         '...........',
         '..k........',
@@ -59,9 +59,9 @@ export const levelConfig = {
       // '.' = transparent/leer, andere Zeichen = Deko-Tiles
       overLayer: [
         'ttttttatttt',
-        'dddffF.F...',
+        'dddff......',
         'ddf........',
-        'df....ttttF',
+        'df....tttt.',
         'ff.........',
         'f.n........',
         '..........f',
