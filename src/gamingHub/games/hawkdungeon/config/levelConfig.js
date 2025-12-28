@@ -23,6 +23,20 @@ export const levelConfig = {
         x: 4,
         y: 4
       },
+      npcs: [
+        {
+          type: 'guide',
+          gridX: 6,
+          gridY: 2,
+          dialogueKey: 'level1',
+          options: {
+            pauseEnemySpawning: true,
+            blockMovement: true,
+            requireInitialDialogue: true, // Monsters only spawn after this dialogue is completed
+            onDialogueComplete: null
+          }
+        }
+      ],
       tiles: [
         '           ',
         'WWWWWWAWWWW',

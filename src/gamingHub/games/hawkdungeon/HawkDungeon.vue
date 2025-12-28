@@ -42,7 +42,18 @@
         :lockedDoorFlash="lockedDoorFlash"
         :levelLoader="levelLoader"
         :chestSystem="chestSystem"
+        :npcSystem="npcSystem"
         @tileClick="handleClickMove"
+      />
+
+      <DialogueBubble
+        :visible="npcSystem.dialogueState.visible"
+        :npcName="npcSystem.dialogueState.npcName"
+        :text="npcSystem.dialogueState.text"
+        :position="npcSystem.dialogueState.position"
+        :hasMoreText="npcSystem.dialogueState.hasMoreText"
+        @advance="npcSystem.advanceNPCDialogue"
+        @close="npcSystem.endDialogue"
       />
     </div>
 
@@ -157,6 +168,7 @@ import InventoryPanel from './components/InventoryPanel.vue'
 import WeaponInventoryPanel from './components/WeaponInventoryPanel.vue'
 import WeaponButton from './components/WeaponButton.vue'
 import GemSelectionPanel from './components/GemSelectionPanel.vue'
+import DialogueBubble from './components/DialogueBubble.vue'
 import GameOverModal from '../../components/GameOverModal.vue'
 import GameCompletedModal from '../../components/GameCompletedModal.vue'
 import { useHawkDungeon } from './composables/useHawkDungeon'
@@ -198,6 +210,7 @@ const {
   lockedDoorFlash,
   levelLoader,
   chestSystem,
+  npcSystem,
   manaRegenProgress,
   healthRegenProgress,
   handleAttack,

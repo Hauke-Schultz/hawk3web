@@ -3,7 +3,7 @@ import { watch, onMounted } from 'vue'
 import { useSpriteManager } from './useSpriteManager'
 import { TILE_SIZE, SPRITE_SCALE, spriteConfig } from '../config/spriteConfig'
 
-export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, lockedDoorFlash, levelLoader, chestSystem, bloodSplatters) {
+export function useGameRenderer(canvasRef, gameState, knight, monsters, items, attackHitbox, dungeonOffset, lockedDoorFlash, levelLoader, chestSystem, bloodSplatters, npcs = null) {
   const { loadSpritesheet, drawSprite, drawTile, drawAnimatedTile, getAnimatedTileConfig, isLoaded } = useSpriteManager()
 
   let ctx = null
@@ -75,6 +75,9 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
 
     // Draw items
     drawItems(centerX, centerY)
+
+    // Draw NPCs (before monsters so they appear behind)
+    drawNPCs(centerX, centerY)
 
     // Draw monsters
     drawMonsters(centerX, centerY)
@@ -759,6 +762,72 @@ export function useGameRenderer(canvasRef, gameState, knight, monsters, items, a
         const healthBarX = monster.type.includes('boss') ? drawX + TILE_SIZE / 2 : drawX
         drawHealthBar(healthBarX, drawY - 12, monster.health, monster.maxHealth)
       }
+    })
+  }
+
+  const drawNPCs = (centerX, centerY) => {
+    if (!npcs) return
+
+    const npcsList = npcs()
+    if (!npcsList || npcsList.length === 0) return
+
+    npcsList.forEach(npc => {
+      // Calculate absolute screen position
+      const worldX = npc.gridX * TILE_SIZE
+      const worldY = npc.gridY * TILE_SIZE
+
+      // Convert world coordinates to screen coordinates
+      const drawX = centerX + worldX + dungeonOffset.x - (TILE_SIZE / 2)
+      const drawY = centerY + worldY + dungeonOffset.y - (TILE_SIZE / 2)
+
+      // Calculate direction to player (knight is always at center)
+      // If knight is to the left of NPC, flip sprite (face left)
+      // If knight is to the right of NPC, don't flip (face right)
+      const playerX = knight.gridX
+      const npcX = npc.gridX
+      const flipX = playerX < npcX // Flip if player is to the left
+
+      ctx.save()
+
+      // Get NPC sprite (default to knight/wizard sprite)
+      const npcSprite = npc.sprite || 'wizard'
+
+      // Draw NPC with idle animation (frame 0 or 1)
+      // Use the NPC's current animation frame for idle animation
+      try {
+        drawSprite(
+          ctx,
+          npcSprite,
+          npc.animationFrame || 0, // Use animated frame (0 or 1)
+          drawX,
+          drawY,
+          flipX, // Flip based on player position
+          false
+        )
+      } catch (error) {
+        console.error('Failed to draw NPC sprite:', error)
+        // Fallback: draw a colored rectangle if sprite doesn't exist
+        ctx.fillStyle = '#4a90e2'
+        ctx.fillRect(drawX, drawY, TILE_SIZE, TILE_SIZE)
+
+        // Draw NPC indicator
+        ctx.fillStyle = '#fff'
+        ctx.font = '12px Arial'
+        ctx.textAlign = 'center'
+        ctx.fillText('NPC', drawX + TILE_SIZE / 2, drawY + TILE_SIZE / 2)
+      }
+
+      ctx.restore()
+
+      // Draw NPC name tag
+      ctx.save()
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+      ctx.fillRect(drawX - 10, drawY - 20, TILE_SIZE + 20, 16)
+      ctx.fillStyle = '#ffd700'
+      ctx.font = 'bold 11px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText(npc.name, drawX + TILE_SIZE / 2, drawY - 8)
+      ctx.restore()
     })
   }
 

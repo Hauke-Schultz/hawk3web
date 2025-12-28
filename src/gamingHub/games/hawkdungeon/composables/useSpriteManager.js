@@ -72,7 +72,7 @@ export function useSpriteManager() {
 
     // Determine which spritesheet to use (players vs enemies vs bosses)
     let category = 'tiles'
-    if (spriteType === 'knight' || spriteType === 'warrior' || spriteType === 'mage') {
+    if (spriteType === 'knight' || spriteType === 'warrior' || spriteType === 'mage' || spriteType === 'wizard') {
       category = 'player'
     } else if (spriteType === 'goblin' || spriteType === 'orc' || spriteType === 'skeleton') {
       category = 'enemies'

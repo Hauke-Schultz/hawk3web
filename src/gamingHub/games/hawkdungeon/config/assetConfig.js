@@ -51,6 +51,7 @@ export function getSpriteSheetPath(spriteType) {
     knight: 'player',
     warrior: 'player',
     mage: 'player',
+    wizard: 'player', // NPCs use player spritesheet
 
     // Enemies
     goblin: 'enemies',

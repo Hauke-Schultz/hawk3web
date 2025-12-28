@@ -40,6 +40,20 @@ export const spriteConfig = {
     }
   },
 
+  // Wizard NPC (16×32 px) - uses same sprite as knight (player-v1 spritesheet)
+  wizard: {
+    width: 16,
+    height: 24,
+    walk: {
+      frames: 6,
+      frameWidth: 16,
+      frameHeight: 24,
+      frameDuration: 100,
+      startX: 0,
+      startY: 168 // Same as knight - idle position
+    }
+  },
+
   // Goblin enemy (16×24 px)
   goblin: {
     width: 16,

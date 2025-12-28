@@ -9,6 +9,7 @@ import { useLevelLoader } from './useLevelLoader'
 import { useChest } from './useChest'
 import { useTileInteractions } from './useTileInteractions'
 import { usePathfinding } from './usePathfinding'
+import { useNPC } from './useNPC'
 import { WEAPON_SOCKET_COUNT, calculateGemBonuses } from '../config/gemConfig'
 
 export function useHawkDungeon() {
@@ -66,6 +67,9 @@ export function useHawkDungeon() {
   // Chest system
   const levelLoader = useLevelLoader()
   const chestSystem = useChest(items, levelLoader)
+
+  // NPC system
+  const npcSystem = useNPC()
 
   // Tile interaction system (initialized after levelLoader)
   let tileInteractions = null
@@ -305,8 +309,33 @@ export function useHawkDungeon() {
     // Check chest interactions
     checkChestInteractions()
 
+    // Update NPC animations
+    updateNPCAnimations(deltaTime)
+
+    // Check NPC interactions
+    checkNPCInteractions()
+
     // Check level completion
     checkLevelCompletion()
+  }
+
+  const updateNPCAnimations = (deltaTime) => {
+    // Update idle animation for all NPCs (similar to knight idle animation)
+    npcSystem.npcs.value.forEach(npc => {
+      npc.animationTimer += deltaTime
+
+      // Idle animation: alternate between frames 0 and 1 every 400ms
+      if (npc.animationTimer >= 400) {
+        npc.animationFrame = npc.animationFrame === 0 ? 1 : 0
+        npc.animationTimer = 0
+      }
+    })
+  }
+
+  const checkNPCInteractions = () => {
+    // Calculate NPC screen position for dialogue bubble
+    // This is a placeholder - actual screen position calculation will be done in the main component
+    npcSystem.checkNPCInteraction(knight.gridX, knight.gridY)
   }
 
   const updateKnightMovement = (dt) => {
@@ -519,6 +548,13 @@ export function useHawkDungeon() {
       }
     }
 
+    // Check if target position is occupied by an NPC
+    const isBlockedByNPC = npcSystem.isBlockedByNPC(targetX, targetY)
+    if (isBlockedByNPC) {
+      console.log('Blocked by NPC')
+      return
+    }
+
     // Check if target position is occupied by a monster (current or target position)
     const isBlocked = monsters.value.some(monster => {
       if (monster.state === 'dead') return false
@@ -619,7 +655,22 @@ export function useHawkDungeon() {
       console.log(`Spawned ${levelLoader.levelData.chests.length} chests from level data`)
     }
 
-    monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback)
+    // Clear and spawn NPCs from level data
+    npcSystem.clearNPCs()
+    if (levelLoader.levelData.npcs && levelLoader.levelData.npcs.length > 0) {
+      levelLoader.levelData.npcs.forEach(npcData => {
+        npcSystem.addNPC(
+          npcData.type,
+          npcData.gridX,
+          npcData.gridY,
+          npcData.dialogueKey || 'greeting',
+          npcData.options || {}
+        )
+      })
+      console.log(`Spawned ${levelLoader.levelData.npcs.length} NPCs from level data`)
+    }
+
+    monsterAI = useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback, npcSystem)
     collisionSystem = useCollisions(knight, monsters, items, attackHitbox, gameState, monsterAI, gameOverCallback, unlockWeapon, switchWeapon)
     pathfinding = usePathfinding(levelLoader, monsters)
   }
@@ -1218,6 +1269,7 @@ export function useHawkDungeon() {
     lockedDoorFlash,
     levelLoader,
     chestSystem,
+    npcSystem,
     tileInteractions,
     manaRegenProgress,
     healthRegenProgress,

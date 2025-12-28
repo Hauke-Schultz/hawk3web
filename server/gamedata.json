@@ -896,12 +896,12 @@
         "avatar": "avatar/user",
         "level": 1,
         "experience": 50,
-        "totalScore": 3540,
-        "gamesPlayed": 37,
-        "coins": 706,
-        "diamonds": 114,
+        "totalScore": 3542,
+        "gamesPlayed": 39,
+        "coins": 1055,
+        "diamonds": 120,
         "createdAt": "2025-11-16",
-        "lastPlayed": "2025-12-27",
+        "lastPlayed": "2025-12-28",
         "inventory": {
           "items": {
             "cap": {
@@ -977,6 +977,19 @@
               "category": "gifts",
               "rarity": "uncommon",
               "name": "Friendship Bracelet"
+            },
+            "golden_feather": {
+              "id": "golden_feather",
+              "quantity": 1,
+              "purchasedAt": "2025-12-28T21:49:58.485Z",
+              "type": "cosmetic",
+              "category": "profile",
+              "rarity": "rare",
+              "name": "Golden Feather",
+              "description": "A feather from a legendary phoenix",
+              "tier": 1,
+              "mysteryBoxNumber": 3,
+              "claimedAt": "2025-12-28T21:49:58.485Z"
             }
           },
           "equipped": {
@@ -1555,17 +1568,84 @@
               },
               "source": "minigame"
             }
+          },
+          {
+            "id": "daily_minigame_1766958595278_yel7pisl0",
+            "timestamp": "2025-12-28T21:49:55.277Z",
+            "type": "earn",
+            "source": "daily_minigame",
+            "description": "Daily Minigame Reward",
+            "amounts": {
+              "coins": 80,
+              "diamonds": 2
+            },
+            "balanceAfter": {
+              "coins": 923,
+              "diamonds": 118
+            },
+            "metadata": {
+              "rewardType": "daily_minigame",
+              "gameResult": "reward_claimed",
+              "rewardAmount": {
+                "coins": 80,
+                "diamonds": 2,
+                "source": "minigame",
+                "claimedAt": "2025-12-28T21:49:55.277Z",
+                "claimedDate": "2025-12-28",
+                "mysteryBoxUnlocked": true,
+                "mysteryBoxNumber": 3,
+                "pendingItem": {
+                  "id": "golden_feather",
+                  "name": "Golden Feather",
+                  "description": "A feather from a legendary phoenix",
+                  "category": "profile",
+                  "rarity": "rare",
+                  "icon": "🪶",
+                  "type": "cosmetic",
+                  "tier": 1,
+                  "mysteryBoxNumber": 3
+                }
+              },
+              "source": "minigame"
+            }
+          },
+          {
+            "id": "mystery_box_1766958598487_0j6yqr4nn",
+            "timestamp": "2025-12-28T21:49:58.487Z",
+            "type": "mystery_item",
+            "source": "mystery_box",
+            "description": "Golden Feather discovered!",
+            "amounts": {
+              "coins": 0,
+              "diamonds": 0
+            },
+            "balanceAfter": {
+              "coins": 923,
+              "diamonds": 118
+            },
+            "metadata": {
+              "rewardType": "mystery_item",
+              "mysteryBoxNumber": 3,
+              "isSpecial": false,
+              "totalMysteryBoxesClaimed": 3,
+              "itemReceived": {
+                "id": "golden_feather",
+                "name": "Golden Feather",
+                "rarity": "rare",
+                "tier": 1
+              }
+            }
           }
         ],
         "dailyRewards": {
-          "lastClaimed": "2025-12-27",
-          "counter": 14,
+          "lastClaimed": "2025-12-28",
+          "counter": 15,
           "selectedGame": null
         },
         "mysteryBoxes": {
-          "lastClaimed": "2025-12-13",
-          "totalClaimed": 2,
-          "lastClaimedCounter": 10,
+          "lastClaimed": "2025-12-28",
+          "totalClaimed": 3,
+          "lastClaimedCounter": 15,
           "pendingMysteryBox": null
         },
         "milestones": {
@@ -1742,14 +1822,14 @@
         },
         "hawkDungeon": {
           "highScore": 20,
-          "totalScore": 116,
-          "gamesPlayed": 31,
+          "totalScore": 118,
+          "gamesPlayed": 33,
           "maxLevel": 2,
-          "totalKills": 232,
-          "totalCoins": 3593,
+          "totalKills": 236,
+          "totalCoins": 3803,
           "bestSurvivalTime": 0,
           "maxCombo": 0,
-          "stars": 71,
+          "stars": 75,
           "completedLevels": 0,
           "levels": {
             "1": {
@@ -1775,7 +1855,7 @@
         "dailyRewardCard": {
           "read": true,
           "lastShown": null,
-          "readAt": "2025-12-27T22:32:55.895Z"
+          "readAt": "2025-12-28T21:49:55.283Z"
         }
       },
       "achievements": [
@@ -1912,10 +1992,10 @@
       "notifications": {
         "unreadCount": 0,
         "items": [],
-        "lastUpdated": "2025-12-27T23:28:29.989Z"
+        "lastUpdated": "2025-12-28T22:52:45.899Z"
       },
       "version": "1.1"
     },
-    "lastSaved": "2025-12-27T23:28:31.008Z"
+    "lastSaved": "2025-12-28T22:52:47.608Z"
   }
 }

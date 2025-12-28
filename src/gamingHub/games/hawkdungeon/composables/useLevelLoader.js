@@ -61,6 +61,7 @@ export function useLevelLoader() {
     levelData.dynamicUnderLayer.clear()
     levelData.dynamicOverLayer.clear()
     levelData.chests = []
+    levelData.npcs = []
 
     // Parse tiles and collect 'C' positions
     const chestPositionsFromMap = []
@@ -119,6 +120,20 @@ export function useLevelLoader() {
           type: 'basic' // Default chest type
         })
       })
+    }
+
+    // Load NPCs from level config
+    if (level.npcs && level.npcs.length > 0) {
+      level.npcs.forEach(npcConfig => {
+        levelData.npcs.push({
+          type: npcConfig.type,
+          gridX: npcConfig.gridX,
+          gridY: npcConfig.gridY,
+          dialogueKey: npcConfig.dialogueKey || 'greeting',
+          options: npcConfig.options || {}
+        })
+      })
+      console.log(`Loaded ${level.npcs.length} NPCs from level config into levelData`)
     }
   }
 

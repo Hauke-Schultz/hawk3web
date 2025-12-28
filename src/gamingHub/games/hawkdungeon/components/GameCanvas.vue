@@ -45,6 +45,10 @@ const props = defineProps({
   chestSystem: {
     type: Object,
     required: false
+  },
+  npcSystem: {
+    type: Object,
+    required: false
   }
 })
 
@@ -151,7 +155,8 @@ const { initialize } = useGameRenderer(
   props.lockedDoorFlash,
   props.levelLoader,
   props.chestSystem,
-  bloodSplatters
+  bloodSplatters,
+  props.npcSystem ? () => props.npcSystem.npcs.value : null
 )
 
 onMounted(async () => {

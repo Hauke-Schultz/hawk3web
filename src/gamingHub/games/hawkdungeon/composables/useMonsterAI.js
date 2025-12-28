@@ -3,11 +3,12 @@ import { ref } from 'vue'
 import { monsterConfig } from '../config/monsterConfig'
 import { levelConfig } from '../config/levelConfig'
 
-export function useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback = null) {
+export function useMonsterAI(knight, monsters, gameState, items, levelLoader, bloodSplatterCallback = null, npcSystem = null) {
   let nextMonsterId = 0
   let spawnTimer = 0
   let currentSpawnRate = 5
   let bossPhaseActive = false
+  let initialDialogueCompleted = false // Track if initial dialogue is done
 
   // Helper function to check if a grid position is occupied
   const isPositionOccupied = (gridX, gridY, excludeMonster = null) => {
@@ -70,8 +71,31 @@ export function useMonsterAI(knight, monsters, gameState, items, levelLoader, bl
   const update = (deltaTime) => {
     const levelCfg = levelConfig[gameState.level]
 
-    // Only spawn normal enemies if NOT in boss phase
-    if (!bossPhaseActive) {
+    // Check if enemy spawning is paused by NPC dialogue
+    const isSpawningPaused = npcSystem && npcSystem.enemySpawningPaused?.value
+
+    // Check if there are NPCs that require initial dialogue completion
+    const hasInitialDialogueNPC = npcSystem && npcSystem.npcs.value.some(npc => npc.requireInitialDialogue)
+
+    // If initial dialogue is required but not completed, don't spawn
+    if (hasInitialDialogueNPC && !initialDialogueCompleted && !isSpawningPaused) {
+      // Check if dialogue was completed
+      const npc = npcSystem.npcs.value.find(npc => npc.requireInitialDialogue)
+      if (npc && npc.dialogueCompleted) {
+        initialDialogueCompleted = true
+        console.log('Initial dialogue completed - monsters will now spawn!')
+      }
+    }
+
+    // Only spawn normal enemies if:
+    // 1. NOT in boss phase
+    // 2. NOT paused by active NPC dialogue
+    // 3. Initial dialogue completed (if required)
+    const canSpawn = !bossPhaseActive &&
+                     !isSpawningPaused &&
+                     (!hasInitialDialogueNPC || initialDialogueCompleted)
+
+    if (canSpawn) {
       // Update spawn timer
       spawnTimer += deltaTime
 
