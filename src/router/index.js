@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HaukeSchultz from '../views/HaukeSchultz.vue'
 import Home from '../views/Home.vue'
 import Gaming from '../gamingHub/views/Gaming.vue'
+import ZombYRun from '../zombYRun/ZombYRun.vue'
 import MemoryLevels from '../gamingHub/games/memory/MemoryLevels.vue'
 import MemoryGame from '../gamingHub/games/memory/MemoryGame.vue'
 import HawkFruitLevels from '../gamingHub/games/hawkfruit/HawkFruitLevels.vue'
@@ -26,6 +27,14 @@ export const routes = [
     path: '/',
     name: 'Landing',
     component: HaukeSchultz
+  },
+  {
+    path: '/zombyrun',
+    name: 'ZombYRun',
+    component: ZombYRun,
+    meta: {
+      title: 'ZombYRun',
+    }
   },
   {
     path: '/party',
