@@ -10,11 +10,11 @@
 					<div>{{ currentFloor }}</div>
 				</div>
 				<div class="stat">
-					<div>ZombMode:</div>
+					<div>ZombYMode:</div>
 					<div>{{ playerMode === 'human' ? 'human' : 'zombie' }}</div>
 				</div>
 				<div class="stat">
-					<div>ZombErgy:</div>
+					<div>ZombYEnergy:</div>
 					<div class="zombie-bar">
 						<div class="zombie-bar-fill" :style="{ width: zombieBarPercentage + '%' }"></div>
 						<span class="zombie-bar-text">{{ zombieBar }} / {{ maxZombieBar }}</span>
@@ -287,7 +287,6 @@ body:has(.zombyrun) .container {
 	font-size: 3em;
 	line-height: 1;
 	margin: 0;
-	text-shadow: 3px 3px 0 var(--c64-black);
 }
 
 .stats {
@@ -299,7 +298,6 @@ body:has(.zombyrun) .container {
 
 .stat {
 	background: var(--c64-dark-grey);
-	border-radius: 5px;
 	font-size: 1.2em;
 	padding: 10px;
 	display: flex;
@@ -316,7 +314,6 @@ body:has(.zombyrun) .container {
 	height: 25px;
 	background: var(--c64-dark-grey);
 	border: 2px solid var(--c64-grey);
-	border-radius: 3px;
 	overflow: hidden;
 }
 
@@ -325,7 +322,7 @@ body:has(.zombyrun) .container {
 	top: 0;
 	left: 0;
 	height: 100%;
-	background: linear-gradient(90deg, var(--c64-green), var(--c64-light-green));
+	background: var(--c64-green);
 	transition: width 0.3s ease;
 }
 
@@ -336,7 +333,6 @@ body:has(.zombyrun) .container {
 	transform: translate(-50%, -50%);
 	color: var(--c64-white);
 	font-weight: bold;
-	text-shadow: 1px 1px 2px var(--c64-black);
 	z-index: 1;
 	width: 100%;
 }
@@ -345,7 +341,6 @@ body:has(.zombyrun) .container {
 	text-align: center;
 	background: var(--c64-dark-grey);
 	padding: 40px;
-	border-radius: 10px;
 	max-width: 600px;
 	margin: 0 auto;
 }
@@ -370,12 +365,11 @@ body:has(.zombyrun) .container {
 .start-button {
 	background: var(--c64-red);
 	color: var(--c64-white);
-	border: none;
+	border: 2px solid var(--c64-white);
 	padding: 15px 40px;
 	font-size: 1.3em;
 	font-family: 'Courier New', monospace;
 	cursor: pointer;
-	border-radius: 5px;
 	margin-top: 20px;
 	transition: background 0.3s;
 }
@@ -393,7 +387,6 @@ body:has(.zombyrun) .container {
 	position: relative;
 	background: var(--c64-dark-grey);
 	padding: 20px;
-	border-radius: 10px;
 	margin-bottom: 20px;
 }
 
