@@ -10,11 +10,11 @@
 					<div>{{ currentFloor }}</div>
 				</div>
 				<div class="stat">
-					<div>Mode:</div>
+					<div>ZombMode:</div>
 					<div>{{ playerMode === 'human' ? 'human' : 'zombie' }}</div>
 				</div>
 				<div class="stat">
-					<div>Energy:</div>
+					<div>ZombErgy:</div>
 					<div class="zombie-bar">
 						<div class="zombie-bar-fill" :style="{ width: zombieBarPercentage + '%' }"></div>
 						<span class="zombie-bar-text">{{ zombieBar }} / {{ maxZombieBar }}</span>
@@ -41,13 +41,13 @@
 					v-for="(zPos, index) in zombiePositions"
 					:key="'zombie-' + index"
 					class="zombie-sprite animated-entity"
-					:style="{ left: ((zPos * 34) + 20) + 'px' }"
+					:style="{ left: ((zPos * 50) + 20) + 'px' }"
 				></div>
 
 				<div
 					class="player-sprite animated-entity"
 					:class="{ 'zombie-mode': playerMode === 'zombie' }"
-					:style="{ left: ((playerPos * 34) + 20) + 'px'}"
+					:style="{ left: ((playerPos * 50) + 20) + 'px'}"
 				></div>
 			</div>
 		</div>
@@ -71,7 +71,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-const fieldWidth = 19
+const fieldWidth = 16
 const maxZombieBar = 20
 const totalFloors = 10
 const zombiesPerFloor = 5
@@ -136,9 +136,14 @@ function movePlayer(direction) {
 		}
 	}
 
-	moveZombies()
-	checkCollisions()
-	checkStairs()
+	// Zombies bewegen sich nach der Spielerbewegung (mit kurzer Verzögerung für Animation)
+	setTimeout(() => {
+		if (gameState.value === 'playing') {
+			moveZombies()
+			checkCollisions()
+			checkStairs()
+		}
+	}, 300)
 }
 
 function toggleMode() {
@@ -150,6 +155,14 @@ function toggleMode() {
 	} else {
 		playerMode.value = 'human'
 	}
+
+	// Zustandswechsel zählt als Zug - Zombies bewegen sich
+	setTimeout(() => {
+		if (gameState.value === 'playing') {
+			moveZombies()
+			checkCollisions()
+		}
+	}, 300)
 }
 
 function moveZombies() {
@@ -192,6 +205,8 @@ function checkStairs() {
 		if (currentFloor.value <= 1) {
 			gameState.value = 'victory'
 		} else {
+			// Bonus für geschafften Floor
+			zombieBar.value = Math.min(maxZombieBar, zombieBar.value + 3)
 			currentFloor.value--
 			initFloor()
 		}
@@ -230,12 +245,31 @@ onUnmounted(() => {
 </script>
 
 <style>
+:root {
+	--c64-black: #000000;
+	--c64-white: #ffffff;
+	--c64-red: #882000;
+	--c64-cyan: #68d0a8;
+	--c64-purple: #a838a0;
+	--c64-green: #50b818;
+	--c64-blue: #181090;
+	--c64-yellow: #f0e858;
+	--c64-orange: #a04800;
+	--c64-brown: #472b1b;
+	--c64-light-red: #c87870;
+	--c64-dark-grey: #484848;
+	--c64-grey: #808080;
+	--c64-light-green: #98ff98;
+	--c64-light-blue: #5090d0;
+	--c64-light-grey: #b8b8b8;
+}
+
 .zombyrun {
 	font-family: 'Courier New', monospace;
 	margin: 0 auto;
 	padding: 20px;
-	background: #1a1a1a;
-	color: #fff;
+	background: var(--c64-black);
+	color: var(--c64-white);
 	min-height: 100vh;
 }
 
@@ -249,11 +283,11 @@ body:has(.zombyrun) .container {
 }
 
 .game-header h1 {
-	color: #ff4444;
+	color: var(--c64-red);
 	font-size: 3em;
 	line-height: 1;
 	margin: 0;
-	text-shadow: 3px 3px 0 #000;
+	text-shadow: 3px 3px 0 var(--c64-black);
 }
 
 .stats {
@@ -264,7 +298,7 @@ body:has(.zombyrun) .container {
 }
 
 .stat {
-	background: #2a2a2a;
+	background: var(--c64-dark-grey);
 	border-radius: 5px;
 	font-size: 1.2em;
 	padding: 10px;
@@ -280,8 +314,8 @@ body:has(.zombyrun) .container {
 	position: relative;
 	width: 150px;
 	height: 25px;
-	background: #333;
-	border: 2px solid #666;
+	background: var(--c64-dark-grey);
+	border: 2px solid var(--c64-grey);
 	border-radius: 3px;
 	overflow: hidden;
 }
@@ -291,7 +325,7 @@ body:has(.zombyrun) .container {
 	top: 0;
 	left: 0;
 	height: 100%;
-	background: linear-gradient(90deg, #44ff44, #88ff88);
+	background: linear-gradient(90deg, var(--c64-green), var(--c64-light-green));
 	transition: width 0.3s ease;
 }
 
@@ -300,16 +334,16 @@ body:has(.zombyrun) .container {
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	color: #fff;
+	color: var(--c64-white);
 	font-weight: bold;
-	text-shadow: 1px 1px 2px #000;
+	text-shadow: 1px 1px 2px var(--c64-black);
 	z-index: 1;
 	width: 100%;
 }
 
 .menu, .game-over, .victory {
 	text-align: center;
-	background: #2a2a2a;
+	background: var(--c64-dark-grey);
 	padding: 40px;
 	border-radius: 10px;
 	max-width: 600px;
@@ -318,7 +352,7 @@ body:has(.zombyrun) .container {
 
 .menu h2, .game-over h2, .victory h2 {
 	font-size: 2.5em;
-	color: #ff4444;
+	color: var(--c64-red);
 	margin-bottom: 20px;
 }
 
@@ -334,8 +368,8 @@ body:has(.zombyrun) .container {
 }
 
 .start-button {
-	background: #ff4444;
-	color: #fff;
+	background: var(--c64-red);
+	color: var(--c64-white);
 	border: none;
 	padding: 15px 40px;
 	font-size: 1.3em;
@@ -347,7 +381,7 @@ body:has(.zombyrun) .container {
 }
 
 .start-button:hover {
-	background: #ff6666;
+	background: var(--c64-light-red);
 }
 
 .game-area {
@@ -357,7 +391,7 @@ body:has(.zombyrun) .container {
 .playfield-container {
 	display: inline-block;
 	position: relative;
-	background: #2a2a2a;
+	background: var(--c64-dark-grey);
 	padding: 20px;
 	border-radius: 10px;
 	margin-bottom: 20px;
@@ -371,9 +405,9 @@ body:has(.zombyrun) .container {
 }
 
 .field-cell {
-	width: 32px;
-	height: 32px;
-	background: #3a3a3a;
+	width: 48px;
+	height: 42px;
+	background: var(--c64-blue);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -383,54 +417,50 @@ body:has(.zombyrun) .container {
 
 /* Stairs/Door Sprite - C64 Style */
 .stairs-sprite {
-	width: 4px;
-	height: 4px;
+	width: 6px;
+	height: 6px;
 	background: transparent;
 	box-shadow:
-		/* Door frame */
-		8px 4px 0 0 #9B5F28,
-		12px 4px 0 0 #9B5F28,
-		16px 4px 0 0 #9B5F28,
-		20px 4px 0 0 #9B5F28,
+		/* Door frame - Top */
+		6px 0px 0 0 var(--c64-brown),
+		12px 0px 0 0 var(--c64-brown),
+		18px 0px 0 0 var(--c64-brown),
+		24px 0px 0 0 var(--c64-brown),
 		/* Left side */
-		8px 8px 0 0 #9B5F28,
-		8px 12px 0 0 #9B5F28,
-		8px 16px 0 0 #9B5F28,
-		8px 20px 0 0 #9B5F28,
-		8px 24px 0 0 #9B5F28,
+		6px 6px 0 0 var(--c64-brown),
+		6px 12px 0 0 var(--c64-brown),
+		6px 18px 0 0 var(--c64-brown),
+		6px 24px 0 0 var(--c64-brown),
 		/* Right side */
-		20px 8px 0 0 #9B5F28,
-		20px 12px 0 0 #9B5F28,
-		20px 16px 0 0 #9B5F28,
-		20px 20px 0 0 #9B5F28,
-		20px 24px 0 0 #9B5F28,
+		24px 6px 0 0 var(--c64-brown),
+		24px 12px 0 0 var(--c64-brown),
+		24px 18px 0 0 var(--c64-brown),
+		24px 24px 0 0 var(--c64-brown),
 		/* Door inside */
-		12px 8px 0 0 #D4A76A,
-		16px 8px 0 0 #D4A76A,
-		12px 12px 0 0 #D4A76A,
-		16px 12px 0 0 #D4A76A,
-		12px 16px 0 0 #D4A76A,
-		16px 16px 0 0 #D4A76A,
-		12px 20px 0 0 #D4A76A,
-		16px 20px 0 0 #D4A76A,
+		12px 6px 0 0 var(--c64-orange),
+		18px 6px 0 0 var(--c64-orange),
+		12px 12px 0 0 var(--c64-orange),
+		18px 12px 0 0 var(--c64-orange),
+		12px 18px 0 0 var(--c64-orange),
+		18px 18px 0 0 var(--c64-orange),
 		/* Door knob */
-		16px 14px 0 0 #FFD700,
+		18px 12px 0 0 var(--c64-yellow),
 		/* Bottom */
-		8px 28px 0 0 #9B5F28,
-		12px 28px 0 0 #9B5F28,
-		16px 28px 0 0 #9B5F28,
-		20px 28px 0 0 #9B5F28;
+		6px 30px 0 0 var(--c64-brown),
+		12px 30px 0 0 var(--c64-brown),
+		18px 30px 0 0 var(--c64-brown),
+		24px 30px 0 0 var(--c64-brown);
 	position: absolute;
 	top: 0;
-	left: 4px;
+	left: 6px;
 	transform: translate(-50%, -50%);
 }
 
 .animated-entity {
 	position: absolute;
 	top: 20px;
-	width: 32px;
-	height: 32px;
+	width: 24px;
+	height: 21px;
 	transition: left 0.3s ease-out;
 	pointer-events: none;
 	image-rendering: pixelated;
@@ -447,106 +477,115 @@ body:has(.zombyrun) .container {
 }
 
 .field-cell.has-stairs {
-	background: #4a4aff;
+	background: var(--c64-light-blue);
 }
 
 .field-cell.has-zombie {
-	background: #ff4444;
+	background: var(--c64-red);
 }
 
 .field-cell.has-player {
-	border-color: #44ff44;
+	border-color: var(--c64-light-green);
 }
 
 /* Player Sprite - C64 Style Human */
 .player-sprite {
-	width: 4px;
-	height: 4px;
+	width: 6px;
+	height: 6px;
 	background: transparent;
 	box-shadow:
-		/* Head */
-		12px 4px 0 0 #FFC864,
-		16px 4px 0 0 #FFC864,
-		8px 8px 0 0 #FFC864,
-		12px 8px 0 0 #FFC864,
-		16px 8px 0 0 #FFC864,
-		20px 8px 0 0 #FFC864,
-		/* Body */
-		12px 12px 0 0 #5CE8F4,
-		16px 12px 0 0 #5CE8F4,
-		12px 16px 0 0 #5CE8F4,
-		16px 16px 0 0 #5CE8F4,
-		/* Arms */
-		8px 12px 0 0 #5CE8F4,
-		20px 12px 0 0 #5CE8F4,
-		/* Legs */
-		12px 20px 0 0 #4242FF,
-		16px 20px 0 0 #4242FF,
-		12px 24px 0 0 #4242FF,
-		16px 24px 0 0 #4242FF;
+		/* Head - Row 1 */
+		6px 0px 0 0 var(--c64-orange),
+		12px 0px 0 0 var(--c64-orange),
+		/* Head - Row 2 */
+		0px 6px 0 0 var(--c64-orange),
+		6px 6px 0 0 var(--c64-orange),
+		12px 6px 0 0 var(--c64-orange),
+		18px 6px 0 0 var(--c64-orange),
+		/* Body - Row 3 */
+		6px 12px 0 0 var(--c64-cyan),
+		12px 12px 0 0 var(--c64-cyan),
+		/* Body - Row 4 */
+		6px 18px 0 0 var(--c64-cyan),
+		12px 18px 0 0 var(--c64-cyan),
+		/* Arms - Row 3 */
+		0px 12px 0 0 var(--c64-cyan),
+		18px 12px 0 0 var(--c64-cyan),
+		/* Legs - Row 5 */
+		6px 24px 0 0 var(--c64-blue),
+		12px 24px 0 0 var(--c64-blue),
+		/* Legs - Row 6 */
+		6px 30px 0 0 var(--c64-blue),
+		12px 30px 0 0 var(--c64-blue);
 	animation: player-pulse 0.8s infinite alternate;
 }
 
 /* Zombie Sprite - C64 Style */
 .zombie-sprite {
-	width: 4px;
-	height: 4px;
+	width: 6px;
+	height: 6px;
 	background: transparent;
 	box-shadow:
-		/* Head */
-		12px 4px 0 0 #50FF50,
-		16px 4px 0 0 #50FF50,
-		8px 8px 0 0 #50FF50,
-		12px 8px 0 0 #50FF50,
-		16px 8px 0 0 #50FF50,
-		20px 8px 0 0 #50FF50,
-		/* Body */
-		12px 12px 0 0 #666666,
-		16px 12px 0 0 #666666,
-		12px 16px 0 0 #666666,
-		16px 16px 0 0 #666666,
-		/* Arms (spread out menacingly) */
-		4px 12px 0 0 #50FF50,
-		8px 12px 0 0 #50FF50,
-		20px 12px 0 0 #50FF50,
-		24px 12px 0 0 #50FF50,
-		/* Legs */
-		12px 20px 0 0 #666666,
-		16px 20px 0 0 #666666,
-		12px 24px 0 0 #666666,
-		16px 24px 0 0 #666666;
+		/* Head - Row 1 */
+		6px 0px 0 0 var(--c64-light-green),
+		12px 0px 0 0 var(--c64-light-green),
+		/* Head - Row 2 */
+		0px 6px 0 0 var(--c64-light-green),
+		6px 6px 0 0 var(--c64-light-green),
+		12px 6px 0 0 var(--c64-light-green),
+		18px 6px 0 0 var(--c64-light-green),
+		/* Body - Row 3 */
+		6px 12px 0 0 var(--c64-grey),
+		12px 12px 0 0 var(--c64-grey),
+		/* Body - Row 4 */
+		6px 18px 0 0 var(--c64-grey),
+		12px 18px 0 0 var(--c64-grey),
+		/* Arms (spread out menacingly) - Row 3 */
+		-6px 12px 0 0 var(--c64-light-green),
+		0px 12px 0 0 var(--c64-light-green),
+		18px 12px 0 0 var(--c64-light-green),
+		24px 12px 0 0 var(--c64-light-green),
+		/* Legs - Row 5 */
+		6px 24px 0 0 var(--c64-grey),
+		12px 24px 0 0 var(--c64-grey),
+		/* Legs - Row 6 */
+		6px 30px 0 0 var(--c64-grey),
+		12px 30px 0 0 var(--c64-grey);
 	animation: zombie-shake 1s infinite;
 }
 
 /* Player in Zombie Mode */
 .player-sprite.zombie-mode {
 	box-shadow:
-		/* Head */
-		12px 4px 0 0 #A8FF60,
-		16px 4px 0 0 #A8FF60,
-		8px 8px 0 0 #A8FF60,
-		12px 8px 0 0 #A8FF60,
-		16px 8px 0 0 #A8FF60,
-		20px 8px 0 0 #A8FF60,
-		/* Body */
-		12px 12px 0 0 #FF4242,
-		16px 12px 0 0 #FF4242,
-		12px 16px 0 0 #FF4242,
-		16px 16px 0 0 #FF4242,
-		/* Arms (spread) */
-		4px 12px 0 0 #A8FF60,
-		8px 12px 0 0 #A8FF60,
-		20px 12px 0 0 #A8FF60,
-		24px 12px 0 0 #A8FF60,
-		/* Legs */
-		12px 20px 0 0 #FF4242,
-		16px 20px 0 0 #FF4242,
-		12px 24px 0 0 #FF4242,
-		16px 24px 0 0 #FF4242;
+		/* Head - Row 1 */
+		6px 0px 0 0 var(--c64-light-green),
+		12px 0px 0 0 var(--c64-light-green),
+		/* Head - Row 2 */
+		0px 6px 0 0 var(--c64-light-green),
+		6px 6px 0 0 var(--c64-light-green),
+		12px 6px 0 0 var(--c64-light-green),
+		18px 6px 0 0 var(--c64-light-green),
+		/* Body - Row 3 */
+		6px 12px 0 0 var(--c64-red),
+		12px 12px 0 0 var(--c64-red),
+		/* Body - Row 4 */
+		6px 18px 0 0 var(--c64-red),
+		12px 18px 0 0 var(--c64-red),
+		/* Arms (spread) - Row 3 */
+		-6px 12px 0 0 var(--c64-light-green),
+		0px 12px 0 0 var(--c64-light-green),
+		18px 12px 0 0 var(--c64-light-green),
+		24px 12px 0 0 var(--c64-light-green),
+		/* Legs - Row 5 */
+		6px 24px 0 0 var(--c64-red),
+		12px 24px 0 0 var(--c64-red),
+		/* Legs - Row 6 */
+		6px 30px 0 0 var(--c64-red),
+		12px 30px 0 0 var(--c64-red);
 }
 
 .controls-hint {
-	color: #999;
+	color: var(--c64-grey);
 	font-size: 1.1em;
 	margin-top: 10px;
 }
