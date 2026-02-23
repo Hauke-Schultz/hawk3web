@@ -21,12 +21,31 @@ import HawkGymSettings from "../hawkGym/views/HawkGymSettings.vue";
 import PartyInfo from '../party/PartyInfo.vue'
 import PartyRSVPAdmin from '../party/PartyRSVPAdmin.vue'
 import HawkPaint from '../hawkPaint/views/HawkPaint.vue'
+import HawkLangHome from '../hawkLang/views/HawkLangHome.vue'
+import HawkLangExercise from '../hawkLang/views/HawkLangExercise.vue'
 
 export const routes = [
   {
     path: '/',
     name: 'Landing',
     component: HaukeSchultz
+  },
+  {
+    path: '/hawkLang',
+    name: 'HawkLang',
+    component: HawkLangHome,
+    meta: {
+      title: 'Fit in Englisch',
+    }
+  },
+  {
+    path: '/hawkLang/lesson/:id',
+    name: 'HawkLangExercise',
+    component: HawkLangExercise,
+    props: route => ({ id: parseInt(route.params.id) || 1 }),
+    meta: {
+      title: 'Fit in Englisch - Uebung',
+    }
   },
   {
     path: '/zombyrun',
