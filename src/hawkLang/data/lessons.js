@@ -16,6 +16,16 @@ export const LESSONS = [
       en: 'Basic sentences for introductions and greetings'
     },
     order: 1,
+    dialogue: [
+      { speaker: 'Anna', de: 'Hallo! Ich heisse Anna.', en: 'Hello! My name is Anna.' },
+      { speaker: 'Thomas', de: 'Hallo Anna! Ich heisse Thomas. Nett, Sie kennenzulernen!', en: 'Hello Anna! My name is Thomas. Nice to meet you!' },
+      { speaker: 'Anna', de: 'Wo wohnst du, Thomas?', en: 'Where do you live, Thomas?' },
+      { speaker: 'Thomas', de: 'Ich wohne in Berlin. Und du?', en: 'I live in Berlin. And you?' },
+      { speaker: 'Anna', de: 'Sie ist aus Deutschland. Ich wohne auch in Berlin!', en: 'She is from Germany. I live in Berlin too!' },
+      { speaker: 'Thomas', de: 'Wie alt bist du?', en: 'How old are you?' },
+      { speaker: 'Anna', de: 'Ich bin dreissig Jahre alt. Er spricht Englisch und Deutsch.', en: 'I am thirty years old. He speaks English and German.' },
+      { speaker: 'Thomas', de: 'Ich auch! Das ist toll.', en: 'Me too! That is great.' }
+    ],
     sentences: [
       {
         id: 1,
@@ -348,6 +358,14 @@ export const LESSONS = [
       en: 'Sentences for everyday use'
     },
     order: 2,
+    dialogue: [
+      { speaker: 'Lisa', de: 'Ich habe einen Hund. Er heisst Bello.', en: 'I have a dog. His name is Bello.' },
+      { speaker: 'Max', de: 'Das ist schoen! Sie trinkt jeden Morgen Kaffee, oder?', en: 'That is nice! She drinks coffee every morning, right?' },
+      { speaker: 'Lisa', de: 'Ja, stimmt. Das Wetter ist heute schoen.', en: 'Yes, that is right. The weather is nice today.' },
+      { speaker: 'Max', de: 'Wir gehen heute Abend ins Kino. Kommst du mit?', en: 'We are going to the cinema tonight. Are you coming?' },
+      { speaker: 'Lisa', de: 'Kannst du mir helfen? Ich mag keine Spinnen und der Film ist ein Horrorfilm!', en: 'Can you help me? I do not like spiders and the movie is a horror film!' },
+      { speaker: 'Max', de: 'Kein Problem! Wir schauen etwas anderes.', en: 'No problem! We will watch something else.' }
+    ],
     sentences: [
       {
         id: 9,

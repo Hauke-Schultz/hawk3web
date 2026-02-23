@@ -10,14 +10,14 @@ import { getLessonById, buildQuizOptions } from '../data/lessons.js'
 const router = useRouter()
 const route = useRoute()
 const { gameData } = useLocalStorage()
-const { langData, recordAnswer, markLessonCompleted, getLessonProgress, getWrongSentenceIds } = useLangLocalStorage()
+const { langData, setDirection, recordAnswer, markLessonCompleted, getLessonProgress, getWrongSentenceIds } = useLangLocalStorage()
 
 const lessonId = parseInt(route.params.id)
 const lesson = getLessonById(lessonId)
 
 // State
 const currentIndex = ref(0)
-const phase = ref('question') // 'question' | 'choices' | 'result' | 'finished'
+const phase = ref('story') // 'story' | 'question' | 'choices' | 'result' | 'finished'
 const selectedAnswer = ref(null)
 const isCorrect = ref(false)
 const showGrammar = ref(true)
@@ -25,6 +25,8 @@ const correctCount = ref(0)
 const quizData = ref(null)
 const wrongSentenceIds = ref([])
 const activeSentences = ref(lesson ? [...lesson.sentences] : [])
+
+const hasDialogue = computed(() => lesson && lesson.dialogue && lesson.dialogue.length > 0)
 
 const currentSentence = computed(() => {
   return activeSentences.value[currentIndex.value] || null
@@ -44,6 +46,14 @@ const directionLabel = computed(() => {
 const questionLang = computed(() => langData.direction === 'de-en' ? 'de' : 'en')
 const answerLang = computed(() => langData.direction === 'de-en' ? 'en' : 'de')
 
+const toggleDirection = () => {
+  setDirection(langData.direction === 'de-en' ? 'en-de' : 'de-en')
+  // Rebuild current quiz with new direction if mid-exercise
+  if (phase.value === 'question' || phase.value === 'choices') {
+    buildQuiz()
+  }
+}
+
 const buildQuiz = () => {
   if (!currentSentence.value) return
   quizData.value = buildQuizOptions(currentSentence.value, langData.direction)
@@ -51,6 +61,10 @@ const buildQuiz = () => {
   selectedAnswer.value = null
   isCorrect.value = false
   showGrammar.value = true
+}
+
+const startQuizFromStory = () => {
+  buildQuiz()
 }
 
 const revealChoices = () => {
@@ -105,12 +119,18 @@ const restartLesson = (onlyWrong = false) => {
 
   if (onlyWrong && wrongSentenceIds.value.length > 0) {
     activeSentences.value = lesson.sentences.filter(s => wrongSentenceIds.value.includes(s.id))
+    wrongSentenceIds.value = []
+    buildQuiz()
   } else {
     activeSentences.value = [...lesson.sentences]
+    wrongSentenceIds.value = []
+    // Show story again for full restart
+    if (hasDialogue.value) {
+      phase.value = 'story'
+    } else {
+      buildQuiz()
+    }
   }
-
-  wrongSentenceIds.value = []
-  buildQuiz()
 }
 
 const goBack = () => {
@@ -137,12 +157,12 @@ onMounted(() => {
     // Load previous results
     const savedWrongIds = getWrongSentenceIds(lessonId)
     wrongSentenceIds.value = savedWrongIds
-    const answered = Object.keys(progress.sentences).length
     const correct = Object.values(progress.sentences).filter(s => s.correct).length
     correctCount.value = correct
-    // Keep totalSentences based on full lesson for display
     activeSentences.value = [...lesson.sentences]
     phase.value = 'finished'
+  } else if (hasDialogue.value) {
+    phase.value = 'story'
   } else {
     buildQuiz()
   }
@@ -208,6 +228,47 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Story / Dialogue -->
+    <div v-else-if="phase === 'story'" class="story-screen">
+      <div class="story-header">
+        <button class="btn btn--ghost btn--small" @click="goBack">
+          <Icon name="arrow-left" size="18" />
+        </button>
+        <div class="story-header-text">
+          <h1 class="story-title">{{ lesson.title[questionLang] }}</h1>
+          <p class="story-subtitle">Geschichte</p>
+        </div>
+        <button class="direction-badge" @click="toggleDirection">
+          <span>{{ directionLabel }}</span>
+          <Icon name="repeat" size="12" />
+        </button>
+      </div>
+
+      <div class="dialogue-container">
+        <div
+          v-for="(line, index) in lesson.dialogue"
+          :key="index"
+          class="dialogue-line"
+          :class="index % 2 === 0 ? 'dialogue-line--left' : 'dialogue-line--right'"
+        >
+          <span class="dialogue-speaker">{{ line.speaker }}</span>
+          <div class="dialogue-bubble">
+            <p class="dialogue-text-primary">{{ line[questionLang] }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="story-actions">
+        <button
+          class="btn btn--primary btn--large story-next-btn"
+          @click="startQuizFromStory"
+        >
+          Uebung starten
+          <Icon name="arrow-right" size="18" />
+        </button>
+      </div>
+    </div>
+
     <!-- Exercise flow -->
     <template v-else-if="quizData">
       <!-- Progress bar -->
@@ -217,7 +278,10 @@ onMounted(() => {
             <Icon name="arrow-left" size="18" />
           </button>
           <span class="progress-label">{{ currentIndex + 1 }} / {{ totalSentences }}</span>
-          <span class="direction-badge">{{ directionLabel }}</span>
+          <button class="direction-badge" @click="toggleDirection">
+          <span>{{ directionLabel }}</span>
+          <Icon name="repeat" size="12" />
+        </button>
         </div>
         <div class="progress-track">
           <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
@@ -357,13 +421,24 @@ onMounted(() => {
 }
 
 .direction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-base);
   color: var(--primary-color);
   background-color: var(--card-bg);
   border: 1px solid var(--primary-color);
   border-radius: var(--border-radius-md);
   padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+  }
 }
 
 .progress-track {
@@ -729,6 +804,111 @@ onMounted(() => {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Story / Dialogue */
+.story-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.story-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+}
+
+.story-header-text {
+  flex: 1;
+}
+
+.story-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin: 0;
+}
+
+.story-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.dialogue-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+}
+
+.dialogue-line {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.dialogue-line--left {
+  align-self: flex-start;
+}
+
+.dialogue-line--right {
+  align-self: flex-end;
+}
+
+.dialogue-speaker {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+  padding: 0 var(--space-3);
+}
+
+.dialogue-line--right .dialogue-speaker {
+  text-align: right;
+}
+
+.dialogue-bubble {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+.dialogue-line--left .dialogue-bubble {
+  border-bottom-left-radius: var(--space-1);
+}
+
+.dialogue-line--right .dialogue-bubble {
+  border-bottom-right-radius: var(--space-1);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+
+  .dialogue-text-primary {
+    color: var(--white);
+  }
+}
+
+.dialogue-text-primary {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.story-actions {
+  padding: var(--space-2) 0 var(--space-4);
+}
+
+.story-next-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
 .error-state {
