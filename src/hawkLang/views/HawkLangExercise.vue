@@ -10,7 +10,7 @@ import { getLessonById, buildQuizOptions } from '../data/lessons.js'
 const router = useRouter()
 const route = useRoute()
 const { gameData } = useLocalStorage()
-const { langData, recordAnswer, markLessonCompleted } = useLangLocalStorage()
+const { langData, recordAnswer, markLessonCompleted, getLessonProgress, getWrongSentenceIds } = useLangLocalStorage()
 
 const lessonId = parseInt(route.params.id)
 const lesson = getLessonById(lessonId)
@@ -20,17 +20,17 @@ const currentIndex = ref(0)
 const phase = ref('question') // 'question' | 'choices' | 'result' | 'finished'
 const selectedAnswer = ref(null)
 const isCorrect = ref(false)
-const showVocabulary = ref(false)
-const showGrammar = ref(false)
+const showGrammar = ref(true)
 const correctCount = ref(0)
 const quizData = ref(null)
+const wrongSentenceIds = ref([])
+const activeSentences = ref(lesson ? [...lesson.sentences] : [])
 
 const currentSentence = computed(() => {
-  if (!lesson) return null
-  return lesson.sentences[currentIndex.value] || null
+  return activeSentences.value[currentIndex.value] || null
 })
 
-const totalSentences = computed(() => lesson ? lesson.sentences.length : 0)
+const totalSentences = computed(() => activeSentences.value.length)
 
 const progressPercent = computed(() => {
   if (!totalSentences.value) return 0
@@ -50,8 +50,7 @@ const buildQuiz = () => {
   phase.value = 'question'
   selectedAnswer.value = null
   isCorrect.value = false
-  showVocabulary.value = false
-  showGrammar.value = false
+  showGrammar.value = true
 }
 
 const revealChoices = () => {
@@ -65,16 +64,28 @@ const selectAnswer = (answer) => {
   isCorrect.value = answer === quizData.value.correct
   phase.value = 'result'
 
-  if (isCorrect.value) correctCount.value++
+  if (isCorrect.value) {
+    correctCount.value++
+  } else {
+    wrongSentenceIds.value.push(currentSentence.value.id)
+  }
 
   recordAnswer(lessonId, currentSentence.value.id, isCorrect.value)
+}
+
+const isVisibleAnswer = (option) => {
+  if (phase.value !== 'result') return true
+  // Show only the correct answer and the selected wrong answer
+  if (option === quizData.value.correct) return true
+  if (option === selectedAnswer.value) return true
+  return false
 }
 
 const getAnswerClass = (option) => {
   if (phase.value !== 'result') return ''
   if (option === quizData.value.correct) return 'answer--correct'
   if (option === selectedAnswer.value && !isCorrect.value) return 'answer--wrong'
-  return 'answer--dimmed'
+  return ''
 }
 
 const nextSentence = () => {
@@ -88,9 +99,17 @@ const nextSentence = () => {
   buildQuiz()
 }
 
-const restartLesson = () => {
+const restartLesson = (onlyWrong = false) => {
   currentIndex.value = 0
   correctCount.value = 0
+
+  if (onlyWrong && wrongSentenceIds.value.length > 0) {
+    activeSentences.value = lesson.sentences.filter(s => wrongSentenceIds.value.includes(s.id))
+  } else {
+    activeSentences.value = [...lesson.sentences]
+  }
+
+  wrongSentenceIds.value = []
   buildQuiz()
 }
 
@@ -98,12 +117,35 @@ const goBack = () => {
   router.push('/hawkLang')
 }
 
+const startVocabTrainer = () => {
+  router.push(`/hawkLang/lesson/${lessonId}/vocab`)
+}
+
+const openGrammar = () => {
+  router.push(`/hawkLang/lesson/${lessonId}/grammar`)
+}
+
 const handleMenuClick = () => {
   router.push('/hawkLang')
 }
 
 onMounted(() => {
-  if (lesson) buildQuiz()
+  if (!lesson) return
+
+  const progress = getLessonProgress(lessonId)
+  if (progress.completed) {
+    // Load previous results
+    const savedWrongIds = getWrongSentenceIds(lessonId)
+    wrongSentenceIds.value = savedWrongIds
+    const answered = Object.keys(progress.sentences).length
+    const correct = Object.values(progress.sentences).filter(s => s.correct).length
+    correctCount.value = correct
+    // Keep totalSentences based on full lesson for display
+    activeSentences.value = [...lesson.sentences]
+    phase.value = 'finished'
+  } else {
+    buildQuiz()
+  }
 })
 </script>
 
@@ -138,9 +180,25 @@ onMounted(() => {
         <p class="score-label">richtige Antworten</p>
 
         <div class="finished-actions">
-          <button class="btn btn--primary" @click="restartLesson">
+          <button class="btn btn--primary" @click="restartLesson(false)">
             <Icon name="repeat" size="18" />
-            Nochmal
+            Alle wiederholen
+          </button>
+          <button
+            v-if="wrongSentenceIds.length > 0"
+            class="btn btn--warning"
+            @click="restartLesson(true)"
+          >
+            <Icon name="x-circle" size="18" />
+            Nur Fehler ({{ wrongSentenceIds.length }})
+          </button>
+          <button class="btn btn--secondary" @click="startVocabTrainer">
+            <Icon name="book-open" size="18" />
+            Vokabeltrainer
+          </button>
+          <button class="btn btn--secondary" @click="openGrammar">
+            <Icon name="info" size="18" />
+            Grammatik nachschlagen
           </button>
           <button class="btn btn--ghost" @click="goBack">
             <Icon name="arrow-left" size="18" />
@@ -181,29 +239,30 @@ onMounted(() => {
 
       <!-- Multiple choice -->
       <section v-if="phase === 'choices' || phase === 'result'" class="choices-section">
-        <button
-          v-for="(option, index) in quizData.options"
-          :key="index"
-          class="answer-btn"
-          :class="getAnswerClass(option)"
-          :disabled="phase === 'result'"
-          @click="selectAnswer(option)"
-        >
-          <span class="answer-letter">{{ ['A', 'B', 'C', 'D'][index] }}</span>
-          <span class="answer-text">{{ option }}</span>
-          <Icon
-            v-if="phase === 'result' && option === quizData.correct"
-            name="check"
-            size="20"
-            class="answer-icon"
-          />
-          <Icon
-            v-if="phase === 'result' && option === selectedAnswer && !isCorrect && option !== quizData.correct"
-            name="x"
-            size="20"
-            class="answer-icon"
-          />
-        </button>
+        <template v-for="(option, index) in quizData.options" :key="index">
+          <button
+            v-if="isVisibleAnswer(option)"
+            class="answer-btn"
+            :class="getAnswerClass(option)"
+            :disabled="phase === 'result'"
+            @click="selectAnswer(option)"
+          >
+            <span class="answer-letter">{{ ['A', 'B', 'C', 'D'][index] }}</span>
+            <span class="answer-text">{{ option }}</span>
+            <Icon
+              v-if="phase === 'result' && option === quizData.correct"
+              name="check"
+              size="20"
+              class="answer-icon"
+            />
+            <Icon
+              v-if="phase === 'result' && option === selectedAnswer && !isCorrect && option !== quizData.correct"
+              name="x"
+              size="20"
+              class="answer-icon"
+            />
+          </button>
+        </template>
       </section>
 
       <!-- Feedback -->
@@ -213,44 +272,67 @@ onMounted(() => {
           <span>{{ isCorrect ? 'Richtig!' : 'Leider falsch.' }}</span>
         </div>
 
-        <!-- Vocabulary toggle -->
-        <button class="toggle-btn" @click="showVocabulary = !showVocabulary">
-          <Icon :name="showVocabulary ? 'chevron-up' : 'chevron-down'" size="18" />
-          Vokabeln anzeigen
-        </button>
-
-        <div v-if="showVocabulary" class="vocabulary-list">
-          <div
-            v-for="(vocab, vIndex) in currentSentence.vocabulary"
-            :key="vIndex"
-            class="vocab-item"
-          >
-            <span class="vocab-source">{{ vocab[questionLang] }}</span>
-            <span class="vocab-arrow">=</span>
-            <span class="vocab-target">{{ vocab[answerLang] }}</span>
-          </div>
-        </div>
-
-        <!-- Grammar toggle -->
-        <button
-          v-if="currentSentence.grammar"
-          class="toggle-btn"
-          @click="showGrammar = !showGrammar"
-        >
-          <Icon :name="showGrammar ? 'chevron-up' : 'chevron-down'" size="18" />
-          {{ currentSentence.grammar.title[questionLang] }}
-        </button>
-
-        <div v-if="showGrammar && currentSentence.grammar" class="grammar-box">
-          <h4 class="grammar-title">{{ currentSentence.grammar.title[questionLang] }}</h4>
-          <p class="grammar-content">{{ currentSentence.grammar.content[questionLang] }}</p>
-        </div>
-
-        <!-- Next button -->
+        <!-- Next button directly after feedback -->
         <button class="btn btn--primary btn--large next-btn" @click="nextSentence">
           {{ currentIndex + 1 >= totalSentences ? 'Ergebnis anzeigen' : 'Weiter' }}
           <Icon name="arrow-right" size="18" />
         </button>
+
+        <!-- Vocabulary table (always visible) -->
+        <div class="detail-block">
+          <h3 class="detail-heading">
+            <Icon name="book-open" size="18" />
+            Vokabeln
+          </h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{{ langData.direction === 'de-en' ? 'Deutsch' : 'English' }}</th>
+                <th>{{ langData.direction === 'de-en' ? 'English' : 'Deutsch' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(vocab, vIndex) in currentSentence.vocabulary" :key="vIndex">
+                <td class="cell-source">{{ vocab[questionLang] }}</td>
+                <td class="cell-target">{{ vocab[answerLang] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Grammar table (toggle) -->
+        <div v-if="currentSentence.grammar" class="detail-block">
+          <button class="detail-heading detail-heading--toggle" @click="showGrammar = !showGrammar">
+            <Icon name="book-open" size="18" />
+            <span>{{ currentSentence.grammar.title[questionLang] }}</span>
+            <Icon :name="showGrammar ? 'chevron-up' : 'chevron-down'" size="16" class="toggle-icon" />
+          </button>
+
+          <div v-if="showGrammar" class="grammar-content">
+            <table class="data-table data-table--grammar">
+              <thead>
+                <tr>
+                  <th
+                    v-for="(col, cIndex) in currentSentence.grammar.columns[questionLang]"
+                    :key="cIndex"
+                  >
+                    {{ col }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, rIndex) in currentSentence.grammar.rows" :key="rIndex">
+                  <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p v-if="currentSentence.grammar.note" class="grammar-note">
+              <Icon name="info" size="14" />
+              {{ currentSentence.grammar.note[questionLang] }}
+            </p>
+          </div>
+        </div>
       </section>
     </template>
   </main>
@@ -399,8 +481,45 @@ onMounted(() => {
   }
 }
 
-.answer--dimmed {
-  opacity: 0.5;
+.btn--secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background-color: var(--card-bg);
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+  }
+}
+
+.btn--warning {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background-color: var(--warning-color, #f59e0b);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  transition: all 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
 }
 
 .feedback-section {
@@ -429,86 +548,112 @@ onMounted(() => {
   color: var(--error-color, #ef4444);
 }
 
-.toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: none;
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-md);
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-family-base);
-
-  &:hover {
-    color: var(--text-color);
-    border-color: var(--primary-color);
-  }
-}
-
-.vocabulary-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-md);
-}
-
-.vocab-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
-}
-
-.vocab-source {
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color);
-  min-width: 100px;
-}
-
-.vocab-arrow {
-  color: var(--text-secondary);
-}
-
-.vocab-target {
-  color: var(--primary-color);
-  font-weight: var(--font-weight-bold);
-}
-
-.grammar-box {
-  padding: var(--space-3);
-  background-color: var(--card-bg);
-  border: 1px solid var(--primary-color);
-  border-radius: var(--border-radius-md);
-}
-
-.grammar-title {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary-color);
-  margin: 0 0 var(--space-2) 0;
-}
-
-.grammar-content {
-  font-size: var(--font-size-sm);
-  color: var(--text-color);
-  margin: 0;
-  line-height: 1.6;
-  white-space: pre-line;
-}
-
 .next-btn {
-  margin-top: var(--space-2);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  width: 100%;
+}
+
+.detail-block {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.detail-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary-color);
+}
+
+.detail-heading--toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--card-bg-hover);
+  }
+
+  span {
+    flex: 1;
+    text-align: left;
+  }
+
+  .toggle-icon {
+    color: var(--text-secondary);
+  }
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+
+  th, td {
+    padding: var(--space-2) var(--space-4);
+    text-align: left;
+    border-top: 1px solid var(--card-border);
+  }
+
+  th {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: var(--card-bg-hover, rgba(0, 0, 0, 0.03));
+  }
+
+  td {
+    color: var(--text-color);
+  }
+
+  tbody tr:hover {
+    background-color: var(--card-bg-hover, rgba(0, 0, 0, 0.02));
+  }
+}
+
+.cell-source {
+  font-weight: var(--font-weight-bold);
+}
+
+.cell-target {
+  color: var(--primary-color);
+  font-weight: var(--font-weight-bold);
+}
+
+.data-table--grammar {
+  td:first-child {
+    font-weight: var(--font-weight-bold);
+    white-space: nowrap;
+  }
+}
+
+.grammar-content {
+  margin: 0;
+}
+
+.grammar-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 /* Finished screen */
@@ -575,8 +720,15 @@ onMounted(() => {
 
 .finished-actions {
   display: flex;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-2);
   margin-top: var(--space-3);
+  width: 100%;
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .error-state {

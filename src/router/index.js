@@ -23,6 +23,8 @@ import PartyRSVPAdmin from '../party/PartyRSVPAdmin.vue'
 import HawkPaint from '../hawkPaint/views/HawkPaint.vue'
 import HawkLangHome from '../hawkLang/views/HawkLangHome.vue'
 import HawkLangExercise from '../hawkLang/views/HawkLangExercise.vue'
+import HawkLangVocabTrainer from '../hawkLang/views/HawkLangVocabTrainer.vue'
+import HawkLangGrammar from '../hawkLang/views/HawkLangGrammar.vue'
 
 export const routes = [
   {
@@ -45,6 +47,24 @@ export const routes = [
     props: route => ({ id: parseInt(route.params.id) || 1 }),
     meta: {
       title: 'Fit in Englisch - Uebung',
+    }
+  },
+  {
+    path: '/hawkLang/lesson/:id/vocab',
+    name: 'HawkLangVocabTrainer',
+    component: HawkLangVocabTrainer,
+    props: route => ({ id: parseInt(route.params.id) || 1 }),
+    meta: {
+      title: 'Fit in Englisch - Vokabeltrainer',
+    }
+  },
+  {
+    path: '/hawkLang/lesson/:id/grammar',
+    name: 'HawkLangGrammar',
+    component: HawkLangGrammar,
+    props: route => ({ id: parseInt(route.params.id) || 1 }),
+    meta: {
+      title: 'Fit in Englisch - Grammatik',
     }
   },
   {

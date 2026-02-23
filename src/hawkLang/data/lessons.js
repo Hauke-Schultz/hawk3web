@@ -45,9 +45,17 @@ export const LESSONS = [
             de: 'Personalpronomen + to be',
             en: 'Personal pronouns + to be'
           },
-          content: {
-            de: 'I am = ich bin | you are = du bist | he is = er ist | she is = sie ist | it is = es ist | we are = wir sind | they are = sie sind',
-            en: 'I am | you are | he is | she is | it is | we are | they are'
+          columns: { de: ['Person', 'Englisch', 'Deutsch'], en: ['Person', 'English', 'German'] },
+          rows: [
+            ['I', 'am', 'bin'],
+            ['you', 'are', 'bist'],
+            ['he / she / it', 'is', 'ist'],
+            ['we', 'are', 'sind'],
+            ['they', 'are', 'sind']
+          ],
+          note: {
+            de: 'she is = sie ist (3. Person Singular)',
+            en: 'she is = 3rd person singular'
           }
         }
       },
@@ -78,10 +86,16 @@ export const LESSONS = [
             de: 'Possessivpronomen',
             en: 'Possessive pronouns'
           },
-          content: {
-            de: 'my = mein | your = dein/Ihr | his = sein | her = ihr | its = sein | our = unser | their = ihr',
-            en: 'my | your | his | her | its | our | their'
-          }
+          columns: { de: ['Englisch', 'Deutsch'], en: ['English', 'German'] },
+          rows: [
+            ['my', 'mein'],
+            ['your', 'dein / Ihr'],
+            ['his', 'sein'],
+            ['her', 'ihr'],
+            ['its', 'sein'],
+            ['our', 'unser'],
+            ['their', 'ihr']
+          ]
         }
       },
       {
@@ -111,9 +125,14 @@ export const LESSONS = [
             de: 'Fragen mit do/does',
             en: 'Questions with do/does'
           },
-          content: {
-            de: 'Do + I/you/we/they + Verb | Does + he/she/it + Verb | Beispiel: Do you live here? = Wohnst du hier?',
-            en: 'Do + I/you/we/they + verb | Does + he/she/it + verb | Example: Do you live here?'
+          columns: { de: ['Hilfsverb', 'Person', 'Beispiel'], en: ['Auxiliary', 'Person', 'Example'] },
+          rows: [
+            ['Do', 'I / you / we / they', 'Do you live here?'],
+            ['Does', 'he / she / it', 'Does she live here?']
+          ],
+          note: {
+            de: 'Nach does steht das Verb OHNE -s: Does she live (nicht: lives)',
+            en: 'After does the verb has NO -s: Does she live (not: lives)'
           }
         }
       },
@@ -144,9 +163,17 @@ export const LESSONS = [
             de: 'Simple Present',
             en: 'Simple Present'
           },
-          content: {
-            de: 'I live | you live | he/she/it lives (Achtung: -s bei 3. Person!) | we live | they live',
-            en: 'I live | you live | he/she/it lives (note: -s for 3rd person!) | we live | they live'
+          columns: { de: ['Person', 'Verb'], en: ['Person', 'Verb'] },
+          rows: [
+            ['I', 'live'],
+            ['you', 'live'],
+            ['he / she / it', 'lives'],
+            ['we', 'live'],
+            ['they', 'live']
+          ],
+          note: {
+            de: 'Achtung: 3. Person Singular bekommt ein -s!',
+            en: 'Note: 3rd person singular gets an -s!'
           }
         }
       },
@@ -179,10 +206,13 @@ export const LESSONS = [
             de: 'Simple Present: 3. Person Singular',
             en: 'Simple Present: 3rd person singular'
           },
-          content: {
-            de: 'he/she/it + Verb + s | he speaks | she lives | it works | Ausnahmen: do -> does, go -> goes, have -> has',
-            en: 'he/she/it + verb + s | he speaks | she lives | it works | Exceptions: do -> does, go -> goes, have -> has'
-          }
+          columns: { de: ['Regel', 'Beispiel'], en: ['Rule', 'Example'] },
+          rows: [
+            ['+ s', 'he speaks, she lives, it works'],
+            ['+ es (nach s, sh, ch, x, o)', 'he goes, she watches'],
+            ['y → ies', 'he tries, she carries'],
+            ['have → has', 'she has a dog']
+          ]
         }
       },
       {
@@ -212,9 +242,16 @@ export const LESSONS = [
             de: 'Infinitiv mit to',
             en: 'Infinitive with to'
           },
-          content: {
-            de: 'to + Grundform des Verbs | to meet = treffen/kennenlernen | to live = leben/wohnen | to speak = sprechen',
-            en: 'to + base form of verb | to meet | to live | to speak'
+          columns: { de: ['Englisch', 'Deutsch'], en: ['English', 'German'] },
+          rows: [
+            ['to meet', 'treffen / kennenlernen'],
+            ['to live', 'leben / wohnen'],
+            ['to speak', 'sprechen'],
+            ['to be', 'sein']
+          ],
+          note: {
+            de: 'Formel: to + Grundform des Verbs',
+            en: 'Pattern: to + base form of verb'
           }
         }
       },
@@ -245,9 +282,17 @@ export const LESSONS = [
             de: 'Fragen mit to be',
             en: 'Questions with to be'
           },
-          content: {
-            de: 'Am I...? | Are you...? | Is he/she/it...? | Are we...? | Are they...? | Verb vor dem Subjekt!',
-            en: 'Am I...? | Are you...? | Is he/she/it...? | Are we...? | Are they...? | Verb before subject!'
+          columns: { de: ['Frage', 'Beispiel'], en: ['Question', 'Example'] },
+          rows: [
+            ['Am I ...?', 'Am I late?'],
+            ['Are you ...?', 'Are you tired?'],
+            ['Is he/she/it ...?', 'Is she old?'],
+            ['Are we ...?', 'Are we ready?'],
+            ['Are they ...?', 'Are they here?']
+          ],
+          note: {
+            de: 'Bei Fragen steht das Verb VOR dem Subjekt!',
+            en: 'In questions the verb comes BEFORE the subject!'
           }
         }
       },
@@ -278,9 +323,15 @@ export const LESSONS = [
             de: 'Alter ausdruecken',
             en: 'Expressing age'
           },
-          content: {
-            de: 'Englisch: I am + Zahl + years old | NICHT: I have... years (wie im Franzoesischen) | Deutsch: Ich bin + Zahl + Jahre alt',
-            en: 'English uses "to be": I am 30 years old | NOT: I have 30 years'
+          columns: { de: ['Richtig', 'Falsch'], en: ['Correct', 'Wrong'] },
+          rows: [
+            ['I am 30 years old.', 'I have 30 years.'],
+            ['She is 25.', 'She has 25.'],
+            ['How old are you?', 'How old have you?']
+          ],
+          note: {
+            de: 'Im Englischen wird "to be" benutzt, NICHT "to have"!',
+            en: 'English uses "to be", NOT "to have"!'
           }
         }
       }
@@ -325,9 +376,17 @@ export const LESSONS = [
             de: 'Konjugation von to have',
             en: 'Conjugation of to have'
           },
-          content: {
-            de: 'I have | you have | he/she/it has | we have | they have | Achtung: has nur bei 3. Person Singular!',
-            en: 'I have | you have | he/she/it has | we have | they have | Note: has only for 3rd person singular!'
+          columns: { de: ['Person', 'Verb'], en: ['Person', 'Verb'] },
+          rows: [
+            ['I', 'have'],
+            ['you', 'have'],
+            ['he / she / it', 'has'],
+            ['we', 'have'],
+            ['they', 'have']
+          ],
+          note: {
+            de: 'Achtung: has nur bei 3. Person Singular!',
+            en: 'Note: has only for 3rd person singular!'
           }
         }
       },
@@ -359,9 +418,16 @@ export const LESSONS = [
             de: 'Satzstellung im Englischen',
             en: 'Word order in English'
           },
-          content: {
-            de: 'Subjekt + Verb + Objekt + Zeitangabe | She drinks coffee every morning | Im Deutschen ist die Satzstellung flexibler',
-            en: 'Subject + Verb + Object + Time | She drinks coffee every morning'
+          columns: { de: ['Position', 'Satzteil', 'Beispiel'], en: ['Position', 'Part', 'Example'] },
+          rows: [
+            ['1', 'Subjekt / Subject', 'She'],
+            ['2', 'Verb', 'drinks'],
+            ['3', 'Objekt / Object', 'coffee'],
+            ['4', 'Zeit / Time', 'every morning']
+          ],
+          note: {
+            de: 'Im Deutschen ist die Satzstellung flexibler, im Englischen gilt: S-V-O-T',
+            en: 'English follows a strict S-V-O-T word order'
           }
         }
       },
@@ -393,9 +459,17 @@ export const LESSONS = [
             de: 'Present Continuous (Verlaufsform)',
             en: 'Present Continuous'
           },
-          content: {
-            de: 'am/is/are + Verb + -ing | I am going | you are going | Wird fuer geplante Handlungen und aktuelle Aktionen benutzt',
-            en: 'am/is/are + verb + -ing | I am going | you are going | Used for planned actions and current activities'
+          columns: { de: ['Person', 'Beispiel'], en: ['Person', 'Example'] },
+          rows: [
+            ['I', 'am going'],
+            ['you', 'are going'],
+            ['he / she / it', 'is going'],
+            ['we', 'are going'],
+            ['they', 'are going']
+          ],
+          note: {
+            de: 'Formel: am/is/are + Verb + -ing | Fuer aktuelle und geplante Handlungen',
+            en: 'Pattern: am/is/are + verb + -ing | For current and planned actions'
           }
         }
       },
@@ -426,9 +500,16 @@ export const LESSONS = [
             de: 'Modalverben',
             en: 'Modal verbs'
           },
-          content: {
-            de: 'can/could = koennen | must = muessen | should = sollen | may = duerfen | Modalverb + Grundform (OHNE to!) | Can you help?',
-            en: 'can/could | must | should | may | Modal verb + base form (NO to!) | Can you help?'
+          columns: { de: ['Englisch', 'Deutsch', 'Beispiel'], en: ['English', 'German', 'Example'] },
+          rows: [
+            ['can / could', 'koennen', 'Can you help me?'],
+            ['must', 'muessen', 'You must go now.'],
+            ['should', 'sollen', 'You should eat more.'],
+            ['may', 'duerfen', 'May I come in?']
+          ],
+          note: {
+            de: 'Modalverb + Grundform OHNE to! (Can you help, NICHT: Can you to help)',
+            en: 'Modal verb + base form WITHOUT to! (Can you help, NOT: Can you to help)'
           }
         }
       },
@@ -459,10 +540,12 @@ export const LESSONS = [
             de: 'Artikel: the / a / an',
             en: 'Articles: the / a / an'
           },
-          content: {
-            de: 'the = der/die/das (bestimmt) | a = ein/eine (unbestimmt, vor Konsonant) | an = ein/eine (vor Vokal) | the weather, a dog, an apple',
-            en: 'the = definite article | a = indefinite (before consonant) | an = indefinite (before vowel) | the weather, a dog, an apple'
-          }
+          columns: { de: ['Artikel', 'Verwendung', 'Beispiel'], en: ['Article', 'Usage', 'Example'] },
+          rows: [
+            ['the', 'bestimmt / definite', 'the weather, the dog'],
+            ['a', 'unbestimmt (vor Konsonant)', 'a dog, a house'],
+            ['an', 'unbestimmt (vor Vokal)', 'an apple, an hour']
+          ]
         }
       },
       {
@@ -492,9 +575,14 @@ export const LESSONS = [
             de: 'Verneinung mit do not / does not',
             en: 'Negation with do not / does not'
           },
-          content: {
-            de: 'I/you/we/they + do not (don\'t) + Verb | he/she/it + does not (doesn\'t) + Verb | I do not like = Ich mag nicht',
-            en: 'I/you/we/they + do not (don\'t) + verb | he/she/it + does not (doesn\'t) + verb'
+          columns: { de: ['Person', 'Verneinung', 'Kurzform'], en: ['Person', 'Negation', 'Short form'] },
+          rows: [
+            ['I / you / we / they', 'do not + Verb', "don't + Verb"],
+            ['he / she / it', 'does not + Verb', "doesn't + Verb"]
+          ],
+          note: {
+            de: 'Nach does not steht das Verb OHNE -s: She doesn\'t like (nicht: likes)',
+            en: 'After does not the verb has NO -s: She doesn\'t like (not: likes)'
           }
         }
       }
