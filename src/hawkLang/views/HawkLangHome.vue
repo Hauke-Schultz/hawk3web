@@ -55,7 +55,7 @@ const handleMenuClick = () => {
       <h1 class="lang-title">Fit in Englisch</h1>
       <p class="lang-subtitle">Satztrainer</p>
 
-      <button class="direction-toggle" @click="toggleDirection">
+      <button class="btn btn--ghost" @click="toggleDirection">
         <span class="direction-label">{{ directionLabel }}</span>
         <Icon name="repeat" size="18" />
       </button>
@@ -125,32 +125,6 @@ const handleMenuClick = () => {
   font-size: var(--font-size-base);
   color: var(--text-secondary);
   margin: 0;
-}
-
-.direction-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background-color: var(--primary-color);
-  color: var(--white);
-  border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-family-base);
-  margin-top: var(--space-2);
-
-  &:hover {
-    opacity: 0.9;
-    transform: scale(1.02);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
 }
 
 .lessons-list {

@@ -238,7 +238,7 @@ onMounted(() => {
           <h1 class="story-title">{{ lesson.title[questionLang] }}</h1>
           <p class="story-subtitle">Geschichte</p>
         </div>
-        <button class="direction-badge" @click="toggleDirection">
+        <button class="btn btn--ghost btn--small" @click="toggleDirection">
           <span>{{ directionLabel }}</span>
           <Icon name="repeat" size="12" />
         </button>
@@ -278,7 +278,7 @@ onMounted(() => {
             <Icon name="arrow-left" size="18" />
           </button>
           <span class="progress-label">{{ currentIndex + 1 }} / {{ totalSentences }}</span>
-          <button class="direction-badge" @click="toggleDirection">
+          <button class="btn btn--ghost" @click="toggleDirection">
           <span>{{ directionLabel }}</span>
           <Icon name="repeat" size="12" />
         </button>
@@ -420,27 +420,6 @@ onMounted(() => {
   color: var(--text-color);
 }
 
-.direction-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  font-family: var(--font-family-base);
-  color: var(--primary-color);
-  background-color: var(--card-bg);
-  border: 1px solid var(--primary-color);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-1) var(--space-2);
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: var(--primary-color);
-    color: var(--white);
-  }
-}
-
 .progress-track {
   width: 100%;
   height: 6px;
@@ -553,47 +532,6 @@ onMounted(() => {
   .answer-letter {
     background-color: var(--error-color, #ef4444);
     color: var(--white);
-  }
-}
-
-.btn--secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  background-color: var(--card-bg);
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  font-family: var(--font-family-base);
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: var(--primary-color);
-    color: var(--white);
-  }
-}
-
-.btn--warning {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  background-color: var(--warning-color, #f59e0b);
-  color: var(--white);
-  border: none;
-  border-radius: var(--border-radius-md);
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  font-family: var(--font-family-base);
-  transition: all 0.2s ease;
-
-  &:hover {
-    opacity: 0.9;
   }
 }
 
