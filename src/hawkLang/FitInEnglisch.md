@@ -10,7 +10,7 @@ Ein interaktiver Satz- und Vokabeltrainer, bei dem der Nutzer Englisch anhand ga
 
 ---
 
-## Kernkonzept (Ablauf einer Uebung)
+## Kernkonzept (Ablauf einer Übung)
 
 1. **Lektion waehlen** - Der Nutzer waehlt eine Lektion aus (z.B. "Lektion 1 - Sich vorstellen")
 2. **Deutscher Satz wird angezeigt** - z.B. *"Sie ist aus Deutschland."*

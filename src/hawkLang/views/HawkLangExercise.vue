@@ -263,7 +263,7 @@ onMounted(() => {
           class="btn btn--primary btn--large story-next-btn"
           @click="startQuizFromStory"
         >
-          Uebung starten
+          Übung starten
           <Icon name="arrow-right" size="18" />
         </button>
       </div>
@@ -368,7 +368,7 @@ onMounted(() => {
         <div v-if="currentSentence.grammar" class="detail-block">
           <button class="detail-heading detail-heading--toggle" @click="showGrammar = !showGrammar">
             <Icon name="book-open" size="18" />
-            <span>{{ currentSentence.grammar.title[questionLang] }}</span>
+            <span class="detail-heading__title">{{ currentSentence.grammar.title[questionLang] }}</span>
             <Icon :name="showGrammar ? 'chevron-up' : 'chevron-down'" size="16" class="toggle-icon" />
           </button>
 
@@ -646,7 +646,11 @@ onMounted(() => {
   margin: 0;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
-  color: var(--primary-color);
+  color: var(--text-color);
+}
+
+.detail-heading__title {
+	flex: 1;
 }
 
 .detail-heading--toggle {
@@ -662,7 +666,6 @@ onMounted(() => {
   }
 
   span {
-    flex: 1;
     text-align: left;
   }
 

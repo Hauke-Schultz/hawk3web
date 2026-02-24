@@ -46,7 +46,7 @@ export const routes = [
     component: HawkLangExercise,
     props: route => ({ id: parseInt(route.params.id) || 1 }),
     meta: {
-      title: 'Fit in Englisch - Uebung',
+      title: 'Fit in Englisch - Übung',
     }
   },
   {
