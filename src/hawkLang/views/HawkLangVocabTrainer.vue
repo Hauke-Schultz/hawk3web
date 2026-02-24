@@ -15,7 +15,7 @@ const { langData } = useLangLocalStorage()
 const lessonId = parseInt(route.params.id)
 const lesson = getLessonById(lessonId)
 
-// Collect all unique vocabulary from the lesson
+// Collect all unique vocabulary from the lesson (fixed order)
 const allVocabulary = computed(() => {
   if (!lesson) return []
   const seen = new Set()
@@ -32,6 +32,8 @@ const allVocabulary = computed(() => {
   return vocabs
 })
 
+const vocabKey = (v) => `${v.de}|${v.en}`
+
 // State
 const currentIndex = ref(0)
 const phase = ref('quiz') // 'quiz' | 'result' | 'finished'
@@ -40,6 +42,8 @@ const isCorrect = ref(false)
 const correctCount = ref(0)
 const quizOrder = ref([])
 const quizOptions = ref([])
+const wrongVocabs = ref([])
+const sessionResults = ref({})
 
 const questionLang = computed(() => langData.direction === 'de-en' ? 'de' : 'en')
 const answerLang = computed(() => langData.direction === 'de-en' ? 'en' : 'de')
@@ -52,10 +56,15 @@ const currentVocab = computed(() => {
 
 const totalVocabs = computed(() => quizOrder.value.length)
 
-const progressPercent = computed(() => {
-  if (!totalVocabs.value) return 0
-  return Math.round((currentIndex.value / totalVocabs.value) * 100)
-})
+const initSessionResults = (keepCorrect = false) => {
+  if (!lesson) return
+  const result = {}
+  allVocabulary.value.forEach(v => {
+    const key = vocabKey(v)
+    result[key] = (keepCorrect && sessionResults.value[key] === 'correct') ? 'correct' : 'pending'
+  })
+  sessionResults.value = result
+}
 
 const buildVocabQuiz = () => {
   if (!currentVocab.value) return
@@ -85,7 +94,13 @@ const selectAnswer = (answer) => {
   isCorrect.value = answer === correct
   phase.value = 'result'
 
-  if (isCorrect.value) correctCount.value++
+  if (isCorrect.value) {
+    correctCount.value++
+  } else {
+    wrongVocabs.value.push(currentVocab.value)
+  }
+
+  sessionResults.value[vocabKey(currentVocab.value)] = isCorrect.value ? 'correct' : 'wrong'
 }
 
 const isVisibleAnswer = (option) => {
@@ -116,7 +131,18 @@ const nextVocab = () => {
 const restart = () => {
   currentIndex.value = 0
   correctCount.value = 0
+  wrongVocabs.value = []
   quizOrder.value = shuffleArray([...allVocabulary.value])
+  initSessionResults(false)
+  buildVocabQuiz()
+}
+
+const restartWrong = () => {
+  currentIndex.value = 0
+  correctCount.value = 0
+  quizOrder.value = shuffleArray([...wrongVocabs.value])
+  wrongVocabs.value = []
+  initSessionResults(true)
   buildVocabQuiz()
 }
 
@@ -130,6 +156,7 @@ const handleMenuClick = () => {
 
 onMounted(() => {
   if (lesson && allVocabulary.value.length > 0) {
+    initSessionResults(false)
     quizOrder.value = shuffleArray([...allVocabulary.value])
     buildVocabQuiz()
   }
@@ -149,7 +176,7 @@ onMounted(() => {
     <!-- No lesson found -->
     <div v-if="!lesson" class="error-state">
       <p>Lektion nicht gefunden.</p>
-      <button class="btn btn--primary" @click="goBack">Zurueck</button>
+      <button class="btn btn--primary" @click="goBack">Zurück</button>
     </div>
 
     <!-- Finished screen -->
@@ -166,14 +193,32 @@ onMounted(() => {
         </div>
         <p class="score-label">richtige Antworten</p>
 
+        <!-- Segment track on finished screen -->
+        <div class="progress-track progress-track--finished">
+          <div
+            v-for="vocab in allVocabulary"
+            :key="vocabKey(vocab)"
+            class="progress-segment"
+            :class="sessionResults[vocabKey(vocab)] || 'pending'"
+          ></div>
+        </div>
+
         <div class="finished-actions">
           <button class="btn btn--primary" @click="restart">
             <Icon name="repeat" size="18" />
-            Nochmal
+            Alle wiederholen
+          </button>
+          <button
+            v-if="wrongVocabs.length > 0"
+            class="btn btn--warning"
+            @click="restartWrong"
+          >
+            <Icon name="x-circle" size="18" />
+            Nur Fehler ({{ wrongVocabs.length }})
           </button>
           <button class="btn btn--ghost" @click="goBack">
             <Icon name="arrow-left" size="18" />
-            Zurueck zur Lektion
+            Zurück zur Lektion
           </button>
         </div>
       </div>
@@ -191,13 +236,21 @@ onMounted(() => {
           <span class="direction-badge">{{ directionLabel }}</span>
         </div>
         <div class="progress-track">
-          <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+          <div
+            v-for="vocab in allVocabulary"
+            :key="vocabKey(vocab)"
+            class="progress-segment"
+            :class="[
+              sessionResults[vocabKey(vocab)] || 'pending',
+              { 'progress-segment--current': currentVocab && vocabKey(vocab) === vocabKey(currentVocab) }
+            ]"
+          ></div>
         </div>
       </div>
 
       <!-- Vocab question -->
       <section class="question-section">
-        <p class="question-hint">Uebersetze:</p>
+        <p class="question-hint">Übersetze:</p>
         <h2 class="question-text">{{ currentVocab[questionLang] }}</h2>
       </section>
 
@@ -247,23 +300,27 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .exercise-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
 
 .progress-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-2);
+  gap: var(--space-2);
 }
 
 .progress-label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
+  white-space: nowrap;
 }
 
 .direction-badge {
+  margin-left: auto;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   color: var(--primary-color);
@@ -274,18 +331,34 @@ onMounted(() => {
 }
 
 .progress-track {
+  display: flex;
+  gap: 4px;
   width: 100%;
-  height: 6px;
-  background-color: var(--card-border);
-  border-radius: 3px;
-  overflow: hidden;
+
+  &--finished {
+    width: 100%;
+  }
 }
 
-.progress-fill {
-  height: 100%;
-  background-color: var(--primary-color);
+.progress-segment {
+  flex: 1;
+  height: 8px;
   border-radius: 3px;
-  transition: width 0.4s ease;
+  background-color: var(--card-border);
+  transition: background-color 0.3s ease;
+
+  &.correct {
+    background-color: var(--success-color, #22c55e);
+  }
+
+  &.wrong {
+    background-color: var(--error-color, #ef4444);
+  }
+
+  &.progress-segment--current {
+    background-color: var(--primary-color);
+    opacity: 0.5;
+  }
 }
 
 .question-section {

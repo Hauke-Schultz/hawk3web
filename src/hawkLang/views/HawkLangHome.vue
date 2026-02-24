@@ -9,7 +9,7 @@ import { getAllLessons } from '../data/lessons.js'
 
 const router = useRouter()
 const { gameData } = useLocalStorage()
-const { langData, setDirection, getLessonScore } = useLangLocalStorage()
+const { langData, setDirection, getLessonProgress } = useLangLocalStorage()
 
 const lessons = getAllLessons()
 
@@ -26,9 +26,13 @@ const questionLang = computed(() => langData.direction === 'de-en' ? 'de' : 'en'
 const getLessonTitle = (lesson) => lesson.title[questionLang.value]
 const getLessonDescription = (lesson) => lesson.description[questionLang.value]
 
-const getLessonProgressInfo = (lesson) => {
-  const score = getLessonScore(lesson.id, lesson.sentences.length)
-  return score
+const getLessonSegments = (lesson) => {
+  const progress = getLessonProgress(lesson.id)
+  return lesson.sentences.map(sentence => {
+    const data = progress.sentences[sentence.id]
+    if (!data) return 'pending'
+    return data.correct ? 'correct' : 'wrong'
+  })
 }
 
 const startLesson = (lessonId) => {
@@ -77,24 +81,14 @@ const handleMenuClick = () => {
         </div>
 
         <div class="lesson-meta">
-          <span class="sentence-count">{{ lesson.sentences.length }} Saetze</span>
-
-          <div class="progress-info">
+          <span class="sentence-count">{{ lesson.sentences.length }} Sätze</span>
+          <div class="progress-track">
             <div
-              v-if="getLessonProgressInfo(lesson).answered > 0"
-              class="progress-bar-container"
-            >
-              <div
-                class="progress-bar"
-                :style="{ width: (getLessonProgressInfo(lesson).correct / getLessonProgressInfo(lesson).total * 100) + '%' }"
-              ></div>
-            </div>
-            <span
-              v-if="getLessonProgressInfo(lesson).answered > 0"
-              class="progress-text"
-            >
-              {{ getLessonProgressInfo(lesson).correct }}/{{ getLessonProgressInfo(lesson).total }}
-            </span>
+              v-for="(status, index) in getLessonSegments(lesson)"
+              :key="index"
+              class="progress-segment"
+              :class="status"
+            ></div>
           </div>
         </div>
 
@@ -191,31 +185,25 @@ const handleMenuClick = () => {
   white-space: nowrap;
 }
 
-.progress-info {
+.progress-track {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+	overflow: hidden;
+	border-radius: 3px;
 }
 
-.progress-bar-container {
-  width: 60px;
-  height: 6px;
+.progress-segment {
+  width: 10px;
+  height: 10px;
   background-color: var(--card-border);
-  border-radius: 3px;
-  overflow: hidden;
-}
+  transition: background-color 0.2s ease;
 
-.progress-bar {
-  height: 100%;
-  background-color: var(--success-color, #22c55e);
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
+  &.correct {
+    background-color: var(--success-color, #22c55e);
+  }
 
-.progress-text {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  white-space: nowrap;
+  &.wrong {
+    background-color: var(--error-color, #ef4444);
+  }
 }
 
 .lesson-arrow {

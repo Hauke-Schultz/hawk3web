@@ -22,7 +22,23 @@ const selectedAnswer = ref(null)
 const isCorrect = ref(false)
 const showGrammar = ref(true)
 const correctCount = ref(0)
+const sessionResults = ref({})
 const quizData = ref(null)
+
+const initSessionResults = (keepCorrect = false) => {
+  if (!lesson) return
+  const result = {}
+  if (keepCorrect) {
+    const progress = getLessonProgress(lessonId)
+    lesson.sentences.forEach(s => {
+      const data = progress.sentences[s.id]
+      result[s.id] = (data && data.correct) ? 'correct' : 'pending'
+    })
+  } else {
+    lesson.sentences.forEach(s => { result[s.id] = 'pending' })
+  }
+  sessionResults.value = result
+}
 const wrongSentenceIds = ref([])
 const activeSentences = ref(lesson ? [...lesson.sentences] : [])
 
@@ -34,10 +50,6 @@ const currentSentence = computed(() => {
 
 const totalSentences = computed(() => activeSentences.value.length)
 
-const progressPercent = computed(() => {
-  if (!totalSentences.value) return 0
-  return Math.round((currentIndex.value / totalSentences.value) * 100)
-})
 
 const directionLabel = computed(() => {
   return langData.direction === 'de-en' ? 'DE → EN' : 'EN → DE'
@@ -85,6 +97,7 @@ const selectAnswer = (answer) => {
   }
 
   recordAnswer(lessonId, currentSentence.value.id, isCorrect.value)
+  sessionResults.value[currentSentence.value.id] = isCorrect.value ? 'correct' : 'wrong'
 }
 
 const isVisibleAnswer = (option) => {
@@ -120,10 +133,12 @@ const restartLesson = (onlyWrong = false) => {
   if (onlyWrong && wrongSentenceIds.value.length > 0) {
     activeSentences.value = lesson.sentences.filter(s => wrongSentenceIds.value.includes(s.id))
     wrongSentenceIds.value = []
+    initSessionResults(true)
     buildQuiz()
   } else {
     activeSentences.value = [...lesson.sentences]
     wrongSentenceIds.value = []
+    initSessionResults(false)
     // Show story again for full restart
     if (hasDialogue.value) {
       phase.value = 'story'
@@ -154,17 +169,27 @@ onMounted(() => {
 
   const progress = getLessonProgress(lessonId)
   if (progress.completed) {
-    // Load previous results
+    // Load previous results into sessionResults
+    const result = {}
+    lesson.sentences.forEach(s => {
+      const data = progress.sentences[s.id]
+      result[s.id] = data ? (data.correct ? 'correct' : 'wrong') : 'pending'
+    })
+    sessionResults.value = result
+
     const savedWrongIds = getWrongSentenceIds(lessonId)
     wrongSentenceIds.value = savedWrongIds
     const correct = Object.values(progress.sentences).filter(s => s.correct).length
     correctCount.value = correct
     activeSentences.value = [...lesson.sentences]
     phase.value = 'finished'
-  } else if (hasDialogue.value) {
-    phase.value = 'story'
   } else {
-    buildQuiz()
+    initSessionResults(false)
+    if (hasDialogue.value) {
+      phase.value = 'story'
+    } else {
+      buildQuiz()
+    }
   }
 })
 </script>
@@ -284,7 +309,15 @@ onMounted(() => {
         </button>
         </div>
         <div class="progress-track">
-          <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+          <div
+            v-for="sentence in lesson.sentences"
+            :key="sentence.id"
+            class="progress-segment"
+            :class="[
+              sessionResults[sentence.id] || 'pending',
+              { 'progress-segment--current': currentSentence && sentence.id === currentSentence.id }
+            ]"
+          ></div>
         </div>
       </div>
 
@@ -404,35 +437,50 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .exercise-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
 
 .progress-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-2);
+  gap: var(--space-2);
 }
 
 .progress-label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
+  white-space: nowrap;
 }
 
 .progress-track {
+  display: flex;
+  gap: 4px;
   width: 100%;
-  height: 6px;
-  background-color: var(--card-border);
-  border-radius: 3px;
-  overflow: hidden;
 }
 
-.progress-fill {
-  height: 100%;
-  background-color: var(--primary-color);
+.progress-segment {
+  flex: 1;
+  height: 8px;
   border-radius: 3px;
-  transition: width 0.4s ease;
+  background-color: var(--card-border);
+  transition: background-color 0.3s ease;
+
+  &.correct {
+    background-color: var(--success-color, #22c55e);
+  }
+
+  &.wrong {
+    background-color: var(--error-color, #ef4444);
+  }
+
+  &.progress-segment--current {
+    background-color: var(--primary-color);
+    opacity: 0.5;
+  }
 }
 
 .question-section {
