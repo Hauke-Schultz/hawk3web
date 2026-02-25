@@ -9,6 +9,9 @@ const getDefaultLangData = () => ({
   // Progress per lesson: { lessonId: { completed: false, sentences: { sentenceId: { correct: bool } } } }
   lessonProgress: {},
 
+  // Vocab trainer results: { `${lessonId}_${direction}`: { correctCount, sessionResults, bestStreak, wrongVocabs } }
+  vocabProgress: {},
+
   // Statistics
   stats: {
     totalAnswered: 0,
@@ -128,6 +131,21 @@ export function useLangLocalStorage() {
     Object.assign(langData, getDefaultLangData())
   }
 
+  const saveVocabProgress = (lessonId, direction, data) => {
+    if (!langData.vocabProgress) langData.vocabProgress = {}
+    langData.vocabProgress[`${lessonId}_${direction}`] = data
+  }
+
+  const getVocabProgress = (lessonId, direction) => {
+    return langData.vocabProgress?.[`${lessonId}_${direction}`] || null
+  }
+
+  const clearVocabProgress = (lessonId, direction) => {
+    if (langData.vocabProgress) {
+      delete langData.vocabProgress[`${lessonId}_${direction}`]
+    }
+  }
+
   return {
     langData,
     setDirection,
@@ -137,6 +155,9 @@ export function useLangLocalStorage() {
     getLessonScore,
     getWrongSentenceIds,
     resetLessonProgress,
-    resetAllProgress
+    resetAllProgress,
+    saveVocabProgress,
+    getVocabProgress,
+    clearVocabProgress
   }
 }

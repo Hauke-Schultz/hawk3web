@@ -167,6 +167,21 @@ const handleMenuClick = () => {
 onMounted(() => {
   if (!lesson) return
 
+  if (route.query.mode === 'wrong') {
+    const wrongIds = getWrongSentenceIds(lessonId)
+    if (wrongIds.length > 0) {
+      activeSentences.value = lesson.sentences.filter(s => wrongIds.includes(s.id))
+      wrongSentenceIds.value = []
+      correctCount.value = 0
+      initSessionResults(true)
+      buildQuiz()
+    } else {
+      initSessionResults(false)
+      buildQuiz()
+    }
+    return
+  }
+
   const progress = getLessonProgress(lessonId)
   if (progress.completed) {
     // Load previous results into sessionResults

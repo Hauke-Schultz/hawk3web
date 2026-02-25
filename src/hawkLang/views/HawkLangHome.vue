@@ -9,7 +9,7 @@ import { getAllLessons } from '../data/lessons.js'
 
 const router = useRouter()
 const { gameData } = useLocalStorage()
-const { langData, setDirection, getLessonProgress } = useLangLocalStorage()
+const { langData, setDirection, getLessonProgress, getVocabProgress } = useLangLocalStorage()
 
 const lessons = getAllLessons()
 
@@ -35,8 +35,34 @@ const getLessonSegments = (lesson) => {
   })
 }
 
+const hasWrongLessonAnswers = (lessonId) => {
+  const progress = getLessonProgress(lessonId)
+  return Object.values(progress.sentences).some(s => !s.correct)
+}
+
+const hasWrongVocabAnswers = (lessonId) => {
+  const saved = getVocabProgress(lessonId, langData.direction)
+  return saved?.wrongVocabs?.length > 0
+}
+
 const startLesson = (lessonId) => {
   router.push(`/hawkLang/lesson/${lessonId}`)
+}
+
+const restartLesson = (lessonId) => {
+  router.push(`/hawkLang/lesson/${lessonId}?mode=wrong`)
+}
+
+const startVocab = (lessonId) => {
+  router.push(`/hawkLang/lesson/${lessonId}/vocab`)
+}
+
+const restartVocab = (lessonId) => {
+  router.push(`/hawkLang/lesson/${lessonId}/vocab?mode=wrong`)
+}
+
+const openGrammar = (lessonId) => {
+  router.push(`/hawkLang/lesson/${lessonId}/grammar`)
 }
 
 const handleMenuClick = () => {
@@ -70,29 +96,60 @@ const handleMenuClick = () => {
         v-for="lesson in lessons"
         :key="lesson.id"
         class="lesson-card"
-        @click="startLesson(lesson.id)"
       >
-        <div class="lesson-info">
-          <h2 class="lesson-title">
-            <span class="lesson-number">{{ lesson.order }}.</span>
-            {{ getLessonTitle(lesson) }}
-          </h2>
-          <p class="lesson-description">{{ getLessonDescription(lesson) }}</p>
-        </div>
+        <div class="lesson-top">
+          <div class="lesson-info">
+            <h2 class="lesson-title">
+              <span class="lesson-number">{{ lesson.order }}.</span>
+              {{ getLessonTitle(lesson) }}
+            </h2>
+            <p class="lesson-description">{{ getLessonDescription(lesson) }}</p>
+          </div>
 
-        <div class="lesson-meta">
-          <span class="sentence-count">{{ lesson.sentences.length }} Sätze</span>
-          <div class="progress-track">
-            <div
-              v-for="(status, index) in getLessonSegments(lesson)"
-              :key="index"
-              class="progress-segment"
-              :class="status"
-            ></div>
+          <div class="lesson-meta">
+            <span class="sentence-count">{{ lesson.sentences.length }} Sätze</span>
+            <div class="progress-track">
+              <div
+                v-for="(status, index) in getLessonSegments(lesson)"
+                :key="index"
+                class="progress-segment"
+                :class="status"
+              ></div>
+            </div>
           </div>
         </div>
 
-        <Icon name="chevron-right" size="20" class="lesson-arrow" />
+        <div class="lesson-actions">
+          <div class="lesson-btn-group">
+            <button class="btn btn--primary lesson-btn" @click="startLesson(lesson.id)">
+              <Icon name="play" size="15" />
+            </button>
+            <button
+              v-if="hasWrongLessonAnswers(lesson.id)"
+              class="btn btn--ghost lesson-restart-btn"
+              title="Neu starten"
+              @click="restartLesson(lesson.id)"
+            >
+              <Icon name="repeat" size="15" />
+            </button>
+          </div>
+          <div class="lesson-btn-group">
+            <button class="btn btn--secondary lesson-btn" @click="startVocab(lesson.id)">
+              <Icon name="book-open" size="15" />
+            </button>
+            <button
+              v-if="hasWrongVocabAnswers(lesson.id)"
+              class="btn btn--ghost lesson-restart-btn"
+              title="Neu starten"
+              @click="restartVocab(lesson.id)"
+            >
+              <Icon name="repeat" size="15" />
+            </button>
+          </div>
+          <button class="btn btn--secondary lesson-btn" @click="openGrammar(lesson.id)">
+            <Icon name="info" size="15" />
+          </button>
+        </div>
       </div>
     </section>
   </main>
@@ -129,24 +186,18 @@ const handleMenuClick = () => {
 
 .lesson-card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--space-3);
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--border-radius-xl);
   padding: var(--space-4);
-  cursor: pointer;
-  transition: all 0.2s ease;
+}
 
-  &:hover {
-    background-color: var(--card-bg-hover);
-    border-color: var(--primary-color);
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
+.lesson-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .lesson-info {
@@ -206,8 +257,35 @@ const handleMenuClick = () => {
   }
 }
 
-.lesson-arrow {
-  color: var(--text-secondary);
+.lesson-actions {
+  display: flex;
+  gap: var(--space-2);
+  border-top: 1px solid var(--card-border);
+  padding-top: var(--space-3);
+}
+
+.lesson-btn-group {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+}
+
+.lesson-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.lesson-restart-btn {
   flex-shrink: 0;
+  padding: var(--space-2);
+  color: var(--text-secondary);
+
+  &:hover {
+    color: var(--primary-color);
+  }
 }
 </style>

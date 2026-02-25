@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Header from '../../gamingHub/components/Header.vue'
 import Icon from '../../components/Icon.vue'
@@ -10,12 +10,11 @@ import { getLessonById, shuffleArray } from '../data/lessons.js'
 const router = useRouter()
 const route = useRoute()
 const { gameData } = useLocalStorage()
-const { langData } = useLangLocalStorage()
+const { langData, saveVocabProgress, getVocabProgress, clearVocabProgress } = useLangLocalStorage()
 
 const lessonId = parseInt(route.params.id)
 const lesson = getLessonById(lessonId)
 
-// Collect all unique vocabulary from the lesson (fixed order)
 const allVocabulary = computed(() => {
   if (!lesson) return []
   const seen = new Set()
@@ -34,131 +33,190 @@ const allVocabulary = computed(() => {
 
 const vocabKey = (v) => `${v.de}|${v.en}`
 
-// State
-const currentIndex = ref(0)
-const phase = ref('quiz') // 'quiz' | 'result' | 'finished'
-const selectedAnswer = ref(null)
-const isCorrect = ref(false)
-const correctCount = ref(0)
-const quizOrder = ref([])
-const quizOptions = ref([])
-const wrongVocabs = ref([])
-const sessionResults = ref({})
-
 const questionLang = computed(() => langData.direction === 'de-en' ? 'de' : 'en')
 const answerLang = computed(() => langData.direction === 'de-en' ? 'en' : 'de')
 const directionLabel = computed(() => langData.direction === 'de-en' ? 'DE → EN' : 'EN → DE')
+const answerLangLabel = computed(() => answerLang.value === 'en' ? 'Englisch' : 'Deutsch')
 
-const currentVocab = computed(() => {
-  if (quizOrder.value.length === 0) return null
-  return quizOrder.value[currentIndex.value] || null
-})
+// State
+const currentIndex = ref(0)
+const phase = ref('typing') // 'typing' | 'result' | 'finished'
+const userInput = ref('')
+const isCorrect = ref(false)
+const wasFuzzy = ref(false)
+const correctCount = ref(0)
+const wrongVocabs = ref([])
+const quizOrder = ref([])
+const sessionResults = ref({})
+const streak = ref(0)
+const bestStreak = ref(0)
+const inputRef = ref(null)
 
+const currentVocab = computed(() => quizOrder.value[currentIndex.value] || null)
 const totalVocabs = computed(() => quizOrder.value.length)
 
-const initSessionResults = (keepCorrect = false) => {
-  if (!lesson) return
+// Levenshtein distance
+const levenshtein = (a, b) => {
+  const dp = Array.from({ length: b.length + 1 }, (_, i) => [i])
+  for (let j = 0; j <= a.length; j++) dp[0][j] = j
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      dp[i][j] = b[i - 1] === a[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j - 1], dp[i][j - 1], dp[i - 1][j])
+    }
+  }
+  return dp[b.length][a.length]
+}
+
+// Fuzzy match: words ≤4 chars need exact match, 5-8 chars allow 1 typo, 9+ allow 2
+// Also handles "to drink" vs "drink" (missing or extra "to" prefix)
+const checkAnswer = (input, correct) => {
+  const a = input.trim().toLowerCase()
+  const b = correct.trim().toLowerCase()
+  if (a === b) return { match: true, fuzzy: false }
+
+  // "to drink" eingegeben, "drink" erwartet — oder umgekehrt
+  if (b.startsWith('to ') && a === b.slice(3)) return { match: true, fuzzy: true }
+  if (a.startsWith('to ') && a.slice(3) === b) return { match: true, fuzzy: true }
+
+  const maxDist = b.length <= 4 ? 0 : b.length <= 8 ? 1 : 2
+  const dist = levenshtein(a, b)
+  return { match: dist <= maxDist, fuzzy: dist > 0 && dist <= maxDist }
+}
+
+const initSessionResults = () => {
   const result = {}
-  allVocabulary.value.forEach(v => {
-    const key = vocabKey(v)
-    result[key] = (keepCorrect && sessionResults.value[key] === 'correct') ? 'correct' : 'pending'
-  })
+  allVocabulary.value.forEach(v => { result[vocabKey(v)] = 'pending' })
   sessionResults.value = result
 }
 
-const buildVocabQuiz = () => {
-  if (!currentVocab.value) return
-
-  const correct = currentVocab.value[answerLang.value]
-
-  // Pick 3 random wrong answers from other vocabs
-  const otherVocabs = allVocabulary.value.filter(v => v[answerLang.value] !== correct)
-  const wrongPool = shuffleArray(otherVocabs).slice(0, 3).map(v => v[answerLang.value])
-
-  // If not enough wrong answers, pad with placeholders
-  while (wrongPool.length < 3) {
-    wrongPool.push('—')
-  }
-
-  quizOptions.value = shuffleArray([correct, ...wrongPool])
-  phase.value = 'quiz'
-  selectedAnswer.value = null
-  isCorrect.value = false
+const focusInput = async () => {
+  await nextTick()
+  inputRef.value?.focus()
 }
 
-const selectAnswer = (answer) => {
-  if (phase.value === 'result') return
+const submitAnswer = () => {
+  if (phase.value !== 'typing' || !userInput.value.trim()) return
 
   const correct = currentVocab.value[answerLang.value]
-  selectedAnswer.value = answer
-  isCorrect.value = answer === correct
+  const result = checkAnswer(userInput.value, correct)
+  isCorrect.value = result.match
+  wasFuzzy.value = result.fuzzy
   phase.value = 'result'
 
   if (isCorrect.value) {
     correctCount.value++
+    streak.value++
+    if (streak.value > bestStreak.value) bestStreak.value = streak.value
   } else {
     wrongVocabs.value.push(currentVocab.value)
+    streak.value = 0
   }
 
   sessionResults.value[vocabKey(currentVocab.value)] = isCorrect.value ? 'correct' : 'wrong'
 }
 
-const isVisibleAnswer = (option) => {
-  if (phase.value !== 'result') return true
-  const correct = currentVocab.value[answerLang.value]
-  if (option === correct) return true
-  if (option === selectedAnswer.value) return true
-  return false
+const skipVocab = () => {
+  if (phase.value !== 'typing') return
+  isCorrect.value = false
+  wasFuzzy.value = false
+  phase.value = 'result'
+  wrongVocabs.value.push(currentVocab.value)
+  streak.value = 0
+  sessionResults.value[vocabKey(currentVocab.value)] = 'wrong'
 }
 
-const getAnswerClass = (option) => {
-  if (phase.value !== 'result') return ''
-  const correct = currentVocab.value[answerLang.value]
-  if (option === correct) return 'answer--correct'
-  if (option === selectedAnswer.value && !isCorrect.value) return 'answer--wrong'
-  return ''
+const finishGame = () => {
+  phase.value = 'finished'
+  saveVocabProgress(lessonId, langData.direction, {
+    correctCount: correctCount.value,
+    sessionResults: { ...sessionResults.value },
+    bestStreak: bestStreak.value,
+    wrongVocabs: [...wrongVocabs.value]
+  })
 }
 
 const nextVocab = () => {
   if (currentIndex.value + 1 >= totalVocabs.value) {
-    phase.value = 'finished'
+    finishGame()
     return
   }
   currentIndex.value++
-  buildVocabQuiz()
+  userInput.value = ''
+  phase.value = 'typing'
+  focusInput()
 }
 
 const restart = () => {
+  clearVocabProgress(lessonId, langData.direction)
   currentIndex.value = 0
   correctCount.value = 0
   wrongVocabs.value = []
+  streak.value = 0
+  bestStreak.value = 0
   quizOrder.value = shuffleArray([...allVocabulary.value])
-  initSessionResults(false)
-  buildVocabQuiz()
+  initSessionResults()
+  userInput.value = ''
+  phase.value = 'typing'
+  focusInput()
 }
 
 const restartWrong = () => {
+  clearVocabProgress(lessonId, langData.direction)
+  const wrongs = [...wrongVocabs.value]
   currentIndex.value = 0
   correctCount.value = 0
-  quizOrder.value = shuffleArray([...wrongVocabs.value])
   wrongVocabs.value = []
-  initSessionResults(true)
-  buildVocabQuiz()
+  streak.value = 0
+  quizOrder.value = shuffleArray(wrongs)
+  initSessionResults()
+  userInput.value = ''
+  phase.value = 'typing'
+  focusInput()
 }
 
-const goBack = () => {
-  router.push(`/hawkLang/lesson/${lessonId}`)
-}
+const goBack = () => router.push(`/hawkLang/lesson/${lessonId}`)
+const handleMenuClick = () => router.push('/hawkLang')
 
-const handleMenuClick = () => {
-  router.push('/hawkLang')
+const handleKeydown = (e) => {
+  if (e.key === 'Enter') {
+    if (phase.value === 'typing') submitAnswer()
+    else if (phase.value === 'result') nextVocab()
+  }
 }
 
 onMounted(() => {
-  if (lesson && allVocabulary.value.length > 0) {
-    initSessionResults(false)
+  if (!lesson || allVocabulary.value.length === 0) return
+
+  const saved = getVocabProgress(lessonId, langData.direction)
+
+  if (route.query.mode === 'wrong' && saved?.wrongVocabs?.length > 0) {
+    clearVocabProgress(lessonId, langData.direction)
+    const wrongs = saved.wrongVocabs
+    correctCount.value = 0
+    wrongVocabs.value = []
+    streak.value = 0
+    bestStreak.value = 0
+    quizOrder.value = shuffleArray(wrongs)
+    initSessionResults()
+    userInput.value = ''
+    phase.value = 'typing'
+    focusInput()
+    return
+  }
+
+  if (saved) {
+    correctCount.value = saved.correctCount
+    sessionResults.value = saved.sessionResults
+    bestStreak.value = saved.bestStreak
+    wrongVocabs.value = saved.wrongVocabs || []
+    quizOrder.value = [...allVocabulary.value]
+    phase.value = 'finished'
+  } else {
+    initSessionResults()
     quizOrder.value = shuffleArray([...allVocabulary.value])
-    buildVocabQuiz()
+    focusInput()
   }
 })
 </script>
@@ -193,7 +251,10 @@ onMounted(() => {
         </div>
         <p class="score-label">richtige Antworten</p>
 
-        <!-- Segment track on finished screen -->
+        <div v-if="bestStreak > 1" class="streak-stat">
+          Beste Serie: {{ bestStreak }}x
+        </div>
+
         <div class="progress-track progress-track--finished">
           <div
             v-for="vocab in allVocabulary"
@@ -224,15 +285,16 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Vocab quiz -->
+    <!-- Typing game -->
     <template v-else-if="currentVocab">
-      <!-- Progress -->
+      <!-- Progress bar -->
       <div class="exercise-progress">
         <div class="progress-header">
           <button class="btn btn--ghost btn--small" @click="goBack">
             <Icon name="arrow-left" size="18" />
           </button>
           <span class="progress-label">{{ currentIndex + 1 }} / {{ totalVocabs }}</span>
+          <div v-if="streak > 1" class="streak-badge">{{ streak }}x</div>
           <span class="direction-badge">{{ directionLabel }}</span>
         </div>
         <div class="progress-track">
@@ -248,51 +310,64 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Vocab question -->
+      <!-- Question word -->
       <section class="question-section">
-        <p class="question-hint">Übersetze:</p>
+        <p class="question-hint">Schreibe auf {{ answerLangLabel }}:</p>
         <h2 class="question-text">{{ currentVocab[questionLang] }}</h2>
       </section>
 
-      <!-- Multiple choice -->
-      <section class="choices-section">
-        <template v-for="(option, index) in quizOptions" :key="index">
-          <button
-            v-if="isVisibleAnswer(option)"
-            class="answer-btn"
-            :class="getAnswerClass(option)"
+      <!-- Input area -->
+      <section class="input-section">
+        <div class="input-row">
+          <input
+            ref="inputRef"
+            v-model="userInput"
+            class="vocab-input"
+            :class="{
+              'vocab-input--correct': phase === 'result' && isCorrect,
+              'vocab-input--wrong': phase === 'result' && !isCorrect
+            }"
             :disabled="phase === 'result'"
-            @click="selectAnswer(option)"
+            placeholder="Übersetzung eingeben..."
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            @keydown="handleKeydown"
+          />
+          <button
+            v-if="phase === 'typing'"
+            class="btn btn--primary submit-btn"
+            :disabled="!userInput.trim()"
+            @click="submitAnswer"
           >
-            <span class="answer-letter">{{ ['A', 'B', 'C', 'D'][index] }}</span>
-            <span class="answer-text">{{ option }}</span>
-            <Icon
-              v-if="phase === 'result' && option === currentVocab[answerLang]"
-              name="check"
-              size="20"
-              class="answer-icon"
-            />
-            <Icon
-              v-if="phase === 'result' && option === selectedAnswer && !isCorrect && option !== currentVocab[answerLang]"
-              name="x"
-              size="20"
-              class="answer-icon"
-            />
+            <Icon name="check" size="20" />
           </button>
-        </template>
-      </section>
-
-      <!-- Feedback + Next -->
-      <section v-if="phase === 'result'" class="feedback-section">
-        <div class="feedback-banner" :class="isCorrect ? 'feedback--correct' : 'feedback--wrong'">
-          <Icon :name="isCorrect ? 'check-circle' : 'x-circle'" size="24" />
-          <span>{{ isCorrect ? 'Richtig!' : 'Leider falsch.' }}</span>
         </div>
 
-        <button class="btn btn--primary btn--large next-btn" @click="nextVocab">
-          {{ currentIndex + 1 >= totalVocabs ? 'Ergebnis anzeigen' : 'Weiter' }}
-          <Icon name="arrow-right" size="18" />
+        <button
+          v-if="phase === 'typing'"
+          class="btn btn--ghost skip-btn"
+          @click="skipVocab"
+        >
+          Weiß ich nicht
         </button>
+
+        <!-- Feedback -->
+        <div v-if="phase === 'result'" class="feedback-area">
+          <div class="feedback-banner" :class="isCorrect ? 'feedback--correct' : 'feedback--wrong'">
+            <Icon :name="isCorrect ? 'check-circle' : 'x-circle'" size="20" />
+            <span v-if="isCorrect && wasFuzzy">Fast perfekt — gemeint war: <strong>{{ currentVocab[answerLang] }}</strong></span>
+            <span v-else-if="isCorrect">Richtig!</span>
+            <span v-else>Richtige Antwort: <strong>{{ currentVocab[answerLang] }}</strong></span>
+          </div>
+
+          <button class="btn btn--primary btn--large next-btn" @click="nextVocab">
+            {{ currentIndex + 1 >= totalVocabs ? 'Ergebnis anzeigen' : 'Weiter' }}
+            <Icon name="arrow-right" size="18" />
+          </button>
+          <p class="enter-hint">oder Enter drücken</p>
+        </div>
       </section>
     </template>
   </main>
@@ -317,6 +392,16 @@ onMounted(() => {
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   white-space: nowrap;
+}
+
+.streak-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-1) var(--space-2);
 }
 
 .direction-badge {
@@ -363,99 +448,79 @@ onMounted(() => {
 
 .question-section {
   text-align: center;
-  padding: var(--space-8) 0 var(--space-6);
+  padding: var(--space-10) 0 var(--space-8);
 }
 
 .question-hint {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin: 0 0 var(--space-2) 0;
+  margin: 0 0 var(--space-3) 0;
 }
 
 .question-text {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-color);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
-.choices-section {
+.input-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  gap: var(--space-3);
 }
 
-.answer-btn {
+.input-row {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.vocab-input {
+  flex: 1;
   padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-base);
+  color: var(--text-color);
   background-color: var(--card-bg);
   border: 2px solid var(--card-border);
   border-radius: var(--border-radius-lg);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-base);
-  color: var(--text-color);
-  text-align: left;
-  min-height: 48px;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 
-  &:hover:not(:disabled) {
+  &:focus {
     border-color: var(--primary-color);
-    background-color: var(--card-bg-hover);
   }
 
   &:disabled {
     cursor: default;
   }
+
+  &--correct {
+    border-color: var(--success-color, #22c55e);
+    background-color: rgba(34, 197, 94, 0.06);
+  }
+
+  &--wrong {
+    border-color: var(--error-color, #ef4444);
+    background-color: rgba(239, 68, 68, 0.06);
+    animation: shake 0.35s ease;
+  }
 }
 
-.answer-letter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: var(--card-border);
-  font-weight: var(--font-weight-bold);
+.submit-btn {
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+}
+
+.skip-btn {
+  align-self: center;
   font-size: var(--font-size-sm);
-  flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
-.answer-text {
-  flex: 1;
-}
-
-.answer-icon {
-  flex-shrink: 0;
-}
-
-.answer--correct {
-  border-color: var(--success-color, #22c55e);
-  background-color: rgba(34, 197, 94, 0.1);
-
-  .answer-letter {
-    background-color: var(--success-color, #22c55e);
-    color: var(--white);
-  }
-}
-
-.answer--wrong {
-  border-color: var(--error-color, #ef4444);
-  background-color: rgba(239, 68, 68, 0.1);
-
-  .answer-letter {
-    background-color: var(--error-color, #ef4444);
-    color: var(--white);
-  }
-}
-
-.feedback-section {
+.feedback-area {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -467,17 +532,21 @@ onMounted(() => {
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--border-radius-lg);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+
+  strong {
+    font-weight: var(--font-weight-bold);
+  }
 }
 
 .feedback--correct {
-  background-color: rgba(34, 197, 94, 0.15);
+  background-color: rgba(34, 197, 94, 0.12);
   color: var(--success-color, #22c55e);
 }
 
 .feedback--wrong {
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.12);
   color: var(--error-color, #ef4444);
 }
 
@@ -487,6 +556,13 @@ onMounted(() => {
   justify-content: center;
   gap: var(--space-2);
   width: 100%;
+}
+
+.enter-hint {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 /* Finished screen */
@@ -551,6 +627,16 @@ onMounted(() => {
   margin: 0;
 }
 
+.streak-stat {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-1) var(--space-3);
+}
+
 .finished-actions {
   display: flex;
   flex-direction: column;
@@ -568,5 +654,13 @@ onMounted(() => {
   text-align: center;
   padding: var(--space-8) 0;
   color: var(--text-secondary);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-5px); }
+  80%       { transform: translateX(5px); }
 }
 </style>
