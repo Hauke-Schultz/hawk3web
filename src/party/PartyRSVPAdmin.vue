@@ -306,6 +306,35 @@ const exportToCSV = () => {
 }
 
 /**
+ * Vollständiger Backup-Export (Gästeliste + Highscores) als JSON
+ */
+const exportFullBackup = () => {
+  if (rsvps.value.length === 0 && highscores.value.length === 0) {
+    return
+  }
+
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    rsvps: rsvps.value,
+    highscores: highscores.value
+  }
+
+  const json = JSON.stringify(backup, null, 2)
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' })
+
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', `party-backup-${new Date().toISOString().split('T')[0]}.json`)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+/**
  * Refresh-Funktion
  */
 const refresh = () => {
@@ -913,6 +942,10 @@ onMounted(() => {
 
         <button @click="exportToCSV" class="btn btn--success export-btn">
           📥 CSV Export
+        </button>
+
+        <button @click="exportFullBackup" class="btn btn--primary export-btn">
+          💾 Backup Export
         </button>
       </section>
 
