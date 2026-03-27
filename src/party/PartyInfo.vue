@@ -772,7 +772,6 @@ const partyDetails = ref({
   description: 'Wir haben nicht nur 15 Jahre Ehe-Challenge gemeistert, sondern feiern auch einen weiteren Meilenstein!\n\nToni wurde 50, oder wie sie es ausdrückt: Sie steigt im Wert.\n\nJetzt kommt das Bonuslevel:\nParty! 🥳\n\nKommt und feiert mit uns, wenn wir zusammen weiterleveln – mit Musik, Spaß und ganz viel Konfetti! 🎊',
   dresscode: 'Nach Belieben - Hauptsache ihr fühlt euch wohl!',
   rsvpDeadline: '2026-05-01',
-  rsvpEmail: 'tonjaschultz@gmail.com',
   rsvpPhone: '+49 173 8934144',
   program: [
     { time: '16:00', icon: '🍾', activity: 'Welcome-Drink & Anstoßen (Sekt, Bier oder Cola – Hauptsache Spaß!)' },

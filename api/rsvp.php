@@ -17,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Konfiguration
 define('RSVP_FILE', __DIR__ . '/rsvp.json');
-define('ADMIN_EMAIL', 'all@haukeschultz.com'); // Admin E-Mail für Benachrichtigungen
 
 /**
  * RSVPs aus JSON-Datei laden
@@ -100,128 +99,6 @@ function findRSVPByGuestId($rsvps, $guestId) {
         }
     }
     return null;
-}
-
-/**
- * Sende E-Mail-Benachrichtigung bei RSVP-Änderungen
- */
-function sendRSVPNotification($rsvpData, $isNew) {
-    $to = ADMIN_EMAIL;
-    $subject = $isNew ? '🎉 Neuer Party Eintrag: ' . $rsvpData['name'] : '✏️ Party Eintrag aktualisiert: ' . $rsvpData['name'];
-
-    // Status-Text
-    $statusText = [
-        'accepted' => '✅ Zugesagt',
-        'declined' => '❌ Abgesagt',
-        'pending' => '⏳ Ausstehend'
-    ];
-    $status = $statusText[$rsvpData['status']] ?? $rsvpData['status'];
-
-    // Essensvorlieben formatieren
-    $foodPrefsText = '';
-    if (is_array($rsvpData['foodPreferences']) && count(array_filter($rsvpData['foodPreferences'])) > 0) {
-        $foodLabels = [
-            'standard' => 'Ich esse alles',
-            'vegetarisch' => 'Vegetarisch',
-            'vegan' => 'Vegan',
-            'allergien' => 'Allergien/Unverträglichkeiten'
-        ];
-        $prefs = array_map(function($pref) use ($foodLabels) {
-            return $foodLabels[$pref] ?? $pref;
-        }, array_filter($rsvpData['foodPreferences']));
-        $foodPrefsText = implode(', ', $prefs);
-    }
-
-    // HTML E-Mail erstellen
-    $message = "
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
-            .header { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-            .content { background: white; padding: 20px; border-radius: 0 0 8px 8px; }
-            .field { margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 4px solid #1e3a8a; }
-            .field-label { font-weight: bold; color: #1e3a8a; }
-            .field-value { margin-top: 5px; }
-            .status-badge { display: inline-block; padding: 5px 15px; border-radius: 5px; font-weight: bold; }
-            .status-accepted { background: #10b981; color: white; }
-            .status-declined { background: #ef4444; color: white; }
-            .status-pending { background: #f59e0b; color: white; }
-            .footer { margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px; text-align: center; }
-            .btn { display: inline-block; padding: 12px 24px; background: #1e3a8a; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
-        </style>
-    </head>
-    <body>
-        <div class='container'>
-            <div class='header'>
-                <h2 style='margin: 0;'>" . ($isNew ? '🎉 Neuer Party Eintrag eingegangen!' : '✏️ Party Eintrag wurde aktualisiert') . "</h2>
-            </div>
-            <div class='content'>
-                <div class='field'>
-                    <div class='field-label'>👤 Name:</div>
-                    <div class='field-value'>" . htmlspecialchars($rsvpData['name']) . "</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>📊 Status:</div>
-                    <div class='field-value'>
-                        <span class='status-badge status-" . $rsvpData['status'] . "'>" . $status . "</span>
-                    </div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>👥 Anzahl Personen:</div>
-                    <div class='field-value'>" . $rsvpData['numberOfGuests'] . "</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>🚗 Mit Auto:</div>
-                    <div class='field-value'>" . ($rsvpData['comingByCar'] ? 'Ja' : 'Nein') . "</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>🅿️ Parkplatz benötigt:</div>
-                    <div class='field-value'>" . ($rsvpData['needsParking'] ? 'Ja' : 'Nein') . "</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>🏨 Hotelzimmer benötigt:</div>
-                    <div class='field-value'>" . ($rsvpData['needsHotelRoom'] ? 'Ja (' . $rsvpData['numberOfRooms'] . ' Zimmer)' : 'Nein') . "</div>
-                </div>
-
-                " . ($foodPrefsText ? "
-                <div class='field'>
-                    <div class='field-label'>🍽️ Essensvorlieben:</div>
-                    <div class='field-value'>" . htmlspecialchars($foodPrefsText) . "</div>
-                </div>
-                " : "") . "
-
-                " . ($rsvpData['remarks'] ? "
-                <div class='field'>
-                    <div class='field-label'>💬 Bemerkungen:</div>
-                    <div class='field-value'>" . nl2br(htmlspecialchars($rsvpData['remarks'])) . "</div>
-                </div>
-                " : "") . "
-            </div>
-        </div>
-    </body>
-    </html>
-    ";
-
-    // E-Mail Headers
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-    $headers .= "From: Party Einladung <all@haukeschultz.com>" . "\r\n";
-
-    // E-Mail senden
-    $result = mail($to, $subject, $message, $headers);
-
-    if (!$result) {
-        error_log('Failed to send RSVP notification email to ' . $to);
-    }
-
-    return $result;
 }
 
 // Routing basierend auf REQUEST_METHOD
@@ -339,10 +216,6 @@ switch ($method) {
                 echo json_encode(['error' => 'Failed to save RSVP']);
                 exit();
             }
-
-            // E-Mail-Benachrichtigung senden
-            $isNewRSVP = ($existing === null);
-            sendRSVPNotification($rsvpData, $isNewRSVP);
 
             http_response_code(200);
             echo json_encode([

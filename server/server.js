@@ -3,7 +3,6 @@ import cors from 'cors'
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import nodemailer from 'nodemailer'
 import crypto from 'crypto'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -14,7 +13,6 @@ const PORT = process.env.PORT || 3000
 const HIGHSCORES_FILE = path.join(__dirname, 'highscores.json')
 const RSVP_FILE = path.join(__dirname, 'rsvp.json')
 const SPRITE_SHEETS_DIR = path.join(__dirname, '../public/dungeon')
-const ADMIN_EMAIL = 'haukeschultz@gmail.com'
 const USERS_FILE = path.join(__dirname, 'users.json')
 const GAMEDATA_FILE = path.join(__dirname, 'gamedata.json')
 
@@ -88,152 +86,6 @@ async function writeRSVPData(rsvpData) {
     return true
   } catch (error) {
     console.error('Error writing RSVP data:', error)
-    return false
-  }
-}
-
-// Send RSVP notification email
-async function sendRSVPNotification(rsvpData, isNew) {
-  // Create transporter for development (logs to console)
-  // For production, configure with real SMTP credentials
-  const transporter = nodemailer.createTransport({
-    // Development: Use Ethereal for testing or log to console
-    streamTransport: true,
-    newline: 'unix',
-    buffer: true
-  })
-
-  const statusText = {
-    'accepted': '✅ Zugesagt',
-    'declined': '❌ Abgesagt',
-    'pending': '⏳ Ausstehend'
-  }
-  const status = statusText[rsvpData.status] || rsvpData.status
-
-  // Format food preferences
-  let foodPrefsText = ''
-  if (Array.isArray(rsvpData.foodPreferences) && rsvpData.foodPreferences.filter(p => p).length > 0) {
-    const foodLabels = {
-      'standard': 'Ich esse alles',
-      'vegetarisch': 'Vegetarisch',
-      'vegan': 'Vegan',
-      'allergien': 'Allergien/Unverträglichkeiten'
-    }
-    const prefs = rsvpData.foodPreferences.filter(p => p).map(pref => foodLabels[pref] || pref)
-    foodPrefsText = prefs.join(', ')
-  }
-
-  const subject = isNew ? `🎉 Neue RSVP: ${rsvpData.name}` : `✏️ RSVP aktualisiert: ${rsvpData.name}`
-
-  const htmlContent = `
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
-            .header { background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-            .content { background: white; padding: 20px; border-radius: 0 0 8px 8px; }
-            .field { margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 4px solid #1e3a8a; }
-            .field-label { font-weight: bold; color: #1e3a8a; }
-            .field-value { margin-top: 5px; }
-            .status-badge { display: inline-block; padding: 5px 15px; border-radius: 5px; font-weight: bold; }
-            .status-accepted { background: #10b981; color: white; }
-            .status-declined { background: #ef4444; color: white; }
-            .status-pending { background: #f59e0b; color: white; }
-            .footer { margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px; text-align: center; }
-            .btn { display: inline-block; padding: 12px 24px; background: #1e3a8a; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
-        </style>
-    </head>
-    <body>
-        <div class='container'>
-            <div class='header'>
-                <h2 style='margin: 0;'>${isNew ? '🎉 Neuer Party Eintrag!' : '✏️ Party Eintrag wurde aktualisiert'}</h2>
-            </div>
-            <div class='content'>
-                <div class='field'>
-                    <div class='field-label'>👤 Name:</div>
-                    <div class='field-value'>${rsvpData.name}</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>📊 Status:</div>
-                    <div class='field-value'>
-                        <span class='status-badge status-${rsvpData.status}'>${status}</span>
-                    </div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>👥 Anzahl Personen:</div>
-                    <div class='field-value'>${rsvpData.numberOfGuests}</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>🚗 Mit Auto:</div>
-                    <div class='field-value'>${rsvpData.comingByCar ? 'Ja' : 'Nein'}</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>🅿️ Parkplatz benötigt:</div>
-                    <div class='field-value'>${rsvpData.needsParking ? 'Ja' : 'Nein'}</div>
-                </div>
-
-                <div class='field'>
-                    <div class='field-label'>🏨 Hotelzimmer benötigt:</div>
-                    <div class='field-value'>${rsvpData.needsHotelRoom ? `Ja (${rsvpData.numberOfRooms} Zimmer)` : 'Nein'}</div>
-                </div>
-
-                ${foodPrefsText ? `
-                <div class='field'>
-                    <div class='field-label'>🍽️ Essensvorlieben:</div>
-                    <div class='field-value'>${foodPrefsText}</div>
-                </div>
-                ` : ''}
-
-                ${rsvpData.remarks ? `
-                <div class='field'>
-                    <div class='field-label'>💬 Bemerkungen:</div>
-                    <div class='field-value'>${rsvpData.remarks.replace(/\n/g, '<br>')}</div>
-                </div>
-                ` : ''}
-
-                <div class='footer'>
-                    <p>Zum Admin-Bereich:</p>
-                    <a href='http://localhost:5173/party/admin' class='btn'>Zur Verwaltung</a>
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-  `
-
-  try {
-    const info = await transporter.sendMail({
-      from: '"Party Einladung" <noreply@haukeschultz.com>',
-      to: ADMIN_EMAIL,
-      subject: subject,
-      html: htmlContent
-    })
-
-    // Log email to console for development
-    console.log('\n' + '='.repeat(80))
-    console.log('📧 E-Mail-Benachrichtigung (Development Mode)')
-    console.log('='.repeat(80))
-    console.log(`An: ${ADMIN_EMAIL}`)
-    console.log(`Betreff: ${subject}`)
-    console.log('-'.repeat(80))
-    console.log(`Name: ${rsvpData.name}`)
-    console.log(`Status: ${status}`)
-    console.log(`Anzahl Personen: ${rsvpData.numberOfGuests}`)
-    console.log(`Mit Auto: ${rsvpData.comingByCar ? 'Ja' : 'Nein'}`)
-    console.log(`Parkplatz: ${rsvpData.needsParking ? 'Ja' : 'Nein'}`)
-    console.log(`Hotelzimmer: ${rsvpData.needsHotelRoom ? `Ja (${rsvpData.numberOfRooms} Zimmer)` : 'Nein'}`)
-    if (foodPrefsText) console.log(`Essensvorlieben: ${foodPrefsText}`)
-    if (rsvpData.remarks) console.log(`Bemerkungen: ${rsvpData.remarks}`)
-    console.log('='.repeat(80) + '\n')
-
-    return true
-  } catch (error) {
-    console.error('Fehler beim Senden der E-Mail-Benachrichtigung:', error)
     return false
   }
 }
@@ -1128,9 +980,6 @@ app.post('/api/rsvp', async (req, res) => {
     if (!success) {
       return res.status(500).json({ error: 'Failed to save RSVP' })
     }
-
-    // Send email notification
-    await sendRSVPNotification(rsvpData, isNewRSVP)
 
     res.json({
       message: 'RSVP saved successfully',
